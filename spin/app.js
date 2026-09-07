@@ -16,8 +16,10 @@ const refreshExtra = () => { EXTRA = EXTRA_ALL.filter((x) => !x.only || (x.only 
 // курс MEDDPICC — квалификация сделки (8 элементов + риски)
 const MED = (SPIN_DATA.meddicc && SPIN_DATA.meddicc.lessons) || [];
 const SPICED = (SPIN_DATA.spiced && SPIN_DATA.spiced.lessons) || []; // курс 1а — расширение СПИН
+const PRO = (SPIN_DATA.proactive && SPIN_DATA.proactive.lessons) || []; // курс 5 — Проактивные продажи (Skip Miller)
 let curMed = null;                     // индекс открытого MEDDPICC-урока (или null = основной урок)
 let curSpiced = null;                  // индекс открытого SPICED-урока (курс 1а)
+let curPro = null;                      // индекс открытого ProActive-урока (курс 5)
 
 // ===== Курсы внутри программы «Навыки продаж» =====
 const COURSES = [
@@ -77,6 +79,28 @@ function medSectionHtml() { // html секции «Курс 1B · MEDDPICC» (к
   }).join('')}
   </div>`;
 }
+function proSectionHtml() { // html секции «Курс 5 · Проактивные продажи» (карточки уроков)
+  const pd = PRO.length ? PRO.filter((ll, k) => S.proDone.includes(k)).length : 0;
+  return `
+  <div class="section-title-row" style="margin-top:26px"><div><h2>Курс 5 · Проактивные продажи — Skip Miller</h2><p>Управление сделкой · ${PRO.length} ${pluralN(PRO.length, ['урок', 'урока', 'уроков'])} · I-Date, квалификация, две параллельные продажи · пройдено ${pd} из ${PRO.length}</p></div></div>
+  ${cloudHtml(SPIN_DATA.proactive)}
+  <div class="module-grid">
+  ${PRO.map((ll, pi) => {
+    const d = S.proDone.includes(pi);
+    const parts = (ll.practice ? ll.practice.length : 0) || ll.blocks.length;
+    const desc = ll.intro.length > 90 ? ll.intro.slice(0, 90) + '…' : ll.intro;
+    return `<article class="module-card method-card current ${d ? 'completed' : ''}" data-pro="${pi}" tabindex="0" role="button" title="Урок курса Проактивные продажи — открыть">
+      <div class="module-number">${pi + 1}</div>
+      <div class="module-icon">${d ? '✓' : '↗'}</div>
+      <span class="status-label">${d ? 'ИЗУЧЕН' : 'УРОК ' + (pi + 1)}</span>
+      <h3>${esc(ll.title)}</h3>
+      <p>${esc(desc)}</p>
+      <div class="module-footer"><span>${esc(ll.mins)} · ${parts} раздела</span><strong>${d ? '100%' : '→'}</strong></div>
+      <div class="module-progress"><i style="width:${d ? 100 : 0}%"></i></div>
+    </article>`;
+  }).join('')}
+  </div>`;
+}
 function pluralN(n, forms) { // forms: [1, 2, 5] → «1 курс», «2 курса», «5 курсов»
   const m10 = n % 10, m100 = n % 100;
   if (m10 === 1 && m100 !== 11) return forms[0];
@@ -116,12 +140,14 @@ const S = {
   practiced: [],       // уроки, где практика «Проверь себя» отвечена до конца
   spPracticed: [],     // практики уроков курса 1а SPICED (до конца)
   medPracticed: [],    // практики уроков курса 1B MEDDPICC (до конца)
+  proPracticed: [],    // практики уроков курса 5 ProActive (до конца)
   xp: 0,
   correct: 0,
   attempts: 0,
   extraDone: [],        // прочитанные выжимки книг (локально, не в облаке)
   medDone: [],           // изученные уроки MEDDPICC (локально, не в облаке)
   spicedDone: [],        // изученные уроки SPICED — курс 1а (локально, не в облаке)
+  proDone: [],           // изученные уроки ProActive — курс 5 (локально, не в облаке)
   // тренажёр
   tMode: null, tIdx: 0, tPick: null, tScore: 0, tOrder: [],
   // кейс
@@ -132,7 +158,7 @@ function loadState() {
   try {
     const r = JSON.parse(localStorage.getItem(LS_KEY)) || {};
     S.lesson = r.lesson || 0; S.done = r.done || []; S.practiced = r.practiced || [];
-    S.spPracticed = r.spPracticed || []; S.medPracticed = r.medPracticed || [];
+    S.spPracticed = r.spPracticed || []; S.medPracticed = r.medPracticed || []; S.proPracticed = r.proPracticed || [];
     S.xp = r.xp || 0; S.correct = r.correct || 0; S.attempts = r.attempts || 0;
     S.cDone = r.cDone || [];
     if (['program', 'theory', 'practice', 'cheat', 'progress'].includes(r.tab)) S.tab = r.tab;
@@ -145,7 +171,7 @@ S.syncAt = null;       // время последней успешной син�
 S.dirty = false;       // есть несохранённые изменения
 
 function syncPayload() {
-  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, spicedDone: S.spicedDone, medDone: S.medDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, name: USER ? USER.name : '', email: USER ? USER.email : '' };
+  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, name: USER ? USER.name : '', email: USER ? USER.email : '' };
 }
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
@@ -176,6 +202,13 @@ function loadSpiced() {
 }
 function saveSpiced() {
   try { localStorage.setItem('spin-spiced:' + USER.id, JSON.stringify(S.spicedDone)); } catch (e) {}
+}
+function loadPro() {
+  try { S.proDone = JSON.parse(localStorage.getItem('spin-pro:' + USER.id)) || []; }
+  catch (e) { S.proDone = []; }
+}
+function savePro() {
+  try { localStorage.setItem('spin-pro:' + USER.id, JSON.stringify(S.proDone)); } catch (e) {}
 }
 function setSync(st) {
   S.sync = st;
@@ -244,6 +277,7 @@ function xpBackfill() { // одноразовая компенсация XP за
     bonus += (S.practiced || []).length * 5;    // практики «Проверь себя» основных уроков
     bonus += (S.spPracticed || []).length * 5;  // практики курса 1а SPICED
     bonus += (S.medPracticed || []).length * 5; // практики курса 1B MEDDPICC
+    bonus += (S.proPracticed || []).length * 5;  // практики курса 5 ProActive
     (S.extraDone || []).forEach((ei) => {       // выжимки книг: отметка «прочитано» + практика
       bonus += 30;
       const x = EXTRA_ALL[ei];
@@ -251,6 +285,7 @@ function xpBackfill() { // одноразовая компенсация XP за
     });
     bonus += (S.spicedDone || []).length * 30;  // отметки «урок изучен» SPICED
     bonus += (S.medDone || []).length * 30;     // отметки «урок изучен» MEDDPICC
+    bonus += (S.proDone || []).length * 30;     // отметки «урок изучен» ProActive
     localStorage.setItem(KEY, '1');
     if (bonus > 0) {
       S.xp += bonus;
@@ -272,8 +307,8 @@ async function cloudLoad() {
     if (cloud && cloud.xp > local.xp) {
       // облако строго новее — берём его
       S.lesson = cloud.lesson || 0; S.done = cloud.done || []; S.practiced = cloud.practiced || [];
-      S.spPracticed = cloud.spPracticed || []; S.medPracticed = cloud.medPracticed || [];
-      S.spicedDone = cloud.spicedDone || []; S.medDone = cloud.medDone || [];
+      S.spPracticed = cloud.spPracticed || []; S.medPracticed = cloud.medPracticed || []; S.proPracticed = cloud.proPracticed || [];
+      S.spicedDone = cloud.spicedDone || []; S.medDone = cloud.medDone || []; S.proDone = cloud.proDone || [];
       S.xp = cloud.xp || 0; S.correct = cloud.correct || 0; S.attempts = cloud.attempts || 0;
       try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
       if (local.xp > 0) toast('Прогресс загружен с сервера: ' + cloud.xp + ' XP');
@@ -306,6 +341,7 @@ function boot(user) {
   loadExtra();
   loadMed();
   loadSpiced();
+  loadPro();
   $('loginScreen').classList.add('hidden');
   $('appShell').style.display = '';
   $('profileName').textContent = USER.name;
@@ -446,17 +482,19 @@ function renderProgram() {
   curExtra = null; // выход в программу закрывает режим доп-урока
   curMed = null;   // выход в программу закрывает режим MEDDPICC-урока
   curSpiced = null; // выход в программу закрывает режим SPICED-урока (курс 1а)
+  curPro = null;    // выход в программу закрывает режим ProActive-урока (курс 5)
   const doneN = S.done.length;
   const spicedN = SPICED.filter((x, k) => S.spicedDone.includes(k)).length; // курс 1а входит в общий счёт
   const medN = MED.filter((x, k) => S.medDone.includes(k)).length; // курс 1B MEDDPICC — тоже в общем счёте
-  const totalAll = L.length + SPICED.length + MED.length;
+  const proN = PRO.filter((x, k) => S.proDone.includes(k)).length; // курс 5 ProActive — в общем счёте
+  const totalAll = L.length + SPICED.length + MED.length + PRO.length;
   let next = L.findIndex((l, i) => !S.done.includes(i));
   const spicedFull = SPICED.length > 0 && spicedN >= SPICED.length; // «Курс 1а» пройден целиком — открывает Курс 2
   const gateFrom = COURSES.length > 1 ? COURSES[1].from : L.length; // уроки Курса 2+ — только после SPICED
   const spIdx = SPICED.findIndex((x, k) => !S.spicedDone.includes(k)); // первый неоткрытый урок SPICED (-1 = все открыты)
   if (!spicedFull && next !== -1 && next >= gateFrom) next = -2; // Курс 1 пройден, но Курс 1а нет → ведём в SPICED
   const cur = next === -1 || next === -2 ? 0 : next;
-  const pct = Math.round(((doneN + spicedN + medN) / totalAll) * 100);
+  const pct = Math.round(((doneN + spicedN + medN + proN) / totalAll) * 100);
   const l = L[cur];
   const intro = (l.intro.length > 130 ? l.intro.slice(0, 130) + '…' : l.intro);
   const practiceN = l.practice ? l.practice.length : 0;
@@ -499,12 +537,13 @@ function renderProgram() {
     const medBlock = (gi === 0 && MED.length) ? medSectionHtml() : ''; // «Курс 1B · MEDDPICC» — сразу после SPICED
     return html + spicedBlock + medBlock;
   }).join('');
+  const proBlock = (PRO.length) ? proSectionHtml() : ''; // «Курс 5 · Проактивные продажи» — в конце маршрута, перед финалом
 
   const co = courseOf(cur);
   const allDone = doneN >= L.length && L.length > 0;
   const FINALE = SPIN_DATA.finale;
   // «Скоро в программе»: методы, которые ещё добавляются (книги в работе)
-  const soonMethods = METHODS.filter((m) => m.soon);
+  const soonMethods = PRO.length ? [] : METHODS.filter((m) => m.soon); // ProActive реализован — «Скоро» больше не показываем
   const extraCtlHtml = soonMethods.length ? `
   <div class="section-title-row" style="margin-top:26px"><div><h2>Скоро в программе</h2><p>Методы, которые добавляются</p></div></div>
   <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
@@ -541,7 +580,7 @@ function renderProgram() {
     <div>
       <p class="eyebrow">ПРОГРАММА ОБУЧЕНИЯ</p>
       <h1 id="program-title">Навыки продаж</h1>
-      <p>${totalAll} ${pluralN(totalAll, ['урок', 'урока', 'уроков'])} · ${COURSES.length + (MED.length ? 1 : 0) + (SPICED.length ? 1 : 0)} ${pluralN(COURSES.length + (MED.length ? 1 : 0) + (SPICED.length ? 1 : 0), ['курс', 'курса', 'курсов'])}</p>
+      <p>${totalAll} ${pluralN(totalAll, ['урок', 'урока', 'уроков'])} · ${COURSES.length + (MED.length ? 1 : 0) + (SPICED.length ? 1 : 0) + (PRO.length ? 1 : 0)} ${pluralN(COURSES.length + (MED.length ? 1 : 0) + (SPICED.length ? 1 : 0) + (PRO.length ? 1 : 0), ['курс', 'курса', 'курсов'])}</p>
     </div>
   </div>
 
@@ -590,10 +629,11 @@ function renderProgram() {
   </article>
 
   <div class="section-title-row">
-    <div><h2>Маршрут обучения</h2><p><span id="completedCount">${doneN + spicedN + medN}</span> из ${totalAll} уроков пройдено</p></div>
+    <div><h2>Маршрут обучения</h2><p><span id="completedCount">${doneN + spicedN + medN + proN}</span> из ${totalAll} уроков пройдено</p></div>
     <div class="overall-progress"><span id="overallPercent">${pct}%</span><div><i id="overallBar" style="width:${pct}%"></i></div></div>
   </div>
   ${moduleGroupsHtml}
+  ${proBlock}
   ${allDone && FINALE ? `
   <div class="section-title-row" style="margin-top:34px"><div><h2>${esc(FINALE.title)}</h2><p>После всех курсов — как выбирать метод</p></div></div>
   <article class="finale-card">
@@ -616,15 +656,18 @@ function renderProgram() {
   $('programBody').querySelectorAll('[data-cheat]').forEach((b) => b.addEventListener('click', () => switchTab('cheat')));
   $('programBody').querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => {
     const i = +b.dataset.open;
+    curPro = null;
     const sFull = SPICED.length > 0 && SPICED.every((x, k) => S.spicedDone.includes(k));
     const gFrom = COURSES.length > 1 ? COURSES[1].from : L.length;
     if (!sFull && i >= gFrom) { toast('Сначала пройдите Курс 1а · SPICED — потом откроется Курс 2'); return; }
     S.lesson = i; curExtra = null; curMed = null; curSpiced = null; switchTab('theory');
   }));
-  $('programBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curMed = null; curSpiced = null; switchTab('theory'); }));
-  $('programBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.med; curExtra = null; curSpiced = null; switchTab('theory'); }));
-  $('programBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; switchTab('theory'); }));
-  $('programBody').querySelectorAll('[data-medgo]').forEach((b) => b.addEventListener('click', () => { const n = MED.findIndex((x, k) => !S.medDone.includes(k)); curMed = n === -1 ? 0 : n; curSpiced = null; curExtra = null; switchTab('theory'); }));
+  $('programBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curMed = null; curSpiced = null; curPro = null; switchTab('theory'); }));
+  $('programBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.med; curExtra = null; curSpiced = null; curPro = null; switchTab('theory'); }));
+  $('programBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; switchTab('theory'); }));
+  $('programBody').querySelectorAll('[data-pro]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.pro; curMed = null; curExtra = null; curSpiced = null; switchTab('theory'); }));
+  $('programBody').querySelectorAll('[data-medgo]').forEach((b) => b.addEventListener('click', () => { const n = MED.findIndex((x, k) => !S.medDone.includes(k)); curMed = n === -1 ? 0 : n; curSpiced = null; curExtra = null; curPro = null; switchTab('theory'); }));
+  $('programBody').querySelectorAll('[data-progo]').forEach((b) => b.addEventListener('click', () => { const n = PRO.findIndex((x, k) => !S.proDone.includes(k)); curPro = n === -1 ? 0 : n; curMed = null; curExtra = null; curSpiced = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-spicedgo]').forEach((b) => b.addEventListener('click', () => { const n = SPICED.findIndex((x, k) => !S.spicedDone.includes(k)); curSpiced = n === -1 ? 0 : n; curMed = null; curExtra = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('.module-card.locked:not(.method-card)').forEach((b) => b.addEventListener('click', () => toast('Сначала пройдите текущий урок — этот откроется после его практики')));
   $('programBody').querySelectorAll('.method-card.locked').forEach((b) => b.addEventListener('click', () => toast('Курс скоро появится — книга в работе')));
@@ -636,11 +679,12 @@ function renderTheory() {
   if (curMed !== null && curMed >= MED.length) { curMed = null; }  // открытый MED-урок стал недоступен — сброс
   if (curExtra !== null && curExtra >= EXTRA.length) { curExtra = null; } // открытый урок стал невидим — сброс
   if (curSpiced !== null && curSpiced >= SPICED.length) { curSpiced = null; } // открытый SPICED-урок стал недоступен — сброс
-  const mode = curSpiced !== null ? 'spiced' : curMed !== null ? 'med' : curExtra !== null ? 'extra' : 'main';
-  const i = mode === 'spiced' ? curSpiced : mode === 'med' ? curMed : mode === 'extra' ? curExtra : S.lesson;
-  const l = mode === 'spiced' ? SPICED[i] : mode === 'med' ? MED[i] : mode === 'extra' ? EXTRA[i] : L[i];
-  const done = mode === 'spiced' ? S.spicedDone.includes(i) : mode === 'med' ? S.medDone.includes(i) : mode === 'extra' ? false : S.done.includes(i);
-  const free = mode !== 'main'; // у выжимок, MEDDPICC и SPICED практика не блокирует следующий шаг
+  if (curPro !== null && curPro >= PRO.length) { curPro = null; } // открытый ProActive-урок стал недоступен — сброс
+  const mode = curSpiced !== null ? 'spiced' : curMed !== null ? 'med' : curExtra !== null ? 'extra' : curPro !== null ? 'pro' : 'main';
+  const i = mode === 'spiced' ? curSpiced : mode === 'med' ? curMed : mode === 'extra' ? curExtra : mode === 'pro' ? curPro : S.lesson;
+  const l = mode === 'spiced' ? SPICED[i] : mode === 'med' ? MED[i] : mode === 'extra' ? EXTRA[i] : mode === 'pro' ? PRO[i] : L[i];
+  const done = mode === 'spiced' ? S.spicedDone.includes(i) : mode === 'med' ? S.medDone.includes(i) : mode === 'extra' ? false : mode === 'pro' ? S.proDone.includes(i) : S.done.includes(i);
+  const free = mode !== 'main'; // у выжимок, MEDDPICC, SPICED и ProActive практика не блокирует следующий шаг
   const hasP = !(l.practice && l.practice.length) || (free ? true : S.practiced.includes(i)); // практика пройдена (или её нет) — можно дальше
   pState = { i: 0, pick: null, score: 0 }; // практика урока всегда начинается с первого вопроса
 
@@ -657,6 +701,13 @@ function renderTheory() {
     railItems = `<div class="lesson-group-label"><span>Курс MEDDPICC</span>КВАЛИФИКАЦИЯ</div>` + MED.map((ll, ei) => {
       const d = S.medDone.includes(ei);
       return `<button class="lesson-item ${ei === i ? 'active' : d ? 'done' : ''}" data-med="${ei}" title="Урок квалификации сделки">
+        <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : ''}
+      </button>`;
+    }).join('');
+  } else if (mode === 'pro') {
+    railItems = `<div class="lesson-group-label"><span>Курс 5 · ProActive</span>УПРАВЛЕНИЕ СДЕЛКОЙ</div>` + PRO.map((ll, ei) => {
+      const d = S.proDone.includes(ei);
+      return `<button class="lesson-item ${ei === i ? 'active' : d ? 'done' : ''}" data-pro="${ei}" title="Урок Проактивных продаж">
         <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : ''}
       </button>`;
     }).join('');
@@ -691,9 +742,9 @@ function renderTheory() {
   // Шпаргалки теперь — отдельная вкладка (внизу), дубль в списке уроков не нужен
 
   const co = mode === 'main' ? courseOf(i) : null;
-  const kicker = mode === 'spiced' ? 'КУРС 1А · SPICED · УРОК ' + (i + 1) + ' ИЗ ' + SPICED.length : mode === 'med' ? 'КУРС MEDDPICC · УРОК ' + (i + 1) + ' ИЗ ' + MED.length : mode === 'extra' ? 'ДОПОЛНИТЕЛЬНО · ВЫЖИМКА ИЗ КНИГИ' : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num + ' ИЗ ' + co.len;
-  const railTitle = mode === 'spiced' ? 'Расширение СПИН' : mode === 'med' ? 'Квалификация сделки' : mode === 'extra' ? 'Выжимки книг' : 'Уроки курсов';
-  const railEyebrow = mode === 'spiced' ? 'SPICED · КУРС 1А' : mode === 'med' ? 'MEDDPICC' : mode === 'extra' ? 'ДОПОЛНИТЕЛЬНО' : 'ПРОГРАММА';
+  const kicker = mode === 'spiced' ? 'КУРС 1А · SPICED · УРОК ' + (i + 1) + ' ИЗ ' + SPICED.length : mode === 'med' ? 'КУРС MEDDPICC · УРОК ' + (i + 1) + ' ИЗ ' + MED.length : mode === 'extra' ? 'ДОПОЛНИТЕЛЬНО · ВЫЖИМКА ИЗ КНИГИ' : mode === 'pro' ? 'КУРС 5 · ПРОАКТИВНЫЕ ПРОДАЖИ · УРОК ' + (i + 1) + ' ИЗ ' + PRO.length : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num + ' ИЗ ' + co.len;
+  const railTitle = mode === 'spiced' ? 'Расширение СПИН' : mode === 'med' ? 'Квалификация сделки' : mode === 'extra' ? 'Выжимки книг' : mode === 'pro' ? 'Проактивные продажи' : 'Уроки курсов';
+  const railEyebrow = mode === 'spiced' ? 'SPICED · КУРС 1А' : mode === 'med' ? 'MEDDPICC' : mode === 'extra' ? 'ДОПОЛНИТЕЛЬНО' : mode === 'pro' ? 'PROACTIVE · КУРС 5' : 'ПРОГРАММА';
   $('theoryBody').innerHTML = `
     <aside class="lesson-rail">
       <button class="back-link" data-jump="program">← К программе</button>
@@ -727,6 +778,11 @@ function renderTheory() {
              ${i + 1 < MED.length
                ? `<button class="primary-button" id="nextBtn" data-mednext="${i + 1}">Следующий урок <span>→</span></button>`
                : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}`
+          : mode === 'pro'
+          ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок изучен ✓' : 'Урок изучен'}</label>
+             ${i + 1 < PRO.length
+               ? `<button class="primary-button" id="nextBtn" data-pronext="${i + 1}">Следующий урок <span>→</span></button>`
+               : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}`
           : mode === 'extra'
           ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${S.extraDone.includes(i) ? 'checked' : ''} /><span></span>${S.extraDone.includes(i) ? 'Прочитано ✓' : 'Отметить прочитанным'}</label>
              <button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`
@@ -739,21 +795,24 @@ function renderTheory() {
     </article>`;
 
   $('theoryBody').querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.jump)));
-  $('theoryBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; window.scrollTo({ top: 0 }); renderTheory(); }));
-  $('theoryBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.med; curExtra = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); }));
-  $('theoryBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curMed = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.med; curExtra = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-pro]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.pro; curMed = null; curExtra = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); }));
   $('theoryBody').querySelectorAll('[data-lesson]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.locked) { toast('Сначала пройдите текущий урок — этот откроется после его практики'); return; }
-    S.lesson = +b.dataset.lesson; curExtra = null; curMed = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory();
+    S.lesson = +b.dataset.lesson; curExtra = null; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory();
   }));
   const cheatBtn = $('theoryBody').querySelector('[data-cheat]');
   if (cheatBtn) cheatBtn.addEventListener('click', () => switchTab('cheat'));
   const nxt = $('theoryBody').querySelector('[data-next]');
-  if (nxt) nxt.addEventListener('click', () => { S.lesson = +nxt.dataset.next; curExtra = null; curMed = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); });
+  if (nxt) nxt.addEventListener('click', () => { S.lesson = +nxt.dataset.next; curExtra = null; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); });
   const mn = $('theoryBody').querySelector('[data-mednext]');
-  if (mn) mn.addEventListener('click', () => { curMed = +mn.dataset.mednext; curExtra = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); });
+  if (mn) mn.addEventListener('click', () => { curMed = +mn.dataset.mednext; curExtra = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); });
   const sn = $('theoryBody').querySelector('[data-spicednext]');
-  if (sn) sn.addEventListener('click', () => { curSpiced = +sn.dataset.spicednext; curExtra = null; curMed = null; window.scrollTo({ top: 0 }); renderTheory(); });
+  if (sn) sn.addEventListener('click', () => { curSpiced = +sn.dataset.spicednext; curExtra = null; curMed = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); });
+  const pn = $('theoryBody').querySelector('[data-pronext]');
+  if (pn) pn.addEventListener('click', () => { curPro = +pn.dataset.pronext; curExtra = null; curMed = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); });
   const chk = $('lessonComplete');
   if (chk) chk.addEventListener('change', () => {
     if (mode === 'spiced') {
@@ -765,6 +824,11 @@ function renderTheory() {
       if (chk.checked && !S.medDone.includes(i)) { S.medDone.push(i); addXp(30); toast('Урок изучен · +30 XP'); }
       else if (!chk.checked && S.medDone.includes(i)) { S.medDone = S.medDone.filter((x) => x !== i); S.xp = Math.max(0, S.xp - 30); toast('Урок снят · −30 XP'); }
       saveMed(); renderTheory(); return;
+    }
+    if (mode === 'pro') {
+      if (chk.checked && !S.proDone.includes(i)) { S.proDone.push(i); addXp(30); toast('Урок изучен · +30 XP'); }
+      else if (!chk.checked && S.proDone.includes(i)) { S.proDone = S.proDone.filter((x) => x !== i); S.xp = Math.max(0, S.xp - 30); toast('Урок снят · −30 XP'); }
+      savePro(); renderTheory(); return;
     }
     if (mode === 'extra') {
       if (chk.checked && !S.extraDone.includes(i)) { S.extraDone.push(i); addXp(30); toast('Выжимка прочитана · +30 XP'); }
@@ -799,7 +863,7 @@ function practiceHtml(l, i, done) {
     </div>`;
 }
 function bindPractice(lessonIdx, done, mode) {
-  const l = mode === 'spiced' ? SPICED[lessonIdx] : mode === 'med' ? MED[lessonIdx] : mode === 'extra' ? EXTRA[lessonIdx] : L[lessonIdx];
+  const l = mode === 'spiced' ? SPICED[lessonIdx] : mode === 'med' ? MED[lessonIdx] : mode === 'extra' ? EXTRA[lessonIdx] : mode === 'pro' ? PRO[lessonIdx] : L[lessonIdx];
   if (!l.practice || !l.practice.length) return;
   const q = l.practice[pState.i] || l.practice[0];
   const total = l.practice.length;
@@ -816,6 +880,7 @@ function bindPractice(lessonIdx, done, mode) {
     }
     if (last && mode === 'spiced' && !S.spPracticed.includes(lessonIdx)) S.spPracticed.push(lessonIdx);
     if (last && mode === 'med' && !S.medPracticed.includes(lessonIdx)) S.medPracticed.push(lessonIdx);
+    if (last && mode === 'pro' && !S.proPracticed.includes(lessonIdx)) S.proPracticed.push(lessonIdx);
     save();
     if (last && mode === 'main') {
       // разблокировать переход к следующему уроку
@@ -1121,19 +1186,22 @@ async function loadTeam() {
       const doneN = (m.done || []).length;
       const spicedN = (m.spicedDone || []).length;
       const medN = (m.medDone || []).length;
+      const proN = (m.proDone || []).length;
       const pracN = (m.practiced || []).length;
       const lvl = levelFromXp(m.xp || 0);
-      const totalN = L.length + SPICED.length + MED.length; // программа: основные + курс 1а SPICED + курс 1B MEDDPICC
-      const pct = Math.min(100, Math.round(((doneN + spicedN + medN) / totalN) * 100));
+      const totalN = L.length + SPICED.length + MED.length + PRO.length; // программа: основные + 1а SPICED + 1B MEDDPICC + 5 ProActive
+      const pct = Math.min(100, Math.round(((doneN + spicedN + medN + proN) / totalN) * 100));
       const spFull = SPICED.length > 0 && spicedN >= SPICED.length;
       const medFull = MED.length > 0 && medN >= MED.length;
+      const proFull = PRO.length > 0 && proN >= PRO.length;
       const gFrom = COURSES.length > 1 ? COURSES[1].from : L.length;
       const nxtI = L.findIndex((_, k) => !(m.done || []).includes(k));
-      const fresh = doneN === 0 && spicedN === 0 && medN === 0 && pracN === 0 && !(m.xp || 0);
+      const fresh = doneN === 0 && spicedN === 0 && medN === 0 && proN === 0 && pracN === 0 && !(m.xp || 0);
       const status = fresh ? 'Ещё не начинал(а)'
-        : nxtI === -1 && (!SPICED.length || spFull) && (!MED.length || medFull) ? 'Курс завершён ✓'
+        : nxtI === -1 && (!SPICED.length || spFull) && (!MED.length || medFull) && (!PRO.length || proFull) ? 'Курс завершён ✓'
         : (!spFull && SPICED.length > 0 && (nxtI === -1 || nxtI >= gFrom)) ? 'Курс 1а SPICED · урок ' + Math.min(spicedN + 1, SPICED.length) + ' из ' + SPICED.length
         : (nxtI === -1 && spFull && !medFull && MED.length > 0) ? 'Курс 1B MEDDPICC · урок ' + Math.min(medN + 1, MED.length) + ' из ' + MED.length
+        : (nxtI === -1 && spFull && medFull && !proFull && PRO.length > 0) ? 'Курс 5 ProActive · урок ' + Math.min(proN + 1, PRO.length) + ' из ' + PRO.length
         : 'Урок ' + (nxtI + 1) + ' · ' + L[nxtI].title;
       const act = agoLabel(m.updatedAt);
       return `<article class="team-card">
@@ -1145,7 +1213,7 @@ async function loadTeam() {
           <div class="skill-track"><i style="width:${pct}%"></i></div>
         </div>
         <div class="team-nums">
-          <b>${doneN + spicedN + medN} из ${totalN}</b>
+          <b>${doneN + spicedN + medN + proN} из ${totalN}</b>
           <span>уроков · уровень ${lvl}</span>
           <span>${m.xp || 0} XP</span>
           <span>${pracN ? 'практика: ' + pracN + ' уроков' : 'практика: —'}</span>
@@ -1197,6 +1265,7 @@ function pmCardsHtml() {
     const cDone = cList.filter((c) => S.cDone.includes(cases.indexOf(c))).length;
     rows.push(pmCardHtml('Курс 1B · MEDDPICC — квалификация', MED.length + ' уроков · проверка сделки', S.medPracticed.length, MED.length, [], cDone, cList.length));
   }
+  if (PRO.length) rows.push(pmCardHtml('Курс 5 · Проактивные продажи', PRO.length + ' уроков · управление сделкой', S.proPracticed.length, PRO.length, [], 0, 0));
   return rows.join('');
 }
 
@@ -1204,7 +1273,8 @@ function renderProgress() {
   const doneN = S.done.length;
   const spicedN = SPICED.filter((x, k) => S.spicedDone.includes(k)).length; // курс 1а входит в общий счёт
   const medN = MED.filter((x, k) => S.medDone.includes(k)).length; // курс 1B MEDDPICC — тоже в общем счёте
-  const totalAll = L.length + SPICED.length + MED.length;
+  const proN = PRO.filter((x, k) => S.proDone.includes(k)).length; // курс 5 ProActive — в общем счёте
+  const totalAll = L.length + SPICED.length + MED.length + PRO.length;
   const boss = isBoss();
   const pct = S.attempts ? Math.round((S.correct / S.attempts) * 100) : 0;
   const xp = S.xp;
@@ -1225,10 +1295,12 @@ function renderProgress() {
   const next = L.findIndex((l, i) => !S.done.includes(i));
   const jumpSpiced = next === -1 && spicedN < SPICED.length;   // основная пройдена — остался курс 1а
   const jumpMed = next === -1 && !jumpSpiced && medN < MED.length; // остался MEDDPICC
-  const allDone = next === -1 && !jumpSpiced && !jumpMed;
+  const jumpPro = next === -1 && !jumpSpiced && !jumpMed && proN < PRO.length; // остался ProActive
+  const allDone = next === -1 && !jumpSpiced && !jumpMed && !jumpPro;
   const rec = next !== -1 ? 'Следующий шаг — урок «' + L[next].title + '».'
     : jumpSpiced ? 'Основная программа пройдена. Остался курс 1а SPICED — расширение СПИН: ' + (SPICED.length - spicedN) + ' из ' + SPICED.length + ' уроков.'
     : jumpMed ? 'Курс 1а пройден. Остался MEDDPICC — квалификация сделки: ' + (MED.length - medN) + ' из ' + MED.length + ' уроков.'
+    : jumpPro ? 'Методологии пройдены. Остался ProActive — управление сделкой: ' + (PRO.length - proN) + ' из ' + PRO.length + ' уроков.'
     : 'Всё пройдено — закрепите навык в кейсах.';
   $('progressBody').innerHTML = `
     <div class="page-heading split-heading">
@@ -1236,7 +1308,7 @@ function renderProgress() {
       <div class="level-badge"><span>УРОВЕНЬ</span><strong>${String(lvl).padStart(2, '0')}</strong></div>
     </div>
     <div class="stats-grid">
-      <article><span class="stat-icon">✓</span><strong id="statLessons">${doneN + spicedN + medN}</strong><p>уроков пройдено</p><small>из ${totalAll} в программе</small></article>
+      <article><span class="stat-icon">✓</span><strong id="statLessons">${doneN + spicedN + medN + proN}</strong><p>уроков пройдено</p><small>из ${totalAll} в программе</small></article>
       <article><span class="stat-icon">↗</span><strong id="statAccuracy">${pct}%</strong><p>точность ответов</p><small>в тренировках</small></article>
       <article><span class="stat-icon">⚡</span><strong id="statXp">${xp}</strong><p>очков опыта</p><small>ещё ${toNext} до уровня ${lvl + 1}</small></article>
       <article class="accent-stat"><span class="stat-icon">✦</span><strong>${S.correct}</strong><p>верных ответов</p><small>всего</small></article>
@@ -1245,7 +1317,7 @@ function renderProgress() {
       <div class="section-title-row" style="margin-top:26px"><div><h2>Прогресс команды</h2><p>режим начальника · кто сколько прошёл</p></div><button class="secondary-button" id="teamRefresh" type="button">Обновить ↻</button></div>
       <div id="teamList" class="team-grid"><div class="team-empty">Загрузка…</div></div>
     </div>` : ''}
-    <div class="section-title-row" style="margin-top:26px"><div><h2>Курсы программы</h2><p>${COURSES.length + (SPICED.length ? 1 : 0) + (MED.length ? 1 : 0)} ${pluralN(COURSES.length + (SPICED.length ? 1 : 0) + (MED.length ? 1 : 0), ['курс', 'курса', 'курсов'])} по методологиям продаж</p></div></div>
+    <div class="section-title-row" style="margin-top:26px"><div><h2>Курсы программы</h2><p>${COURSES.length + (SPICED.length ? 1 : 0) + (MED.length ? 1 : 0) + (PRO.length ? 1 : 0)} ${pluralN(COURSES.length + (SPICED.length ? 1 : 0) + (MED.length ? 1 : 0) + (PRO.length ? 1 : 0), ['курс', 'курса', 'курсов'])} по методологиям продаж</p></div></div>
     <div class="course-progress-grid">
       ${COURSES.map((g) => {
         const doneIn = L.slice(g.from, g.to).filter((ll, k) => S.done.includes(g.from + k)).length;
@@ -1273,6 +1345,16 @@ function renderProgress() {
         const nxtMed = MED.findIndex((x, k) => !S.medDone.includes(k));
         return `<article class="course-progress-card ${full ? 'completed' : ''}" style="cursor:pointer" data-medgo="${nxtMed === -1 ? 0 : nxtMed}" title="Курс MEDDPICC — открыть">
           <div class="course-progress-head"><strong>MEDDPICC · квалификация сделки</strong><span>${doneIn} из ${MED.length} ${full ? '✓' : ''}</span></div>
+          <div class="skill-track"><i style="width:${cpct}%"></i></div>
+        </article>`;
+      })() : ''}
+      ${PRO.length ? (() => {
+        const doneIn = S.proDone.length;
+        const full = doneIn === PRO.length;
+        const cpct = Math.round((doneIn / PRO.length) * 100);
+        const nxtPro = PRO.findIndex((x, k) => !S.proDone.includes(k));
+        return `<article class="course-progress-card ${full ? 'completed' : ''}" style="cursor:pointer" data-progo="${nxtPro === -1 ? 0 : nxtPro}" title="Курс 5 Проактивные продажи — открыть">
+          <div class="course-progress-head"><strong>Проактивные продажи · управление сделкой</strong><span>${doneIn} из ${PRO.length} ${full ? '✓' : ''}</span></div>
           <div class="skill-track"><i style="width:${cpct}%"></i></div>
         </article>`;
       })() : ''}
@@ -1306,22 +1388,24 @@ function renderProgress() {
         <div class="recommendation-icon">↗</div>
         <h2>${allDone ? 'Повторите пройденное' : 'Продолжайте курс'}</h2>
         <p>${rec}</p>
-        <button class="dark-button" data-jump="${allDone ? 'practice' : 'theory'}" data-jt="${next !== -1 ? 'main' : jumpSpiced ? 'spiced' : jumpMed ? 'med' : 'main'}">${next !== -1 ? 'К следующему уроку' : jumpSpiced ? 'К курсу 1а SPICED' : jumpMed ? 'К MEDDPICC' : 'К кейсам'} <span>→</span></button>
+        <button class="dark-button" data-jump="${allDone ? 'practice' : 'theory'}" data-jt="${next !== -1 ? 'main' : jumpSpiced ? 'spiced' : jumpMed ? 'med' : jumpPro ? 'pro' : 'main'}">${next !== -1 ? 'К следующему уроку' : jumpSpiced ? 'К курсу 1а SPICED' : jumpMed ? 'К MEDDPICC' : jumpPro ? 'К ProActive' : 'К кейсам'} <span>→</span></button>
       </article>
     </div>`;
   $('progressBody').querySelectorAll('[data-pjump]').forEach((b) => b.addEventListener('click', () => { S.pTab = b.dataset.pjump; switchTab('practice'); }));
   $('progressBody').querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.jump === 'theory') {
       const jt = b.dataset.jt || 'main';
-      if (jt === 'spiced') { const n = SPICED.findIndex((x, k) => !S.spicedDone.includes(k)); curSpiced = n === -1 ? 0 : n; curMed = null; curExtra = null; }
-      else if (jt === 'med') { const n = MED.findIndex((x, k) => !S.medDone.includes(k)); curMed = n === -1 ? 0 : n; curSpiced = null; curExtra = null; }
-      else { S.lesson = next; curMed = null; curExtra = null; curSpiced = null; }
+      if (jt === 'spiced') { const n = SPICED.findIndex((x, k) => !S.spicedDone.includes(k)); curSpiced = n === -1 ? 0 : n; curMed = null; curExtra = null; curPro = null; }
+      else if (jt === 'med') { const n = MED.findIndex((x, k) => !S.medDone.includes(k)); curMed = n === -1 ? 0 : n; curSpiced = null; curExtra = null; curPro = null; }
+      else if (jt === 'pro') { const n = PRO.findIndex((x, k) => !S.proDone.includes(k)); curPro = n === -1 ? 0 : n; curMed = null; curExtra = null; curSpiced = null; }
+      else { S.lesson = next; curMed = null; curExtra = null; curSpiced = null; curPro = null; }
     }
     if (b.dataset.jump === 'practice') S.pTab = 'cases';
     switchTab(b.dataset.jump);
   }));
-  $('progressBody').querySelectorAll('[data-medgo]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.medgo; curSpiced = null; switchTab('theory'); }));
-  $('progressBody').querySelectorAll('[data-spicedgo]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spicedgo; curMed = null; switchTab('theory'); }));
+  $('progressBody').querySelectorAll('[data-medgo]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.medgo; curSpiced = null; curPro = null; switchTab('theory'); }));
+  $('progressBody').querySelectorAll('[data-spicedgo]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spicedgo; curMed = null; curPro = null; switchTab('theory'); }));
+  $('progressBody').querySelectorAll('[data-progo]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.progo; curMed = null; curSpiced = null; switchTab('theory'); }));
   const doLogout = async () => {
     flushSave();
     try { if (SB) await SB.auth.signOut(); } catch (e) {}
