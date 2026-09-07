@@ -540,28 +540,15 @@ function renderProgram() {
     </div>
     <div class="continue-visual" aria-hidden="true">
       <svg viewBox="0 0 360 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block">
-        <defs><linearGradient id="cvbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6ff92"/><stop offset="1" stop-color="#b6ee45"/></linearGradient></defs>
+        <defs><linearGradient id="cvbg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#c3ef48"/><stop offset="1" stop-color="#eaffad"/></linearGradient></defs>
         <rect width="360" height="340" fill="url(#cvbg)"/>
-        <circle cx="336" cy="36" r="80" fill="#ffffff" opacity=".28"/>
-        <circle cx="14" cy="336" r="104" fill="#15392a" opacity=".08"/>
-        <circle cx="190" cy="340" r="120" fill="#ffffff" opacity=".16"/>
-        <rect x="105" y="40" width="190" height="80" rx="22" fill="#ffffff"/>
-        <path d="M178 120 L168 144 L206 118 Z" fill="#ffffff"/>
-        <text x="200" y="72" text-anchor="middle" font-family="-apple-system,'Segoe UI',Roboto,sans-serif" font-size="17" font-weight="850" fill="#15392a">Продаёт тот,</text>
-        <text x="200" y="99" text-anchor="middle" font-family="-apple-system,'Segoe UI',Roboto,sans-serif" font-size="17" font-weight="850" fill="#1c6b47">кто спрашивает.</text>
-        <path d="M28 340 L28 262 Q28 226 62 218 Q90 212 118 218 Q150 226 150 262 L150 340 Z" fill="#ffffff"/>
-        <path d="M28 340 L28 262 Q28 226 62 218 Q90 212 118 218 Q150 226 150 262 L150 340 Z" fill="none" stroke="#15392a" stroke-opacity=".13" stroke-width="2"/>
-        <circle cx="78" cy="205" r="23" fill="#f6d3ac"/>
-        <path d="M55 201 Q55 182 78 182 Q101 182 101 201 Q101 190 78 190 Q55 190 55 201 Z" fill="#8a8f88" opacity=".85"/>
-        <path d="M78 196 C78 222 92 230 104 240" fill="none" stroke="#15392a" stroke-width="4.5" stroke-linecap="round"/>
-        <circle cx="110" cy="246" r="10" fill="#15392a"/>
-        <circle cx="110" cy="246" r="4.5" fill="#cbff38"/>
-        <path d="M212 340 L212 252 Q212 214 246 206 Q278 200 310 206 Q346 214 346 252 L346 340 Z" fill="#15392a"/>
-        <circle cx="282" cy="148" r="23" fill="#ecc193"/>
-        <path d="M259 142 Q259 121 282 121 Q305 121 305 142 Q305 130 282 130 Q259 130 259 142 Z" fill="#262019"/>
-        <rect x="216" y="244" width="120" height="72" rx="10" fill="#ffffff" opacity=".96"/>
-        <polyline points="228,300 250,284 268,292 292,266 318,256" fill="none" stroke="#1c6b47" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="318" cy="256" r="5" fill="#1c6b47"/>
+        <circle cx="240" cy="128" r="78" fill="#ffffff"/>
+        <rect x="-62" y="140" width="220" height="220" transform="rotate(45 48 250)" fill="#15392a"/>
+        <rect x="140" y="300" width="224" height="26" fill="#1c6b47"/>
+        <g transform="rotate(-49 265 165)"><rect x="158" y="156" width="218" height="19" fill="#15392a"/></g>
+        <rect x="316" y="66" width="24" height="24" fill="#ffffff"/>
+        <rect x="66" y="212" width="28" height="28" fill="#cbff38"/>
+        <rect x="24" y="268" width="14" height="14" fill="#ffffff"/>
       </svg>
     </div>
   </article>
