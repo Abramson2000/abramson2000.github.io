@@ -732,18 +732,18 @@ function renderTheory() {
   const chk = $('lessonComplete');
   if (chk) chk.addEventListener('change', () => {
     if (mode === 'spiced') {
-      if (chk.checked && !S.spicedDone.includes(i)) { S.spicedDone.push(i); toast('Урок изучен — можно идти дальше'); }
-      else if (!chk.checked && S.spicedDone.includes(i)) { S.spicedDone = S.spicedDone.filter((x) => x !== i); }
+      if (chk.checked && !S.spicedDone.includes(i)) { S.spicedDone.push(i); addXp(30); toast('Урок изучен · +30 XP'); }
+      else if (!chk.checked && S.spicedDone.includes(i)) { S.spicedDone = S.spicedDone.filter((x) => x !== i); S.xp = Math.max(0, S.xp - 30); toast('Урок снят · −30 XP'); }
       saveSpiced(); renderTheory(); return;
     }
     if (mode === 'med') {
-      if (chk.checked && !S.medDone.includes(i)) { S.medDone.push(i); toast('Урок изучен — можно идти дальше'); }
-      else if (!chk.checked && S.medDone.includes(i)) { S.medDone = S.medDone.filter((x) => x !== i); }
+      if (chk.checked && !S.medDone.includes(i)) { S.medDone.push(i); addXp(30); toast('Урок изучен · +30 XP'); }
+      else if (!chk.checked && S.medDone.includes(i)) { S.medDone = S.medDone.filter((x) => x !== i); S.xp = Math.max(0, S.xp - 30); toast('Урок снят · −30 XP'); }
       saveMed(); renderTheory(); return;
     }
     if (mode === 'extra') {
-      if (chk.checked && !S.extraDone.includes(i)) { S.extraDone.push(i); toast('Выжимка прочитана ✓'); }
-      else if (!chk.checked && S.extraDone.includes(i)) { S.extraDone = S.extraDone.filter((x) => x !== i); }
+      if (chk.checked && !S.extraDone.includes(i)) { S.extraDone.push(i); addXp(30); toast('Выжимка прочитана · +30 XP'); }
+      else if (!chk.checked && S.extraDone.includes(i)) { S.extraDone = S.extraDone.filter((x) => x !== i); S.xp = Math.max(0, S.xp - 30); toast('Выжимка снята · −30 XP'); }
       saveExtra(); renderTheory(); return;
     }
     if (chk.checked && !S.done.includes(i)) { S.done.push(i); addXp(30); toast('Урок пройден · +30 XP'); }
@@ -784,7 +784,7 @@ function bindPractice(lessonIdx, done, mode) {
     const oi = +b.dataset.p;
     const o = q.options[oi];
     pState.pick = oi;
-    S.attempts++; if (o.good) { S.correct++; }
+    S.attempts++; if (o.good) { S.correct++; addXp(5); }
     if (last && mode === 'main' && !S.practiced.includes(lessonIdx)) {
       S.practiced.push(lessonIdx);
       toast('Практика пройдена — следующий урок открыт');
