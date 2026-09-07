@@ -114,6 +114,8 @@ const S = {
   pTab: 'trainer',   // внутри Практики: 'trainer' | 'cases'
   done: [],            // индексы уроков
   practiced: [],       // уроки, где практика «Проверь себя» отвечена до конца
+  spPracticed: [],     // практики уроков курса 1а SPICED (до конца)
+  medPracticed: [],    // практики уроков курса 1B MEDDPICC (до конца)
   xp: 0,
   correct: 0,
   attempts: 0,
@@ -130,6 +132,7 @@ function loadState() {
   try {
     const r = JSON.parse(localStorage.getItem(LS_KEY)) || {};
     S.lesson = r.lesson || 0; S.done = r.done || []; S.practiced = r.practiced || [];
+    S.spPracticed = r.spPracticed || []; S.medPracticed = r.medPracticed || [];
     S.xp = r.xp || 0; S.correct = r.correct || 0; S.attempts = r.attempts || 0;
     S.cDone = r.cDone || [];
     if (['program', 'theory', 'practice', 'cheat', 'progress'].includes(r.tab)) S.tab = r.tab;
@@ -142,7 +145,7 @@ S.syncAt = null;       // время последней успешной син�
 S.dirty = false;       // есть несохранённые изменения
 
 function syncPayload() {
-  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spicedDone: S.spicedDone, medDone: S.medDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, name: USER ? USER.name : '', email: USER ? USER.email : '' };
+  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, spicedDone: S.spicedDone, medDone: S.medDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, name: USER ? USER.name : '', email: USER ? USER.email : '' };
 }
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
@@ -245,6 +248,7 @@ async function cloudLoad() {
     if (cloud && cloud.xp > local.xp) {
       // облако строго новее — берём его
       S.lesson = cloud.lesson || 0; S.done = cloud.done || []; S.practiced = cloud.practiced || [];
+      S.spPracticed = cloud.spPracticed || []; S.medPracticed = cloud.medPracticed || [];
       S.spicedDone = cloud.spicedDone || []; S.medDone = cloud.medDone || [];
       S.xp = cloud.xp || 0; S.correct = cloud.correct || 0; S.attempts = cloud.attempts || 0;
       try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
@@ -768,6 +772,8 @@ function bindPractice(lessonIdx, done, mode) {
       S.practiced.push(lessonIdx);
       toast('Практика пройдена — следующий урок открыт');
     }
+    if (last && mode === 'spiced' && !S.spPracticed.includes(lessonIdx)) S.spPracticed.push(lessonIdx);
+    if (last && mode === 'med' && !S.medPracticed.includes(lessonIdx)) S.medPracticed.push(lessonIdx);
     save();
     if (last && mode === 'main') {
       // разблокировать переход к следующему уроку
@@ -1118,6 +1124,40 @@ function agoLabel(ts) {
   if (diff < 7 * 86400e3) return Math.round(diff / 86400e3) + ' дн назад';
   return new Date(ts).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
+// Какой кейс к какому методу (курсу) относится: 0–3 = курсы 1–4, 'spiced' = 1а, 'med' = 1B
+const CASE_COURSE = { case1: 0, case2: 0, case3: 0, case4: 1, case5: 2, case6: 3, case7: 3, case8: 3, case9: 0, case10: 0, case11: 1, case12: 3, case13: 'med', case14: 'med' }; // индексы COURSES 0–3 + 'med'
+const MODE_COURSE = { spin: 0, say: 0, need: 0, challenger: 1, solution: 2, consult: 3 }; // режимы тренажёра по курсам
+const MODE_NAME = { spin: 'вопросы СПИН', say: 'типы высказываний', need: 'потребности клиента', challenger: 'ходы Challenger', solution: 'диагноз до рецепта', consult: 'стратег и коалиции' };
+function pmCardHtml(name, sub, pDone, pTotal, modes, cDone, cTotal) {
+  const pPct = pTotal ? Math.round((pDone / pTotal) * 100) : 0;
+  const cPct = cTotal ? Math.round((cDone / cTotal) * 100) : 0;
+  return `<article class="pm-card">
+    <div class="pm-head"><strong>${esc(name)}</strong><span>${esc(sub)}</span></div>
+    ${pTotal ? `<div class="pm-line"><span>✍️ практика «Проверь себя»</span><b>${pDone} из ${pTotal}</b><i class="pm-track"><em style="width:${pPct}%"></em></i></div>` : ''}
+    ${modes.length ? `<div class="pm-line clickable" data-pjump="trainer" title="Открыть тренажёр"><span>🎯 тренажёр</span><b>${modes.length} ${pluralN(modes.length, ['режим', 'режима', 'режимов'])}</b><i class="pm-note">${esc(modes.map((m) => MODE_NAME[m]).join(' · '))}</i></div>` : ''}
+    ${cTotal ? `<div class="pm-line clickable" data-pjump="cases" title="Открыть кейсы"><span>🧩 кейсы</span><b>${cDone} из ${cTotal}</b><i class="pm-track"><em style="width:${cPct}%"></em></i></div>` : ''}
+  </article>`;
+}
+function pmCardsHtml() {
+  const rows = [];
+  COURSES.forEach((g, ci) => {
+    const idxs = [];
+    for (let i = g.from; i < g.to; i++) idxs.push(i);
+    const pDone = idxs.filter((i) => S.practiced.includes(i)).length;
+    const modes = Object.keys(MODE_COURSE).filter((m) => MODE_COURSE[m] === ci);
+    const cList = cases.filter((c) => CASE_COURSE[c.id] === ci);
+    const cDone = cList.filter((c) => S.cDone.includes(cases.indexOf(c))).length;
+    rows.push(pmCardHtml(g.name, idxs.length + ' уроков · уроки ' + (g.from + 1) + '–' + g.to, pDone, idxs.length, modes, cDone, cList.length));
+  });
+  if (SPICED.length) rows.push(pmCardHtml('Курс 1а · SPICED — расширение СПИН', SPICED.length + ' уроков · диагностика сделки', S.spPracticed.length, SPICED.length, [], 0, 0));
+  if (MED.length) {
+    const cList = cases.filter((c) => CASE_COURSE[c.id] === 'med');
+    const cDone = cList.filter((c) => S.cDone.includes(cases.indexOf(c))).length;
+    rows.push(pmCardHtml('Курс 1B · MEDDPICC — квалификация', MED.length + ' уроков · проверка сделки', S.medPracticed.length, MED.length, [], cDone, cList.length));
+  }
+  return rows.join('');
+}
+
 function renderProgress() {
   const doneN = S.done.length;
   const spicedN = SPICED.filter((x, k) => S.spicedDone.includes(k)).length; // курс 1а входит в общий счёт
@@ -1195,6 +1235,10 @@ function renderProgress() {
         </article>`;
       })() : ''}
     </div>
+    <div class="section-title-row" style="margin-top:26px"><div><h2>Практика и кейсы</h2><p>закрепление по каждому методу: практики «Проверь себя», тренажёр, разборы встреч</p></div></div>
+    <div class="pm-grid">
+      ${pmCardsHtml()}
+    </div>
     <div class="progress-lower">
       <article class="account-card">
         <div class="card-heading"><div><span class="eyebrow">АККАУНТ И СИНХРОНИЗАЦИЯ</span><h2 id="accName">${USER ? esc(USER.name) : 'Гость'}</h2></div></div>
@@ -1223,6 +1267,7 @@ function renderProgress() {
         <button class="dark-button" data-jump="${allDone ? 'practice' : 'theory'}" data-jt="${next !== -1 ? 'main' : jumpSpiced ? 'spiced' : jumpMed ? 'med' : 'main'}">${next !== -1 ? 'К следующему уроку' : jumpSpiced ? 'К курсу 1а SPICED' : jumpMed ? 'К MEDDPICC' : 'К кейсам'} <span>→</span></button>
       </article>
     </div>`;
+  $('progressBody').querySelectorAll('[data-pjump]').forEach((b) => b.addEventListener('click', () => { S.pTab = b.dataset.pjump; switchTab('practice'); }));
   $('progressBody').querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.jump === 'theory') {
       const jt = b.dataset.jt || 'main';
