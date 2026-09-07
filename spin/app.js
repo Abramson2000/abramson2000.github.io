@@ -235,6 +235,30 @@ async function cloudSave() {
     setTimeout(() => { if (S.dirty) cloudSave(); }, 4000);
   }
 }
+function xpBackfill() { // одноразовая компенсация XP за пройденное до введения наград за практики/отметки
+  try {
+    if (!USER) return;
+    const KEY = 'spin-xp-backfill:' + USER.id;
+    if (localStorage.getItem(KEY)) return;
+    let bonus = 0;
+    bonus += (S.practiced || []).length * 5;    // практики «Проверь себя» основных уроков
+    bonus += (S.spPracticed || []).length * 5;  // практики курса 1а SPICED
+    bonus += (S.medPracticed || []).length * 5; // практики курса 1B MEDDPICC
+    (S.extraDone || []).forEach((ei) => {       // выжимки книг: отметка «прочитано» + практика
+      bonus += 30;
+      const x = EXTRA_ALL[ei];
+      if (x && x.practice) bonus += x.practice.length * 5;
+    });
+    bonus += (S.spicedDone || []).length * 30;  // отметки «урок изучен» SPICED
+    bonus += (S.medDone || []).length * 30;     // отметки «урок изучен» MEDDPICC
+    localStorage.setItem(KEY, '1');
+    if (bonus > 0) {
+      S.xp += bonus;
+      save();
+      toast('Компенсация за пройденное ранее: +' + bonus + ' XP');
+    }
+  } catch (e) {}
+}
 async function cloudLoad() {
   if (!USER || !SB) return;
   try {
@@ -262,6 +286,7 @@ async function cloudLoad() {
     updateSyncUI();
   } catch (e) {} finally {
     _cloudReady = true;
+    xpBackfill();
     if (S.dirty) cloudSave(); else setSync('saved');
   }
 }
