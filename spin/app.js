@@ -63,7 +63,7 @@ function pluralN(n, forms) { // forms: [1, 2, 5] → «1 курс», «2 кур�
 }
 
 // «вытянутое облако» — описание метода под названием курса, перед уроками
-const CLOUD_COLORS = { S: '#1f5fa8', C: '#c05621', K: '#6b4fa0', P: '#3d7a3d', M: '#a8342a', '1А': '#1f7a6d', '1A': '#1f7a6d', '📘': '#5b7aa8' };
+const CLOUD_COLORS = { S: '#3a7d2e', C: '#5b8c2a', K: '#2e7d5b', P: '#6f8f2a', M: '#4c7d33', '1А': '#33853a', '1A': '#33853a', '📘': '#7a9a3a' };
 function cloudHtml(m) {
   if (!m) return '';
   const icon = String(m.icon || '?').trim();
