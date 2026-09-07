@@ -436,6 +436,24 @@ function renderProgram() {
     </div>
   </article>
 
+  <article class="continue-card">
+    <div class="continue-copy">
+      <div class="lesson-meta"><span class="module-tag">${next === -1 ? 'КУРС ПРОЙДЕН' : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num}</span><span>${next === -1 ? L.length + ' из ' + L.length + ' уроков' : 'из ' + co.len + ' уроков курса'}</span></div>
+      <h2>${esc(next === -1 ? 'Вы прошли весь курс. Повторите любой урок или идите в разборы.' : l.title)}</h2>
+      <p>${esc(next === -1 ? 'Курс пройден — теперь закрепите навык в тренажёре и разборах.' : intro)}</p>
+      <div class="continue-actions">
+        <button class="primary-button" data-open="${next === -1 ? 0 : cur}">${next === -1 ? 'Повторить с начала' : 'Продолжить урок'} <span>→</span></button>
+        <span class="duration">◷ ${esc(l.mins)}</span>
+      </div>
+    </div>
+    <div class="continue-visual" aria-hidden="true">
+      <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+      <div class="speech-card speech-one">«Как вы решаете<br>эту задачу сегодня?»</div>
+      <div class="speech-card speech-two">Продаёт тот,<br>кто спрашивает</div>
+      <span class="big-number">${String(co.num).padStart(2, '0')}</span>
+    </div>
+  </article>
+
   <div class="section-title-row"><div><h2>Методы продаж</h2><p>Коротко о каждом — подробно в курсах ниже</p></div></div>
   <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
     ${_methodEntries.map((e) => {
@@ -506,24 +524,6 @@ function renderProgram() {
       </article>`;
     }).join('')}
   </div>` : ''}
-
-  <article class="continue-card">
-    <div class="continue-copy">
-      <div class="lesson-meta"><span class="module-tag">${next === -1 ? 'КУРС ПРОЙДЕН' : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num}</span><span>${next === -1 ? L.length + ' из ' + L.length + ' уроков' : 'из ' + co.len + ' уроков курса'}</span></div>
-      <h2>${esc(next === -1 ? 'Вы прошли весь курс. Повторите любой урок или идите в разборы.' : l.title)}</h2>
-      <p>${esc(next === -1 ? 'Курс пройден — теперь закрепите навык в тренажёре и разборах.' : intro)}</p>
-      <div class="continue-actions">
-        <button class="primary-button" data-open="${next === -1 ? 0 : cur}">${next === -1 ? 'Повторить с начала' : 'Продолжить урок'} <span>→</span></button>
-        <span class="duration">◷ ${esc(l.mins)}</span>
-      </div>
-    </div>
-    <div class="continue-visual" aria-hidden="true">
-      <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-      <div class="speech-card speech-one">«Как вы решаете<br>эту задачу сегодня?»</div>
-      <div class="speech-card speech-two">Продаёт тот,<br>кто спрашивает</div>
-      <span class="big-number">${String(co.num).padStart(2, '0')}</span>
-    </div>
-  </article>
 
   <div class="section-title-row">
     <div><h2>Маршрут обучения</h2><p><span id="completedCount">${doneN + spicedN}</span> из ${totalAll} уроков пройдено</p></div>
