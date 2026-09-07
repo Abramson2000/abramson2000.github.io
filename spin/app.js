@@ -120,7 +120,7 @@ S.syncAt = null;       // время последней успешной син�
 S.dirty = false;       // есть несохранённые изменения
 
 function syncPayload() {
-  return { lesson: S.lesson, done: S.done, practiced: S.practiced, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, name: USER ? USER.name : '', email: USER ? USER.email : '' };
+  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spicedDone: S.spicedDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, name: USER ? USER.name : '', email: USER ? USER.email : '' };
 }
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
@@ -223,6 +223,7 @@ async function cloudLoad() {
     if (cloud && cloud.xp > local.xp) {
       // облако строго новее — берём его
       S.lesson = cloud.lesson || 0; S.done = cloud.done || []; S.practiced = cloud.practiced || [];
+      S.spicedDone = cloud.spicedDone || [];
       S.xp = cloud.xp || 0; S.correct = cloud.correct || 0; S.attempts = cloud.attempts || 0;
       try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
       if (local.xp > 0) toast('Прогресс загружен с сервера: ' + cloud.xp + ' XP');
@@ -1058,12 +1059,18 @@ async function loadTeam() {
       const rawNm = (m.name || (m.email ? m.email.split('@')[0] : '') || 'Участник');
       const nm = rawNm.charAt(0).toUpperCase() + rawNm.slice(1);
       const doneN = (m.done || []).length;
+      const spicedN = (m.spicedDone || []).length;
       const pracN = (m.practiced || []).length;
       const lvl = levelFromXp(m.xp || 0);
-      const pct = Math.min(100, Math.round((doneN / L.length) * 100));
+      const totalN = L.length + SPICED.length; // программа: основные уроки + курс 1а SPICED
+      const pct = Math.min(100, Math.round(((doneN + spicedN) / totalN) * 100));
+      const spFull = SPICED.length > 0 && spicedN >= SPICED.length;
+      const gFrom = COURSES.length > 1 ? COURSES[1].from : L.length;
       const nxtI = L.findIndex((_, k) => !(m.done || []).includes(k));
-      const status = nxtI === -1 ? 'Курс завершён ✓'
-        : (doneN === 0 && pracN === 0 && !(m.xp || 0)) ? 'Ещё не начинал(а)'
+      const fresh = doneN === 0 && spicedN === 0 && pracN === 0 && !(m.xp || 0);
+      const status = fresh ? 'Ещё не начинал(а)'
+        : nxtI === -1 && (!SPICED.length || spFull) ? 'Курс завершён ✓'
+        : (!spFull && SPICED.length > 0 && (nxtI === -1 || nxtI >= gFrom)) ? 'Курс 1а SPICED · урок ' + Math.min(spicedN + 1, SPICED.length) + ' из ' + SPICED.length
         : 'Урок ' + (nxtI + 1) + ' · ' + L[nxtI].title;
       const act = agoLabel(m.updatedAt);
       return `<article class="team-card">
@@ -1075,7 +1082,7 @@ async function loadTeam() {
           <div class="skill-track"><i style="width:${pct}%"></i></div>
         </div>
         <div class="team-nums">
-          <b>${doneN} из ${L.length}</b>
+          <b>${doneN + spicedN} из ${totalN}</b>
           <span>уроков · уровень ${lvl}</span>
           <span>${m.xp || 0} XP</span>
           <span>${pracN ? 'практика: ' + pracN + ' уроков' : 'практика: —'}</span>
