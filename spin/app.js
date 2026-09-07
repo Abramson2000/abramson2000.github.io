@@ -160,17 +160,30 @@ if (typeof document !== 'undefined') {
   });
   window.addEventListener('pagehide', flushSave);
 }
+// облачный прогресс: на crmuro.ru (GitHub Pages) нет /api/* — ходим на CF Pages напрямую
+let _spinApiRemote = false; // после первого 404 (GitHub Pages) сразу используем pages.dev
+async function spinApi(body) {
+  const tries = _spinApiRemote
+    ? ['https://abramson-crm.pages.dev/api/spin-progress']
+    : ['/api/spin-progress', 'https://abramson-crm.pages.dev/api/spin-progress'];
+  let last;
+  for (const u of tries) {
+    try {
+      const r = await fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (r.ok) return r;
+      last = new Error('HTTP ' + r.status);
+      if (r.status === 404 || r.status === 405) _spinApiRemote = true;
+    } catch (e) { last = e; }
+  }
+  throw last;
+}
 async function cloudSave() {
   if (!USER || !SB || !_cloudReady) return;
   try {
     const { data: s } = await SB.auth.getSession();
     const token = s && s.session && s.session.access_token;
     if (!token) { setSync('off'); return; }
-    const r = await fetch('/api/spin-progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'save', token, data: syncPayload() })
-    });
+    const r = await spinApi({ action: 'save', token, data: syncPayload() });
     const j = await r.json().catch(() => null);
     if (r.ok && j && j.ok) { S.dirty = false; setSync('saved'); }
     else { setSync('error'); S.dirty = true; setTimeout(() => { if (S.dirty) cloudSave(); }, 4000); }
@@ -185,11 +198,7 @@ async function cloudLoad() {
     const { data: s } = await SB.auth.getSession();
     const token = s && s.session && s.session.access_token;
     if (!token) { _cloudReady = true; setSync('off'); return; }
-    const r = await fetch('/api/spin-progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'get', token })
-    });
+    const r = await spinApi({ action: 'get', token });
     const j = await r.json().catch(() => null);
     const local = syncPayload();
     const cloud = j && j.data;
@@ -370,13 +379,20 @@ function renderProgram() {
   const doneN = S.done.length;
   const spicedN = SPICED.filter((x, k) => S.spicedDone.includes(k)).length; // курс 1а входит в общий счёт
   const totalAll = L.length + SPICED.length;
-  const next = L.findIndex((l, i) => !S.done.includes(i));
-  const cur = next === -1 ? 0 : next;
+  let next = L.findIndex((l, i) => !S.done.includes(i));
+  const spicedFull = SPICED.length > 0 && spicedN >= SPICED.length; // «Курс 1а» пройден целиком — открывает Курс 2
+  const gateFrom = COURSES.length > 1 ? COURSES[1].from : L.length; // уроки Курса 2+ — только после SPICED
+  const spIdx = SPICED.findIndex((x, k) => !S.spicedDone.includes(k)); // первый неоткрытый урок SPICED (-1 = все открыты)
+  if (!spicedFull && next !== -1 && next >= gateFrom) next = -2; // Курс 1 пройден, но Курс 1а нет → ведём в SPICED
+  const cur = next === -1 || next === -2 ? 0 : next;
   const pct = Math.round(((doneN + spicedN) / totalAll) * 100);
   const l = L[cur];
   const intro = (l.intro.length > 130 ? l.intro.slice(0, 130) + '…' : l.intro);
   const practiceN = l.practice ? l.practice.length : 0;
   const groups = COURSES;
+  // ветка «сначала Курс 1а»: урок для continue-карточки
+  const spCur = spIdx === -1 ? 0 : spIdx;
+  const sl = next === -2 ? (SPICED[spCur] || null) : null;
   // «Курс 1а · SPICED» встраивается в маршрут сразу после Курса 1 (СПИН),
   // перед Курсом 2 (ВЫЗОВ): рендерим группы с разрезом по индексу СПИН
   const moduleGroupsHtml = groups.map((g, gi) => {
@@ -386,13 +402,14 @@ function renderProgram() {
     ${L.slice(g.from, g.to).map((ll, gi) => {
       const i = g.from + gi;
       const done = S.done.includes(i);
-      const isCur = i === cur && !done;
+      const gated = !spicedFull && g.from >= gateFrom; // курс за SPICED-гейтом (Курс 2+)
+      const isCur = i === cur && !done && !gated;
       const open = done || isCur;
       const icon = done ? '✓' : isCur ? '↗' : '🔒';
       const status = done ? 'ЗАВЕРШЁН' : isCur ? 'ТЕКУЩИЙ' : 'ЗАБЛОКИРОВАН';
       const desc = (ll.intro.length > 90 ? ll.intro.slice(0, 90) + '…' : ll.intro);
       const parts = (ll.practice ? ll.practice.length : 0) || ll.blocks.length;
-      return `<article class="module-card ${done ? 'completed' : isCur ? 'current' : 'locked'}" ${open ? `data-open="${i}" tabindex="0" role="button"` : ''} title="${open ? '' : 'Откроется после прохождения текущего урока'}">
+      return `<article class="module-card ${done ? 'completed' : isCur ? 'current' : 'locked'}" ${open ? `data-open="${i}" tabindex="0" role="button"` : ''} title="${open ? '' : gated ? 'Пройдите Курс 1а · SPICED — и Курс 2 откроется' : 'Откроется после прохождения текущего урока'}">
         <div class="module-number">${String(gi + 1).padStart(2, '0')}</div>
         <div class="module-icon">${icon}</div>
         <span class="status-label">${status}</span>
@@ -438,19 +455,20 @@ function renderProgram() {
 
   <article class="continue-card">
     <div class="continue-copy">
-      <div class="lesson-meta"><span class="module-tag">${next === -1 ? 'КУРС ПРОЙДЕН' : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num}</span><span>${next === -1 ? L.length + ' из ' + L.length + ' уроков' : 'из ' + co.len + ' уроков курса'}</span></div>
-      <h2>${esc(next === -1 ? 'Вы прошли весь курс. Повторите любой урок или идите в разборы.' : l.title)}</h2>
-      <p>${esc(next === -1 ? 'Курс пройден — теперь закрепите навык в тренажёре и разборах.' : intro)}</p>
+      <div class="lesson-meta"><span class="module-tag">${next === -1 ? 'КУРС ПРОЙДЕН' : next === -2 ? 'КУРС 1А · SPICED · УРОК ' + (spCur + 1) : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num}</span><span>${next === -1 ? L.length + ' из ' + L.length + ' уроков' : next === -2 ? 'из ' + SPICED.length + ' уроков курса' : 'из ' + co.len + ' уроков курса'}</span></div>
+      <h2>${esc(next === -1 ? 'Вы прошли весь курс. Повторите любой урок или идите в разборы.' : next === -2 ? 'Курс 2 откроется после SPICED. Сейчас — «' + sl.title + '»' : l.title)}</h2>
+      <p>${esc(next === -1 ? 'Курс пройден — теперь закрепите навык в тренажёре и разборах.' : next === -2 ? 'Пройдите курс 1а целиком — и «Продажа через вызов» разблокируется. ' + (sl.intro.length > 130 ? sl.intro.slice(0, 130) + '…' : sl.intro) : intro)}</p>
       <div class="continue-actions">
-        <button class="primary-button" data-open="${next === -1 ? 0 : cur}">${next === -1 ? 'Повторить с начала' : 'Продолжить урок'} <span>→</span></button>
-        <span class="duration">◷ ${esc(l.mins)}</span>
+        <button class="primary-button" ${next === -2 ? `data-spiced="${spCur}"` : `data-open="${next === -1 ? 0 : cur}"`}>${next === -1 ? 'Повторить с начала' : 'Продолжить урок'} <span>→</span></button>
+        <span class="duration">◷ ${esc(next === -2 ? sl.mins : l.mins)}</span>
       </div>
     </div>
     <div class="continue-visual" aria-hidden="true">
       <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-      <div class="speech-card speech-one">«Как вы решаете<br>эту задачу сегодня?»</div>
-      <div class="speech-card speech-two">Продаёт тот,<br>кто спрашивает</div>
-      <span class="big-number">${String(co.num).padStart(2, '0')}</span>
+      ${next === -2
+        ? '<div class="speech-card speech-one">Сначала — карта сделки:</div><div class="speech-card speech-two">потом разговор</div>'
+        : '<div class="speech-card speech-one">«Как вы решаете<br>эту задачу сегодня?»</div><div class="speech-card speech-two">Продаёт тот,<br>кто спрашивает</div>'}
+      <span class="big-number">${next === -2 ? String(spCur + 1).padStart(2, '0') : String(co.num).padStart(2, '0')}</span>
     </div>
   </article>
 
@@ -548,7 +566,13 @@ function renderProgram() {
 
   $('programBody').querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.jump)));
   $('programBody').querySelectorAll('[data-cheat]').forEach((b) => b.addEventListener('click', () => switchTab('cheat')));
-  $('programBody').querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => { S.lesson = +b.dataset.open; curExtra = null; curMed = null; curSpiced = null; switchTab('theory'); }));
+  $('programBody').querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => {
+    const i = +b.dataset.open;
+    const sFull = SPICED.length > 0 && SPICED.every((x, k) => S.spicedDone.includes(k));
+    const gFrom = COURSES.length > 1 ? COURSES[1].from : L.length;
+    if (!sFull && i >= gFrom) { toast('Сначала пройдите Курс 1а · SPICED — потом откроется Курс 2'); return; }
+    S.lesson = i; curExtra = null; curMed = null; curSpiced = null; switchTab('theory');
+  }));
   $('programBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curMed = null; curSpiced = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.med; curExtra = null; curSpiced = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; switchTab('theory'); }));
@@ -600,8 +624,10 @@ function renderTheory() {
       const items = L.slice(g.from, g.to).map((ll, gi) => {
         const j = g.from + gi;
         const done = S.done.includes(j);
-        const locked = !done && curT !== -1 && j > curT;
-        return `<button class="lesson-item ${j === i ? 'active' : done ? 'done' : locked ? 'locked' : ''}" data-lesson="${j}" ${locked ? 'data-locked="1"' : ''} title="${locked ? 'Откроется после урока ' + (curT + 1) : ''}">
+        const sFull = SPICED.length > 0 && SPICED.every((x, k) => S.spicedDone.includes(k));
+        const gFrom = COURSES.length > 1 ? COURSES[1].from : L.length;
+        const locked = !done && ((curT !== -1 && j > curT) || (!sFull && j >= gFrom));
+        return `<button class="lesson-item ${j === i ? 'active' : done ? 'done' : locked ? 'locked' : ''}" data-lesson="${j}" ${locked ? 'data-locked="1"' : ''} title="${locked ? (curT !== -1 && j > curT ? 'Откроется после урока ' + (curT + 1) : 'Пройдите Курс 1а · SPICED — и Курс 2 откроется') : ''}">
           <span>${gi + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${done ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}
         </button>`;
       }).join('');
@@ -1035,11 +1061,7 @@ async function loadTeam() {
     const { data: s } = await SB.auth.getSession();
     const token = s && s.session && s.session.access_token;
     if (!token) { el.innerHTML = '<div class="team-empty">Нет доступа к серверу</div>'; return; }
-    const r = await fetch('/api/spin-progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'team', token })
-    });
+    const r = await spinApi({ action: 'team', token });
     const res = await r.json();
     if (!res.ok || !res.team) { el.innerHTML = '<div class="team-empty">Нет доступа к прогрессу команды</div>'; return; }
     if (!res.team.length) { el.innerHTML = '<div class="team-empty">Пока никто из команды не начал заниматься</div>'; return; }
