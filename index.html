@@ -1,0 +1,2882 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Абрамовская база" />
+  <title>Абрамовская база</title>
+  <link rel="icon" type="image/png" href="logo-192.png" />
+  <link rel="apple-touch-icon" href="logo-180.png" />
+  <link rel="manifest" href="manifest.json?v=21" />
+  <style>
+:root {
+  --bg: #f5f5f4;
+  --card: #ffffff;
+  --ink: #161616;
+  --muted: #737373;
+  --brand: #111111;
+  --brand-dark: #000000;
+  --accent: #404040;
+  --line: #e5e5e5;
+  --danger: #dc2626;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .05);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, .22);
+  --radius: 12px;
+}
+
+/* Акцент (цвет выделения) — задаётся из JS через --brand/--brand-dark */
+.accent-picker { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.accent-picker .swatch {
+  flex: 1 1 30%; min-width: 100px; display: flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 12px; border: 2px solid var(--line); border-radius: 12px;
+  background: var(--card); cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink);
+}
+.accent-picker .swatch .dot {
+  width: 18px; height: 18px; border-radius: 50%; flex: none;
+}
+.accent-picker .swatch.active { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(0,0,0,.06); }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; overflow-x: clip; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 170px;
+  overscroll-behavior-x: none;
+}
+
+/* Top bar */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--card);
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  padding-top: env(safe-area-inset-top);
+}
+.topbar-inner { max-width: 720px; margin: 0 auto; padding: 12px 16px; }
+.brand {
+  font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px;
+  letter-spacing: -.3px;
+}
+.brand-logo { height: 24px; width: 24px; border-radius: 6px; object-fit: cover; }
+.brand-name { font-weight: 800; font-size: 18px; letter-spacing: -.3px; }
+.brand-version { font-size: 11px; color: var(--muted); font-weight: 600; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; flex: none; }
+.search-wrap { margin-top: 10px; }
+.search-wrap input {
+  width: 100%; padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px;
+  font-size: 15px; background: var(--bg); color: var(--ink);
+}
+.search-wrap input::placeholder { color: var(--muted); }
+.search-wrap input:focus { outline: 2px solid var(--brand); border-color: transparent; background: #fff; }
+
+/* Tabs (верхняя навигация) — удалена, остался таббар внизу */
+
+/* Filters */
+.filters {
+  max-width: 720px; margin: 0 auto; padding: 8px 16px 0;
+  display: flex; gap: 8px;
+}
+.filters.hidden { display: none; }
+.hidden { display: none !important; }
+.filters select {
+  flex: 1 1 0; width: auto; min-width: 0; padding: 7px 26px 7px 12px; border: 1px solid var(--line); border-radius: 10px;
+  font-size: 13px; background: var(--card); color: var(--ink); cursor: pointer;
+  appearance: none; -webkit-appearance: none; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23737373' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.filters select:focus { outline: 2px solid var(--brand); }
+.filters select:has(option[value=""]:checked) { color: var(--muted); }
+
+/* Views */
+.view { max-width: 720px; margin: 0 auto; padding: 12px 16px; }
+.list { display: flex; flex-direction: column; gap: 4px; }
+
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 14px; cursor: pointer; transition: background .05s ease;
+}
+.card:active { background: #fafafa; }
+.card h3 { margin: 0; font-size: 15px; font-weight: 650; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 2px; }
+.card-head h3 { margin: 0; }
+.card .sub { font-size: 12.5px; color: var(--muted); }
+.card .row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+
+/* компактный список (клиники) */
+.card.list-row { padding: 6px 12px; display: flex; flex-direction: column; gap: 1px; }
+.list-row-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.list-row-name { font-size: 15px; font-weight: 650; }
+.list-row-sub { font-size: 12.5px; color: var(--muted); }
+.money-cnt { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.list-row-money { font-size: 13.5px; font-weight: 700; color: var(--brand); white-space: nowrap; flex: none; }
+.list-row-money.money-up {
+  background: linear-gradient(135deg, #16a34a, #4ade80);
+  color: #fff; padding: 2px 9px; border-radius: 999px; font-size: 12px;
+}
+.list-row-money.money-down {
+  background: linear-gradient(135deg, #dc2626, #f97316);
+  color: #fff; padding: 2px 9px; border-radius: 999px; font-size: 12px;
+}
+.list-row-money.money-flat {
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  color: #fff; padding: 2px 9px; border-radius: 999px; font-size: 12px;
+}
+.list-row-money.money-zero {
+  background: linear-gradient(135deg, #ff5252, #ffb300);
+  color: #fff; padding: 2px 9px; border-radius: 999px; font-size: 12px;
+}
+.list-row.marked-del {
+  border: 1px solid #dc2626 !important;
+  background: linear-gradient(135deg, #fef2f2, #fee2e2) !important;
+}
+.row-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: none; }
+.transfer-btn { font-size: 14px; color: var(--muted); cursor: pointer; flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 28px; padding: 0; border-radius: 8px; user-select: none; box-sizing: border-box; }
+.transfer-btn:hover { background: #e9e9e8; color: var(--brand); }
+.transfer-btn.on { color: var(--brand); background: rgba(127,127,127,.16); font-weight: 700; }
+.transfer-btn.on::after { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #22c55e; margin-left: 2px; vertical-align: 1px; }
+/* v1.158: иконка ЦНС — лого пользователя (cns.png) */
+.cns-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 9px; flex: none;
+  background: #e7e7e5; color: #8a8a88; font-size: 13px; font-weight: 800;
+  cursor: pointer; user-select: none; border: none; line-height: 1;
+}
+.cns-btn:hover { background: #dbdbd9; color: var(--brand); }
+.cns-btn.on { background: var(--brand); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.cns-btn.on:hover { background: var(--brand-dark); }
+.cns-ico { width: 18px; height: 18px; display: block; pointer-events: none; }
+.cns-btn.on .cns-ico { filter: brightness(0) invert(1); }
+.cns-drawer-ico { width: 20px; height: 20px; flex: none; }
+.cns-head { padding: 14px 16px 6px; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+.cns-head b { color: var(--ink); }
+.cns-add { margin-left: auto; flex: none; background: var(--brand); color: #fff; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.cns-add:hover { background: var(--brand-dark); }
+.mark-badge {
+  display: inline-block; background: #dc2626; color: #fff;
+  font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px;
+  flex: none; vertical-align: middle; margin-left: 6px;
+}
+.mark-banner {
+  background: #fee2e2; border: 1px solid #dc2626; color: #dc2626;
+  border-radius: 10px; padding: 8px 12px; font-weight: 700; text-align: center;
+}
+.contact-row.marked-del-row { color: #dc2626; font-weight: 600; }
+.money-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 4px; }
+.money-cell { display: flex; flex-direction: column; gap: 3px; }
+.money-cell label { font-size: 11px; color: var(--muted); text-align: center; }
+.money-cell input { text-align: center; padding: 7px 2px; min-width: 0; }
+@media (max-width: 600px) { .money-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* вкладка «Деньги» */
+.money-total-line { padding: 10px 14px 4px; font-size: 14px; color: var(--muted); }
+.money-total-line b { color: var(--ink); font-size: 16px; }
+.money-split { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.sort-toggle { margin-left: 8px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--brand); font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.nastya-back-trigger { margin-left: 8px; padding: 10px 18px; border: none; border-radius: 12px; background: var(--brand); color: #fff; font-size: 20px; font-weight: 700; cursor: pointer; flex: none; line-height: 1; }
+#wl-back-bottom { display: none; }
+@media (max-width: 768px) {
+  #wl-back { display: none !important; }
+  #wl-back-bottom { display: flex; position: sticky; bottom: 0; padding: 10px 0 14px; background: var(--bg); }
+  #wl-back-bottom .nastya-back-trigger { flex: 1; margin: 0; padding: 14px; font-size: 18px; border-radius: 14px; }
+}
+.sort-toggle:hover { border-color: var(--brand); }
+select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6px; }
+.card.money-row { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; cursor: default; }
+.money-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.money-name { font-size: 15px; font-weight: 650; }
+.money-total { font-size: 15px; font-weight: 700; color: var(--brand); white-space: nowrap; flex: none; }
+.money-loc { font-size: 12px; color: var(--muted); margin-top: -4px; }
+.money-years { display: flex; gap: 8px; }
+.money-field { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.money-field span { font-size: 11px; font-weight: 700; color: var(--muted); }
+.money-field input {
+  width: 100%; padding: 7px 8px; border: 1px solid var(--line); border-radius: 8px;
+  font-size: 14px; font-variant-numeric: tabular-nums; background: #fff; color: var(--ink);
+}
+.money-field input:focus { outline: 2px solid var(--brand); border-color: transparent; }
+
+
+.tag {
+  display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px;
+  background: var(--bg); color: var(--ink); font-weight: 600;
+}
+.tag.manager { background: #f1f1f1; color: #404040; }
+.tag.type { background: #f1f1f1; color: #404040; }
+
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px;
+  background: var(--brand); color: #fff; font-weight: 600; white-space: nowrap;
+}
+
+.empty { text-align: center; color: var(--muted); padding: 40px 16px; font-size: 15px; }
+
+/* FAB — кнопка добавления (в строке поиска) */
+.fab {
+  width: 48px; height: 48px; border-radius: 50%; flex: none;
+  background: var(--brand); color: #fff; border: none; font-size: 26px; line-height: 1;
+  box-shadow: var(--shadow-lg); cursor: pointer;
+}
+.fab:active { background: var(--brand-dark); }
+
+/* Modal */
+.modal { position: fixed; inset: 0; background: rgba(15,23,42,.5); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
+.modal.hidden { display: none; }
+.modal-card {
+  background: var(--bg); width: 100%; max-width: 720px; border-radius: 18px 18px 0 0;
+  max-height: 92vh; overflow-y: auto; padding: 16px;
+}
+@media (min-width: 720px) {
+  .modal { align-items: center; }
+  .modal-card { border-radius: 18px; max-height: 88vh; }
+}
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.modal-head h2 { margin: 0; font-size: 18px; }
+.icon-btn { border: none; background: transparent; font-size: 20px; color: var(--muted); cursor: pointer; padding: 4px 8px; }
+
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+  font-size: 15px; background: var(--card); color: var(--ink);
+}
+.field textarea { min-height: 70px; resize: vertical; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--brand); border-color: transparent; }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.btn {
+  width: 100%; padding: 13px; border: none; border-radius: 11px; font-size: 16px; font-weight: 700;
+  background: var(--brand); color: #fff; cursor: pointer;
+}
+.btn:active { background: var(--brand-dark); }
+.btn.ghost { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
+.btn.danger { background: var(--danger); }
+.btn-row { display: flex; gap: 10px; margin-top: 8px; }
+
+.detail-block { background: var(--card); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+.detail-block .k { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .3px; }
+.detail-block .v { font-size: 15px; }
+.money-line { display: flex; justify-content: space-between; gap: 12px; }
+.money-line span:last-child { text-align: right; }
+
+/* Toast */
+.toast {
+  position: fixed; left: 50%; bottom: 200px; transform: translateX(-50%);
+  background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px;
+  font-size: 14px; z-index: 60; box-shadow: var(--shadow-lg);
+}
+.toast.hidden { display: none; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.chip {
+  display: flex; align-items: center; gap: 6px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; font-size: 13px;
+}
+.chip .x { cursor: pointer; color: var(--muted); font-weight: 700; }
+
+/* Словари (свёрнутые секции) */
+.dict { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+.dict summary {
+  display: flex; align-items: center; gap: 8px; padding: 14px 16px; cursor: pointer;
+  list-style: none; font-size: 15px; font-weight: 600; color: var(--ink); user-select: none;
+}
+.dict summary::-webkit-details-marker { display: none; }
+.dict .count { background: var(--bg); color: var(--muted); border-radius: 999px; padding: 2px 9px; font-size: 12.5px; font-weight: 700; }
+.dict .chev { margin-left: auto; color: var(--muted); font-size: 13px; transition: transform .18s; }
+.dict[open] .chev { transform: rotate(180deg); }
+.dict-body { padding: 0 16px 14px; }
+.dict-body .chips { margin-top: 0; }
+.add-row { display: flex; gap: 8px; margin-top: 10px; }
+.add-row input { flex: 1; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; background: var(--card); color: var(--ink); }
+.add-row input:focus { outline: 2px solid var(--brand); border-color: transparent; }
+.add-row .btn { width: auto; padding: 9px 16px; font-size: 15px; }
+
+/* Анализ — лист подразделов */
+.analysis-sheet { padding: 16px; display: flex; flex-direction: column; gap: 10px; max-width: 640px; margin: 0 auto; }
+.sheet-item {
+  display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  font-size: 16px; font-weight: 600; cursor: pointer; color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+.sheet-item svg { flex-shrink: 0; color: var(--brand); }
+.sheet-item:active { transform: scale(0.98); }
+.sheet-back { border-style: dashed; font-weight: 500; color: var(--muted); }
+.sheet-back svg { color: var(--brand); }
+
+/* Login */
+#loginScreen { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 24px; }
+body.logged-out #loginScreen { display: flex; }
+body.logged-out .topbar,
+body.logged-out .tabs,
+body.logged-out .sidebar,
+body.logged-out .view,
+body.logged-out .filters,
+body.logged-out .fab,
+body.logged-out .dicts-tab,
+body.logged-out .bottom-bar,
+body.logged-out .modal,
+body.logged-out .toast { display: none !important; }
+.login-card { background: var(--card); width: 100%; max-width: 380px; padding: 24px; border-radius: 16px; box-shadow: var(--shadow-lg); }
+.login-card h1 { margin: 0 0 4px; font-size: 22px; text-align: center; font-weight: 700; }
+.login-sub { color: var(--muted); margin: 0 0 4px; font-size: 21px; text-align: center; font-weight: 700; }
+#loginForm { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .6s ease, opacity .6s ease, margin-top .6s ease; margin-top: 0; }
+#loginForm.shown { max-height: 520px; opacity: 1; margin-top: 16px; }
+.login-form-title { color: var(--muted); margin: 0 0 12px; font-size: 14px; }
+.login-err { color: var(--danger); font-size: 13px; min-height: 18px; margin-bottom: 8px; }
+.account-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.account-info { font-size: 14px; color: var(--text); overflow-wrap: anywhere; }
+#logoutBtn { width: auto; padding: 6px 12px; font-size: 13px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+.topbar-row { display: flex; justify-content: space-between; align-items: center; }
+.topbar-row .brand { margin-bottom: 0; }
+.logout-btn { background: var(--bg); border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.logout-btn:active { background: var(--line); }
+
+/* контактная строка внутри карточки клиники — кликабельна */
+.contact-row { padding: 8px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.contact-row:last-child { border-bottom: none; }
+.contact-row:active { color: var(--brand); }
+
+/* Справочники — кнопка убрана (справочники внутри Настроек) */
+
+.bottom-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  background: var(--card); border-top: 1px solid var(--line);
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+}
+.search-row { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+.search-row input {
+  flex: 1; min-width: 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px;
+  font-size: 15px; background: var(--bg); color: var(--ink);
+}
+.search-row input::placeholder { color: var(--muted); }
+.search-row input:focus { outline: 2px solid var(--brand); border-color: transparent; background: #fff; }
+
+.tabbar { max-width: 720px; margin: 8px auto 0; display: none; gap: 4px; flex-wrap: nowrap; }  /* v1.146: нижний бар убран — навигация через бургер */
+.tabbar .tab {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 11px 0; border: none; border-radius: 12px; background: transparent;
+  color: var(--muted); cursor: pointer; position: relative;
+}
+.tabbar .tab svg { width: 24px; height: 24px; }
+.tabbar .tab.active { color: var(--brand); background: var(--bg); }
+.tabbar .tab .cnt-b {
+  position: absolute; top: 4px; right: calc(50% - 20px);
+  min-width: 17px; height: 17px; padding: 0 4px;
+  background: var(--brand); color: #fff; border-radius: 9px;
+  font-size: 10px; font-weight: 700; font-style: normal;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.tabbar .tab .cnt-b:empty { display: none; }
+
+/* v1.146: бургер + выезжающее меню (мобильная навигация) */
+.burger {
+  display: none; width: 38px; height: 38px; border: none; background: none;
+  flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  cursor: pointer; flex-shrink: 0; padding: 0;
+}
+.burger span { display: block; width: 20px; height: 2.5px; background: var(--ink); border-radius: 2px; }
+@media (max-width: 899px) { .burger { display: flex; } }
+.drawer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 90;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.drawer-overlay.show { opacity: 1; pointer-events: auto; }
+.drawer {
+  position: fixed; top: 0; left: 0; bottom: 0; width: 290px; max-width: 85vw;
+  background: var(--card); z-index: 95; box-shadow: 4px 0 30px rgba(0,0,0,.25);
+  transform: translateX(-105%); transition: transform .28s ease;
+  display: flex; flex-direction: column;
+}
+.drawer.open { transform: translateX(0); }
+.drawer .d-head { padding: 18px 16px 14px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+.drawer .d-logo { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+.drawer .d-title { font-size: 15px; font-weight: 700; }
+.drawer .d-sub { font-size: 11px; color: var(--muted); }
+.drawer nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.drawer .d-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  font-size: 14px; font-weight: 600; color: var(--ink);
+  border: none; background: none; width: 100%; text-align: left; cursor: pointer;
+}
+.drawer .d-item svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--muted); }
+.drawer .d-item .cnt {
+  margin-left: auto; font-style: normal; font-size: 11px; font-weight: 700;
+  background: var(--brand); color: #fff; border-radius: 10px; padding: 2px 7px;
+}
+.drawer .d-item .cnt:empty { display: none; }
+.drawer .d-item.active { background: var(--bg); }
+.drawer .d-item.active svg { color: var(--brand); }
+.drawer .d-sec { padding: 14px 16px 4px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+.sidebar-nav .d-sec { padding: 14px 6px 4px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+.drawer .d-foot { padding: 12px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+@media (min-width: 900px) { .drawer, .drawer-overlay { display: none; } }
+
+/* Sidebar (desktop only) */
+.sidebar {
+  display: none;
+  flex-direction: column;
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: 260px; background: var(--card);
+  border-right: 1px solid var(--line); z-index: 35;
+  padding: 20px 14px;
+}
+.sidebar-brand {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 6px 16px; border-bottom: 1px solid var(--line); margin-bottom: 12px;
+}
+.sidebar-brand .brand-logo { height: 28px; width: 28px; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
+.sidebar-nav .tab {
+  display: flex; align-items: center; gap: 12px; white-space: nowrap;
+  padding: 11px 12px; border: none; border-radius: 10px;
+  background: transparent; color: var(--muted);
+  font-size: 15px; font-weight: 600; text-align: left; cursor: pointer;
+}
+.sidebar-nav .tab svg { width: 20px; height: 20px; flex: none; }
+.sidebar-nav .tab .cns-nav-ico { width: 20px; height: 20px; flex: none; }
+.sidebar-nav .tab.active { color: var(--brand); background: var(--bg); }
+.sidebar-nav .tab:hover { background: #fafafa; }
+.sidebar-nav .tab .cnt {
+  font-style: normal; font-size: 12px; font-weight: 600;
+  color: var(--brand); background: var(--bg);
+  border-radius: 8px; padding: 1px 7px; margin-left: auto;
+}
+.sidebar-nav .tab .cnt:empty { display: none; }
+
+/* v1.158: десктоп — сайдбар (бургер только на мобильном) */
+@media (min-width: 900px) {
+  .sidebar { display: flex; }
+  .topbar { display: none; }
+  .tabbar { display: none; }
+  .view, .filters { margin-left: 260px; }
+  .bottom-bar { left: 260px; }
+}
+
+/* телефон — ссылка для звонка */
+a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
+
+/* Hover-превью (десктоп): данные клиники справа от строки */
+.hover-card {
+  position: fixed; z-index: 30; width: 380px; max-height: 80vh; overflow-y: auto;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: var(--shadow-lg); padding: 16px;
+}
+.hover-card.hidden { display: none; }
+.hover-card h3 { margin: 0 0 8px; font-size: 16px; }
+@media (max-width: 899px) { .hover-card { display: none !important; } }
+.badge a.tel { color: inherit; }
+.detail-block a.tel, .contact-row a.tel { color: var(--brand); }
+
+/* инлайн-редактирование комментариев (contenteditable) */
+.comment-field {
+  min-height: 24px; cursor: text; white-space: pre-wrap; word-break: break-word;
+  border-radius: 8px; padding: 4px 6px; margin: -4px -6px;
+  transition: background .12s ease, box-shadow .12s ease;
+}
+.comment-field:hover { background: var(--bg); box-shadow: inset 0 0 0 1px var(--line); }
+.comment-field:empty::before { content: '—'; color: var(--muted); }
+.comment-field:focus { outline: none; background: var(--bg); box-shadow: inset 0 0 0 2px var(--brand); }
+
+/* номер версии внизу слева (в сайдбаре, десктоп) */
+.footer-version {
+  margin-top: auto;
+  font-size: 10.5px; color: var(--muted); opacity: .55;
+  padding: 14px 6px 0;
+}
+
+.nastya-notes { width:100%; min-height:280px; box-sizing:border-box; padding:10px; border:1px solid #e2e2e2; border-radius:8px; font:inherit; line-height:1.45; resize:vertical; background:#fff; }
+@media (min-width: 900px) { .nastya-notes { min-height: 480px; } }
+.nastya-next { display:flex; align-items:center; gap:8px; margin-top:12px; font-size:13px; color:#555; }
+.nastya-next input { padding:6px 8px; border:1px solid #e2e2e2; border-radius:8px; font:inherit; background:#fff; }
+.nastya-person .np-in { width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid #e2e2e2; border-radius:8px; font:inherit; margin-top:6px; background:#fff; }
+.nastya-person textarea.np-in { min-height:60px; resize:vertical; }
+.nd { font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px; white-space:nowrap; color:#fff; }
+.nd-over { background: linear-gradient(135deg, #dc2626, #f97316); }
+.nd-today { background: linear-gradient(135deg, #16a34a, #4ade80); }
+.nd-future { background: linear-gradient(135deg, #64748b, #94a3b8); }
+</style>
+  <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
+</head>
+<body>
+  <div id="loginScreen">
+    <div class="login-card">
+      <h1>Добро пожаловать отсюда!</h1>
+      <p class="login-sub">Это частная территория</p>
+      <div id="loginForm">
+        <p class="login-form-title">Вход для своих:</p>
+        <div class="field"><label>Логин</label><input id="loginEmail" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="напр. Abramson" /></div>
+        <div class="field"><label>Пароль</label><input id="loginPass" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" /></div>
+        <div id="loginErr" class="login-err"></div>
+        <button class="btn" id="loginBtn">Войти</button>
+      </div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-row">
+        <button class="burger" id="burgerBtn" aria-label="Меню"><span></span><span></span><span></span></button>
+        <span class="brand"><img src="logo.jpg" class="brand-logo" alt="" /><span class="brand-name">Абрамовская база</span></span>
+        <span id="brandVersion" class="brand-version">v2.1 · © Abramson</span>
+      </div>
+      <div id="diag" style="display:none;font-size:10px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%"></div>
+    </div>
+  </header>
+
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="drawerMenu" aria-hidden="true">
+    <div class="d-head"><img src="logo.jpg" class="d-logo" alt="" /><div><div class="d-title">Абрамовская база</div><div class="d-sub" id="drawerUser"></div></div></div>
+    <nav>
+      <div class="d-sec">Основное</div>
+      <button class="tab d-item active" data-view="clinics">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16"/><path d="M5 21V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12"/><path d="M9 21v-4h6v4"/><path d="M12 8v5M9.5 10.5h5"/></svg>
+        <span>Клиники</span><em class="cnt" data-cnt="clinics"></em>
+      </button>
+      <button class="tab d-item" data-view="distributors">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+        <span>Партнеры</span><em class="cnt" data-cnt="distributors"></em>
+      </button>
+      <button class="tab d-item" data-view="people">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Клиенты</span><em class="cnt" data-cnt="people"></em>
+      </button>
+      <button class="tab d-item money-tab" data-view="money">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+        <span>Деньги</span><em class="cnt" data-cnt="money"></em>
+      </button>
+      <button class="tab d-item" data-view="calls">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span>Звонки</span>
+      </button>
+      <button class="tab d-item" data-view="visits">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span>Визиты</span>
+      </button>
+      <div class="d-sec">Продукты</div>
+      <button class="tab d-item" data-view="cns">
+        <img src="cns.png" class="cns-drawer-ico" alt="" />
+        <span>Цистонефроскопы</span><em class="cnt" data-cnt="cns"></em>
+      </button>
+      <div class="d-sec">Команда</div>
+      <button class="tab d-item nastya-tab" data-view="nastya">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5L8 13.8l-6-4.6h7.6z"/></svg>
+        <span>Настя</span>
+      </button>
+      <button class="tab d-item galya-tab" data-view="galya">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span>Галя</span>
+      </button>
+      <button class="tab d-item sasha-tab" data-view="sasha">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5L8 13.8l-6-4.6h7.6z"/></svg>
+        <span>Саша</span>
+      </button>
+      <div class="d-sec">Система</div>
+      <button class="tab d-item" data-view="settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span>Настройки</span>
+      </button>
+    </nav>
+    <div class="d-foot">База v2.0 · синк 08:00</div>
+  </aside>
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="logo.jpg" class="brand-logo" alt="" />
+      <span class="brand-name">Абрамовская база</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="d-sec">Основное</div>
+      <button class="tab active" data-view="clinics">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16"/><path d="M5 21V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12"/><path d="M9 21v-4h6v4"/><path d="M12 8v5M9.5 10.5h5"/></svg>
+        <span>Клиники <em class="cnt" data-cnt="clinics"></em></span>
+      </button>
+      <button class="tab" data-view="distributors">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+        <span>Партнеры <em class="cnt" data-cnt="distributors"></em></span>
+      </button>
+      <button class="tab" data-view="people">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Клиенты <em class="cnt" data-cnt="people"></em></span>
+      </button>
+      <button class="tab money-tab" data-view="money">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+        <span>Деньги <em class="cnt" data-cnt="money"></em></span>
+      </button>
+      <button class="tab" data-view="calls">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span>Звонки</span>
+      </button>
+      <button class="tab" data-view="visits">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span>Визиты</span>
+      </button>
+      <div class="d-sec">Продукты</div>
+      <button class="tab" data-view="cns">
+        <img src="cns.png" class="cns-nav-ico" alt="" />
+        <span>Цистонефроскопы <em class="cnt" data-cnt="cns"></em></span>
+      </button>
+      <div class="d-sec">Команда</div>
+      <button class="tab nastya-tab" data-view="nastya">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5L8 13.8l-6-4.6h7.6z"/></svg>
+        <span>Настя</span>
+      </button>
+      <button class="tab galya-tab" data-view="galya">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span>Галя</span>
+      </button>
+      <button class="tab sasha-tab" data-view="sasha">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5L8 13.8l-6-4.6h7.6z"/></svg>
+        <span>Саша</span>
+      </button>
+      <div class="d-sec">Система</div>
+      <button class="tab" data-view="settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span>Настройки</span>
+      </button>
+    </nav>
+    <div id="footerVersion" class="footer-version"></div>
+  </aside>
+
+  <div id="filters" class="filters hidden">
+    <select id="f_region"><option value="">Регионы</option></select>
+    <select id="f_city"><option value="">Города</option></select>
+    <select id="f_year" class="hidden"><option value="">Годы</option></select>
+    <select id="f_manager"><option value="">Менеджеры</option></select>
+  </div>
+
+  <main id="view" class="view"></main>
+
+  <div class="bottom-bar">
+    <div class="search-row">
+      <input id="globalSearch" type="search" placeholder="Поиск: имя, организация, город…" />
+      <button id="fab" class="fab" aria-label="Добавить">＋</button>
+    </div>
+    <nav class="tabbar" id="tabbar-main">
+      <button class="tab active" data-view="clinics" aria-label="Больницы" title="Больницы">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16"/><path d="M5 21V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12"/><path d="M9 21v-4h6v4"/><path d="M12 8v5M9.5 10.5h5"/></svg>
+        <i class="cnt-b" data-cnt="clinics"></i>
+      </button>
+      <button class="tab" data-view="distributors" aria-label="Партнеры" title="Партнеры">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+        <i class="cnt-b" data-cnt="distributors"></i>
+      </button>
+      <button class="tab" data-view="people" aria-label="Клиенты" title="Клиенты">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <i class="cnt-b" data-cnt="people"></i>
+      </button>
+      <button class="tab" data-view="money" aria-label="Кабинет" title="Личный кабинет">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
+      </button>
+      <button class="tab" data-view="settings" aria-label="Настройки" title="Настройки">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </nav>
+    <nav class="tabbar hidden" id="tabbar-analysis">
+      <button class="tab money-tab" data-view="money" aria-label="Деньги" title="Деньги">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+      </button>
+      <button class="tab" data-view="calls" aria-label="Звонки" title="Звонки">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </button>
+      <button class="tab" data-view="visits" aria-label="Визиты" title="Визиты">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      </button>
+      <button class="tab managers-tab hidden" data-view="managers" aria-label="Менеджеры" title="Менеджеры">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </button>
+      <button class="tab nastya-tab" data-view="nastya" aria-label="Настя" title="Настя">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5L8 13.8l-6-4.6h7.6z"/></svg>
+      </button>
+      <button class="tab galya-tab" data-view="galya" aria-label="Галя" title="Галя">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button class="tab" data-view="back" aria-label="Контакты" title="Контакты">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+    </nav>
+    <nav class="tabbar hidden" id="tabbar-managers">
+      <button class="tab sasha-tab" data-view="sasha" aria-label="Саша" title="Саша">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5L8 13.8l-6-4.6h7.6z"/></svg>
+      </button>
+      <button class="tab nastya-tab" data-view="nastya" aria-label="Настя" title="Настя">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5L8 13.8l-6-4.6h7.6z"/></svg>
+      </button>
+      <button class="tab galya-tab" data-view="galya" aria-label="Галя" title="Галя">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button class="tab" data-view="money" aria-label="Деньги" title="Деньги (3-й рабочий стол)">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+      </button>
+    </nav>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="modalTitle"></h2>
+        <button id="modalClose" class="icon-btn">✕</button>
+      </div>
+      <div id="modalBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <div id="hoverCard" class="hover-card hidden"></div>
+
+  <script>if(window.__d)window.__d.m.push('sdk-start '+(Date.now()-window.__d.t)+'ms');</script>
+  <script src="supabase.v139.min.js?v=139"></script>
+  <script>if(window.__d)window.__d.m.push('sdk-done '+(Date.now()-window.__d.t)+'ms');</script>
+  <script>
+// db.js — слой данных Supabase (v2)
+// Ходим в Supabase напрямую (CORS у проекта = *). Работает из любого origin —
+// хоть с Мака, хоть со статического хостинга.
+const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
+if (window.__d) window.__d.m.push('db ' + (Date.now() - window.__d.t) + 'ms');
+// если SDK не загрузился (плохая сеть / кеш) — не падаем, а показываем понятную ошибку
+const sb = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    })
+  : null;
+
+// диагностика: замер каждого запроса к Supabase (auth vs data, статус, время)
+(function () {
+  if (!window.__d || !window.fetch) return;
+  var of = window.fetch;
+  window.fetch = function () {
+    var url = String(arguments[0] || '');
+    var t0 = performance.now();
+    return of.apply(this, arguments).then(function (r) {
+      if (url.indexOf('supabase') > -1) {
+        window.__d.m.push((url.indexOf('/auth/') > -1 ? 'auth' : 'data') + ' ' + Math.round(performance.now() - t0) + 'ms ' + r.status);
+      }
+      return r;
+    }, function (e) {
+      if (url.indexOf('supabase') > -1) window.__d.m.push('fetch-err ' + Math.round(performance.now() - t0) + 'ms');
+      throw e;
+    });
+  };
+})();
+
+// гость читает людей из маскированной view (телефоны/почты = ******)
+let peopleSource = 'people';
+function setPeopleSource(role) { peopleSource = (role === 'guest') ? 'people_guest' : 'people'; }
+
+// ---------- маппинг camelCase (приложение) <-> snake_case (БД) ----------
+function fromClinic(r) {
+  return {
+    id: r.id, name: r.name, type: r.type, region: r.region, city: r.city,
+    manager: r.manager, linkedClinicId: r.linked_clinic_id, kind: r.kind || 'hospital',
+    situation: r.situation, tags: r.tags || [], updatedAt: r.updated_at,
+    markedDel: r.marked_del || false,
+    sales2021: r.sales_2021, sales2022: r.sales_2022, sales2023: r.sales_2023,
+    sales2024: r.sales_2024, sales2025: r.sales_2025, sales2026: r.sales_2026,
+    hugemed2025: r.hugemed_2025, hugemed2026: r.hugemed_2026
+  };
+}
+function toClinic(row) {
+  const r = {
+    name: row.name, type: row.type, region: row.region, city: row.city,
+    manager: row.manager, linked_clinic_id: row.linkedClinicId,
+    situation: row.situation, tags: row.tags || []
+  };
+  if (row.kind === 'distributor') r.kind = 'distributor';
+  r.sales_2021 = row.sales2021 ?? null;
+  r.sales_2022 = row.sales2022 ?? null;
+  r.sales_2023 = row.sales2023 ?? null;
+  r.sales_2024 = row.sales2024 ?? null;
+  r.sales_2025 = row.sales2025 ?? null;
+  r.sales_2026 = row.sales2026 ?? null;
+  r.hugemed_2025 = row.hugemed2025 ?? null;
+  r.hugemed_2026 = row.hugemed2026 ?? null;
+  return r;
+}
+function fromPerson(r) {
+  return {
+    id: r.id, fullName: r.full_name, clinicId: r.clinic_id, position: r.position,
+    region: r.region, city: r.city, phone: r.phone, email: r.email,
+    situation: r.situation, tags: r.tags || [], updatedAt: r.updated_at,
+    markedDel: r.marked_del || false
+  };
+}
+function toPerson(row) {
+  const r = {
+    full_name: row.fullName, clinic_id: row.clinicId,
+    region: row.region, city: row.city, phone: row.phone, email: row.email,
+    situation: row.situation, tags: row.tags || []
+  };
+  if (row.position) r.position = row.position;
+  return r;
+}
+
+// ---------- справочники ----------
+async function getDict(type) {
+  const { data, error } = await sb.from('dicts').select('value').eq('type', type).order('value');
+  if (error) throw error;
+  return (data || []).map(d => d.value);
+}
+
+async function addDictValues(type, values) {
+  const clean = [...new Set((values || []).map(v => (v || '').trim()).filter(Boolean))];
+  if (!clean.length) return;
+  const { error } = await sb.from('dicts')
+    .upsert(clean.map(v => ({ type, value: v })), { onConflict: 'type,value' });
+  if (error) throw error;
+}
+
+async function addDictValue(type, value) { await addDictValues(type, [value]); }
+
+async function deleteDictValue(type, value) {
+  const { error } = await sb.from('dicts').delete().eq('type', type).eq('value', value);
+  if (error) throw error;
+}
+
+// ---------- клиники ----------
+async function listClinics() {
+  const { data, error } = await sb.from('clinics').select('*').order('name');
+  if (error) throw error;
+  return (data || []).map(fromClinic);
+}
+async function getClinic(id) {
+  const { data, error } = await sb.from('clinics').select('*').eq('id', id).maybeSingle();
+  if (error) throw error;
+  return data ? fromClinic(data) : null;
+}
+async function addClinic(row) {
+  const { data, error } = await sb.from('clinics').insert(toClinic(row)).select().single();
+  if (error) throw error;
+  return fromClinic(data);
+}
+async function updateClinic(id, row) {
+  const { error } = await sb.from('clinics').update(toClinic(row)).eq('id', id);
+  if (error) throw error;
+}
+async function removeClinic(id) {
+  const { error } = await sb.from('clinics').delete().eq('id', id);
+  if (error) throw error;
+}
+async function setClinicMarked(id, val) {
+  const { error } = await sb.from('clinics').update({ marked_del: !!val }).eq('id', id);
+  if (error) throw error;
+}
+
+// ---------- люди ----------
+async function listPeople() {
+  const { data, error } = await sb.from(peopleSource).select('*').order('full_name');
+  if (error) throw error;
+  return (data || []).map(fromPerson);
+}
+async function getPerson(id) {
+  const { data, error } = await sb.from(peopleSource).select('*').eq('id', id).maybeSingle();
+  if (error) throw error;
+  return data ? fromPerson(data) : null;
+}
+async function addPerson(row) {
+  const { data, error } = await sb.from('people').insert(toPerson(row)).select().single();
+  if (error) throw error;
+  return fromPerson(data);
+}
+async function updatePerson(id, row) {
+  const { error } = await sb.from('people').update(toPerson(row)).eq('id', id);
+  if (error) throw error;
+}
+async function removePerson(id) {
+  const { error } = await sb.from('people').delete().eq('id', id);
+  if (error) throw error;
+}
+async function setPersonMarked(id, val) {
+  const { error } = await sb.from('people').update({ marked_del: !!val }).eq('id', id);
+  if (error) throw error;
+}
+async function peopleByClinic(clinicId) {
+  // прямые (clinic_id) + доп. связи многие-ко-многим (clinic_people)
+  const { data: direct, error } = await sb.from(peopleSource).select('*').eq('clinic_id', clinicId).order('full_name');
+  if (error) throw error;
+  let extra = [];
+  try {
+    const { data: links, error: lerr } = await sb.from('clinic_people').select('person_id').eq('clinic_id', clinicId);
+    if (!lerr && links && links.length) {
+      const have = new Set((direct || []).map(d => d.id));
+      const ids = links.map(l => l.person_id).filter(id => !have.has(id));
+      if (ids.length) {
+        const { data: e, error: eerr } = await sb.from(peopleSource).select('*').in('id', ids).order('full_name');
+        if (!eerr) extra = e || [];
+      }
+    }
+  } catch (_) { /* таблица clinic_people может отсутствовать у старых клиентов */ }
+  return [...(direct || []), ...extra].map(fromPerson);
+}
+
+// все клиники человека: основная (clinic_id) + доп. связи многие-ко-многим
+async function personAllClinics(p) {
+  const clinics = [];
+  const seen = new Set();
+  if (p.clinicId) { clinics.push(p.clinicId); seen.add(p.clinicId); }
+  try {
+    const { data: links, error: lerr } = await sb.from('clinic_people').select('clinic_id').eq('person_id', p.id);
+    if (!lerr && links) links.forEach(l => { if (!seen.has(l.clinic_id)) { clinics.push(l.clinic_id); seen.add(l.clinic_id); } });
+  } catch (_) {}
+  if (!clinics.length) return [];
+  const { data, error } = await sb.from('clinics').select('id,name').in('id', clinics);
+  if (error) throw error;
+  const map = {};
+  (data || []).forEach(c => map[c.id] = c);
+  return clinics.map(id => map[id]).filter(Boolean);
+}
+async function clearPeopleClinic(clinicId) {
+  const { error } = await sb.from('people').update({ clinic_id: null }).eq('clinic_id', clinicId);
+  if (error) throw error;
+}
+
+// точечное обновление комментария (инлайн-редактирование)
+async function setSituation(table, id, text) {
+  const { error } = await sb.from(table).update({ situation: text }).eq('id', id);
+  if (error) throw error;
+}
+
+// точечное обновление суммы продаж за год (вкладка «Деньги»)
+async function setSalesYear(id, year, value) {
+  const col = 'sales_' + year;
+  const { error } = await sb.from('clinics').update({ [col]: value }).eq('id', id);
+  if (error) throw error;
+}
+
+// ---------- auth ----------
+async function currentUser() {
+  const { data } = await sb.auth.getUser();
+  return data.user;
+}
+// таймаут для любого запроса к базе — чтобы не висеть минутами на плохой сети
+function withTimeout(promise, ms, what) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout:' + what)), ms))
+  ]);
+}
+
+async function signIn(email, password) {
+  const { data, error } = await withTimeout(
+    sb.auth.signInWithPassword({ email, password }),
+    20000, 'login'
+  );
+  if (error) throw error;
+  return data.user;
+}
+async function signOut() { await sb.auth.signOut(); }
+
+// ---------- рабочие листы (Настя/Галя): изолированные вкладки, свои таблицы ----------
+async function getWorklist(W) {
+  const [clinics, people] = await Promise.all([
+    withTimeout(sb.from(W.cl).select('*').order('name'), 10000, 'wl-clinics'),
+    withTimeout(sb.from(W.pp).select('*').order('full_name'), 10000, 'wl-people')
+  ]);
+  if (clinics.error) throw clinics.error;
+  if (people.error) throw people.error;
+  return { clinics: clinics.data || [], people: people.data || [] };
+}
+async function getNastya() { return getWorklist(WORKLISTS.nastya); }
+async function getGalya() { return getWorklist(WORKLISTS.galya); }
+
+// ---------- авто-синхронизация вкладки с общей базой (база → вкладка) ----------
+// при открытии вкладки недостающие контакты доливаются из «Клиенты», изменения базы переносятся
+async function syncWorklistFromBase(key, W) {
+  const thrKey = 'wlsync_' + key + '_' + (CURRENT_EMAIL || 'anon');
+  const last = Number(localStorage.getItem(thrKey) || 0);
+  if (Date.now() - last < 60000) return 0;  // не чаще раза в минуту
+  localStorage.setItem(thrKey, String(Date.now()));
+  let changed = 0;
+  try {
+    const { data: clinics, error: cErr } = await withTimeout(
+      sb.from(W.cl).select('id,linked_clinic_id').not('linked_clinic_id', 'is', null), 15000, 'wl-sync-cl');
+    if (cErr || !clinics || !clinics.length) return 0;
+    for (const c of clinics) {
+      try {
+        const { data: base, error: bErr } = await withTimeout(
+          sb.from('people').select('id,full_name,phone,position,email,situation,marked_del,updated_at').eq('clinic_id', c.linked_clinic_id), 10000, 'wl-sync-base');
+        if (bErr || !base || !base.length) continue;
+        const { data: copies, error: pErr } = await withTimeout(
+          sb.from(W.pp).select('id,full_name,phone,position,email,situation,marked_del,updated_at').eq('clinic_id', c.id), 10000, 'wl-sync-copy');
+        if (pErr) continue;
+        const byName = {};
+        (copies || []).forEach(p => { byName[(p.full_name || '').trim().toLowerCase()] = p; });
+        for (const b of base) {
+          const k = (b.full_name || '').trim().toLowerCase();
+          if (!k) continue;
+          const cp = byName[k];
+          const fields = { phone: b.phone || '', position: b.position || '', email: b.email || '', situation: b.situation || '', marked_del: !!b.marked_del };
+          if (!cp) {
+            await withTimeout(sb.from(W.pp).insert({ clinic_id: c.id, full_name: b.full_name, ...fields }), 10000, 'wl-sync-ins');
+            changed++;
+          } else if ((cp.updated_at || '') < (b.updated_at || '') &&
+                     ((cp.phone || '') !== fields.phone || (cp.position || '') !== fields.position ||
+                      (cp.email || '') !== fields.email || (cp.situation || '') !== fields.situation ||
+                      !!cp.marked_del !== fields.marked_del)) {
+            await withTimeout(sb.from(W.pp).update(fields).eq('id', cp.id), 10000, 'wl-sync-upd');
+            changed++;
+          }
+        }
+      } catch (_) {}
+    }
+  } catch (_) {}
+  return changed;
+}
+async function saveWorklistClinic(W, id, patch) {
+  const { error } = await withTimeout(sb.from(W.cl).update(patch).eq('id', id), 10000, 'wl-save');
+  if (error) throw error;
+}
+async function saveNastyaClinic(id, patch) { return saveWorklistClinic(WORKLISTS.nastya, id, patch); }
+async function saveGalyaClinic(id, patch) { return saveWorklistClinic(WORKLISTS.galya, id, patch); }
+async function addWorklistClinic(W, name) {
+  const { error } = await withTimeout(sb.from(W.cl).insert({ name, manager: W.manager }), 10000, 'wl-add');
+  if (error) throw error;
+}
+async function addNastyaClinic(name) { return addWorklistClinic(WORKLISTS.nastya, name); }
+async function addGalyaClinic(name) { return addWorklistClinic(WORKLISTS.galya, name); }
+
+</script>
+  <script>
+// app.js — логика интерфейса (v2, Supabase)
+if (window.__d) window.__d.m.push('app ' + (Date.now() - window.__d.t) + 'ms');
+const DICT_LABELS = {
+  manager: 'Менеджер',
+  region: 'Регион',
+  city: 'Город',
+  sub: 'Суб / партнёр'
+};
+
+const state = { view: 'clinics', search: '', filters: { region: '', city: '', manager: '' }, moneySort: 'desc', moneySource: 'both', moneyYear: '', moneyFilter: 'all', nastyaId: null, fromCalls: false };
+
+// ---------- цвет выделения ----------
+const ACCENT_OPTIONS = [
+  { key: 'black',  label: 'Чёрный',     color: '#111111', dark: '#000000' },
+  { key: 'blue',   label: 'Синий',      color: '#2563eb', dark: '#1d4ed8' },
+  { key: 'red',    label: 'Красный',    color: '#dc2626', dark: '#b91c1c' },
+  { key: 'green',  label: 'Зелёный',    color: '#16a34a', dark: '#15803d' },
+  { key: 'purple', label: 'Фиолетовый', color: '#7c3aed', dark: '#6d28d9' },
+  { key: 'orange', label: 'Оранжевый',  color: '#ea580c', dark: '#c2410c' }
+];
+
+function getAccent() {
+  return localStorage.getItem('accent') || 'black';
+}
+function applyAccent() {
+  const opt = ACCENT_OPTIONS.find(o => o.key === getAccent()) || ACCENT_OPTIONS[0];
+  const r = document.documentElement.style;
+  r.setProperty('--brand', opt.color);
+  r.setProperty('--brand-dark', opt.dark);
+}
+
+// ---------- деньги ----------
+const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
+const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
+const YEAR_OPTIONS = MONEY_YEARS;
+function curYear() { return String(new Date().getFullYear()); }
+function moneyVal(c, year) {  // выбранный источник суммы: both | boston | hugemed
+  if (state.moneySource === 'boston') return curYearSales(c, year);
+  if (state.moneySource === 'hugemed') return curYearHM(c, year);
+  return yearTotal(c, year);
+}
+function curYear() { return String(new Date().getFullYear()); }
+function fmtMoney(n) {
+  if (n == null || n === '') return '';
+  const num = Number(n);
+  if (!isFinite(num)) return '';
+  return num.toLocaleString('ru-RU');
+}
+function curYearSales(c, year) {
+  const y = year || state.moneyYear || curYear();
+  const v = c['sales' + y];
+  return (v == null || v === '') ? null : Number(v);
+}
+function curYearHM(c, year) {  // HugeMed
+  const y = year || state.moneyYear || curYear();
+  const v = c['hugemed' + y];
+  return (v == null || v === '') ? null : Number(v);
+}
+function yearTotal(c, year) {  // Бостон + HugeMed
+  const b = curYearSales(c, year), h = curYearHM(c, year);
+  if (b == null && h == null) return null;
+  return (b || 0) + (h || 0);
+}
+
+// ---------- счётчики записей на вкладках ----------
+let tabCounts = {};
+async function refreshCounts() {
+  try {
+    const [clinics, people] = await Promise.all([listClinics(), listPeople()]);
+    tabCounts = {
+      clinics: clinics.filter(c => (c.kind || 'hospital') === 'hospital').length,
+      distributors: clinics.filter(c => c.kind === 'distributor').length,
+      people: people.length,
+      money: clinics.filter(c =>
+        (c.kind || 'hospital') !== 'distributor' &&
+        MONEY_YEARS.some(y => yearTotal(c, y) != null)
+      ).length,
+      cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && (c.tags || []).includes('cns')).length
+    };
+    paintCounts();
+  } catch (_) {}
+}
+function paintCounts() {
+  document.querySelectorAll('[data-cnt]').forEach(el => {
+    const k = el.dataset.cnt;
+    el.textContent = tabCounts[k] != null ? tabCounts[k] : '';
+  });
+}
+
+// ---------- helpers ----------
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.add('hidden'), 2000);
+}
+
+// поверхностные ошибки — показываем тостом, чтобы видеть, что ломается
+window.addEventListener('error', e => { try { toast('⚠️ ' + e.message); } catch(_){} });
+window.addEventListener('unhandledrejection', e => {
+  const r = e.reason || {};
+  const m = r.message || r.error_description || r.error || String(r);
+  try { toast('⚠️ ' + m); } catch(_){}
+});
+
+function tagsHtml(tags) {
+  if (!tags || !tags.length) return '';
+  return '<div class="row">' + tags.map(t => `<span class="tag">${esc(t)}</span>`).join('') + '</div>';
+}
+
+function openModal(title, bodyHtml) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+}
+
+async function datalistOptions(type) {
+  const vals = await getDict(type);
+  return vals.map(v => `<option value="${esc(v)}"></option>`).join('');
+}
+
+async function clinicSelectOptions(selectedId) {
+  const clinics = await listClinics();
+  return clinics
+    .map(c => `<option value="${c.id}" ${String(c.id) === String(selectedId) ? 'selected' : ''}>${esc(c.name)}</option>`)
+    .join('');
+}
+
+// ---------- auth ----------
+let CURRENT_ROLE = null; // 'admin' | 'manager' | 'guest' | null
+let CURRENT_EMAIL = null;
+const MANAGER_BY_EMAIL = { 'osechkina@crm.ru': 'Осечкина', 'skokova@crm.ru': 'Скокова' };
+function myManagerName() { return MANAGER_BY_EMAIL[(CURRENT_EMAIL || '').toLowerCase()] || null; }
+const WORKLISTS = {
+  nastya: { label: 'Настя', emails: ['abramson@crm.ru', 'mazaeva@crm.ru', 'osechkina@crm.ru', 'skokova@crm.ru'], cabinet: 'osechkina@crm.ru', cl: 'nastya_clinics', pp: 'nastya_people', manager: 'Настя' },
+  galya: { label: 'Галя', emails: ['abramson@crm.ru', 'mazaeva@crm.ru', 'skokova@crm.ru', 'osechkina@crm.ru'], cabinet: 'skokova@crm.ru', cl: 'galya_clinics', pp: 'galya_people', manager: 'Галя' },
+  sasha: { label: 'Саша', emails: ['abramson@crm.ru', 'osechkina@crm.ru', 'skokova@crm.ru'], cabinet: 'abramson@crm.ru', cl: 'abramson_clinics', pp: 'abramson_people', manager: 'Саша' }
+};
+
+function showLogin() {
+  document.body.classList.add('logged-out');
+  // приветствие показывается сразу, форма раскрывается чуть позже — «когда подгрузится остальное»
+  const f = document.getElementById('loginForm');
+  if (f) setTimeout(function () { f.classList.add('shown'); }, 150);
+}
+function showApp() {
+  document.body.classList.remove('logged-out');
+}
+
+async function bootstrap() {
+  if (window.__d) window.__d.m.push('boot ' + (Date.now() - window.__d.t) + 'ms');
+  if (!sb) {  // SDK не загрузился — понятное сообщение вместо краха
+    toast('⚠️ Не удалось загрузить библиотеку Supabase. Обнови страницу.');
+    showLogin();
+    return;
+  }
+  // определяем роль текущего пользователя (таблица user_managers)
+  CURRENT_ROLE = 'manager';
+  let user = null;
+  try {
+    const { data: { user: u } } = await sb.auth.getUser();
+    user = u;
+  } catch (_) {}
+  if (window.__d) window.__d.m.push('user ' + (Date.now() - window.__d.t) + 'ms');
+  if (!user) { showLogin(); return; }  // нет валидной сессии — показываем экран входа
+  try {
+    const { data: am } = await sb.from('user_managers').select('*').eq('email', user.email).maybeSingle();
+    if (am) CURRENT_ROLE = am.role;
+  } catch (_) {}
+  CURRENT_EMAIL = user.email || null;
+  Object.keys(WORKLISTS).forEach(k => {
+    const can = WORKLISTS[k].emails.includes(CURRENT_EMAIL);
+    document.querySelectorAll('.' + k + '-tab').forEach(el => el.classList.toggle('hidden', !can));
+  });
+  // менеджеры: у Саши на 2-м столе вместо отдельных Настя/Галя — кнопка Менеджеры
+  const isSashaMg = CURRENT_EMAIL === 'abramson@crm.ru';
+  document.querySelectorAll('.managers-tab').forEach(el => el.classList.toggle('hidden', !isSashaMg));
+  if (isSashaMg) {
+    document.querySelectorAll('#tabbar-analysis .nastya-tab, #tabbar-analysis .galya-tab').forEach(el => el.classList.add('hidden'));
+  }
+  document.querySelectorAll('.sheet-item[data-goto="nastya"]').forEach(el => el.classList.toggle('hidden', !WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)));
+  if (!WORKLISTS.nastya.emails.includes(CURRENT_EMAIL) && state.view === 'nastya') state.view = 'clinics';
+  if (window.__d) window.__d.m.push('role ' + (Date.now() - window.__d.t) + 'ms');
+  setPeopleSource(CURRENT_ROLE);
+  const isGuest = CURRENT_ROLE === 'guest';
+  const readOnly = isGuest || CURRENT_ROLE === 'viewer';
+  document.getElementById('fab').classList.toggle('hidden', readOnly);
+  // деньги — только для тех, у кого есть доступ (гость видит анализ, но не деньги)
+  document.querySelectorAll('.money-tab').forEach(t => t.classList.toggle('hidden', isGuest));
+  if (isGuest && state.view === 'money') state.view = 'clinics';
+  showApp();
+  applyAccent();
+  document.getElementById('brandVersion').textContent = 'v2.1 · © Abramson';
+  document.getElementById('footerVersion').textContent = '';
+  updateFiltersUI();
+  render();
+  refreshCounts();
+}
+
+async function init() {
+  applyAccent();
+  // экран входа показываем СРАЗУ — не ждём ответа от базы (медленная сеть = 20 мин ожидания)
+  showLogin();
+  try {
+    const session = await withTimeout(
+      sb.auth.getSession().then(r => r.data.session),
+      10000, 'session'
+    );
+    if (window.__d) window.__d.m.push('sess ' + (Date.now() - window.__d.t) + 'ms');
+    if (!session) return;  // нет сессии — остаёмся на экране входа
+    await withTimeout(bootstrap(), 15000, 'bootstrap');
+  } catch (e) {
+    if (window.__d) window.__d.m.push('sess-err ' + (Date.now() - window.__d.t) + 'ms');
+    toast('⚠️ База не отвечает (медленная сеть). Проверь интернет и обнови страницу.');
+  }
+}
+
+async function doLogin() {
+  // простой логин: вводишь Abramson — приложение само добавит @crm.ru
+  const raw = document.getElementById('loginEmail').value.trim();
+  const email = (raw.includes('@') ? raw : raw + '@crm.ru').toLowerCase();
+  const password = document.getElementById('loginPass').value.trim();
+  const err = document.getElementById('loginErr');
+  if (!email || !password) { err.textContent = 'Введи email и пароль'; return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Вход…'; err.textContent = '';
+  try {
+    await signIn(email, password);
+    await bootstrap();
+  } catch (e) {
+    // различаем «нет сети» и «неверные данные» — раньше всё выглядело как «неверный пароль»
+    const msg = (e && e.message) || String(e);
+    const isNet = /fetch|network|Failed to fetch|load failed|ECONN|socket|timed out|timeout/i.test(msg);
+    err.textContent = isNet
+      ? 'Нет связи с базой данных. Проверь интернет и попробуй ещё раз.'
+      : 'Неверный email или пароль';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Войти';
+  }
+}
+
+// кнопка входа + Enter
+if (document.getElementById('loginBtn')) {
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+}
+
+// авто-переключение при смене сессии
+if (sb) {
+  sb.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') { bootstrap(); }
+    else if (event === 'SIGNED_OUT') { showLogin(); }
+  });
+} else {
+  showLogin();
+}
+
+// ---------- navigation ----------
+// v1.146: бургер-меню (мобильная навигация)
+const drawerMenu = document.getElementById('drawerMenu');
+const drawerOverlay = document.getElementById('drawerOverlay');
+const burgerBtn = document.getElementById('burgerBtn');
+function closeDrawer() {
+  if (!drawerMenu) return;
+  drawerMenu.classList.remove('open');
+  drawerOverlay.classList.remove('show');
+  drawerMenu.setAttribute('aria-hidden', 'true');
+}
+function openDrawer() {
+  if (!drawerMenu) return;
+  drawerMenu.classList.add('open');
+  drawerOverlay.classList.add('show');
+  drawerMenu.setAttribute('aria-hidden', 'false');
+}
+burgerBtn?.addEventListener('click', () => {
+  drawerMenu.classList.contains('open') ? closeDrawer() : openDrawer();
+});
+drawerOverlay?.addEventListener('click', closeDrawer);
+document.getElementById('drawerUser') && (document.getElementById('drawerUser').textContent = CURRENT_EMAIL || '');
+
+// v1.146: свайп от левого края — открыть меню; свайп влево по меню — закрыть
+let touchX = 0, touchY = 0, swipeTrack = false;
+document.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  touchX = t.clientX; touchY = t.clientY;
+  swipeTrack = true;
+}, { passive: true });
+document.addEventListener('touchmove', e => {
+  if (!swipeTrack || !drawerMenu) return;
+  const t = e.touches[0];
+  const dx = t.clientX - touchX;
+  const dy = t.clientY - touchY;
+  // открытие: старт у левого края (<24px), движение вправо >60px, жест горизонтальный
+  if (!drawerMenu.classList.contains('open') && touchX < 24 && dx > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+    openDrawer();
+    swipeTrack = false;
+  }
+  // закрытие: свайп влево из открытого меню
+  if (drawerMenu.classList.contains('open') && touchX < 300 && dx < -60 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+    closeDrawer();
+    swipeTrack = false;
+  }
+}, { passive: true });
+document.addEventListener('touchend', () => { swipeTrack = false; }, { passive: true });
+
+function setActiveTab(view) {
+  document.querySelectorAll('.tab').forEach(b => {
+    const v = b.dataset.view;
+    b.classList.toggle('active', v === view || (v === 'analysis' && ['analysis', 'money', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(view)));
+  });
+}
+
+function cabinetRoute() {
+  const e = (CURRENT_EMAIL || '').toLowerCase();
+  for (const k in WORKLISTS) if (WORKLISTS[k].cabinet === e) return k;
+  return 'money';
+}
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    let v = btn.dataset.view === 'back' ? 'clinics' : btn.dataset.view;
+    if (v === 'money' && CURRENT_ROLE === 'guest') v = 'visits';  // без доступа к деньгам — сразу на Визиты
+    if (v === 'managers') v = 'sasha';  // «Менеджеры» — сразу на свой лист (3-й стол)
+    if (v === 'nastya' && !WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) v = 'clinics';
+    if (v === 'galya' && !WORKLISTS.galya.emails.includes(CURRENT_EMAIL)) v = 'clinics';
+    if (v === 'sasha' && !WORKLISTS.sasha.emails.includes(CURRENT_EMAIL)) v = 'clinics';
+    state.view = v;
+    setActiveTab(state.view);
+    closeDrawer();  // v1.146: закрываем бургер-меню после выбора
+    state.search = '';
+    document.getElementById('globalSearch').value = '';
+    updateFiltersUI();
+    render();
+  });
+});
+
+// ---------- фильтры ----------
+async function updateFiltersUI() {
+  const bar = document.getElementById('filters');
+  const fab = document.getElementById('fab');
+  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns'];
+  fab.classList.toggle('hidden', menuViews.includes(state.view));
+  // мобильная нижняя плашка: у Саши свой 3-й стол (Саша/Настя/Галя), у остальных 2-й стол анализа
+  const inAnalysis = ['analysis', 'money', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(state.view);
+  const mainBar = document.getElementById('tabbar-main');
+  const anBar = document.getElementById('tabbar-analysis');
+  const mgBar = document.getElementById('tabbar-managers');
+  const isSasha = CURRENT_EMAIL === 'abramson@crm.ru';
+  const managersZone = inAnalysis && isSasha && ['sasha', 'nastya', 'galya', 'managers'].includes(state.view);
+  if (mainBar) mainBar.classList.toggle('hidden', inAnalysis);
+  if (anBar) anBar.classList.toggle('hidden', !inAnalysis || managersZone);
+  if (mgBar) mgBar.classList.toggle('hidden', !managersZone);
+  if (state.view === 'clinics' || state.view === 'distributors' || state.view === 'money') {
+    bar.classList.remove('hidden');
+    await populateFilters();
+    document.getElementById('f_year').classList.toggle('hidden', state.view !== 'money');
+    // у Насти/Гали фильтр «Менеджер» в «Деньгах» бесполезен — там и так только их клиники
+    if (myManagerName()) {
+      document.getElementById('f_manager').classList.add('hidden');
+      if (state.view === 'money' && state.filters.manager) state.filters.manager = '';
+    } else {
+      document.getElementById('f_manager').classList.remove('hidden');
+    }
+  } else {
+    bar.classList.add('hidden');
+  }
+}
+
+// карта связей регион<->город (строится из клиник) + полные словари для сброса
+let locAll = { regions: [], cities: [] };
+let locMap = { regionCities: {}, cityRegions: {} };
+const ruCmp = (a, b) => a.localeCompare(b, 'ru');
+
+async function populateFilters() {
+  const [regions, cities, managers] = await Promise.all([
+    getDict('region'), getDict('city'), getDict('manager')
+  ]);
+  locAll.regions = regions;
+  locAll.cities = cities;
+  // строим карту регион->города и город->регионы из реальных клиник
+  locMap.regionCities = {};
+  locMap.cityRegions = {};
+  try {
+    const clinics = await listClinics();
+    (clinics || []).forEach(c => {
+      if (!c.region && !c.city) return;
+      if (c.region && c.city) {
+        (locMap.regionCities[c.region] = locMap.regionCities[c.region] || new Set()).add(c.city);
+        (locMap.cityRegions[c.city] = locMap.cityRegions[c.city] || new Set()).add(c.region);
+      }
+    });
+  } catch (_) {}
+  fillSelect('f_region', regions, 'Регионы');
+  fillSelect('f_city', cities, 'Города');
+  fillSelect('f_manager', managers, 'Менеджеры');
+  fillSelect('f_year', YEAR_OPTIONS, 'Годы');
+  // применить зависимость к уже выбранным значениям (после переключения вкладок)
+  syncRegionOptions();
+  syncCityOptions();
+}
+
+// город -> список регионов, где он есть (или полный список, если город не выбран)
+function syncRegionOptions() {
+  const c = state.filters.city;
+  if (c && locMap.cityRegions[c]) {
+    const rs = [...locMap.cityRegions[c]].sort(ruCmp);
+    // выбранный регион не входит в список — сбрасываем
+    if (state.filters.region && !rs.includes(state.filters.region)) state.filters.region = '';
+    fillSelect('f_region', rs, 'Регионы');
+  } else {
+    fillSelect('f_region', locAll.regions, 'Регионы');
+  }
+}
+
+// регион -> список городов в нём (или полный список, если регион не выбран)
+function syncCityOptions() {
+  const r = state.filters.region;
+  if (r && locMap.regionCities[r]) {
+    const cs = [...locMap.regionCities[r]].sort(ruCmp);
+    // выбранный город не входит в список — сбрасываем
+    if (state.filters.city && !cs.includes(state.filters.city)) state.filters.city = '';
+    fillSelect('f_city', cs, 'Города');
+  } else {
+    fillSelect('f_city', locAll.cities, 'Города');
+  }
+}
+
+function fillSelect(id, values, emptyLabel) {
+  const sel = document.getElementById(id);
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${emptyLabel}</option>` +
+    values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  sel.value = cur;
+}
+
+['f_manager', 'f_year'].forEach(id => {
+  document.getElementById(id).addEventListener('change', e => {
+    if (id === 'f_year') { state.moneyYear = e.target.value; render(); return; }
+    state.filters[id.replace('f_', '')] = e.target.value;
+    render();
+  });
+});
+
+document.getElementById('f_region').addEventListener('change', e => {
+  state.filters.region = e.target.value;
+  // если выбран город, которого нет в этом регионе — сбрасываем его
+  if (state.filters.city && state.filters.region &&
+      locMap.regionCities[state.filters.region] &&
+      !locMap.regionCities[state.filters.region].has(state.filters.city)) {
+    state.filters.city = '';
+  }
+  syncCityOptions();
+  render();
+});
+
+document.getElementById('f_city').addEventListener('change', e => {
+  state.filters.city = e.target.value;
+  // если выбран регион, где нет этого города — сбрасываем его
+  if (state.filters.region && state.filters.city &&
+      locMap.cityRegions[state.filters.city] &&
+      !locMap.cityRegions[state.filters.city].has(state.filters.region)) {
+    state.filters.region = '';
+  }
+  syncRegionOptions();
+  render();
+});
+
+document.getElementById('fab').addEventListener('click', async () => {
+  if (CURRENT_ROLE === 'guest' || CURRENT_ROLE === 'viewer') return;
+  try {
+    if (state.view === 'clinics') await openClinicForm(null, 'hospital');
+    else if (state.view === 'distributors') await openClinicForm(null, 'distributor');
+    else if (state.view === 'money') await openClinicForm(null, 'hospital');
+    else if (state.view === 'people') await openPersonForm();
+    else if (state.view === 'analysis' || state.view === 'calls' || state.view === 'visits' || state.view === 'nastya') return;
+    else addDictPrompt();
+  } catch (e) { toast('⚠️ ' + e.message); }
+});
+
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+
+document.getElementById('globalSearch').addEventListener('input', e => {
+  state.search = e.target.value.trim().toLowerCase();
+  render();
+});
+
+// ---------- render ----------
+async function render() {
+  hideHover();
+  setActiveTab(state.view);
+  // гейт рабочих листов — применяется при каждом рендере (кеш не обманет)
+  Object.keys(WORKLISTS).forEach(k => {
+    const can = WORKLISTS[k].emails.includes(CURRENT_EMAIL);
+    document.querySelectorAll('.' + k + '-tab').forEach(el => el.classList.toggle('hidden', !can));
+  });
+  // менеджеры: у Саши на 2-м столе вместо отдельных Настя/Галя — кнопка Менеджеры
+  const isSashaMg = CURRENT_EMAIL === 'abramson@crm.ru';
+  document.querySelectorAll('.managers-tab').forEach(el => el.classList.toggle('hidden', !isSashaMg));
+  if (isSashaMg) {
+    document.querySelectorAll('#tabbar-analysis .nastya-tab, #tabbar-analysis .galya-tab').forEach(el => el.classList.add('hidden'));
+  }
+  try {
+    if (state.view === 'clinics') await renderOrgList('hospital');
+    else if (state.view === 'distributors') await renderOrgList('distributor');
+    else if (state.view === 'money') await renderMoney();
+    else if (state.view === 'people') await renderPeople();
+    else if (state.view === 'analysis') renderAnalysis();
+    else if (state.view === 'calls') renderCalls();
+    else if (state.view === 'cns') await renderCns();
+    else if (state.view === 'visits') renderVisits();
+    else if (state.view === 'nastya' && WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) await renderNastya();
+    else if (state.view === 'galya' && WORKLISTS.galya.emails.includes(CURRENT_EMAIL)) await renderGalya();
+    else if (state.view === 'sasha' && WORKLISTS.sasha.emails.includes(CURRENT_EMAIL)) await renderWorklist('sasha');
+    else await renderDicts();
+  } catch (e) {
+    // любая ошибка загрузки — видимое сообщение + кнопка повтора вместо пустого экрана
+    const view = document.getElementById('view');
+    view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки: ' + esc(e && e.message ? e.message : e) +
+      '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+  }
+}
+
+// ---------- ЦНС: отобранные клиники (v1.158) ----------
+async function renderCns() {
+  const view = document.getElementById('view');
+  const s = state.search;
+  let clinics = await listClinics();
+  clinics = clinics.filter(c => (c.kind || 'hospital') === 'hospital' && (c.tags || []).includes('cns'));
+  if (s) clinics = clinics.filter(c =>
+    (c.name || '').toLowerCase().includes(s) ||
+    (c.city || '').toLowerCase().includes(s) ||
+    (c.region || '').toLowerCase().includes(s) ||
+    (c.manager || '').toLowerCase().includes(s));
+  clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+  const cnsHead = `<div class="cns-head"><span>Цистонефроскопы · <b>${clinics.length}</b> ${clinics.length === 1 ? 'клиника' : clinics.length < 5 ? 'клиники' : 'клиник'} в отборе</span><button class="cns-add" id="cnsAddBtn">＋ Добавить</button></div>`;
+  if (!clinics.length) {
+    view.innerHTML = cnsHead + `<div class="empty">${s ? 'Ничего не найдено' : 'Отбор пуст — добавляй клиники кнопкой «＋ Добавить»'}</div>`;
+    bindCnsAdd(view);
+    return;
+  }
+  view.innerHTML = cnsHead
+    + '<div class="list">' + clinics.map(c => {
+      const loc = [c.region, c.city].filter(Boolean).join(' / ');
+      const m = (c.manager || '').trim();
+      return `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
+        <div class="list-row-top">
+          <span class="list-row-name">${esc(c.name)}</span>
+          <span class="row-actions"><span class="cns-btn on" data-cns="${c.id}" title="Убрать из отбора ЦНС"><img src="cns.png" class="cns-ico" alt="" /></span></span>
+        </div>
+        <div class="list-row-sub">${loc ? esc(loc) : '—'}${m ? ' · ' + esc(m) : ''}</div>
+      </div>`;
+    }).join('') + '</div>';
+  view.querySelectorAll('.cns-btn').forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation();
+    e.preventDefault();
+    const id = Number(b.dataset.cns);
+    const c = clinics.find(x => x.id === id);
+    if (!c) return;
+    try {
+      const tags = (c.tags || []).filter(t => t !== 'cns');
+      const { error } = await withTimeout(sb.from('clinics').update({ tags }).eq('id', id), 10000, 'cns-remove');
+      if (error) throw error;
+      toast('Убрано из отбора ЦНС');
+      renderCns();
+      refreshCounts();
+    } catch (err) {
+      toast('Ошибка: ' + (err && err.message ? err.message : err));
+    }
+  }));
+  bindCnsAdd(view);
+}
+async function bindCnsAdd(view) {
+  const btn = view.querySelector('#cnsAddBtn');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    const all = await listClinics();
+    const pool = all.filter(c => (c.kind || 'hospital') === 'hospital' && !(c.tags || []).includes('cns'))
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+    if (!pool.length) { toast('Все клиники уже в отборе'); return; }
+    openModal('Добавить в отбор ЦНС',
+      '<div class="list" id="cnsPool">' + pool.map(c =>
+        `<div class="card list-row cns-pool-row" data-id="${c.id}" style="cursor:pointer"><span class="list-row-name">${esc(c.name)}</span></div>`
+      ).join('') + '</div>');
+    document.querySelectorAll('#cnsPool .cns-pool-row').forEach(row => row.addEventListener('click', async () => {
+      const c = all.find(x => x.id === Number(row.dataset.id));
+      if (!c) return;
+      const tags = [...(c.tags || []), 'cns'];
+      const { error } = await withTimeout(sb.from('clinics').update({ tags }).eq('id', c.id), 10000, 'cns-add');
+      if (error) { toast('Ошибка: ' + (error.message || error)); return; }
+      c.tags = tags;
+      row.remove();
+      refreshCounts();
+      renderCns();
+      closeModal();
+      toast('Добавлено в отбор ЦНС');
+    }));
+  });
+}
+
+// ---------- анализ: лист подразделов ----------
+function renderAnalysis() {
+  const view = document.getElementById('view');
+  view.innerHTML = `<div class="analysis-sheet">
+    <div class="sheet-item" data-goto="money">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+      <span>Деньги</span>
+    </div>
+    <div class="sheet-item" data-goto="calls">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <span>Звонки</span>
+    </div>
+    <div class="sheet-item" data-goto="visits">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <span>Визиты</span>
+    </div>
+    ${Object.keys(WORKLISTS).map(k => {
+      const W = WORKLISTS[k];
+      if (!W.emails.includes(CURRENT_EMAIL)) return '';
+      if (CURRENT_EMAIL === 'abramson@crm.ru') return ''; // у Саши листы на 3-м столе, здесь не нужны
+      return `<div class="sheet-item" data-goto="${k}">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5L8 13.8l-6-4.6h7.6z"/></svg>
+      <span>${W.label}</span>
+    </div>`;
+    }).join('')}
+    <div class="sheet-item sheet-back" data-goto="back">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      <span>Контакты</span>
+    </div>
+  </div>`;
+  view.querySelectorAll('.sheet-item').forEach(el => el.addEventListener('click', () => {
+    const g = el.dataset.goto;
+    state.view = g === 'back' ? 'clinics' : g;
+    render();
+  }));
+}
+
+async function renderCalls() {
+  const view = document.getElementById('view');
+  const myEmail = CURRENT_EMAIL;
+  let key = null;
+  if (myEmail === 'abramson@crm.ru') key = 'sasha';
+  else if (myEmail === 'osechkina@crm.ru') key = 'nastya';
+  else if (myEmail === 'skokova@crm.ru') key = 'galya';
+  else key = Object.keys(WORKLISTS).find(k => WORKLISTS[k].emails.includes(myEmail)) || null;
+  if (!key) {
+    view.innerHTML = '<div class="empty">Звонков пока нет</div>';
+    return;
+  }
+  const W = WORKLISTS[key];
+  let rows = [];
+  try {
+    const { data, error } = await withTimeout(sb.from(W.cl).select('*'), 10000, 'calls-load');
+    if (error) throw error;
+    rows = data || [];
+  } catch (e) {
+    view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки звонков: ' + esc(e && e.message ? e.message : e) +
+      '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+    return;
+  }
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  // только клиники с назначенной датой созвона
+  rows = rows.filter(c => c.next_contact);
+  rows.sort((a, b) => {
+    const da = String(a.next_contact).slice(0, 10);
+    const db = String(b.next_contact).slice(0, 10);
+    if (da !== db) return da < db ? -1 : 1;
+    return (a.name || '').localeCompare(b.name || '', 'ru');
+  });
+  if (!rows.length) {
+    view.innerHTML = '<div class="empty">Звонков пока нет — назначь дату в карточке клиники</div>';
+    return;
+  }
+  view.innerHTML = `<div class="money-total-line"><b>ЗВОНКИ</b><button id="calls-sync" class="sort-toggle" title="Синхронизировать с Напоминаниями" style="margin-left:auto">⟳</button></div>
+    <div class="list">` + rows.map(c => {
+    const d = fmtDate(c.next_contact);
+    const nd = new Date(String(c.next_contact).slice(0, 10) + 'T00:00:00');
+    const cls = nd < today ? 'nd-over' : (nd.getTime() === today.getTime() ? 'nd-today' : 'nd-future');
+    const sit = (c.situation || '').trim();
+    return `<div class="card call-row" data-kind="nastya" data-id="${c.id}" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
+      <div style="flex:none;width:104px">
+        <span class="nd ${cls}">${d}</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">09:00</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.name)}</div>
+        <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sit ? esc(sit) : ''}</div>
+      </div>
+      <span style="flex:none;font-size:14px;color:var(--muted)">→</span>
+    </div>`;
+  }).join('') + '</div>';
+  view.querySelectorAll('.call-row').forEach(row => {
+    row.addEventListener('click', () => {
+      state.fromCalls = true;
+      state.nastyaId = row.dataset.id;
+      state.view = key;
+      render();
+    });
+  });
+  const syncBtn = document.getElementById('calls-sync');
+  if (syncBtn) syncBtn.addEventListener('click', () => {
+    syncBtn.disabled = true;
+    syncBtn.textContent = '…';
+    const done = () => { syncBtn.disabled = false; syncBtn.textContent = '⟳'; };
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 20000);
+    fetch('/api/sync')
+      .then(r => r.json().catch(() => ({})))
+      .then(j => { clearTimeout(t); toast(j.ok ? '✓ Синхронизация запущена' : ('⚠️ ' + (j.error || 'ошибка'))); done(); })
+      .catch(() => { clearTimeout(t); toast('⚠️ Синхронизация недоступна'); done(); });
+  });
+}
+
+function renderVisits() {
+  document.getElementById('view').innerHTML = '<div class="empty">Визитов пока нет</div>';
+}
+
+// ---------- Настя: изолированные карточки ----------
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = String(iso).slice(0, 10).split('-');
+  return d + '.' + m + '.' + y;
+}
+async function renderNastya() { return renderWorklist('nastya'); }
+async function renderGalya() { return renderWorklist('galya'); }
+async function renderWorklist(key) {
+  const W = WORKLISTS[key];
+  const view = document.getElementById('view');
+  // фоновая синхронизация с общей базой: долить новые контакты, перенести изменения
+  syncWorklistFromBase(key, W).then(changed => { if (changed) renderWorklist(key); }).catch(() => {});
+  let data;
+  try {
+    data = await getWorklist(W);
+  } catch (e) {
+    view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки вкладки ' + esc(W.label) + ': ' + esc(e && e.message ? e.message : e) +
+      '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+    return;
+  }
+  if (state.nastyaId) {
+    const c = data.clinics.find(x => x.id === Number(state.nastyaId));
+    if (c) { renderWorklistDetail(key, c, (data.people || []).filter(p => p.clinic_id === c.id)); return; }
+    state.nastyaId = null;
+  }
+  const byClinic = {};
+  (data.people || []).forEach(p => { (byClinic[p.clinic_id] = byClinic[p.clinic_id] || []).push(p); });
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const isOwner = CURRENT_EMAIL === W.cabinet || CURRENT_EMAIL === 'abramson@crm.ru' || CURRENT_EMAIL === 'bot@crm.ru';
+  const canManage = isOwner && CURRENT_ROLE !== 'viewer';
+  const sorted = [...data.clinics].sort((a, b) => {
+    const da = a.next_contact ? String(a.next_contact).slice(0, 10) : '9999-99-99';
+    const db = b.next_contact ? String(b.next_contact).slice(0, 10) : '9999-99-99';
+    if (da !== db) return da < db ? -1 : 1;
+    return (a.name || '').localeCompare(b.name || '', 'ru');
+  });
+  const cards = sorted.map(c => {
+    const loc = [c.region, c.city].filter(Boolean).join(' / ');
+    let ndBadge = '';
+    if (c.next_contact) {
+      const nd = new Date(String(c.next_contact).slice(0, 10) + 'T00:00:00');
+      const cls = nd < today ? 'nd-over' : (nd.getTime() === today.getTime() ? 'nd-today' : 'nd-future');
+      ndBadge = `<span class="nd ${cls}">${fmtDate(c.next_contact)}</span>`;
+    }
+    return `<div class="card list-row" data-id="${c.id}" data-kind="nastya">
+        <div class="list-row-top">
+          <span class="list-row-name">${esc(c.name)}</span>
+          ${ndBadge}
+        </div>
+        <div class="list-row-sub">${loc ? esc(loc) : '—'}</div>
+      </div>`;
+  }).join('');
+  view.innerHTML = `<div class="money-total-line">${esc(W.label)}: <b>${data.clinics.length}</b> клиник
+      ${canManage ? '<button class="sort-toggle" id="wl-add" title="Добавить клинику">+</button>' : ''}
+    </div>
+    ${data.clinics.length ? '<div class="list">' + cards + '</div>' : '<div class="empty">Пусто — добавь клинику</div>'}`;
+  view.querySelectorAll('.list-row[data-id]').forEach(row => {
+    row.addEventListener('click', () => {
+      state.nastyaId = row.dataset.id;
+      renderWorklist(key);
+    });
+  });
+  const addBtn = document.getElementById('wl-add');
+  if (addBtn) addBtn.addEventListener('click', async () => {
+    const name = prompt('Название клиники:');
+    if (!name || !name.trim()) return;
+    try {
+      await addWorklistClinic(W, name.trim());
+      await renderWorklist(key);
+    } catch (e) { toast('⚠️ ' + e.message); }
+  });
+}
+
+// каждый телефон контакта — отдельной строкой, в формате 8 (999) 978-67-78
+function phoneLines(phone) {
+  return String(phone || '').split(/[,;]|\n/).map(s => s.trim()).filter(Boolean).map(s => {
+    const d = s.replace(/\D/g, '');
+    let digits = d;
+    if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8')) digits = digits.slice(1);
+    const formatted = digits.length === 10
+      ? `8 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 8)}-${digits.slice(8, 10)}`
+      : s;
+    return `<a href="tel:${esc(telHref(s))}" class="tel" style="display:block;margin-top:2px">${esc(formatted)}</a>`;
+  }).join('');
+}
+
+// продажи из связанной основной клиники (всегда актуально)
+function moneyBlockHtml(mc) {
+  const rows = [];
+  ['2021', '2022', '2023', '2024', '2025', '2026'].forEach(y => {
+    const v = mc['sales_' + y];
+    if (v) rows.push(`<div style="padding:2px 0"><b>${y}</b>: ${fmtMoney(v)} ₽</div>`);
+  });
+  if (mc.hugemed_2025) rows.push(`<div style="padding:2px 0"><b>HugeMed 2025</b>: ${fmtMoney(mc.hugemed_2025)} ₽</div>`);
+  if (mc.hugemed_2026) rows.push(`<div style="padding:2px 0"><b>HugeMed 2026</b>: ${fmtMoney(mc.hugemed_2026)} ₽</div>`);
+  if (!rows.length) return '';
+  return `<div class="nastya-money"><div style="font-size:12px;color:#999;margin:12px 0 4px">Продажи</div>${rows.join('')}</div>`;
+}
+
+function renderWorklistDetail(key, c, people) {
+  const W = WORKLISTS[key];
+  const view = document.getElementById('view');
+  const loc = [c.region, c.city].filter(Boolean).join(' / ');
+  const isOwner = CURRENT_EMAIL === W.cabinet || CURRENT_EMAIL === 'abramson@crm.ru' || CURRENT_EMAIL === 'bot@crm.ru';
+  const readOnly = CURRENT_ROLE === 'viewer';
+  const canManage = isOwner && CURRENT_ROLE !== 'viewer';
+  view.innerHTML = `<div class="money-total-line">
+      <button class="nastya-back-trigger" id="wl-back" title="Назад">←</button>
+      <b>${esc(c.name)}</b>
+      ${loc ? `<span style="font-size:12px;color:#888">${esc(loc)}</span>` : ''}
+    </div>
+    <div class="list">
+      <div class="card" style="padding:12px" data-kind="nastya">
+        ${people.map(p => `<div class="nastya-person" data-person="${p.id}" data-name="${esc(p.full_name)}" style="padding:8px 0;border-bottom:1px solid #f0f0f0">
+            <b class="np-name" style="cursor:pointer">${esc(p.full_name)}</b>${p.marked_del ? ' <span class="mark-badge">на удалении</span>' : ''}<span class="nastya-pos" style="font-size:12px;color:#888;font-weight:400">${esc(p.position || '')}</span>
+            ${p.phone ? phoneLines(p.phone) : ''}
+            ${p.email ? `<div style="margin-top:2px"><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></div>` : ''}
+            ${p.situation ? `<div style="font-size:12px;color:#666;margin-top:2px">${esc(p.situation)}</div>` : ''}
+          </div>`).join('') || '<div class="empty">Контактов нет</div>'}
+        <div class="nastya-next">
+          <span>Когда связаться:</span>
+          <input type="date" id="wl-next-date" value="${esc(c.next_contact || '')}" ${readOnly ? 'disabled' : ''} />
+          <button id="wl-add-person" title="Добавить контакт" style="margin-left:auto;width:34px;height:34px;border:none;border-radius:50%;background:var(--brand);color:#fff;font-size:22px;line-height:1;cursor:pointer;flex:none" ${canManage ? '' : 'disabled'}>+</button>
+        </div>
+        <div style="font-size:12px;color:#999;margin:12px 0 4px">Ситуация</div>
+        <textarea class="nastya-notes" data-id="${c.id}" ${readOnly ? 'readonly' : ''} placeholder="Ситуация, договорённости, следующие шаги…">${esc(c.situation || '')}</textarea>
+        <div id="wl-money-slot"></div>
+      </div>
+    </div>
+    <div id="wl-back-bottom"><button class="nastya-back-trigger">← Назад</button></div>`;
+  document.querySelectorAll('.nastya-back-trigger').forEach(b => b.addEventListener('click', () => {
+    state.nastyaId = null;
+    if (state.fromCalls) {
+      state.fromCalls = false;
+      state.view = 'calls';
+      render();
+    } else {
+      renderWorklist(key);
+    }
+  }));
+  // продажи + должности из связанной основной клиники
+  if (c.linked_clinic_id) {
+    (async () => {
+      try {
+        const [mc, mp] = await Promise.all([
+          withTimeout(sb.from('clinics').select('*').eq('id', c.linked_clinic_id).maybeSingle(), 10000, 'nastya-link'),
+          withTimeout(sb.from('people').select('full_name,position').eq('clinic_id', c.linked_clinic_id), 10000, 'nastya-people-link')
+        ]);
+        const slot = document.getElementById('wl-money-slot');
+        if (mc.data && slot) slot.innerHTML = moneyBlockHtml(mc.data);
+        if (mp.data) {
+          const posMap = {};
+          mp.data.forEach(p => { if (p.full_name) posMap[p.full_name.trim().toLowerCase()] = p.position; });
+          document.querySelectorAll('.nastya-person').forEach(el => {
+            const pos = posMap[(el.dataset.name || '').toLowerCase()];
+            const t = el.querySelector('.nastya-pos');
+            if (pos && t) t.textContent = ' — ' + pos;
+          });
+        }
+      } catch (_) {}
+    })();
+  }
+  // редактирование контактов: клик по ФИО открывает форму, + добавляет нового
+  const fmtPhone = v => {
+    let d = String(v || '').replace(/\D/g, '');
+    if (d.startsWith('7')) d = '8' + d.slice(1);
+    if (d.length === 10 && d.startsWith('9')) d = '8' + d;
+    d = d.slice(0, 11);
+    let out = '8';
+    if (d.length > 1) out += ' (' + d.slice(1, 4);
+    if (d.length >= 4) out += ') ' + d.slice(4, 7);
+    if (d.length >= 7) out += '-' + d.slice(7, 9);
+    if (d.length >= 9) out += '-' + d.slice(9, 11);
+    return out;
+  };
+  const maskPhone = el => {
+    el.value = fmtPhone(el.value);
+    el.addEventListener('input', () => { el.value = fmtPhone(el.value); });
+  };
+  const personFormHtml = p => `<input class="np-in" data-f="full_name" value="${esc(p.full_name || '')}" placeholder="ФИО" ${canManage ? '' : 'readonly'} /><input class="np-in" data-f="position" value="${esc(p.position || '')}" placeholder="Должность" ${canManage ? '' : 'readonly'} /><input class="np-in np-phone" data-f="phone" value="${fmtPhone(p.phone)}" placeholder="8 (___) ___-__-__" inputmode="tel" ${canManage ? '' : 'readonly'} /><input class="np-in" data-f="email" value="${esc(p.email || '')}" placeholder="Email" ${canManage ? '' : 'readonly'} /><textarea class="np-in" data-f="situation" placeholder="Ситуация" ${canManage ? '' : 'readonly'}>${esc(p.situation || '')}</textarea><div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button class="np-save" style="flex:1;padding:8px;border:none;border-radius:8px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer">Сохранить</button><button class="np-cancel" style="flex:1;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#555;cursor:pointer">Отмена</button>${p.id !== 'new' ? `<button class="np-del" style="flex:1;min-width:120px;padding:8px;border:none;border-radius:8px;background:${CURRENT_ROLE === 'admin' ? '#dc2626' : '#f59e0b'};color:#fff;font-weight:700;cursor:pointer">${CURRENT_ROLE === 'admin' ? 'Удалить' : (p.marked_del ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button>` : ''}</div>`;
+  const openPersonEdit = (id, people) => {
+    const row = view.querySelector(`.nastya-person[data-person="${id}"]`);
+    if (!row) return;
+    const p = id === 'new' ? { id: 'new', full_name: '', position: '', phone: '', email: '', situation: '' } : people.find(x => String(x.id) === String(id));
+    if (!p) return;
+    row.innerHTML = personFormHtml(p);
+    const f = row.querySelector('.np-in');
+    if (f) { try { f.focus(); } catch (_) {} }
+    const ph = row.querySelector('.np-phone');
+    if (ph) maskPhone(ph);
+  };
+  const npList = view.querySelector('.list');
+  if (npList) npList.addEventListener('click', async e => {
+    if (!canManage) return;
+    const row = e.target.closest('.nastya-person');
+    if (!row) return;
+    if (e.target.closest('.np-cancel')) { renderWorklist(key); return; }
+    if (e.target.closest('.np-del')) {
+      const id = row.dataset.person;
+      const p = people.find(x => String(x.id) === String(id));
+      if (!p) return;
+      if (CURRENT_ROLE === 'admin') {
+        if (!confirm('Удалить контакт?')) return;
+        try {
+          await withTimeout(sb.from(W.pp).delete().eq('id', id), 10000, 'wl-person-del');
+          if (c.linked_clinic_id) {
+            const { data: existing } = await withTimeout(sb.from('people').select('id').eq('clinic_id', c.linked_clinic_id).eq('full_name', p.full_name).maybeSingle(), 10000, 'wl-main-find');
+            if (existing) await withTimeout(sb.from('people').delete().eq('id', existing.id), 10000, 'wl-main-del');
+          }
+          toast('✓ Удалено'); renderWorklist(key);
+        } catch (err) { toast('⚠️ Не удалилось: ' + err.message); }
+      } else {
+        const target = !p.marked_del;
+        try {
+          await withTimeout(sb.from(W.pp).update({ marked_del: target }).eq('id', id), 10000, 'wl-person-mark');
+          if (c.linked_clinic_id) {
+            const { data: existing } = await withTimeout(sb.from('people').select('id').eq('clinic_id', c.linked_clinic_id).eq('full_name', p.full_name).maybeSingle(), 10000, 'wl-main-find');
+            if (existing) await withTimeout(sb.from('people').update({ marked_del: target }).eq('id', existing.id), 10000, 'wl-main-mark');
+          }
+          toast(target ? 'Помечен на удаление' : 'Пометка снята'); renderWorklist(key);
+        } catch (err) { toast('⚠️ Не получилось: ' + err.message); }
+      }
+      return;
+    }
+    if (e.target.closest('.np-save')) {
+      const id = row.dataset.person;
+      const read = f => { const el = row.querySelector(`[data-f="${f}"]`); return el ? el.value.trim() : ''; };
+      const body = { full_name: read('full_name'), position: read('position'), phone: read('phone'), email: read('email'), situation: read('situation') };
+      if (!body.full_name) { toast('Введите ФИО'); return; }
+      let pd = (body.phone || '').replace(/\D/g, '');
+      if (pd) {
+        if (pd.length === 10 && pd.startsWith('9')) pd = '8' + pd;
+        if (!(pd.length === 11 && (pd.startsWith('8') || pd.startsWith('7')))) { toast('Телефон: формат 8 (___) ___-__-__'); return; }
+        body.phone = '8' + pd.slice(1);
+      } else body.phone = '';
+      // синхронизация с общим листом «Клиенты» (если клиника связана с основной базой)
+      let mainSyncFail = false;
+      try {
+        if (c.linked_clinic_id) {
+          const { data: existing, error: exErr } = await withTimeout(sb.from('people').select('id').eq('clinic_id', c.linked_clinic_id).eq('full_name', body.full_name).maybeSingle(), 10000, 'wl-main-find');
+          if (exErr) throw exErr;
+          const patch = { phone: body.phone, email: body.email, situation: body.situation, position: body.position };
+          if (existing) {
+            const { error: uErr } = await withTimeout(sb.from('people').update(patch).eq('id', existing.id), 10000, 'wl-main-upd');
+            if (uErr) throw uErr;
+          } else {
+            const { error: iErr } = await withTimeout(sb.from('people').insert({ clinic_id: c.linked_clinic_id, full_name: body.full_name, ...patch }), 10000, 'wl-main-ins');
+            if (iErr) throw iErr;
+          }
+        }
+      } catch (se) { mainSyncFail = true; }
+      try {
+        if (id === 'new') await withTimeout(sb.from(W.pp).insert({ ...body, clinic_id: c.id }), 10000, 'wl-person-add');
+        else await withTimeout(sb.from(W.pp).update(body).eq('id', id), 10000, 'wl-person-upd');
+        toast('✓ Сохранено' + (mainSyncFail ? ' (в Клиенты не попало — нет прав)' : '')); renderWorklist(key);
+      } catch (err) { toast('⚠️ Не сохранилось: ' + err.message); }
+      return;
+    }
+    if (e.target.closest('.np-name')) openPersonEdit(row.dataset.person, people);
+  });
+  const addBtn = document.getElementById('wl-add-person');
+  if (addBtn) addBtn.addEventListener('click', () => {
+    if (!canManage) return;
+    const listEl = view.querySelector('.list');
+    if (!listEl) return;
+    const div = document.createElement('div');
+    div.className = 'nastya-person'; div.dataset.person = 'new';
+    div.innerHTML = personFormHtml({ id: 'new', full_name: '', position: '', phone: '', email: '', situation: '' });
+    try { listEl.insertBefore(div, listEl.firstChild); }
+    catch (err) { listEl.appendChild(div); }
+    const ph = div.querySelector('.np-phone');
+    if (ph) maskPhone(ph);
+    const f = div.querySelector('.np-in');
+    if (f) { try { f.focus(); } catch (_) {} }
+  });
+  const nd = document.getElementById('wl-next-date');
+  if (nd) nd.addEventListener('change', async () => {
+    if (readOnly) return;
+    try { await saveWorklistClinic(W, c.id, { next_contact: nd.value || null }); toast('✓ Дата сохранена'); }
+    catch (e) { toast('⚠️ Не сохранилось: ' + e.message); }
+  });
+  const ta = view.querySelector('.nastya-notes');
+  if (ta) {
+    let t = null;
+    ta.addEventListener('input', () => {
+      if (readOnly) return;
+      clearTimeout(t);
+      t = setTimeout(async () => {
+        try { await saveWorklistClinic(W, ta.dataset.id, { situation: ta.value }); toast('✓ Сохранено'); }
+        catch (e) { toast('⚠️ Не сохранилось: ' + e.message); }
+      }, 700);
+    });
+  }
+}
+
+async function renderOrgList(kind) {
+  const view = document.getElementById('view');
+  const emptyWord = kind === 'distributor' ? 'Партнеров' : 'Клиник';
+  let clinics = await listClinics();
+  clinics = clinics.filter(c => (c.kind || 'hospital') === kind);
+  const s = state.search;
+  const f = state.filters;
+  clinics = clinics.filter(c =>
+    (!s ||
+      (c.name || '').toLowerCase().includes(s) ||
+      (c.city || '').toLowerCase().includes(s) ||
+      (c.region || '').toLowerCase().includes(s) ||
+      (c.manager || '').toLowerCase().includes(s) ||
+      (c.tags || []).some(t => t.toLowerCase().includes(s))) &&
+    (!f.region || c.region === f.region) &&
+    (!f.city || c.city === f.city) &&
+    (!f.manager || c.manager === f.manager)
+  );
+  const active = s || f.type || f.region || f.city || f.manager;
+  if (!clinics.length) {
+    view.innerHTML = `<div class="empty">${active ? 'Ничего не найдено' : emptyWord + ' пока нет. Нажми ＋'}</div>`;
+    return;
+  }
+  clinics.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0) || (a.name || '').localeCompare(b.name || '', 'ru'));
+  const myEmail = CURRENT_EMAIL;
+  const canTransfer = CURRENT_ROLE !== 'viewer' && CURRENT_ROLE !== 'guest' &&
+    (myEmail === 'abramson@crm.ru' || myEmail === 'osechkina@crm.ru' || myEmail === 'skokova@crm.ru');
+  // какие клиники уже есть на листах пользователя — подсветка значка ⇄
+  const myWlIds = new Set();
+  if (canTransfer) {
+    const listKeys = Object.keys(WORKLISTS).filter(k => WORKLISTS[k].emails.includes(myEmail));
+    const qs = await Promise.all(listKeys.map(k =>
+      withTimeout(sb.from(WORKLISTS[k].cl).select('linked_clinic_id'), 10000, 'wl-check').catch(() => ({ data: [] }))
+    ));
+    qs.forEach(res => { (res.data || []).forEach(r => { if (r.linked_clinic_id) myWlIds.add(Number(r.linked_clinic_id)); }); });
+  }
+  view.innerHTML = '<div class="list">' + clinics.map(c => {
+    const loc = [c.region, c.city].filter(Boolean).join(' / ');
+    const m = (c.manager || '').trim();
+    const showTr = canTransfer && (myEmail === 'abramson@crm.ru' ||
+      (myEmail === 'osechkina@crm.ru' && m === 'Осечкина') ||
+      (myEmail === 'skokova@crm.ru' && m === 'Скокова'));
+    const inWl = myWlIds.has(c.id);
+    const tr = showTr ? `<span class="transfer-btn${inWl ? ' on' : ''}" data-transfer="${c.id}" title="${inWl ? 'Уже в вашем листе' : 'Перенести в мой лист'}">⇄</span>` : '';
+    const cnsOn = (c.tags || []).includes('cns');
+    const cnsBtn = `<span class="cns-btn${cnsOn ? ' on' : ''}" data-cns="${c.id}" title="${cnsOn ? 'В отборе ЦНС — убрать' : 'Отобрать для ЦНС'}"><img src="cns.png" class="cns-ico" alt="" /></span>`;
+    return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}" data-id="${c.id}" data-kind="clinic">
+      <div class="list-row-top">
+        <span class="list-row-name">${esc(c.name)}</span>
+        ${c.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
+        <span class="row-actions">${cnsBtn}${tr}</span>
+      </div>
+      <div class="list-row-sub">${loc ? esc(loc) : '—'}</div>
+    </div>`;
+  }).join('') + '</div>';
+  view.querySelectorAll('.list-row').forEach(row => {
+    row.addEventListener('mouseenter', () => showHoverCard(row));
+    row.addEventListener('mouseleave', hideHover);
+  });
+  view.querySelectorAll('.transfer-btn').forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation();
+    e.preventDefault();
+    const c = clinics.find(x => x.id === Number(b.dataset.transfer));
+    if (!c) return;
+    await transferToWorklist(c);
+  }));
+  // v1.158: клик по лого — пометка клиники в отбор ЦНС
+  view.querySelectorAll('.cns-btn').forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation();
+    e.preventDefault();
+    const id = Number(b.dataset.cns);
+    const c = clinics.find(x => x.id === id);
+    if (!c) return;
+    const on = !(c.tags || []).includes('cns');
+    b.classList.toggle('on', on);
+    b.title = on ? 'В отборе ЦНС — убрать' : 'Отобрать для ЦНС';
+    try {
+      const tags = on ? [...(c.tags || []), 'cns'] : (c.tags || []).filter(t => t !== 'cns');
+      const { error } = await withTimeout(sb.from('clinics').update({ tags }).eq('id', id), 10000, 'cns-toggle');
+      if (error) throw error;
+      c.tags = tags;
+      refreshCounts();
+      toast(on ? 'Добавлено в отбор ЦНС' : 'Убрано из отбора ЦНС');
+    } catch (err) {
+      b.classList.toggle('on', !on);
+      toast('Ошибка: ' + (err && err.message ? err.message : err));
+    }
+  }));
+}
+
+// ---------- перенос клиники в личный лист (Настя/Галя) ----------
+function transferTarget(email, c) {
+  const m = (c.manager || '').trim();
+  if (email === 'osechkina@crm.ru') return m === 'Осечкина' ? 'nastya' : null;
+  if (email === 'skokova@crm.ru') return m === 'Скокова' ? 'galya' : null;
+  if (email === 'abramson@crm.ru') {
+    if (m === 'Осечкина') return 'nastya';
+    if (m === 'Скокова') return 'galya';
+    if (m === 'Абрамов') return 'sasha';
+    return 'pick';
+  }
+  return null;
+}
+async function transferToWorklist(c) {
+  const key = transferTarget(CURRENT_EMAIL, c);
+  if (key === null) { toast('Можно переносить только свои клиники'); return; }
+  if (key === 'pick') {
+    openModal('Куда перенести?', `
+      <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+        ${Object.keys(WORKLISTS).filter(k => WORKLISTS[k].emails.includes(CURRENT_EMAIL)).map(k =>
+          `<button class="btn" id="pk-${k}" style="flex:1;min-width:90px">${WORKLISTS[k].label}</button>`).join('')}
+      </div>`);
+    Object.keys(WORKLISTS).filter(k => WORKLISTS[k].emails.includes(CURRENT_EMAIL)).forEach(k => {
+      document.getElementById('pk-' + k).addEventListener('click', () => { closeModal(); doTransfer(k, c); });
+    });
+    return;
+  }
+  await doTransfer(key, c);
+}
+async function doTransfer(key, c) {
+  const W = WORKLISTS[key];
+  try {
+    const { data: dup, error: derr } = await withTimeout(sb.from(W.cl).select('id').eq('linked_clinic_id', c.id).maybeSingle(), 10000, 'wl-dup');
+    if (derr) throw derr;
+    if (dup) { toast('Уже в списке ' + W.label); return; }
+    const { data: ins, error: ierr } = await withTimeout(sb.from(W.cl).insert({
+      name: c.name, region: c.region || null, city: c.city || null,
+      manager: W.manager, situation: c.situation || '',
+      linked_clinic_id: c.id
+    }).select(), 10000, 'wl-transfer');
+    if (ierr) throw ierr;
+    const gid = ins[0].id;
+    const { data: people, error: perr } = await withTimeout(sb.from('people').select('full_name,position,phone,email,situation').eq('clinic_id', c.id), 10000, 'wl-people-src');
+    if (perr) throw perr;
+    for (const p of (people || [])) {
+      if (!(p.full_name || '').trim()) continue;
+      const { error: e2 } = await withTimeout(sb.from(W.pp).insert({
+        clinic_id: gid, full_name: p.full_name.trim(), position: p.position || '',
+        phone: p.phone || '', email: p.email || '', situation: p.situation || ''
+      }), 10000, 'wl-person-copy');
+      if (e2) throw e2;
+    }
+    toast('✓ Перенесена в «' + W.label + '»');
+  } catch (e) { toast('⚠️ ' + e.message); }
+}
+
+async function renderMoney() {
+  const view = document.getElementById('view');
+  let clinics = await listClinics();
+  const myMgr = myManagerName();  // менеджер видит в «Деньгах» только свои клиники
+  if (myMgr) clinics = clinics.filter(c => c.manager === myMgr);
+  const s = state.search;
+  const f = state.filters;
+  const year = state.moneyYear || curYear();
+  const trendOn = !!state.moneyYear;
+  clinics = clinics.filter(c =>
+    c.kind !== 'distributor' &&
+    (!s ||
+      (c.name || '').toLowerCase().includes(s) ||
+      (c.city || '').toLowerCase().includes(s) ||
+      (c.region || '').toLowerCase().includes(s) ||
+      (c.manager || '').toLowerCase().includes(s)) &&
+    (!f.region || c.region === f.region) &&
+    (!f.city || c.city === f.city) &&
+    (!f.manager || c.manager === f.manager)
+  );
+  // сортировка: по сумме (вверх/вниз) или по алфавиту; 0₽-бейджи — в середине (только при выбранном годе), пустые — вниз по алфавиту
+  const mode = state.moneySort;  // 'desc' | 'asc' | 'name'
+  const mf = state.moneyFilter || 'all';
+  const showPills = trendOn || mf !== 'all';
+  if (mf !== 'all') {
+    const py = String(Number(year) - 1);
+    clinics = clinics.filter(c => {
+      const v = moneyVal(c, year), p = moneyVal(c, py);
+      if (mf === 'up') return v != null && p != null && v > p;
+      if (mf === 'down') return p != null && p !== 0 && (v == null || v < p);
+      if (mf === 'new') return v != null && (p == null || p === 0);
+      return true;
+    });
+    // пустые карточки (нет продаж ни в этом, ни в прошлом году) — скрываем при включённом фильтре
+    clinics = clinics.filter(c => {
+      const v = moneyVal(c, year), p = moneyVal(c, String(Number(year) - 1));
+      return v != null || (p != null && p !== 0);
+    });
+  } else if (trendOn) {
+    // выбран год: прячем карточки, где нет ни суммы, ни «0 ₽» — нет никакой информации
+    clinics = clinics.filter(c => {
+      const v = moneyVal(c, year), p = moneyVal(c, String(Number(year) - 1));
+      return v != null || (p != null && p !== 0);
+    });
+  }
+  clinics.sort((a, b) => {
+    if (mode === 'name') return (a.name || '').localeCompare(b.name || '', 'ru');
+    const av = moneyVal(a, year), bv = moneyVal(b, year);
+    const ap = moneyVal(a, String(Number(year) - 1)), bp = moneyVal(b, String(Number(year) - 1));
+    const az = trendOn && av == null && ap != null && ap !== 0;  // бейдж 0₽ только при выбранном годе
+    const bz = trendOn && bv == null && bp != null && bp !== 0;
+    const ta = av != null ? 0 : (az ? 1 : 2);
+    const tb = bv != null ? 0 : (bz ? 1 : 2);
+    if (ta !== tb) return ta - tb;
+    if (ta === 0) return mode === 'asc' ? av - bv : bv - av;
+    return (a.name || '').localeCompare(b.name || '', 'ru');
+  });
+  clinics.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));  // помеченные на удаление — первыми
+  const src = state.moneySource;
+  const total = clinics.reduce((sum, c) => sum + (moneyVal(c, year) || 0), 0);
+  const bTotal = clinics.reduce((sum, c) => sum + (curYearSales(c, year) || 0), 0);
+  const hTotal = clinics.reduce((sum, c) => sum + (curYearHM(c, year) || 0), 0);
+  const splitLabel = src === 'boston' ? `Boston ${fmtMoney(bTotal)}`
+    : src === 'hugemed' ? `HugeMed ${fmtMoney(hTotal)}`
+    : `Boston ${fmtMoney(bTotal)} · HugeMed ${fmtMoney(hTotal)}`;
+  const sortLabel = mode === 'name' ? 'А-Я' : (mode === 'asc' ? '↑ по сумме' : '↓ по сумме');
+  const sortTitle = mode === 'name' ? 'Сортировка по алфавиту (нажми для смены)' : `Сортировка по сумме: ${mode === 'asc' ? 'по возрастанию' : 'по убыванию'} (нажми для смены)`;
+  view.innerHTML = `<div class="money-total-line">Итого ${year}: <b>${fmtMoney(total)} ₽</b>
+      <span class="money-split">${splitLabel}</span>
+      <select id="money-src" class="sort-toggle" title="Какие продажи считать">
+        <option value="both"${src === 'both' ? ' selected' : ''}>Все</option>
+        <option value="boston"${src === 'boston' ? ' selected' : ''}>Boston</option>
+        <option value="hugemed"${src === 'hugemed' ? ' selected' : ''}>HugeMed</option>
+      </select>
+      <select id="money-filter" class="sort-toggle" title="Фильтр по динамике">
+        <option value="all"${mf === 'all' ? ' selected' : ''}>Все</option>
+        <option value="up"${mf === 'up' ? ' selected' : ''}>Рост</option>
+        <option value="down"${mf === 'down' ? ' selected' : ''}>Падение</option>
+        <option value="new"${mf === 'new' ? ' selected' : ''}>Новый</option>
+      </select>
+      <button class="sort-toggle" id="money-sort" title="${sortTitle}">${sortLabel}</button>
+      <span class="money-cnt">${clinics.length}</span>
+    </div>`
+    + (clinics.length
+      ? '<div class="list">' + clinics.map(c => {
+      const loc = [c.region, c.city].filter(Boolean).join(' / ');
+      const money = fmtMoney(moneyVal(c, year));
+      const hm = curYearHM(c, year);
+      const split = (src === 'both' && hm != null && hm !== 0) ? ` · ХМ ${fmtMoney(hm)}` : '';
+      let trend = '';
+      const prevVal = moneyVal(c, String(Number(year) - 1));
+      if (showPills && money) {
+        const prev = prevVal;
+        const cur = moneyVal(c, year);
+        trend = (prev != null && cur != null) ? (cur > prev ? 'money-up' : (cur < prev ? 'money-down' : 'money-flat')) : 'money-flat';
+      }
+      const curVal = moneyVal(c, year);
+      const zeroBadge = showPills && (curVal == null || curVal === 0) && prevVal != null && prevVal !== 0
+        ? `<span class="list-row-money money-zero">0 ₽</span>` : '';
+      return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}" data-id="${c.id}" data-kind="clinic">
+        <div class="list-row-top">
+          <span class="list-row-name">${esc(c.name)}</span>
+          ${c.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
+          ${money ? `<span class="list-row-money ${trend}">${money} ₽</span>` : zeroBadge}
+        </div>
+        <div class="list-row-sub">${loc ? esc(loc) : '—'}${split}</div>
+      </div>`;
+      }).join('') + '</div>'
+      : '<div class="empty">Ничего не найдено</div>');
+  view.querySelectorAll('.list-row').forEach(row => {
+    row.addEventListener('mouseenter', () => showHoverCard(row));
+    row.addEventListener('mouseleave', hideHover);
+  });
+  document.getElementById('money-sort').addEventListener('click', () => {
+    state.moneySort = mode === 'desc' ? 'asc' : (mode === 'asc' ? 'name' : 'desc');
+    renderMoney();
+  });
+  document.getElementById('money-src').addEventListener('change', e => {
+    state.moneySource = e.target.value;
+    renderMoney();
+  });
+  document.getElementById('money-filter').addEventListener('change', e => {
+    state.moneyFilter = e.target.value;
+    renderMoney();
+  });
+}
+
+function telHref(phone) {
+  const first = String(phone || '').split(/[,;]/)[0];
+  let d = first.replace(/[^\d+]/g, '');
+  if (/^8\d{10}$/.test(d)) d = '+7' + d.slice(1);
+  return d;
+}
+function maskPhoneValue(v) {
+  return String(v || '').split(/[,;]\s*/).map(seg => {
+    let d = seg.replace(/\D/g, '');
+    let digits = d;
+    if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8')) digits = digits.slice(1);
+    if (digits.length === 10) return `8 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 8)}-${digits.slice(8, 10)}`;
+    return seg.trim();
+  }).join(', ');
+}
+function maskPhoneInput(el) {
+  el.value = maskPhoneValue(el.value);
+  el.addEventListener('input', () => { el.value = maskPhoneValue(el.value); });
+}
+function formatPhone(phone) {
+  if (!phone) return '';
+  return String(phone).split(/[,;]\s*/).map(seg => {
+    let d = seg.replace(/\D/g, '');
+    let digits = d;
+    if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8')) digits = digits.slice(1);
+    if (digits.length === 10) {
+      return `8 (${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6,8)}-${digits.slice(8,10)}`;
+    }
+    return seg.trim();
+  }).join(', ');
+}
+function telLink(phone) {
+  if (!phone) return '';
+  return `<a class="tel" href="tel:${telHref(phone)}">${esc(formatPhone(phone))}</a>`;
+}
+
+async function renderPeople() {
+  const view = document.getElementById('view');
+  let people = await listPeople();
+  const s = state.search;
+  if (s) {
+    people = people.filter(p =>
+      (p.fullName || '').toLowerCase().includes(s) ||
+      (p.position || '').toLowerCase().includes(s) ||
+      (p.city || '').toLowerCase().includes(s) ||
+      (p.region || '').toLowerCase().includes(s) ||
+      (p.phone || '').toLowerCase().includes(s) ||
+      (p.email || '').toLowerCase().includes(s) ||
+      (p.tags || []).some(t => t.toLowerCase().includes(s))
+    );
+  }
+  if (!people.length) {
+    view.innerHTML = `<div class="empty">${s ? 'Ничего не найдено' : 'Людей пока нет. Нажми ＋'}</div>`;
+    return;
+  }
+  const clinicMap = {};
+  const clinics = await listClinics();
+  clinics.forEach(c => clinicMap[c.id] = c.name);
+  // доп. клиники человека (многие-ко-многим)
+  const extraMap = {};
+  try {
+    const { data: links, error: lerr } = await sb.from('clinic_people').select('*');
+    if (!lerr && links) links.forEach(l => { (extraMap[l.person_id] = extraMap[l.person_id] || []).push(l.clinic_id); });
+  } catch (_) {}
+
+  people.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0) || (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
+  let html = '<div class="list">';
+  for (const p of people) {
+    const orgs = [];
+    if (p.clinicId && clinicMap[p.clinicId]) orgs.push(clinicMap[p.clinicId]);
+    (extraMap[p.id] || []).forEach(cid => { const n = clinicMap[cid]; if (n && !orgs.includes(n)) orgs.push(n); });
+    const org = orgs.join(', ');
+    const sub = [org, p.position].filter(Boolean).join(' / ');
+    html += `<div class="card list-row${p.markedDel ? ' marked-del' : ''}" data-id="${p.id}" data-kind="person">
+      <div class="list-row-top">
+        <span class="list-row-name">${esc(p.fullName)}</span>
+        ${p.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
+      </div>
+      <div class="list-row-sub">${esc(sub || '—')}</div>
+    </div>`;
+  }
+  view.innerHTML = html + '</div>';
+  view.querySelectorAll('.list-row').forEach(row => {
+    row.addEventListener('mouseenter', () => showHoverCard(row));
+    row.addEventListener('mouseleave', hideHover);
+  });
+}
+
+async function renderDicts() {
+  const view = document.getElementById('view');
+  const types = ['manager', 'region', 'city'];
+  const accent = getAccent();
+  // текущий пользователь (для блока «Аккаунт»)
+  let me = null;
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (user) {
+      const { data: am } = await sb.from('user_managers').select('*').eq('email', user.email).maybeSingle();
+      me = { email: user.email, manager: am ? am.manager : null, role: am ? am.role : null };
+    }
+  } catch (_) {}
+  let html = `<div class="detail-block">
+      <div class="k">Аккаунт</div>
+      <div class="account-row">
+        <span class="account-info">${me ? esc(me.email.replace(/@crm\.ru$/, '')) + (me.manager ? ' · ' + esc(me.manager) : '') : '—'}</span>
+        <button class="btn ghost" id="logoutBtn">${me ? 'Выйти' : 'Войти'}</button>
+      </div>
+    </div>
+    <div class="detail-block">
+      <div class="k">Цвет выделения</div>
+      <div class="accent-picker">
+        ${ACCENT_OPTIONS.map(o => `
+          <div class="swatch ${accent === o.key ? 'active' : ''}" data-accent="${o.key}">
+            <span class="dot" style="background:${o.color}"></span>${o.label}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  for (const t of types) {
+    const vals = await getDict(t);
+    const canDictEdit = CURRENT_ROLE === 'admin' || CURRENT_ROLE === 'manager';
+    html += `<details class="dict"${vals.length ? '' : ' open'}>
+      <summary>
+        <span>${DICT_LABELS[t]}</span>
+        <span class="count">${vals.length}</span>
+        <span class="chev">▾</span>
+      </summary>
+      <div class="dict-body">
+        <div class="chips">
+          ${vals.length ? vals.map(v => `<span class="chip">${esc(v)} ${canDictEdit ? `<span class="x" data-dict="${t}" data-val="${esc(v)}">✕</span>` : ''}</span>`).join('') : '<span class="sub" style="color:var(--muted)">пусто</span>'}
+        </div>
+        ${canDictEdit ? `<div class="add-row">
+          <input type="text" placeholder="Добавить" data-add="${t}" />
+          <button class="btn" data-add-btn="${t}">＋</button>
+        </div>` : ''}
+      </div>
+    </details>`;
+  }
+  view.innerHTML = html;
+  const lo = document.getElementById('logoutBtn');
+  if (lo) lo.addEventListener('click', async () => {
+    if (!me) { showLogin(); return; }
+    try { await sb.auth.signOut(); } catch (_) {} showLogin();
+  });
+  view.querySelectorAll('.swatch').forEach(s => {
+    s.addEventListener('click', () => {
+      localStorage.setItem('accent', s.dataset.accent);
+      applyAccent();
+      renderDicts();
+    });
+  });
+}
+
+// ---------- forms ----------
+async function openClinicForm(id, presetKind) {
+  const c = id ? await getClinic(id) : {};
+  // менеджер по умолчанию = текущий пользователь (для новых клиник)
+  let myManager = null;
+  if (!id && CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer') {
+    try {
+      const { data: { user } } = await sb.auth.getUser();
+      if (user) {
+        const { data: am } = await sb.from('user_managers').select('manager').eq('email', user.email).maybeSingle();
+        if (am) myManager = am.manager;
+      }
+    } catch (_) {}
+  }
+  const kind = c.kind || presetKind || 'hospital';
+  const [managers, regions, cities] = await Promise.all([
+    datalistOptions('manager'),
+    datalistOptions('region'), datalistOptions('city')
+  ]);
+  const linkOptions = await clinicSelectOptions(c.linkedClinicId);
+
+  openModal(id ? 'Редактировать организацию' : (kind === 'distributor' ? 'Новый дистрибьютор' : 'Новая клиника'), `
+    <div class="field"><label>Вид *</label>
+      <select id="f_kind">
+        <option value="hospital"${kind === 'hospital' ? ' selected' : ''}>Больница</option>
+        <option value="distributor"${kind === 'distributor' ? ' selected' : ''}>Партнеры</option>
+      </select>
+    </div>
+    <div class="field"><label>Название *</label><input id="f_name" value="${esc(c.name)}" /></div>
+    <div class="row2">
+      <div class="field"><label>Регион *</label><input id="fm_region" list="dl_region" value="${esc(c.region)}" /><datalist id="dl_region">${regions}</datalist></div>
+      <div class="field"><label>Город</label><input id="fm_city" list="dl_city" value="${esc(c.city)}" /><datalist id="dl_city">${cities}</datalist></div>
+    </div>
+    <div class="field"><label>Менеджер</label><input id="fm_manager" list="dl_manager" value="${esc(c.manager || myManager || '')}" /><datalist id="dl_manager">${managers}</datalist></div>
+    ${salesFormFields(c)}
+    <div class="field"><label>Связь (другая клиника/суб)</label>
+      <select id="f_link"><option value="">— нет —</option>${linkOptions}</select>
+    </div>
+    <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(c.situation)}</textarea></div>
+    <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc((c.tags || []).join(', '))}" /></div>
+    <button class="btn" id="f_save" data-id="${c.id || ''}">Сохранить</button>
+    ${id ? `<div class="btn-row"><button class="btn ghost" id="f_delete">${CURRENT_ROLE === 'admin' ? 'Удалить' : (c.markedDel ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button></div>` : ''}
+  `);
+
+  document.getElementById('f_save').addEventListener('click', () => saveClinic(id));
+  if (id) document.getElementById('f_delete').addEventListener('click', () => deleteClinic(id));
+}
+
+function parseTags(s) {
+  return (s || '').split(',').map(t => t.trim()).filter(Boolean);
+}
+
+function readMoney(id) {
+  const raw = (document.getElementById(id).value || '').trim().replace(/\s/g, '');
+  if (raw === '') return null;
+  const n = Number(raw);
+  return isFinite(n) ? n : NaN;
+}
+
+function salesFormFields(c) {
+  const boston = MONEY_YEARS.map((y) =>
+    `<div class="money-cell"><label>${y}</label><input id="f_sales${y}" type="text" inputmode="numeric" value="${c['sales' + y] != null ? c['sales' + y] : ''}" placeholder="—" /></div>`
+  ).join('');
+  const hm = HUGEMED_YEARS.map((y) =>
+    `<div class="money-cell"><label>${y}</label><input id="f_hm${y}" type="text" inputmode="numeric" value="${c['hugemed' + y] != null ? c['hugemed' + y] : ''}" placeholder="—" /></div>`
+  ).join('');
+  return `<div class="field"><label>Boston (₽)</label><div class="money-grid">${boston}</div></div>`
+    + (hm ? `<div class="field"><label>HugeMed (₽)</label><div class="money-grid">${hm}</div></div>` : '');
+}
+
+async function saveClinic(id) {
+  const name = document.getElementById('f_name').value.trim();
+  if (!name) { toast('Название обязательно'); return; }
+  const kind = document.getElementById('f_kind').value;
+  const region = document.getElementById('fm_region').value.trim();
+  if (!region) { toast('Регион обязателен'); return; }
+  const city = document.getElementById('fm_city').value.trim();
+  const manager = document.getElementById('fm_manager').value.trim();
+  const situation = document.getElementById('f_situation').value.trim();
+  const tags = parseTags(document.getElementById('f_tags').value);
+  const linkedClinicId = document.getElementById('f_link').value ? Number(document.getElementById('f_link').value) : null;
+  const sales = MONEY_YEARS.map(y => readMoney('f_sales' + y));
+  const hms = HUGEMED_YEARS.map(y => readMoney('f_hm' + y));
+  if (sales.some(v => Number.isNaN(v)) || hms.some(v => Number.isNaN(v))) { toast('Некорректное число в продажах'); return; }
+
+  await addDictValues('region', [region]);
+  await addDictValues('city', [city]);
+  await addDictValues('manager', [manager]);
+
+  const row = { name, region, city, manager, situation, tags, linkedClinicId, kind };
+  MONEY_YEARS.forEach((y, i) => { row['sales' + y] = sales[i]; });
+  HUGEMED_YEARS.forEach((y, i) => { row['hugemed' + y] = hms[i]; });
+  if (id) await updateClinic(id, row);
+  else await addClinic(row);
+
+  closeModal(); toast('Сохранено'); render(); updateFiltersUI(); refreshCounts();
+}
+
+async function openPersonForm(id, presetClinicId) {
+  const p = id ? await getPerson(id) : (presetClinicId != null ? { clinicId: presetClinicId } : {});
+  const clinicOptions = await clinicSelectOptions(p.clinicId);
+
+  openModal(id ? 'Редактировать человека' : 'Новый человек', `
+    <div class="field"><label>ФИО *</label><input id="f_fullName" value="${esc(p.fullName)}" /></div>
+    <div class="field"><label>Должность</label><input id="f_position" value="${esc(p.position)}" /></div>
+    <div class="field"><label>Учреждение (клиника) *</label>
+      <select id="f_clinic"><option value="">— выберите —</option>${clinicOptions}</select>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(p.phone)}" /></div>
+      <div class="field"><label>Почта</label><input id="f_email" value="${esc(p.email)}" /></div>
+    </div>
+    <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(p.situation)}</textarea></div>
+    <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc((p.tags || []).join(', '))}" /></div>
+    <button class="btn" id="f_save" data-id="${p.id || ''}">Сохранить</button>
+    ${id ? `<div class="btn-row"><button class="btn ghost" id="f_delete">${CURRENT_ROLE === 'admin' ? 'Удалить' : (p.markedDel ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button></div>` : ''}
+  `);
+
+  document.getElementById('f_save').addEventListener('click', () => savePerson(id));
+  if (id) document.getElementById('f_delete').addEventListener('click', () => deletePerson(id));
+  maskPhoneInput(document.getElementById('f_phone'));
+}
+
+async function savePerson(id) {
+  const fullName = document.getElementById('f_fullName').value.trim();
+  if (!fullName) { toast('ФИО обязательно'); return; }
+  const clinicId = document.getElementById('f_clinic').value ? Number(document.getElementById('f_clinic').value) : null;
+  if (!clinicId) { toast('Выберите учреждение (клинику)'); return; }
+  const clinic = await getClinic(clinicId);
+  const region = clinic ? (clinic.region || '') : '';
+  const city = clinic ? (clinic.city || '') : '';
+  const phone = document.getElementById('f_phone').value.trim();
+  const email = document.getElementById('f_email').value.trim();
+  const position = document.getElementById('f_position').value.trim();
+  const situation = document.getElementById('f_situation').value.trim();
+  const tags = parseTags(document.getElementById('f_tags').value);
+
+  const row = { fullName, position, region, city, clinicId, phone, email, situation, tags };
+  if (id) await updatePerson(id, row);
+  else await addPerson(row);
+
+  closeModal(); toast('Сохранено'); render(); updateFiltersUI(); refreshCounts();
+}
+
+// ---------- detail ----------
+function commentField(table, id, situation) {
+  const editable = CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer';
+  return `<div class="detail-block">
+      <div class="k">Комментарии / ситуация</div>
+      <div class="v comment-field" ${editable ? 'contenteditable="true" spellcheck="false"' : ''} data-table="${table}" data-id="${id}">${esc(situation)}</div>
+    </div>`;
+}
+
+function readComment(field) {
+  const t = (field.innerText != null) ? field.innerText : field.textContent;
+  return String(t || '').replace(/\u00A0/g, ' ').replace(/\r\n?/g, '\n').trim();
+}
+
+function clinicDetailBody(c, linked, contacts) {
+  const moneyRows = MONEY_YEARS.map(y => {
+    const b = c['sales' + y], h = c['hugemed' + y];
+    const parts = [];
+    if (b != null) parts.push(`Boston ${fmtMoney(b)}`);
+    if (h != null) parts.push(`ХМ ${fmtMoney(h)}`);
+    return `<div class="v money-line"><span>${y}</span><span>${parts.length ? parts.join(' · ') : '—'}</span></div>`;
+  }).join('');
+  const sortedContacts = [...contacts].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
+  return `
+    ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
+    <div class="detail-block"><div class="k">Продажи (₽) — Boston / HugeMed</div>${moneyRows}</div>
+    ${[['Регион', c.region], ['Город', c.city], ['Менеджер', c.manager], ['Связь', linked ? linked.name : null]]
+      .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
+    ${commentField('clinics', c.id, c.situation)}
+    ${tagsHtml(c.tags)}
+    <div class="detail-block">
+      <div class="k">Люди (${contacts.length})</div>
+      ${sortedContacts.length ? sortedContacts.map(p => `<div class="v contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' — ' + esc(p.position) : ''}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}${p.phone ? phoneLines(p.phone) : ''}</div>`).join('') : '<div class="v" style="color:var(--muted)">нет</div>'}
+    </div>
+  `;
+}
+
+function personDetailBody(p, clinics) {
+  const orgs = (clinics || []).map(c => c && c.name).filter(Boolean);
+  return `
+    ${orgs.length ? `<div class="detail-block"><div class="k">${orgs.length > 1 ? 'Учреждения' : 'Учреждение'}</div><div class="v">${orgs.map(esc).join('<br>')}</div></div>` : ''}
+    ${[['Должность', p.position], ['Почта', p.email]]
+      .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
+    ${p.phone ? `<div class="detail-block"><div class="k">Телефон</div><div class="v">${telLink(p.phone)}</div></div>` : ''}
+    ${commentField('people', p.id, p.situation)}
+    ${tagsHtml(p.tags)}
+  `;
+}
+
+// ---------- hover-превью (десктоп) ----------
+let hoverSeq = 0;
+let hoverTimer = null;
+let hoverPinned = false;
+
+function hideHover() {
+  clearTimeout(hoverTimer);
+  hoverTimer = setTimeout(() => {
+    if (hoverPinned) return;
+    document.getElementById('hoverCard').classList.add('hidden');
+  }, 160);
+}
+
+async function showHoverCard(row) {
+  const id = Number(row.dataset.id);
+  const kind = row.dataset.kind || 'clinic';
+  const seq = ++hoverSeq;
+  clearTimeout(hoverTimer);
+  hoverTimer = setTimeout(async () => {
+    const panel = document.getElementById('hoverCard');
+    let inner;
+    if (kind === 'person') {
+      const p = await getPerson(id);
+      if (!p || seq !== hoverSeq) return;
+      const clinics = await personAllClinics(p);
+      if (seq !== hoverSeq) return;
+      inner = `<h3>${esc(p.fullName)}</h3>` + personDetailBody(p, clinics);
+    } else {
+      const c = await getClinic(id);
+      if (!c || seq !== hoverSeq) return;
+      const linked = c.linkedClinicId ? await getClinic(c.linkedClinicId) : null;
+      const contacts = await peopleByClinic(id);
+      if (seq !== hoverSeq) return;
+      inner = `<h3>${esc(c.name)}</h3>` + clinicDetailBody(c, linked, contacts);
+    }
+    panel.innerHTML = inner;
+    const r = row.getBoundingClientRect();
+    const pw = 380;
+    let left = r.right + 12;
+    if (left + pw > window.innerWidth - 12) left = Math.max(12, r.left - pw - 12);
+    panel.style.top = Math.max(12, r.top) + 'px';
+    panel.style.left = left + 'px';
+    panel.classList.remove('hidden');
+  }, 200);
+}
+
+{
+  const panel = document.getElementById('hoverCard');
+  panel.addEventListener('mouseenter', () => { hoverPinned = true; clearTimeout(hoverTimer); });
+  panel.addEventListener('mouseleave', () => { hoverPinned = false; const f = panel.querySelector('.comment-field:focus'); if (f) f.blur(); panel.classList.add('hidden'); });
+}
+
+// инлайн-редактирование комментариев: контент-редактируемое поле, сохранение по blur
+document.addEventListener('focusin', e => {
+  const field = e.target.closest('.comment-field[contenteditable]');
+  if (!field) return;
+  field._orig = readComment(field);
+});
+document.addEventListener('focusout', async e => {
+  const field = e.target.closest('.comment-field[contenteditable]');
+  if (!field) return;
+  const text = readComment(field);
+  if (text === field._orig) return;
+  await setSituation(field.dataset.table, Number(field.dataset.id), text);
+  toast('Сохранено');
+});
+
+async function showClinic(id) {
+  const c = await getClinic(id);
+  if (!c) return;
+  const linked = c.linkedClinicId ? await getClinic(c.linkedClinicId) : null;
+  const contacts = await peopleByClinic(id);
+  const canEdit = CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer';
+
+  openModal(c.name, clinicDetailBody(c, linked, contacts) + `
+    <div class="btn-row">
+      ${canEdit ? '<button class="btn" id="d_edit">Редактировать</button>' : ''}
+      <button class="btn ghost" id="d_close">Закрыть</button>
+    </div>
+    ${canEdit ? '<button class="btn ghost" id="d_add_person" style="margin-top:10px">＋ Добавить человека</button>' : ''}
+  `);
+  if (canEdit) document.getElementById('d_edit').addEventListener('click', () => openClinicForm(id));
+  document.getElementById('d_close').addEventListener('click', closeModal);
+  document.querySelectorAll('.contact-row').forEach(el => {
+    el.addEventListener('click', (e) => { if (e.target.closest('a.tel')) return; closeModal(); showPerson(Number(el.dataset.person)); });
+  });
+  if (canEdit) document.getElementById('d_add_person').addEventListener('click', () => { closeModal(); openPersonForm(null, id); });
+}
+
+async function showPerson(id) {
+  const p = await getPerson(id);
+  if (!p) return;
+  const clinics = await personAllClinics(p);
+  const canEdit = CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer';
+
+  openModal(p.fullName, personDetailBody(p, clinics) + `
+    <div class="btn-row">
+      ${canEdit ? '<button class="btn" id="d_edit">Редактировать</button>' : ''}
+      <button class="btn ghost" id="d_close">Закрыть</button>
+    </div>
+  `);
+  if (canEdit) document.getElementById('d_edit').addEventListener('click', () => openPersonForm(id));
+  document.getElementById('d_close').addEventListener('click', closeModal);
+}
+
+// ---------- delete ----------
+async function deleteClinic(id) {
+  if (CURRENT_ROLE !== 'admin') {
+    const c = await getClinic(id);
+    const target = !c.markedDel;
+    if (!confirm(target ? 'Пометить клинику на удаление?' : 'Снять пометку на удаление?')) return;
+    await setClinicMarked(id, target);
+    closeModal(); toast(target ? 'Помечена на удаление' : 'Пометка снята'); render(); updateFiltersUI(); refreshCounts();
+    return;
+  }
+  if (!confirm('Удалить клинику?')) return;
+  await removeClinic(id);
+  await clearPeopleClinic(id);
+  closeModal(); toast('Удалено'); render(); updateFiltersUI(); refreshCounts();
+}
+
+async function deletePerson(id) {
+  if (CURRENT_ROLE !== 'admin') {
+    const p = await getPerson(id);
+    const target = !p.markedDel;
+    if (!confirm(target ? 'Пометить человека на удаление?' : 'Снять пометку на удаление?')) return;
+    await setPersonMarked(id, target);
+    closeModal(); toast(target ? 'Помечен на удаление' : 'Пометка снята'); render(); refreshCounts();
+    return;
+  }
+  if (!confirm('Удалить человека?')) return;
+  await removePerson(id);
+  closeModal(); toast('Удалено'); render(); refreshCounts();
+}
+
+// ---------- dicts ----------
+function addDictPrompt() {
+  openModal('Добавить в справочник', `
+    <div class="field"><label>Справочник</label>
+      <select id="d_type">
+        ${['manager', 'region', 'city'].map(t => `<option value="${t}">${DICT_LABELS[t]}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field"><label>Значение</label><input id="d_value" /></div>
+    <button class="btn" id="d_save">Добавить</button>
+  `);
+  document.getElementById('d_save').addEventListener('click', async () => {
+    const type = document.getElementById('d_type').value;
+    const value = document.getElementById('d_value').value.trim();
+    if (!value) { toast('Введите значение'); return; }
+    await addDictValue(type, value);
+    closeModal(); toast('Добавлено'); render();
+  });
+}
+
+// делегирование кликов по view
+document.getElementById('view').addEventListener('click', async e => {
+  if (e.target.closest('a.tel')) return;
+  const card = e.target.closest('.card');
+  if (card) {
+    hideHover();
+    const { id, kind } = card.dataset;
+    if (kind === 'nastya') return;
+    if (kind === 'clinic') showClinic(Number(id));
+    else showPerson(Number(id));
+    return;
+  }
+  const addBtn = e.target.closest('[data-add-btn]');
+  if (addBtn) {
+    const type = addBtn.dataset.addBtn;
+    const input = document.querySelector(`input[data-add="${type}"]`);
+    const value = (input.value || '').trim();
+    if (!value) { toast('Введите значение'); return; }
+    await addDictValue(type, value);
+    toast('Добавлено'); renderDicts();
+    return;
+  }
+  const x = e.target.closest('.chip .x');
+  if (x) {
+    const { dict, val } = x.dataset;
+    await deleteDictValue(dict, val);
+    toast('Удалено'); renderDicts();
+  }
+});
+
+// ---------- init ----------
+init();
+
+</script>
+</body>
+</html>

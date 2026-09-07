@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Дизайн-превью CRM v2 — v1.141</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"SF Pro Text",Roboto,Arial,sans-serif;background:#f5f5f7;color:#1d1d1f}
+.bar{position:sticky;top:0;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid #e5e5ea;padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:10}
+.bar h1{font-size:16px;font-weight:600}
+.sw{display:flex;gap:6px;margin-left:auto}
+.sw button{border:1px solid #d1d1d6;background:#fff;border-radius:20px;padding:6px 14px;font-size:13px;cursor:pointer;color:#555}
+.sw button.on{background:#007aff;border-color:#007aff;color:#fff}
+.wrap{max-width:1100px;margin:20px auto;padding:0 16px}
+.hint{color:#8e8e93;font-size:12px;text-align:center;margin:8px 0 20px}
+.view{display:none}.view.on{display:block}
+/* СЕТКА (минимализм + линии) */
+.glist{background:#fff;border:1px solid #e5e5ea;border-radius:12px;overflow:hidden}
+.ghead,.grow{display:grid;grid-template-columns:1.8fr 1.4fr .7fr .9fr .9fr;align-items:center}
+.ghead{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#8e8e93;background:#fafafa;border-bottom:1px solid #e5e5ea;padding:10px 16px}
+.grow{padding:11px 16px;border-bottom:1px solid #ececf0;font-size:14px}
+.grow:last-child{border-bottom:none}
+.grow:hover{background:#f8f9ff}
+.gc{padding-right:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gname{font-weight:600}
+.gloc{color:#666}
+.gcity{color:#a0a0a8;margin-left:6px}
+.gmgr{font-size:12px;color:#555}
+.gnum{text-align:right;font-variant-numeric:tabular-nums;color:#666}
+.gstrong{font-weight:700;color:#1d1d1f}
+/* ПЛИТКИ крупные */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.05)}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mgr{font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px}
+.mgr-Абрамов{background:#e8f0fe;color:#1a56db}.mgr-Скокова{background:#fdecea;color:#c62828}.mgr-Осечкина{background:#e6f7e9;color:#2e7d32}.mgr-Янус{background:#f3e8fd;color:#7b1fa2}.mgr-x{background:#f1f1f4;color:#666}
+.city{font-size:12px;color:#8e8e93}
+.card-name{font-size:17px;font-weight:600;line-height:1.3;margin-bottom:4px}
+.card-region{font-size:13px;color:#8e8e93;margin-bottom:12px}
+.card-money{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.card-sub{font-size:12px;color:#a0a0a8;margin-top:3px}
+</style></head><body>
+<div class="bar"><h1>Дизайн CRM — превью v2</h1><div class="sw"><button data-v="grid" class="on">Сетка</button><button data-v="cards">Плитки</button></div></div>
+<div class="wrap">
+<div class="hint">«Сетка» — минимализм с линиями для анализа. «Плитки» — крупнее, чем были.</div>
+<div id="v-grid" class="view on"><div class="glist">
+<div class="ghead"><div>Клиника</div><div>Регион</div><div>Менеджер</div><div class="gnum">2025</div><div class="gnum">2026</div></div>
+<div class="grow">
+      <div class="gc gname">НМХЦ им. Пирогова</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">10 310 708 ₽</div>
+      <div class="gc gnum gstrong">15 481 838 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ГКБ №20 им. Ерамишанцева</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">7 362 800 ₽</div>
+      <div class="gc gnum gstrong">6 915 440 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ГКБ №1</div>
+      <div class="gc gloc">Забайкальский край<span class="gcity">Чита</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">4 596 340 ₽</div>
+      <div class="gc gnum gstrong">6 780 680 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">НМИЦ Радиологии (МНИОИ им. Герцена)</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Янус</div>
+      <div class="gc gnum">3 272 399 ₽</div>
+      <div class="gc gnum gstrong">4 879 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ОКБ им. Беляева</div>
+      <div class="gc gloc">Кемеровская область<span class="gcity">Кемерово</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">771 400 ₽</div>
+      <div class="gc gnum gstrong">4 577 800 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">Ессентукская ГКБ</div>
+      <div class="gc gloc">Ставропольский край<span class="gcity">Ессентуки</span></div>
+      <div class="gc gmgr">Кабардина</div>
+      <div class="gc gnum">7 608 432 ₽</div>
+      <div class="gc gnum gstrong">3 675 276 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">Институт Геронтологии</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">1 070 860 ₽</div>
+      <div class="gc gnum gstrong">3 460 210 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Синай</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">3 570 000 ₽</div>
+      <div class="gc gnum gstrong">3 270 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ККБ №1</div>
+      <div class="gc gloc">Хабаровский край<span class="gcity">Хабаровск</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">2 652 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">КМКБ №4</div>
+      <div class="gc gloc">Красноярский край<span class="gcity">Красноярск</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">1 173 140 ₽</div>
+      <div class="gc gnum gstrong">2 313 640 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">МСЧ №140 ФМБА</div>
+      <div class="gc gloc">Пермский край<span class="gcity">Пермь</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">3 129 000 ₽</div>
+      <div class="gc gnum gstrong">2 030 700 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Бэст-Клиник</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Скокова</div>
+      <div class="gc gnum">236 200 ₽</div>
+      <div class="gc gnum gstrong">1 935 300 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК СМ-Клиника</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">8 451 400 ₽</div>
+      <div class="gc gnum gstrong">1 791 920 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Частное лицо</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">3 515 890 ₽</div>
+      <div class="gc gnum gstrong">1 659 930 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ГКБСМП №25</div>
+      <div class="gc gloc">Волгоградская область<span class="gcity">Волгоград</span></div>
+      <div class="gc gmgr">Легкая</div>
+      <div class="gc gnum">711 900 ₽</div>
+      <div class="gc gnum gstrong">1 431 360 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК ДИСТРИБЬЮТОРЫ</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">5 272 765 ₽</div>
+      <div class="gc gnum gstrong">1 235 040 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ОКБ Святителя Иоасафа</div>
+      <div class="gc gloc">Белгородская область<span class="gcity">Белгород</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">77 000 ₽</div>
+      <div class="gc gnum gstrong">1 210 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ГКБ №1 Новокузнецк</div>
+      <div class="gc gloc">Кемеровская область<span class="gcity">Новокузнецк</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">1 123 500 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Реал Транс Хаер</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">2 250 000 ₽</div>
+      <div class="gc gnum gstrong">1 050 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Дуэт-Клиник</div>
+      <div class="gc gloc">Новосибирская область<span class="gcity">Новосибирск</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">990 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЛРЦ МинЗдрава</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">927 415 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЦКБ РЖД-Медицина</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Осечкина</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">918 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ККБ Чита</div>
+      <div class="gc gloc">Забайкальский край<span class="gcity">Чита</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">1 552 000 ₽</div>
+      <div class="gc gnum gstrong">841 600 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ОКБ №2 Оренбург</div>
+      <div class="gc gloc">Оренбургская область<span class="gcity">Оренбург</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">771 400 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ОКБ Южно-Сахалинск</div>
+      <div class="gc gloc">Сахалинская область<span class="gcity">Южно-Сахалинск</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">609 000 ₽</div>
+      <div class="gc gnum gstrong">730 800 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ГКБ №7 им. Юдина</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">728 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">Норильская МБ №1</div>
+      <div class="gc gloc">Красноярский край<span class="gcity">Норильск</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">680 100 ₽</div>
+      <div class="gc gnum gstrong">717 430 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">Мариинская больница</div>
+      <div class="gc gloc">Санкт-Петербург<span class="gcity">Санкт-Петербург</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">693 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">Химкинская ОКБ</div>
+      <div class="gc gloc">Московская область<span class="gcity">Химки</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">625 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">МГОБ №62</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Попова</div>
+      <div class="gc gnum">901 618 ₽</div>
+      <div class="gc gnum gstrong">583 147 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Клиника К+31</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Янус</div>
+      <div class="gc gnum">1 437 180 ₽</div>
+      <div class="gc gnum gstrong">571 770 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">БСМП им. Ангапова</div>
+      <div class="gc gloc">Бурятия<span class="gcity">Улан-Удэ</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">544 880 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Госпиталь на Яузе</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">528 950 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ГКБ №3 им. Подгорбунского</div>
+      <div class="gc gloc">Кемеровская область<span class="gcity">Кемерово</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">1 552 320 ₽</div>
+      <div class="gc gnum gstrong">520 100 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ГБ №1 им. Пирогова</div>
+      <div class="gc gloc">Крым<span class="gcity">Керчь</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">461 500 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">МСЧ МВД</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">1 326 200 ₽</div>
+      <div class="gc gnum gstrong">450 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">НИИ урологии им. Лопаткина</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Янус</div>
+      <div class="gc gnum">1 051 370 ₽</div>
+      <div class="gc gnum gstrong">439 998 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ГКБ №64 им. Виноградова</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Янус</div>
+      <div class="gc gnum">916 160 ₽</div>
+      <div class="gc gnum gstrong">403 420 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">НМИЦ хирургии им. Вишневского</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">1 412 690 ₽</div>
+      <div class="gc gnum gstrong">354 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">НМИЦ акушерства и гинекологии им. Кулакова</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Янус</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">353 250 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">МСЧ №9 ФМБА</div>
+      <div class="gc gloc">Московская область<span class="gcity">Дубна</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">2 008 000 ₽</div>
+      <div class="gc gnum gstrong">348 028 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Больница Лава</div>
+      <div class="gc gloc">Удмуртия<span class="gcity">Ижевск</span></div>
+      <div class="gc gmgr">Попова</div>
+      <div class="gc gnum">748 020 ₽</div>
+      <div class="gc gnum gstrong">339 800 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ОКБ Орел</div>
+      <div class="gc gloc">Орловская область<span class="gcity">Орел</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">334 600 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ККБ Красноярск</div>
+      <div class="gc gloc">Красноярский край<span class="gcity">Красноярск</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">3 251 500 ₽</div>
+      <div class="gc gnum gstrong">313 600 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ММКЦ Коммунарка</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Веприков</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">260 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Аймед</div>
+      <div class="gc gloc">Чечня<span class="gcity">Грозный</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">260 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Семейный доктор</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Скокова</div>
+      <div class="gc gnum">663 900 ₽</div>
+      <div class="gc gnum gstrong">247 500 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ГБ №83 ФМБА</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Легкая</div>
+      <div class="gc gnum">1 709 130 ₽</div>
+      <div class="gc gnum gstrong">234 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ОКБ Новосибирск</div>
+      <div class="gc gloc">Новосибирская область<span class="gcity">Новосибирск</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">182 700 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">РКБ им. Семашко</div>
+      <div class="gc gloc">Бурятия<span class="gcity">Улан-Удэ</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">774 000 ₽</div>
+      <div class="gc gnum gstrong">172 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">Первый КМЦ</div>
+      <div class="gc gloc">Владимирская область<span class="gcity">Ковров</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">1 128 400 ₽</div>
+      <div class="gc gnum gstrong">172 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Академия Здоровья</div>
+      <div class="gc gloc">Ингушетия<span class="gcity">Назрань</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">223 500 ₽</div>
+      <div class="gc gnum gstrong">110 750 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Эксперт</div>
+      <div class="gc gloc">Пермский край<span class="gcity">Пермь</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">112 000 ₽</div>
+      <div class="gc gnum gstrong">80 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">Воскресенская ОБ №2</div>
+      <div class="gc gloc">Московская область<span class="gcity">Воскресенск</span></div>
+      <div class="gc gmgr">Янус</div>
+      <div class="gc gnum">304 920 ₽</div>
+      <div class="gc gnum gstrong">73 080 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">МЦ им. Аскерханова</div>
+      <div class="gc gloc">Дагестан<span class="gcity">Махачкала</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">72 800 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ОКБ им. Бурденко</div>
+      <div class="gc gloc">Пензенская область<span class="gcity">Пенза</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">42 000 ₽</div>
+      <div class="gc gnum gstrong">72 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">МКНЦ им. Логинова</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Абрамов</div>
+      <div class="gc gnum">144 023 ₽</div>
+      <div class="gc gnum gstrong">53 730 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК МЦ Доктор Плюс</div>
+      <div class="gc gloc">Калужская область<span class="gcity">Обнинск</span></div>
+      <div class="gc gmgr">Евсеев</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">43 350 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">ЧК Клиника Фомина</div>
+      <div class="gc gloc">Москва<span class="gcity">Москва</span></div>
+      <div class="gc gmgr">Евсеев</div>
+      <div class="gc gnum">225 450 ₽</div>
+      <div class="gc gnum gstrong">39 000 ₽</div>
+    </div><div class="grow">
+      <div class="gc gname">Старооскольская ОБ св. Луки Крымского</div>
+      <div class="gc gloc">Белгородская область<span class="gcity">Старый Оскол</span></div>
+      <div class="gc gmgr">Скокова</div>
+      <div class="gc gnum">—</div>
+      <div class="gc gnum gstrong">28 000 ₽</div>
+    </div>
+</div></div>
+<div id="v-cards" class="view"><div class="grid"><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">НМХЦ им. Пирогова</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">15 481 838 ₽</div>
+      <div class="card-sub">2025: 10 310 708 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">ГКБ №20 им. Ерамишанцева</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">6 915 440 ₽</div>
+      <div class="card-sub">2025: 7 362 800 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Чита</span></div>
+      <div class="card-name">ГКБ №1</div>
+      <div class="card-region">Забайкальский край</div>
+      <div class="card-money">6 780 680 ₽</div>
+      <div class="card-sub">2025: 4 596 340 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Янус">Янус</span><span class="city">Москва</span></div>
+      <div class="card-name">НМИЦ Радиологии (МНИОИ им. Герцена)</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">4 879 000 ₽</div>
+      <div class="card-sub">2025: 3 272 399 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Кемерово</span></div>
+      <div class="card-name">ОКБ им. Беляева</div>
+      <div class="card-region">Кемеровская область</div>
+      <div class="card-money">4 577 800 ₽</div>
+      <div class="card-sub">2025: 771 400 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Кабардина">Кабардина</span><span class="city">Ессентуки</span></div>
+      <div class="card-name">Ессентукская ГКБ</div>
+      <div class="card-region">Ставропольский край</div>
+      <div class="card-money">3 675 276 ₽</div>
+      <div class="card-sub">2025: 7 608 432 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">Институт Геронтологии</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">3 460 210 ₽</div>
+      <div class="card-sub">2025: 1 070 860 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">ЧК Синай</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">3 270 000 ₽</div>
+      <div class="card-sub">2025: 3 570 000 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Хабаровск</span></div>
+      <div class="card-name">ККБ №1</div>
+      <div class="card-region">Хабаровский край</div>
+      <div class="card-money">2 652 000 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Красноярск</span></div>
+      <div class="card-name">КМКБ №4</div>
+      <div class="card-region">Красноярский край</div>
+      <div class="card-money">2 313 640 ₽</div>
+      <div class="card-sub">2025: 1 173 140 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Пермь</span></div>
+      <div class="card-name">МСЧ №140 ФМБА</div>
+      <div class="card-region">Пермский край</div>
+      <div class="card-money">2 030 700 ₽</div>
+      <div class="card-sub">2025: 3 129 000 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Скокова">Скокова</span><span class="city">Москва</span></div>
+      <div class="card-name">ЧК Бэст-Клиник</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">1 935 300 ₽</div>
+      <div class="card-sub">2025: 236 200 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">ЧК СМ-Клиника</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">1 791 920 ₽</div>
+      <div class="card-sub">2025: 8 451 400 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">ЧК Частное лицо</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">1 659 930 ₽</div>
+      <div class="card-sub">2025: 3 515 890 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Легкая">Легкая</span><span class="city">Волгоград</span></div>
+      <div class="card-name">ГКБСМП №25</div>
+      <div class="card-region">Волгоградская область</div>
+      <div class="card-money">1 431 360 ₽</div>
+      <div class="card-sub">2025: 711 900 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">ЧК ДИСТРИБЬЮТОРЫ</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">1 235 040 ₽</div>
+      <div class="card-sub">2025: 5 272 765 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Белгород</span></div>
+      <div class="card-name">ОКБ Святителя Иоасафа</div>
+      <div class="card-region">Белгородская область</div>
+      <div class="card-money">1 210 000 ₽</div>
+      <div class="card-sub">2025: 77 000 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Новокузнецк</span></div>
+      <div class="card-name">ГКБ №1 Новокузнецк</div>
+      <div class="card-region">Кемеровская область</div>
+      <div class="card-money">1 123 500 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">ЧК Реал Транс Хаер</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">1 050 000 ₽</div>
+      <div class="card-sub">2025: 2 250 000 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Новосибирск</span></div>
+      <div class="card-name">ЧК Дуэт-Клиник</div>
+      <div class="card-region">Новосибирская область</div>
+      <div class="card-money">990 000 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">ЛРЦ МинЗдрава</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">927 415 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Осечкина">Осечкина</span><span class="city">Москва</span></div>
+      <div class="card-name">ЦКБ РЖД-Медицина</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">918 000 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Чита</span></div>
+      <div class="card-name">ККБ Чита</div>
+      <div class="card-region">Забайкальский край</div>
+      <div class="card-money">841 600 ₽</div>
+      <div class="card-sub">2025: 1 552 000 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Оренбург</span></div>
+      <div class="card-name">ОКБ №2 Оренбург</div>
+      <div class="card-region">Оренбургская область</div>
+      <div class="card-money">771 400 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Южно-Сахалинск</span></div>
+      <div class="card-name">ОКБ Южно-Сахалинск</div>
+      <div class="card-region">Сахалинская область</div>
+      <div class="card-money">730 800 ₽</div>
+      <div class="card-sub">2025: 609 000 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">ГКБ №7 им. Юдина</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">728 000 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Норильск</span></div>
+      <div class="card-name">Норильская МБ №1</div>
+      <div class="card-region">Красноярский край</div>
+      <div class="card-money">717 430 ₽</div>
+      <div class="card-sub">2025: 680 100 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Санкт-Петербург</span></div>
+      <div class="card-name">Мариинская больница</div>
+      <div class="card-region">Санкт-Петербург</div>
+      <div class="card-money">693 000 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Химки</span></div>
+      <div class="card-name">Химкинская ОКБ</div>
+      <div class="card-region">Московская область</div>
+      <div class="card-money">625 000 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Попова">Попова</span><span class="city">Москва</span></div>
+      <div class="card-name">МГОБ №62</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">583 147 ₽</div>
+      <div class="card-sub">2025: 901 618 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Янус">Янус</span><span class="city">Москва</span></div>
+      <div class="card-name">ЧК Клиника К+31</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">571 770 ₽</div>
+      <div class="card-sub">2025: 1 437 180 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Улан-Удэ</span></div>
+      <div class="card-name">БСМП им. Ангапова</div>
+      <div class="card-region">Бурятия</div>
+      <div class="card-money">544 880 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">ЧК Госпиталь на Яузе</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">528 950 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Кемерово</span></div>
+      <div class="card-name">ГКБ №3 им. Подгорбунского</div>
+      <div class="card-region">Кемеровская область</div>
+      <div class="card-money">520 100 ₽</div>
+      <div class="card-sub">2025: 1 552 320 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Керчь</span></div>
+      <div class="card-name">ГБ №1 им. Пирогова</div>
+      <div class="card-region">Крым</div>
+      <div class="card-money">461 500 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">МСЧ МВД</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">450 000 ₽</div>
+      <div class="card-sub">2025: 1 326 200 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Янус">Янус</span><span class="city">Москва</span></div>
+      <div class="card-name">НИИ урологии им. Лопаткина</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">439 998 ₽</div>
+      <div class="card-sub">2025: 1 051 370 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Янус">Янус</span><span class="city">Москва</span></div>
+      <div class="card-name">ГКБ №64 им. Виноградова</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">403 420 ₽</div>
+      <div class="card-sub">2025: 916 160 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">НМИЦ хирургии им. Вишневского</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">354 000 ₽</div>
+      <div class="card-sub">2025: 1 412 690 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Янус">Янус</span><span class="city">Москва</span></div>
+      <div class="card-name">НМИЦ акушерства и гинекологии им. Кулакова</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">353 250 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Дубна</span></div>
+      <div class="card-name">МСЧ №9 ФМБА</div>
+      <div class="card-region">Московская область</div>
+      <div class="card-money">348 028 ₽</div>
+      <div class="card-sub">2025: 2 008 000 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Попова">Попова</span><span class="city">Ижевск</span></div>
+      <div class="card-name">ЧК Больница Лава</div>
+      <div class="card-region">Удмуртия</div>
+      <div class="card-money">339 800 ₽</div>
+      <div class="card-sub">2025: 748 020 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Орел</span></div>
+      <div class="card-name">ОКБ Орел</div>
+      <div class="card-region">Орловская область</div>
+      <div class="card-money">334 600 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Красноярск</span></div>
+      <div class="card-name">ККБ Красноярск</div>
+      <div class="card-region">Красноярский край</div>
+      <div class="card-money">313 600 ₽</div>
+      <div class="card-sub">2025: 3 251 500 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Веприков">Веприков</span><span class="city">Москва</span></div>
+      <div class="card-name">ММКЦ Коммунарка</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">260 000 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Грозный</span></div>
+      <div class="card-name">ЧК Аймед</div>
+      <div class="card-region">Чечня</div>
+      <div class="card-money">260 000 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Скокова">Скокова</span><span class="city">Москва</span></div>
+      <div class="card-name">ЧК Семейный доктор</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">247 500 ₽</div>
+      <div class="card-sub">2025: 663 900 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Легкая">Легкая</span><span class="city">Москва</span></div>
+      <div class="card-name">ГБ №83 ФМБА</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">234 000 ₽</div>
+      <div class="card-sub">2025: 1 709 130 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Новосибирск</span></div>
+      <div class="card-name">ОКБ Новосибирск</div>
+      <div class="card-region">Новосибирская область</div>
+      <div class="card-money">182 700 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Улан-Удэ</span></div>
+      <div class="card-name">РКБ им. Семашко</div>
+      <div class="card-region">Бурятия</div>
+      <div class="card-money">172 000 ₽</div>
+      <div class="card-sub">2025: 774 000 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Ковров</span></div>
+      <div class="card-name">Первый КМЦ</div>
+      <div class="card-region">Владимирская область</div>
+      <div class="card-money">172 000 ₽</div>
+      <div class="card-sub">2025: 1 128 400 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Назрань</span></div>
+      <div class="card-name">ЧК Академия Здоровья</div>
+      <div class="card-region">Ингушетия</div>
+      <div class="card-money">110 750 ₽</div>
+      <div class="card-sub">2025: 223 500 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Пермь</span></div>
+      <div class="card-name">ЧК Эксперт</div>
+      <div class="card-region">Пермский край</div>
+      <div class="card-money">80 000 ₽</div>
+      <div class="card-sub">2025: 112 000 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Янус">Янус</span><span class="city">Воскресенск</span></div>
+      <div class="card-name">Воскресенская ОБ №2</div>
+      <div class="card-region">Московская область</div>
+      <div class="card-money">73 080 ₽</div>
+      <div class="card-sub">2025: 304 920 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Махачкала</span></div>
+      <div class="card-name">МЦ им. Аскерханова</div>
+      <div class="card-region">Дагестан</div>
+      <div class="card-money">72 800 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Пенза</span></div>
+      <div class="card-name">ОКБ им. Бурденко</div>
+      <div class="card-region">Пензенская область</div>
+      <div class="card-money">72 000 ₽</div>
+      <div class="card-sub">2025: 42 000 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Абрамов">Абрамов</span><span class="city">Москва</span></div>
+      <div class="card-name">МКНЦ им. Логинова</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">53 730 ₽</div>
+      <div class="card-sub">2025: 144 023 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Евсеев">Евсеев</span><span class="city">Обнинск</span></div>
+      <div class="card-name">ЧК МЦ Доктор Плюс</div>
+      <div class="card-region">Калужская область</div>
+      <div class="card-money">43 350 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Евсеев">Евсеев</span><span class="city">Москва</span></div>
+      <div class="card-name">ЧК Клиника Фомина</div>
+      <div class="card-region">Москва</div>
+      <div class="card-money">39 000 ₽</div>
+      <div class="card-sub">2025: 225 450 ₽</div>
+    </div><div class="card">
+      <div class="card-top"><span class="mgr mgr-Скокова">Скокова</span><span class="city">Старый Оскол</span></div>
+      <div class="card-name">Старооскольская ОБ св. Луки Крымского</div>
+      <div class="card-region">Белгородская область</div>
+      <div class="card-money">28 000 ₽</div>
+      <div class="card-sub">2025: —</div>
+    </div></div></div>
+</div>
+<script>
+document.querySelectorAll('.sw button').forEach(b=>{b.onclick=()=>{document.querySelectorAll('.sw button').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.getElementById('v-'+b.dataset.v).classList.add('on')}});
+</script></body></html>

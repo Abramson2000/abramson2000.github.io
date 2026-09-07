@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>База — навигация: варианты</title>
+<style>
+:root{
+  --bg:#f5f5f4; --card:#fff; --ink:#161616; --muted:#737373;
+  --brand:#111; --line:#e5e5e5; --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#ececec;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--ink);padding:20px 12px 60px}
+h1{font-size:20px;text-align:center;margin-bottom:4px}
+.sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:24px}
+.phone{max-width:400px;margin:0 auto 36px;background:var(--bg);border-radius:28px;box-shadow:0 12px 40px rgba(0,0,0,.18);overflow:hidden;border:1px solid #ddd}
+.phone-head{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+.phone-head .dot{width:10px;height:10px;border-radius:50%;background:#ddd}
+.phone-head .title{font-size:15px;font-weight:600;flex:1}
+.phone-head .chip{font-size:12px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:20px;font-weight:600}
+.screen{min-height:480px;position:relative;display:flex;flex-direction:column}
+.content{flex:1;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border-radius:var(--radius);padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.card .t{font-size:14px;font-weight:600;margin-bottom:4px}
+.card .s{font-size:12px;color:var(--muted)}
+.card .row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.card .row:last-child{border-bottom:none}
+.card .row .ic{width:32px;height:32px;border-radius:8px;background:#f0f0ee;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.badge{background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;margin-left:auto}
+/* ===== Вариант А: 4 + Ещё ===== */
+.tabbar-a{display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.tabbar-a .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border:none;background:none;font-size:10px;color:var(--muted);font-weight:600}
+.tabbar-a .tab .ico{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.tabbar-a .tab.active{color:var(--ink)}
+.tabbar-a .tab.active .ico{background:var(--ink);color:#fff;border-radius:8px}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.2);padding:10px 14px calc(16px + env(safe-area-inset-bottom));transform:translateY(0);transition:transform .25s;z-index:25}
+.sheet.hidden{transform:translateY(110%)}
+.sheet .grip{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 10px}
+.sheet .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sheet .item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 2px;border-radius:12px;font-size:11px;font-weight:600;color:var(--ink)}
+.sheet .item .ico{width:40px;height:40px;border-radius:12px;background:#f0f0ee;display:flex;align-items:center;justify-content:center;font-size:18px}
+/* ===== Вариант Б: лента сверху ===== */
+.tabbar-b{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;background:var(--card);border-bottom:1px solid var(--line);scrollbar-width:none}
+.tabbar-b::-webkit-scrollbar{display:none}
+.tabbar-b .tab{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;background:#f0f0ee;font-size:13px;font-weight:600;color:var(--muted);border:none;white-space:nowrap}
+.tabbar-b .tab.active{background:var(--ink);color:#fff}
+.tabbar-b .tab .cnt{background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px}
+/* ===== Вариант В: сетка на главной ===== */
+.tabbar-c{display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.tabbar-c .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border:none;background:none;font-size:10px;color:var(--muted);font-weight:600}
+.tabbar-c .tab .ico{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.tabbar-c .tab.active{color:var(--ink)}
+.tabbar-c .tab.active .ico{background:var(--ink);color:#fff;border-radius:8px}
+.grid-home{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid-home .tile{background:var(--card);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.grid-home .tile .ico{width:42px;height:42px;border-radius:12px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px}
+.grid-home .tile.wide{grid-column:1/-1;flex-direction:row;align-items:center}
+.grid-home .tile .t{font-size:14px;font-weight:600}
+.grid-home .tile .s{font-size:11px;color:var(--muted)}
+.grid-home .tile .cnt{margin-left:auto;background:#ef4444;color:#fff;font-size:11px;font-weight:700;border-radius:12px;padding:2px 8px}
+/* ===== Общее для Г и Д: бургер + drawer ===== */
+.burger{width:38px;height:38px;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;flex-shrink:0}
+.burger span{display:block;width:20px;height:2.5px;background:var(--ink);border-radius:2px}
+.drawer{position:absolute;top:0;left:0;bottom:0;width:290px;background:var(--card);z-index:20;box-shadow:4px 0 30px rgba(0,0,0,.25);transform:translateX(-105%);transition:transform .28s ease;display:flex;flex-direction:column}
+.drawer.open{transform:translateX(0)}
+.drawer .d-head{padding:18px 16px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.drawer .d-logo{width:34px;height:34px;border-radius:10px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700}
+.drawer .d-title{font-size:15px;font-weight:700}
+.drawer .d-sub{font-size:11px;color:var(--muted)}
+.drawer nav{flex:1;overflow-y:auto;padding:8px 0}
+.drawer .d-item{display:flex;align-items:center;gap:12px;padding:13px 16px;font-size:14px;font-weight:600;color:var(--ink);border:none;background:none;width:100%;text-align:left;cursor:pointer}
+.drawer .d-item .ic{width:30px;height:30px;border-radius:8px;background:#f0f0ee;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.drawer .d-item .cnt{margin-left:auto;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 7px}
+.drawer .d-item.active{background:#f0f0ee}
+.drawer .d-item.active .ic{background:var(--ink);color:#fff}
+.drawer .d-sec{padding:12px 16px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.drawer .d-foot{padding:12px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:15;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:auto}
+/* ===== Вариант Г: настраиваемый нижний бар ===== */
+.tabbar-g{display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.tabbar-g .tab{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border:none;background:none;font-size:10px;color:var(--muted);font-weight:600;cursor:pointer}
+.tabbar-g .tab .ico{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.tabbar-g .tab.active{color:var(--ink)}
+.tabbar-g .tab.active .ico{background:var(--ink);color:#fff;border-radius:8px}
+.tabbar-g .tab .x{position:absolute;top:0;right:calc(50% - 18px);width:15px;height:15px;border-radius:50%;background:#ef4444;color:#fff;font-size:9px;line-height:15px;text-align:center;display:none;z-index:2}
+.tabbar-g .tab .x.show{display:block}
+.tabbar-g .edit-bar{margin-left:2px;width:40px;border:none;background:none;font-size:17px;cursor:pointer;flex-shrink:0;color:var(--muted)}
+.bar-edit-sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.2);padding:10px 16px calc(16px + env(safe-area-inset-bottom));transform:translateY(0);transition:transform .25s;z-index:30}
+.bar-edit-sheet.hidden{transform:translateY(110%)}
+.bar-edit-sheet .grip{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 10px}
+.bar-edit-sheet .be-title{font-size:14px;font-weight:700;margin-bottom:4px}
+.bar-edit-sheet .be-sub{font-size:11px;color:var(--muted);margin-bottom:8px}
+.bar-edit-sheet .be-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}
+.bar-edit-sheet .be-row .ic{width:28px;height:28px;border-radius:8px;background:#f0f0ee;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.bar-edit-sheet .be-row .drag{color:#bbb;font-size:15px;margin-left:auto}
+.bar-edit-sheet .be-row input{width:18px;height:18px;accent-color:var(--ink)}
+.bar-edit-sheet .be-note{font-size:11px;color:var(--muted);margin-top:8px}
+.v-label{position:absolute;top:12px;left:12px;z-index:5;background:var(--ink);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;letter-spacing:.3px}
+</style>
+</head>
+<body>
+<h1>База · навигация</h1>
+<div class="sub">Пять вариантов — листай вниз. Сделано для обсуждения, не прод.</div>
+
+<!-- ============ ВАРИАНТ А ============ -->
+<div class="phone">
+  <div class="v-label">А · 4 главных + «Ещё»</div>
+  <div class="phone-head"><span class="dot"></span><span class="title">База</span><span class="chip">v1.146</span></div>
+  <div class="screen">
+    <div class="content">
+      <div class="card"><div class="t">Больницы</div><div class="s">127 клиник · 4 с напоминаниями</div>
+        <div class="row"><span class="ic">🏥</span>ГКБ им. Боткина <span class="badge">3</span></div>
+        <div class="row"><span class="ic">🏥</span>НИИ урологии <span class="badge">1</span></div>
+        <div class="row"><span class="ic">🏥</span>КДЦ «Медси»</div>
+      </div>
+      <div class="card"><div class="t">Клиенты</div><div class="s">последние добавленные</div>
+        <div class="row"><span class="ic">👤</span>Ермак Виктория</div>
+        <div class="row"><span class="ic">👤</span>Бобкова Ольга</div>
+      </div>
+    </div>
+    <div class="tabbar-a">
+      <button class="tab active"><span class="ico">🏥</span>База</button>
+      <button class="tab"><span class="ico">💰</span>Деньги</button>
+      <button class="tab"><span class="ico">📞</span>Звонки<span style="background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:8px;padding:0 4px">9</span></button>
+      <button class="tab"><span class="ico">⚙️</span>Настройки</button>
+    </div>
+    <div class="sheet hidden" id="sheetA">
+      <div class="grip"></div>
+      <div class="grid">
+        <div class="item"><span class="ico">🗂️</span>Партнёры</div>
+        <div class="item"><span class="ico">👥</span>Клиенты</div>
+        <div class="item"><span class="ico">📅</span>Визиты</div>
+        <div class="item"><span class="ico">⭐</span>Настя</div>
+        <div class="item"><span class="ico">💗</span>Галя</div>
+        <div class="item"><span class="ico">🧑‍💼</span>Саша</div>
+        <div class="item"><span class="ico">🏢</span>Менеджеры</div>
+        <div class="item"><span class="ico">🔄</span>Контакты</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ВАРИАНТ Б ============ -->
+<div class="phone">
+  <div class="v-label">Б · лента сверху, бар вниз</div>
+  <div class="phone-head"><span class="dot"></span><span class="title">База</span><span class="chip">v1.146</span></div>
+  <div class="screen">
+    <div class="tabbar-b">
+      <button class="tab active">База</button>
+      <button class="tab">Клиенты</button>
+      <button class="tab">Партнёры</button>
+      <button class="tab">Деньги</button>
+      <button class="tab">Звонки <span class="cnt">9</span></button>
+      <button class="tab">Визиты</button>
+      <button class="tab">Настя</button>
+      <button class="tab">Галя</button>
+      <button class="tab">Саша</button>
+      <button class="tab">Менеджеры</button>
+      <button class="tab">Настройки</button>
+    </div>
+    <div class="content">
+      <div class="card"><div class="t">Больницы</div><div class="s">127 клиник · 4 с напоминаниями</div>
+        <div class="row"><span class="ic">🏥</span>ГКБ им. Боткина <span class="badge">3</span></div>
+        <div class="row"><span class="ic">🏥</span>НИИ урологии <span class="badge">1</span></div>
+        <div class="row"><span class="ic">🏥</span>КДЦ «Медси»</div>
+      </div>
+      <div class="card"><div class="t">Звонки сегодня</div><div class="s">9 напоминаний</div>
+        <div class="row"><span class="ic">📞</span>ГКБ Боткина — 09:00</div>
+        <div class="row"><span class="ic">📞</span>НИИ урологии — 09:00</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ВАРИАНТ В ============ -->
+<div class="phone">
+  <div class="v-label">В · главная-сетка</div>
+  <div class="phone-head"><span class="dot"></span><span class="title">База</span><span class="chip">v1.146</span></div>
+  <div class="screen">
+    <div class="content">
+      <div class="grid-home">
+        <div class="tile"><span class="ico">🏥</span><div><div class="t">Больницы</div><div class="s">127</div></div></div>
+        <div class="tile"><span class="ico">👥</span><div><div class="t">Клиенты</div><div class="s">512</div></div></div>
+        <div class="tile"><span class="ico">🗂️</span><div><div class="t">Партнёры</div><div class="s">18</div></div></div>
+        <div class="tile"><span class="ico">💰</span><div><div class="t">Деньги</div><div class="s">за 2026</div></div></div>
+        <div class="tile wide"><span class="ico">📞</span><div><div class="t">Звонки</div><div class="s">9 напоминаний на сегодня</div></div><span class="cnt">9</span></div>
+        <div class="tile"><span class="ico">📅</span><div><div class="t">Визиты</div><div class="s">план</div></div></div>
+        <div class="tile"><span class="ico">⭐</span><div><div class="t">Настя</div><div class="s">рабочий стол</div></div></div>
+        <div class="tile"><span class="ico">💗</span><div><div class="t">Галя</div><div class="s">рабочий стол</div></div></div>
+      </div>
+    </div>
+    <div class="tabbar-c">
+      <button class="tab active"><span class="ico">🏠</span>Главная</button>
+      <button class="tab"><span class="ico">🔍</span>Поиск</button>
+      <button class="tab"><span class="ico">📞</span>Звонки<span style="background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:8px;padding:0 4px">9</span></button>
+      <button class="tab"><span class="ico">⚙️</span>Настройки</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ВАРИАНТ Г ============ -->
+<div class="phone">
+  <div class="v-label">Г · бургер + настраиваемый бар</div>
+  <div class="phone-head">
+    <button class="burger" id="burgerG"><span></span><span></span><span></span></button>
+    <span class="title">База</span><span class="chip">v1.146</span>
+  </div>
+  <div class="screen" id="screenG">
+    <div class="overlay" id="overlayG"></div>
+    <div class="drawer" id="drawerG">
+      <div class="d-head"><span class="d-logo">Б</span><div><div class="d-title">База</div><div class="d-sub">abramson@crm.ru</div></div></div>
+      <nav>
+        <div class="d-sec">Основное</div>
+        <button class="d-item active"><span class="ic">🏥</span>Больницы</button>
+        <button class="d-item"><span class="ic">👥</span>Клиенты</button>
+        <button class="d-item"><span class="ic">🗂️</span>Партнёры</button>
+        <button class="d-item"><span class="ic">💰</span>Деньги</button>
+        <button class="d-item"><span class="ic">📞</span>Звонки<span class="cnt">9</span></button>
+        <button class="d-item"><span class="ic">📅</span>Визиты</button>
+        <div class="d-sec">Команда</div>
+        <button class="d-item"><span class="ic">⭐</span>Настя</button>
+        <button class="d-item"><span class="ic">💗</span>Галя</button>
+        <button class="d-item"><span class="ic">🧑‍💼</span>Саша</button>
+        <button class="d-item"><span class="ic">🏢</span>Менеджеры</button>
+        <div class="d-sec">Система</div>
+        <button class="d-item"><span class="ic">🔄</span>Контакты</button>
+        <button class="d-item"><span class="ic">⚙️</span>Настройки</button>
+      </nav>
+      <div class="d-foot">База v1.146 · синк 08:00</div>
+    </div>
+    <div class="content">
+      <div class="card"><div class="t">Больницы</div><div class="s">127 клиник · 4 с напоминаниями</div>
+        <div class="row"><span class="ic">🏥</span>ГКБ им. Боткина <span class="badge">3</span></div>
+        <div class="row"><span class="ic">🏥</span>НИИ урологии <span class="badge">1</span></div>
+        <div class="row"><span class="ic">🏥</span>КДЦ «Медси»</div>
+      </div>
+      <div class="card"><div class="t">Звонки сегодня</div><div class="s">9 напоминаний</div>
+        <div class="row"><span class="ic">📞</span>ГКБ Боткина — 09:00</div>
+        <div class="row"><span class="ic">📞</span>НИИ урологии — 09:00</div>
+      </div>
+    </div>
+    <div class="tabbar-g" id="tabbarG">
+      <button class="tab active" data-v="clinics"><span class="x">✕</span><span class="ico">🏥</span>База</button>
+      <button class="tab" data-v="money"><span class="x">✕</span><span class="ico">💰</span>Деньги</button>
+      <button class="tab" data-v="calls"><span class="x">✕</span><span class="ico">📞</span>Звонки</button>
+      <button class="tab" data-v="settings"><span class="x">✕</span><span class="ico">⚙️</span>Настройки</button>
+      <button class="edit-bar" id="editBarG" title="Настроить нижний бар">✎</button>
+    </div>
+    <div class="bar-edit-sheet hidden" id="barEditG">
+      <div class="grip"></div>
+      <div class="be-title">Нижний бар</div>
+      <div class="be-sub">Отметь, что показывать внизу. Порядок — перетаскиванием.</div>
+      <label class="be-row"><span class="ic">🏥</span>База<input type="checkbox" checked><span class="drag">⠿</span></label>
+      <label class="be-row"><span class="ic">👥</span>Клиенты<input type="checkbox"><span class="drag">⠿</span></label>
+      <label class="be-row"><span class="ic">🗂️</span>Партнёры<input type="checkbox"><span class="drag">⠿</span></label>
+      <label class="be-row"><span class="ic">💰</span>Деньги<input type="checkbox" checked><span class="drag">⠿</span></label>
+      <label class="be-row"><span class="ic">📞</span>Звонки<input type="checkbox" checked><span class="drag">⠿</span></label>
+      <label class="be-row"><span class="ic">📅</span>Визиты<input type="checkbox"><span class="drag">⠿</span></label>
+      <label class="be-row"><span class="ic">⭐</span>Настя<input type="checkbox"><span class="drag">⠿</span></label>
+      <label class="be-row"><span class="ic">💗</span>Галя<input type="checkbox"><span class="drag">⠿</span></label>
+      <label class="be-row"><span class="ic">⚙️</span>Настройки<input type="checkbox" checked><span class="drag">⠿</span></label>
+      <div class="be-note">Выбор сохраняется у каждого пользователя отдельно.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ВАРИАНТ Д ============ -->
+<div class="phone">
+  <div class="v-label">Д · только бургер, без бара</div>
+  <div class="phone-head">
+    <button class="burger" id="burgerD"><span></span><span></span><span></span></button>
+    <span class="title">База</span><span class="chip">v1.146</span>
+  </div>
+  <div class="screen" id="screenD">
+    <div class="overlay" id="overlayD"></div>
+    <div class="drawer" id="drawerD">
+      <div class="d-head"><span class="d-logo">Б</span><div><div class="d-title">База</div><div class="d-sub">abramson@crm.ru</div></div></div>
+      <nav>
+        <div class="d-sec">Основное</div>
+        <button class="d-item active"><span class="ic">🏥</span>Больницы</button>
+        <button class="d-item"><span class="ic">👥</span>Клиенты</button>
+        <button class="d-item"><span class="ic">🗂️</span>Партнёры</button>
+        <button class="d-item"><span class="ic">💰</span>Деньги</button>
+        <button class="d-item"><span class="ic">📞</span>Звонки<span class="cnt">9</span></button>
+        <button class="d-item"><span class="ic">📅</span>Визиты</button>
+        <div class="d-sec">Команда</div>
+        <button class="d-item"><span class="ic">⭐</span>Настя</button>
+        <button class="d-item"><span class="ic">💗</span>Галя</button>
+        <button class="d-item"><span class="ic">🧑‍💼</span>Саша</button>
+        <button class="d-item"><span class="ic">🏢</span>Менеджеры</button>
+        <div class="d-sec">Система</div>
+        <button class="d-item"><span class="ic">🔄</span>Контакты</button>
+        <button class="d-item"><span class="ic">⚙️</span>Настройки</button>
+      </nav>
+      <div class="d-foot">База v1.146 · синк 08:00</div>
+    </div>
+    <div class="content">
+      <div class="card"><div class="t">Больницы</div><div class="s">127 клиник · 4 с напоминаниями</div>
+        <div class="row"><span class="ic">🏥</span>ГКБ им. Боткина <span class="badge">3</span></div>
+        <div class="row"><span class="ic">🏥</span>НИИ урологии <span class="badge">1</span></div>
+        <div class="row"><span class="ic">🏥</span>КДЦ «Медси»</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Вариант А: тап по «Ещё» открывает шторку
+document.querySelector('.tabbar-a .tab:last-child')?.addEventListener('click', () => {
+  document.getElementById('sheetA').classList.toggle('hidden');
+});
+// Вариант Г: бургер + drawer + редактор бара
+function wireDrawer(burgerId, drawerId, overlayId) {
+  const burger = document.getElementById(burgerId);
+  const drawer = document.getElementById(drawerId);
+  const overlay = document.getElementById(overlayId);
+  const close = () => { drawer.classList.remove('open'); overlay.classList.remove('show'); };
+  burger?.addEventListener('click', () => { drawer.classList.toggle('open'); overlay.classList.toggle('show'); });
+  overlay?.addEventListener('click', close);
+  drawer?.querySelectorAll('.d-item').forEach(el => {
+    el.addEventListener('click', () => {
+      drawer.querySelectorAll('.d-item').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+      close();
+    });
+  });
+}
+wireDrawer('burgerG', 'drawerG', 'overlayG');
+wireDrawer('burgerD', 'drawerD', 'overlayD');
+// Г: редактор бара
+const editBarG = document.getElementById('editBarG');
+const barEditG = document.getElementById('barEditG');
+editBarG?.addEventListener('click', () => barEditG.classList.toggle('hidden'));
+barEditG?.querySelectorAll('.be-row input').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const label = cb.closest('.be-row');
+    const name = label.querySelector('.ic').textContent + ' ' + label.textContent.trim().replace('⠿','').trim();
+    const bar = document.getElementById('tabbarG');
+    const existing = [...bar.querySelectorAll('.tab')].find(t => t.dataset.v === name);
+    if (cb.checked && !existing) {
+      const btn = document.createElement('button');
+      btn.className = 'tab';
+      btn.dataset.v = name;
+      btn.innerHTML = '<span class="x">✕</span><span class="ico">' + label.querySelector('.ic').textContent + '</span>' + name.replace(/^\S+\s/, '');
+      bar.insertBefore(btn, editBarG);
+    } else if (!cb.checked && existing) {
+      existing.remove();
+    }
+  });
+});
+// Г: крестик на вкладке (демо режима редактирования)
+document.getElementById('tabbarG')?.addEventListener('click', e => {
+  if (e.target.classList.contains('x')) {
+    const tab = e.target.closest('.tab');
+    const label = tab.dataset.v;
+    const cb = [...barEditG.querySelectorAll('.be-row')].find(r => (r.querySelector('.ic').textContent + ' ' + r.textContent.trim().replace('⠿','').trim()) === label);
+    if (cb) cb.checked = false;
+    tab.remove();
+  }
+});
+</script>
+</body>
+</html>

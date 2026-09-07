@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#173e2d" />
+  <meta name="description" content="Учебная лаборатория навыков продаж: теория, практика, разборы и контроль прогресса." />
+  <title>Навыки продаж — учебная лаборатория</title>
+  <link rel="stylesheet" href="./styles.css?v=crs37" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./emblem-np-solid.png?v=2" />
+  <link rel="apple-touch-icon" href="./emblem-np-solid.png?v=2" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-title" content="Навыки продаж" />
+</head>
+<body>
+  <div id="loginScreen" class="login-screen hidden">
+    <div class="login-card">
+      <img class="login-logo" src="./emblem-np-solid.png" alt="" />
+      <h1>Навыки продаж</h1>
+      <p class="login-sub">Учебная лаборатория · частная территория</p>
+      <div class="field"><label>Логин</label><input id="loginEmail" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="напр. Козлов" /></div>
+      <div class="field"><label>Пароль</label><input id="loginPass" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" /></div>
+      <div id="loginErr" class="login-err"></div>
+      <button class="primary-button login-btn" id="loginBtn">Войти</button>
+    </div>
+  </div>
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar" aria-label="Основная навигация">
+      <div class="brand">
+        <img class="brand-mark" src="./emblem-np.png" width="48" height="48" alt="" />
+        <div>
+          <strong>Навыки продаж</strong>
+          <span>учебная лаборатория</span>
+        </div>
+      </div>
+      <div class="sidebar-copy">v2.10 · © Abramson</div>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-tab="program">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></span><span>Программа</span>
+        </button>
+        <button class="nav-item" data-tab="theory">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span>Теория</span>
+        </button>
+        <button class="nav-item" data-tab="practice">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><span>Практика</span>
+        </button>
+        <button class="nav-item" data-tab="cheat">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg></span><span>Шпаргалки</span>
+        </button>
+        <button class="nav-item" data-tab="progress">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>Прогресс</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+      <button class="profile-button" aria-label="Профиль">
+        <span class="avatar" id="profileAvatar">👤</span>
+        <span><strong id="profileName">Гость</strong><small>Уровень <span id="profileLevel">1</span> · <span id="profileXpSmall">0</span> XP</small></span>
+        <span class="chevron" id="logoutBtn" title="Выйти">⎋</span>
+      </button>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="mobile-brand"><img class="brand-mark" src="./emblem-np.png" width="34" height="34" alt="" /><div class="mb-text"><strong>Навыки продаж</strong><small>v2.10 · © Abramson</small></div></div>
+        <div class="topbar-right">
+          <div class="xp-pill"><span>⚡</span><strong id="xpValue">0</strong><span>XP</span></div>
+          <span class="avatar mobile-avatar" id="mobileAvatar">👤</span>
+        </div>
+      </header>
+
+      <!-- ======= ПРОГРАММА ======= -->
+      <section id="program" class="view active" aria-labelledby="program-title">
+        <div id="programBody"></div>
+      </section>
+
+      <!-- ======= ТЕОРИЯ ======= -->
+      <section id="theory" class="view" aria-labelledby="theory-title">
+        <div id="theoryBody" class="lesson-layout"></div>
+      </section>
+
+      <!-- ======= ПРАКТИКА (тренажёр + кейсы) ======= -->
+      <section id="practice" class="view" aria-labelledby="practice-title">
+        <div id="practiceBody"></div>
+      </section>
+
+      <!-- ======= ШПАРГАЛКИ ======= -->
+      <section id="cheat" class="view" aria-labelledby="cheat-title">
+        <div id="cheatBody"></div>
+      </section>
+
+      <!-- ======= ПРОГРЕСС ======= -->
+      <section id="progress" class="view" aria-labelledby="progress-title">
+        <div id="progressBody"></div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Навигация на мобильном">
+    <button class="active" data-tab="program"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></span><small>Программа</small></button>
+    <button data-tab="theory"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><small>Теория</small></button>
+    <button data-tab="practice"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><small>Практика</small></button>
+    <button data-tab="cheat"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg></span><small>Шпаргалки</small></button>
+    <button data-tab="progress"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><small>Прогресс</small></button>
+  </nav>
+
+  <div class="toast hidden" id="toast" role="status">Прогресс сохранён</div>
+  <script defer src="./supabase.min.js"></script>
+  <script defer src="./data.js?v=crs39"></script>
+  <script defer src="./meddicc-data.js?v=crs39"></script>
+  <script defer src="./bariga-data.js?v=crs39"></script>
+  <script defer src="./spiced-data.js?v=crs39"></script>
+  <script defer src="./app.js?v=crs39"></script>
+</body>
+</html>

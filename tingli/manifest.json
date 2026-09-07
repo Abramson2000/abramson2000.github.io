@@ -1,0 +1,21 @@
+{
+  "name": "初级听力 — Тингли",
+  "short_name": "Тингли",
+  "description": "Аудирование 发展汉语 初级听力 II",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0b0b0d",
+  "icons": [
+    {
+      "src": "tingli-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "tingli-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

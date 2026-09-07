@@ -1,0 +1,6 @@
+node_modules/
+.DS_Store
+server.js
+*.py
+*.sql
+dexie.min.js

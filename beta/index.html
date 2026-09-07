@@ -1,0 +1,1053 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>初级听力 · Тингли</title>
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="/beta/manifest.json">
+<style>
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('/tingli/fonts/simsun-subset.woff2') format('woff2'); }
+  :root {
+    --bg: #f5f4f1;
+    --card: #ffffff;
+    --text: #1d1d21;
+    --muted: #8f8f97;
+    --faint: #b9b9c0;
+    --red: #c23a2b;
+    --red-deep: #a52e21;
+    --red-soft: #fbece9;
+    --ok: #1f9d55; --ok-soft: #e8f6ee;
+    --bad: #d64545; --bad-soft: #fdeeee;
+    --yellow: #ffd93d;
+    --black: #1d1d21;
+    --shadow-card: 0 1px 2px rgba(29,29,33,.05), 0 8px 24px rgba(29,29,33,.06);
+    --shadow-pop: 0 2px 6px rgba(29,29,33,.08), 0 14px 34px rgba(29,29,33,.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; letter-spacing: 0; }
+  .zh, .zh-opt, .fill, .script, .word .zh { font-family: "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; }
+  .app { max-width: 720px; margin: 0 auto; padding: 16px 16px 130px; }
+  body.has-player .app { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
+
+  /* Шапка */
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 6px 0 18px; }
+  .logo { width: 48px; height: 48px; background: #fff; box-shadow: 0 2px 10px rgba(29,29,33,.14); overflow: hidden; flex-shrink: 0; }
+  .logo img { width: 100%; height: 100%; object-fit: cover; }
+  .title-img { height: 56px; width: auto; display: block; margin: 2px 0 1px; }
+  .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; }
+  .back { background: #fff; border: none; width: 42px; height: 42px; border-radius: 14px; font-size: 21px; cursor: pointer; color: var(--text); flex-shrink: 0; font-weight: 500; box-shadow: var(--shadow-card); }
+  .back:active { transform: scale(.94); }
+
+  .section-title { font-size: 20px; font-weight: 800; letter-spacing: -.4px; margin: 8px 0 14px; display: flex; align-items: center; gap: 9px; }
+  .section-title::before { content: ''; width: 4px; height: 19px; border-radius: 3px; background: var(--red); flex-shrink: 0; }
+
+  /* Карточка урока */
+  .unit-card { background: var(--card); border-radius: 20px; padding: 15px 16px; margin-bottom: 11px; cursor: pointer; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-card); transition: transform .12s ease, box-shadow .12s ease; }
+  .unit-card:active { transform: scale(.98); box-shadow: 0 1px 3px rgba(29,29,33,.06); }
+  .unit-emoji { width: 52px; height: 52px; border-radius: 17px; display: flex; align-items: center; justify-content: center; font-size: 25px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(29,29,33,.04); }
+  .unit-zh { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -.2px; line-height: 1.35; }
+  .unit-zh-sub { font-family: "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13.5px; color: #77777f; margin-top: 2px; letter-spacing: .3px; }
+  .unit-arrow { color: #c9c9cf; font-size: 24px; font-weight: 600; flex-shrink: 0; line-height: 1; margin-left: 2px; font-family: -apple-system, sans-serif; }
+  .unit-meta { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+  .pbar { width: 92px; height: 5px; border-radius: 99px; background: #e9e8e4; overflow: hidden; }
+  .pbar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--red-deep), var(--red)); transition: width .4s ease; }
+  .unit-progress { font-size: 12px; color: var(--muted); white-space: nowrap; font-weight: 600; }
+  .done-badge { font-size: 11px; font-weight: 700; color: var(--ok); background: var(--ok-soft); border-radius: 99px; padding: 3px 10px; }
+
+  .u-title { font-size: 21px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 2px; }
+  .u-sub { font-family: "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13.5px; color: var(--muted); margin-bottom: 14px; letter-spacing: .3px; }
+
+  /* Список частей */
+  .part { background: var(--card); border-radius: 18px; margin-bottom: 11px; overflow: hidden; box-shadow: var(--shadow-card); cursor: pointer; transition: transform .12s ease; }
+  .part:active { transform: scale(.985); }
+  .part-head { display: flex; align-items: center; gap: 13px; padding: 14px 15px; }
+  .part-num { width: 31px; height: 31px; border-radius: 11px; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; background: var(--red); box-shadow: 0 2px 6px rgba(194,58,43,.28); }
+  .part-title { font-weight: 650; font-size: 15.5px; flex: 1; letter-spacing: -.2px; }
+  .part-zh { font-family: "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .2px; }
+  .part-arrow { color: #c9c9cf; font-size: 22px; font-weight: 600; }
+  .lesson-img { width: 100%; border-radius: 16px; box-shadow: 0 6px 20px rgba(29,29,33,.14); margin: 2px 0 14px; display: block; }
+  .lesson-text { background: var(--card); border-radius: 22px; padding: 24px 22px; box-shadow: var(--shadow-card); }
+  .lesson-text p { margin: 0 0 1.1em; font-size: 22px; line-height: 1.95; letter-spacing: .4px; }
+  .lesson-text p:last-child { margin-bottom: 0; }
+  .part-done { font-size: 11px; font-weight: 700; color: var(--ok); background: var(--ok-soft); border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
+
+  /* Экран задания */
+  .task-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
+  .fav-btn { background: #fff; border: none; width: 40px; height: 40px; border-radius: 13px; font-size: 18px; cursor: pointer; flex-shrink: 0; line-height: 1; box-shadow: var(--shadow-card); }
+  .fav-btn:active { transform: scale(.92); }
+  .fav-btn.on { background: #fff3d6; box-shadow: 0 0 0 1px #ffe3a3 inset; }
+  .fav-card { background: var(--card); border-radius: 18px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; box-shadow: var(--shadow-card); }
+  .fav-card:active { background: #faf9f6; }
+  .fav-top { display: flex; align-items: center; gap: 12px; }
+  .fav-emoji { width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(29,29,33,.04); }
+  .fav-title { font-size: 15px; font-weight: 700; letter-spacing: -.2px; }
+  .fav-q { font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
+  .fav-del { background: #f2f1ee; border: none; width: 28px; height: 28px; border-radius: 10px; color: var(--muted); font-size: 13px; cursor: pointer; flex-shrink: 0; }
+  .fav-del:active { background: #e8e7e3; }
+  .fav-meta { font-size: 12px; color: var(--muted); margin-top: 9px; }
+  .empty { text-align: center; color: var(--muted); font-size: 14.5px; padding: 48px 20px; line-height: 1.7; }
+  .task-count { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .task-dots { display: flex; gap: 5px; }
+  .tdot { width: 7px; height: 7px; border-radius: 99px; background: #dddcd7; }
+  .tdot.on { background: #e8b33c; }
+  .tdot.good { background: var(--ok); }
+  .tdot.bad { background: var(--red); }
+  .task-card { background: var(--card); border-radius: 24px; padding: 22px 18px; box-shadow: var(--shadow-card); }
+  .task-q-ru { font-size: 18.5px; font-weight: 650; margin-bottom: 5px; line-height: 1.45; letter-spacing: -.2px; }
+  .task-q-zh { font-size: 15.5px; color: #6d6d75; margin-bottom: 15px; line-height: 1.55; font-family: "SimSun", "Songti SC", "STSong", serif; }
+  .task-q { font-size: 17.5px; margin-bottom: 13px; line-height: 1.55; font-weight: 600; letter-spacing: -.1px; }
+  .task-q .hl { background: var(--yellow); font-weight: 700; border-radius: 5px; padding: 0 4px; }
+  .task-qru { font-size: 13px; color: var(--muted); margin: -6px 0 13px; line-height: 1.55; font-weight: 400; }
+  .app-ver { text-align: center; font-size: 11px; color: #c4c4c8; padding: 18px 0 6px; letter-spacing: .3px; }
+  .opts { display: flex; flex-direction: column; gap: 9px; margin-bottom: 15px; }
+  .opt { display: flex; align-items: center; gap: 11px; padding: 14px 15px; border: 1.5px solid #ecebe7; border-radius: 17px; cursor: pointer; font-size: 16px; background: #fff; transition: border-color .12s ease, background .12s ease; }
+  .opt .letter { width: 27px; height: 27px; border-radius: 9px; background: #f2f1ee; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; color: #55555c; transition: all .12s ease; }
+  .opt.selected { border-color: var(--text); background: #fbfbfa; }
+  .opt.selected .letter { background: var(--text); color: #fff; }
+  .opt.ok { border-color: var(--ok); background: var(--ok-soft); }
+  .opt.ok .letter { background: var(--ok); color: #fff; }
+  .opt.bad { border-color: var(--bad); background: var(--bad-soft); }
+  .opt.bad .letter { background: var(--bad); color: #fff; }
+  .fill { width: 100%; padding: 14px 15px; border: 1.5px solid #ecebe7; border-radius: 17px; font-size: 17.5px; margin-bottom: 15px; background: #fff; }
+  .fill:focus { outline: none; border-color: var(--text); }
+  .fill.ok { border-color: var(--ok); background: var(--ok-soft); }
+  .fill.bad { border-color: var(--bad); background: var(--bad-soft); }
+  .tf-btns { display: flex; gap: 10px; margin-bottom: 15px; }
+  .tf-btn { flex: 1; padding: 14px; border: 1.5px solid #ecebe7; border-radius: 17px; background: #fff; font-size: 16px; cursor: pointer; font-weight: 700; }
+  .tf-btn.selected { border-color: var(--text); background: #fbfbfa; }
+  .tf-btn.ok { border-color: var(--ok); background: var(--ok-soft); }
+  .tf-btn.bad { border-color: var(--bad); background: var(--bad-soft); }
+  .task-result { font-size: 15px; margin: 12px 0 0; font-weight: 700; text-align: center; padding: 11px; border-radius: 14px; display: none; }
+  .task-result.ok { color: var(--ok); background: var(--ok-soft); display: block; }
+  .task-result.bad { color: var(--bad); background: var(--bad-soft); display: block; }
+  .btn { background: var(--text); color: #fff; border: none; border-radius: 999px; padding: 15px 20px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; letter-spacing: -.2px; transition: transform .1s ease, opacity .1s ease; }
+  .btn:active { transform: scale(.98); opacity: .92; }
+  .btn.ghost { background: #fff; color: var(--text); box-shadow: inset 0 0 0 1.5px #e4e3df; }
+  .btn-row { display: flex; gap: 10px; margin-top: 13px; }
+  .btn-row .btn { flex: 1; }
+  .link { color: var(--text); font-size: 13px; cursor: pointer; text-decoration: underline; margin-top: 12px; display: inline-block; font-weight: 600; }
+  .script { background: #f2f1ee; border-radius: 16px; padding: 13px; font-size: 14.5px; line-height: 1.75; white-space: pre-line; margin-top: 12px; display: none; }
+  .script.show { display: block; }
+  .hw-item { margin: 12px 16px; }
+  .hw-q { font-size: 15px; font-weight: 650; color: #16161a; line-height: 1.5; margin-bottom: 7px; }
+  .hw-ans { width: 100%; box-sizing: border-box; min-height: 56px; border: 1.5px solid #e4e3df; border-radius: 15px; padding: 11px 13px; font-size: 15.5px; line-height: 1.5; font-family: inherit; resize: vertical; background: #fff; color: #16161a; outline: none; }
+  .hw-ans:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(194,58,43,.12); }
+  .hw-tools { display: flex; align-items: flex-start; gap: 10px; margin-top: 9px; }
+  .hw-chk { flex-shrink: 0; background: #fff; border: 1.5px solid #e4e3df; border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--text); }
+  .hw-chk:disabled { opacity: .5; }
+  .hw-vd { font-size: 13px; line-height: 1.5; padding: 5px 0 2px; color: #55555c; }
+  .hw-vd.good { color: #1a8f4c; }
+  .hw-vd.bad { color: #c93a3a; }
+  .hw-hint { font-size: 12px; color: #b3b3b8; margin: 3px 2px 0; }
+  .hw-build { margin: 18px 16px 30px; }
+  .hw-count { font-size: 13px; color: #88888f; margin: 0 2px 10px; }
+  .hw-out { white-space: pre-wrap; background: #f2f1ee; border-radius: 18px; padding: 15px; font-size: 14px; line-height: 1.6; color: #232327; margin-top: 13px; display: none; max-height: 340px; overflow: auto; }
+  .hw-out.show { display: block; }
+  .hw-out .hw-q-in { font-weight: 700; color: #33333a; }
+  .nav-row { display: flex; gap: 10px; margin-top: 15px; }
+  .nav-btn { flex: 1; padding: 15px; border: 1.5px solid #ecebe7; border-radius: 17px; background: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .nav-btn:disabled { opacity: .35; }
+  .nav-btn:not(:disabled):active { transform: scale(.98); }
+
+  /* Слова */
+  .word { display: grid; grid-template-columns: 1fr 1fr 1.1fr auto; gap: 8px; padding: 12px 0; border-bottom: 1px solid #f1f0ec; align-items: baseline; cursor: pointer; border-radius: 12px; }
+  .word:last-child { border-bottom: none; }
+  .word .zh { font-size: 19.5px; font-weight: 500; }
+  .word .py { color: var(--muted); font-size: 14px; }
+  .word .ru { color: var(--text); font-size: 14px; text-align: right; }
+  .word .w-add { color: #c9c9cf; font-size: 18px; text-align: right; padding-left: 6px; line-height: 1; }
+  .word.indict .w-add { color: var(--ok); }
+  .word.sel { background: #fdeeea; box-shadow: inset 0 0 0 1.5px var(--red); padding-left: 10px; padding-right: 10px; border-radius: 14px; }
+  .dict-send-bar { position: sticky; bottom: 0; padding: 12px 16px 18px; background: linear-gradient(transparent, var(--bg) 30%); }
+  .dict-item { display: flex; align-items: center; gap: 13px; background: var(--card); border-radius: 18px; padding: 12px 15px; margin: 9px 16px; box-shadow: var(--shadow-card); }
+  .dict-zh { font-size: 19.5px; font-weight: 600; min-width: 92px; font-family: "SimSun", "Songti SC", "STSong", serif; }
+  .dict-body { flex: 1; min-width: 0; }
+  .dict-py { color: var(--muted); font-size: 13px; }
+  .dict-ru { font-size: 14px; color: var(--text); }
+  .dict-src { font-size: 11px; color: #b3b3b8; margin-top: 2px; }
+  .dict-del { border: none; background: #f2f1ee; color: #99999f; width: 29px; height: 29px; border-radius: 50%; font-size: 14px; cursor: pointer; flex-shrink: 0; }
+  .dict-clear { border: 1.5px solid #e8e3e0; background: #fff; color: var(--red); border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+  /* Плеер */
+  .player { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.9); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid rgba(29,29,33,.06); z-index: 60; padding: 10px 16px calc(12px + env(safe-area-inset-bottom)); display: none; }
+  .player.show { display: block; }
+  .p-top { display: flex; align-items: center; gap: 13px; }
+  .pp-btn { width: 46px; height: 46px; border-radius: 50%; background: var(--text); color: #fff; border: none; font-size: 17px; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 14px rgba(29,29,33,.25); }
+  .pp-btn:active { transform: scale(.95); }
+  .p-name { font-size: 13.5px; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .p-time { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .p-seek { width: 100%; margin-top: 7px; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 99px; background: #e5e4df; outline: none; }
+  .p-seek::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%; background: var(--red); cursor: pointer; box-shadow: 0 1px 4px rgba(29,29,33,.25); }
+  .p-controls { display: flex; align-items: center; justify-content: center; gap: 26px; margin-top: 5px; }
+  .pc-btn { background: none; border: none; font-size: 13px; font-weight: 700; color: var(--text); cursor: pointer; padding: 8px 10px; border-radius: 10px; min-width: 40px; }
+  .pc-btn:active { background: #efeeea; }
+  .pc-btn.loop-on { background: var(--yellow); color: #000; }
+  .pc-sel { background: #efeeea; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; color: var(--text); padding: 8px 8px; min-width: 66px; text-align: center; font-family: inherit; }
+
+  /* Таб-бар */
+  .tabbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid rgba(29,29,33,.06); display: none; justify-content: space-around; gap: 2px; padding: 10px 0 calc(9px + env(safe-area-inset-bottom)); z-index: 50; }
+  .tab { display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; font-family: inherit; padding: 2px 6px; }
+  .tab .ic { width: 52px; height: 44px; display: flex; align-items: center; justify-content: center; font-family: "SimSun", "Songti SC", "STSong", serif; font-size: 21px; font-weight: 400; color: #a09c93; border: 1.6px solid #d9d5cc; background: rgba(255,255,255,.65); transition: all .15s ease; line-height: 1; letter-spacing: 1px; }
+  .tab.active .ic { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 3px 10px rgba(194,58,43,.35); }
+
+  .big-score { background: linear-gradient(135deg, #26262c, #1d1d21); color: #fff; border-radius: 26px; padding: 24px 22px; margin-bottom: 18px; box-shadow: var(--shadow-pop); }
+  .big-score .label { font-size: 13px; color: #b9b9c2; font-weight: 600; }
+  .big-score .num { font-size: 46px; font-weight: 900; letter-spacing: -2px; margin: 4px 0 2px; }
+  .big-score .num small { font-size: 22px; color: #b9b9c2; font-weight: 700; }
+  .big-score .sub { font-size: 12.5px; color: #b9b9c2; }
+  .stat-row { display: flex; align-items: center; gap: 13px; padding: 13px 2px; border-bottom: 1px solid #efeeea; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-emoji { font-size: 22px; width: 40px; text-align: center; }
+  .stat-name { flex: 1; font-size: 14px; font-weight: 700; }
+  .stat-pct { font-size: 14px; font-weight: 900; }
+
+  @keyframes slideNext { from { transform: translateX(48px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes slidePrev { from { transform: translateX(-48px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .task-card.anim-next { animation: slideNext .3s cubic-bezier(.2,.7,.3,1); }
+  .task-card.anim-prev { animation: slidePrev .3s cubic-bezier(.2,.7,.3,1); }
+  .app { will-change: transform; }
+  body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: url('bg.jpg') no-repeat center 25% / cover; opacity: .45; filter: blur(1.2px); }
+  .app { position: relative; z-index: 1; }
+
+  /* Стартовый экран */
+  #splash { position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,.4)), #efe9dd url('bg.jpg') no-repeat center 25% / cover;
+    transition: opacity .45s ease; }
+  #splash.hide { opacity: 0; pointer-events: none; }
+  .splash-in { display: flex; flex-direction: column; align-items: center; gap: 30px; transform: translateY(-30px); }
+  .splash-logo { width: 116px; height: 116px; background: #fff; box-shadow: 0 12px 44px rgba(29,29,33,.22); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .splash-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .splash-title { width: 264px; height: auto; }
+  .splash-sub { font-size: 13px; color: #8f8f97; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; }
+
+</style>
+</head>
+<body>
+<div id="splash"><div class="splash-in">
+  <div class="splash-logo"><img src="logo.png" alt=""></div>
+  <img class="splash-title" src="title.png" alt="初级听力">
+</div></div>
+<div class="app" id="app"></div>
+<div class="player" id="player">
+  <div class="p-top">
+    <button class="pp-btn" id="ppBtn" onclick="togglePlay()">▶</button>
+    <div style="flex:1;min-width:0">
+      <div class="p-name" id="pName">—</div>
+      <div class="p-time"><span id="pCur">0:00</span> / <span id="pDur">0:00</span></div>
+    </div>
+  </div>
+  <input class="p-seek" id="pSeek" type="range" min="0" max="1000" value="0" oninput="seekTo(this.value)">
+  <div class="p-controls">
+    <button class="pc-btn" id="loopBtn" onclick="toggleLoop()" title="Повтор упражнения">🔁</button>
+    <button class="pc-btn" onclick="skip(-10)" title="Назад 10 сек">−10</button>
+    <button class="pc-btn" onclick="skip(10)" title="Вперёд 10 сек">+10</button>
+    <select class="pc-sel" id="spdSel" onchange="setSpeed(this.value)" title="Скорость">
+      <option value="0.5">0.5x</option><option value="0.75">0.75x</option>
+      <option value="1" selected>1x</option><option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option><option value="2">2x</option>
+    </select>
+  </div>
+</div>
+<div class="tabbar" id="tabbar">
+  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title=""><span class="ic">听力</span></button>
+  <button class="tab" id="tab-mine" onclick="goTab('mine')" title=""><span class="ic">语法</span></button>
+  <button class="tab" id="tab-idv" onclick="goTab('idv')" title=""><span class="ic">口语</span></button>
+  <button class="tab" id="tab-favs" onclick="goTab('favs')" title=""><span class="ic">句子</span></button>
+  <button class="tab" id="tab-dict" onclick="goTab('dict')" title=""><span class="ic">词典</span></button>
+</div>
+<script src="/tingli/data/units.js"></script>
+<script src="/tingli/data/extra.js"></script>
+<script src="/tingli/data/idv.js"></script>
+<script>
+const LS = 'tingli-progress-v1';
+const LS_FAV = 'tingli-favs-v1';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const load = () => { try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch { return {}; } };
+const save = p => saveLocal(LS, JSON.stringify(p));
+const loadFavs = () => { try { return JSON.parse(localStorage.getItem(LS_FAV) || '[]'); } catch { return []; } };
+const saveFavs = f => saveLocal(LS_FAV, JSON.stringify(f));
+const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
+const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
+const favKeyPart = (u, part) => u.unit + ':' + part.id;
+const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
+const APP_VER = '1.30';
+const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
+const unitLabel = u => u.label || ('Урок ' + u.unit);
+let prog = load();
+let tab = 'lessons';
+let curUnit = null, curPart = null, curTi = 0, slideDir = 'next';
+const app = document.getElementById('app');
+const EMOJI = ['', '🎓', '🏫', '🏠', '✈️', '🎧', '🍽️', '🍲', '🔑', '🥚', '💡', '📱', '💻', '😟', '📝', '📚', '🛋️', '🛒', '⚖️', '✂️', '🩺', '🏦', '🚌', '🛍️', '🛫', '🚄', '🏨', '💸', '😠', '💌', '🎉'];
+const TINTS = ['', '#e8f0ff', '#fff4e6', '#f3efff', '#e6f4ff', '#e6f9ef', '#fff9e6', '#ffeefb', '#eeefff', '#e6faf8', '#ffecec', '#f2fbe6', '#e8f0ff', '#f5ecff', '#fff4e6', '#e0f7fa', '#fdeefb', '#e9f9ef', '#fdf8e0', '#fff0f0', '#e6f4ff', '#f3efff', '#e6f9ef', '#fff4e6', '#ffeefb', '#eeefff', '#e6faf8', '#fff9e6', '#ffecec', '#e8f0ff', '#f5ecff'];
+
+/* ===== Плеер ===== */
+const audio = new Audio();
+audio.preload = 'none';
+let partAudioKey = null;
+function setPartAudio(u, part) {
+  if (!part.audio) { partAudioKey = null; showPlayer(false); return; }
+  const key = u.unit + '-' + part.id;
+  if (partAudioKey === key) return; // тот же файл — не прерываем
+  partAudioKey = key;
+  audio.src = '/tingli/audio/' + part.audio;
+  audio.loop = true;
+  document.getElementById('loopBtn').classList.add('loop-on');
+  document.getElementById('spdSel').value = audio.playbackRate;
+  audio.load();
+  updatePlayerUI();
+}
+function showPlayer(show) {
+  document.getElementById('player').classList.toggle('show', show);
+  document.body.classList.toggle('has-player', show);
+  if (!show && audio && !audio.paused) audio.pause();
+}
+// idv-уроки: аудио урока висит на всех страницах/заданиях, не сбрасывается.
+// Если у части своё аудио — играет оно; иначе — уже установленный трек не трогаем.
+function ensureLessonAudio(u, part) {
+  const ap = (part && part.audio) ? part : null;
+  if (ap) { setPartAudio(u, ap); showPlayer(true); return; }
+  if (!partAudioKey) {
+    const first = u && u.parts && u.parts.find(p => p.audio);
+    if (first) { setPartAudio(u, first); showPlayer(true); return; }
+    showPlayer(false); return;
+  }
+  showPlayer(true);
+}
+function updatePlayerUI() {
+  document.getElementById('pName').textContent = (curUnit ? unitLabel(curUnit) + ' · ' : '') + (curPart ? curPart.title : '—');
+  document.getElementById('pCur').textContent = fmt(audio.currentTime);
+  document.getElementById('pDur').textContent = fmt(audio.duration || 0);
+  document.getElementById('ppBtn').textContent = audio.paused ? '▶' : '⏸';
+  const seek = document.getElementById('pSeek');
+  if (audio.duration) seek.value = Math.round(audio.currentTime / audio.duration * 1000);
+}
+const fmt = s => { s = Math.floor(s || 0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+function togglePlay() {
+  if (!audio.src) return;
+  if (audio.paused) { audio.play(); } else { audio.pause(); }
+  updatePlayerUI();
+}
+function seekTo(v) { if (audio.duration) audio.currentTime = v / 1000 * audio.duration; }
+function skip(d) { if (audio.src && audio.duration) audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + d)); }
+function setSpeed(v) {
+  audio.playbackRate = parseFloat(v) || 1;
+}
+function toggleLoop() {
+  audio.loop = !audio.loop;
+  document.getElementById('loopBtn').classList.toggle('loop-on', audio.loop);
+}
+audio.addEventListener('timeupdate', updatePlayerUI);
+audio.addEventListener('loadedmetadata', updatePlayerUI);
+audio.addEventListener('play', updatePlayerUI);
+audio.addEventListener('pause', updatePlayerUI);
+audio.addEventListener('ended', () => { updatePlayerUI(); });
+
+/* ===== Прогресс ===== */
+function partDone(u, part) {
+  const p = prog[u.unit] && prog[u.unit][part.id];
+  if (!p) return false;
+  return part.tasks ? part.tasks.every((t, i) => p[i] === true) : false;
+}
+function unitStats(u) {
+  let done = 0, total = 0;
+  u.parts.forEach(part => {
+    if (!part.tasks) return;
+    const p = prog[u.unit] && prog[u.unit][part.id];
+    part.tasks.forEach((t, i) => { total++; if (p && p[i] === true) done++; });
+  });
+  return { done, total, pct: total ? Math.round(done / total * 100) : 0 };
+}
+function goTab(t) {
+  tab = t;
+  document.getElementById('tab-lessons').classList.toggle('active', t === 'lessons');
+  document.getElementById('tab-mine').classList.toggle('active', t === 'mine');
+  document.getElementById('tab-idv').classList.toggle('active', t === 'idv');
+  document.getElementById('tab-favs').classList.toggle('active', t === 'favs');
+  document.getElementById('tab-dict').classList.toggle('active', t === 'dict');
+  if (t === 'lessons') renderUnits();
+  else if (t === 'mine') renderMine();
+  else if (t === 'idv') renderIdv();
+  else if (t === 'favs') renderFavs();
+  else renderDict();
+}
+function showTabbar(show) { document.getElementById('tabbar').style.display = show ? 'flex' : 'none'; }
+
+/* ===== Экраны ===== */
+
+// ---- облачный бэкап прогресса (авто) ----
+let backupTimer = null;
+function saveLocal(k, v) {
+  try { localStorage.setItem(k, v); } catch (e) {}
+  scheduleBackup();
+}
+function scheduleBackup() {
+  if (backupTimer) clearTimeout(backupTimer);
+  backupTimer = setTimeout(sendBackup, 1200);
+}
+async function sendBackup() {
+  try {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf('tingli-') === 0) data[k] = localStorage.getItem(k);
+    }
+    if (!data[LS]) return; // ещё ничего не наработано
+    await fetch('/api/backup', { method: 'PUT', body: JSON.stringify(data) });
+  } catch (e) { /* сеть недоступна — попробуем в следующий раз */ }
+}
+async function tryRestore() {
+  try {
+    if (localStorage.getItem(LS) !== null) return; // локальный прогресс есть
+    const r = await fetch('/api/backup');
+    if (!r.ok) return;
+    const data = await r.json();
+    if (!data || !data[LS]) return;
+    for (const k in data) { try { localStorage.setItem(k, data[k]); } catch (e) {} }
+    const toast = document.createElement('div');
+    toast.textContent = '☁️ Прогресс восстановлен';
+    toast.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#1d1d21;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.25)';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2600);
+    const cur = typeof tab !== 'undefined' ? tab : 'lessons';
+    if (cur === 'lessons') renderUnits(); else if (cur === 'mine') renderMine();
+    else if (cur === 'idv') renderIdv(); else if (cur === 'favs') renderFavs();
+    else renderDict();
+  } catch (e) {}
+}
+
+function renderUnits() {
+  showTabbar(true); partAudioKey = null; showPlayer(false);
+  curUnit = null; curPart = null;
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="logo"><img src="logo.png" alt="听"></div>
+      <div><img class="title-img" src="title.png" alt="初级听力"><div class="sub">发展汉语 · 初级听力 II</div></div>
+    </div>
+    ${UNITS.map(unitCard).join('')}
+    <div class="app-ver">Тингли v${APP_VER}</div>`;
+}
+const IDV = (typeof IDV_UNITS !== 'undefined') ? IDV_UNITS : [];
+const ALL_UNITS = UNITS.concat(EXTRA, IDV);
+function renderIdv() {
+  showTabbar(true); partAudioKey = null; showPlayer(false);
+  curUnit = null; curPart = null;
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="logo"><img src="logo.png" alt="听"></div>
+      <div><img class="title-img" src="idv.png" alt="口语"><div class="sub">口语课</div></div>
+    </div>
+    ${IDV.length ? IDV.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
+    <div class="app-ver">Тингли v${APP_VER}</div>`;
+}
+
+function renderMine() {
+  showTabbar(true); partAudioKey = null; showPlayer(false);
+  curUnit = null; curPart = null;
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="logo"><img src="logo.png" alt="听"></div>
+      <div><img class="title-img" src="grammar.png" alt="语法"><div class="sub">李老师课</div></div>
+    </div>
+    ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
+    <div class="app-ver">Тингли v${APP_VER}</div>`;
+}
+function unitCard(u) {
+  const s = unitStats(u);
+  const nm = u.label ? u.label + ' ·' : u.unit + '.';
+  return `<div class="unit-card" onclick="openUnit(${u.unit})">
+    <div class="unit-emoji" style="background:${TINTS[u.unit] || '#f7f7f9'}">${u.emoji || EMOJI[u.unit] || '🎧'}</div>
+    <div style="flex:1">
+      <div class="unit-zh">${nm} ${esc(u.ru || u.en)}</div>
+      <div class="unit-zh-sub">${esc(u.zh)}</div>
+      <div class="unit-meta">
+        <div class="pbar"><i style="width:${s.pct}%"></i></div>
+        <span class="unit-progress">${s.done}/${s.total}</span>
+        ${s.pct === 100 ? '<span class="done-badge">готово</span>' : ''}
+      </div>
+    </div>
+    <div class="unit-arrow">›</div>
+  </div>`;
+}
+
+function renderDict() {
+  showTabbar(true); partAudioKey = null; showPlayer(false);
+  curUnit = null; curPart = null;
+  const d = dictLoad();
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="logo"><img src="logo.png" alt="听"></div>
+      <div style="flex:1"><img class="title-img" src="dict.png" alt="词典"><div class="sub">我的词典 · ${d.length}</div></div>
+      ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
+    </div>
+    ${d.length ? d.map((w, i) => `
+      <div class="dict-item">
+        <div class="dict-zh zh-opt">${esc(w.zh)}</div>
+        <div class="dict-body">
+          <div class="dict-py">${esc(w.py)}</div>
+          <div class="dict-ru">${esc(w.ru)}</div>
+          ${w.src ? `<div class="dict-src">${esc(w.src)}</div>` : ''}
+        </div>
+        <button class="dict-del" onclick="dictRemove(${i})" title="Удалить">✕</button>
+      </div>`).join('')
+      : '<div class="empty">Словарь пуст.<br>Открой список слов, выдели слово и нажми «📖 Отправить в словарь».</div>'}
+    <div class="app-ver">Тингли v${APP_VER}</div>`;
+}
+
+/* ===== Словарь: localStorage 'tingli-dict-v1' ===== */
+const DICT_KEY = 'tingli-dict-v1';
+function dictLoad() { try { return JSON.parse(localStorage.getItem(DICT_KEY)) || []; } catch (e) { return []; } }
+function dictSave(d) { try { saveLocal(DICT_KEY, JSON.stringify(d)); } catch (e) {} }
+function dictHas(zh) { return dictLoad().some(w => w.zh === zh); }
+function selWord(el) {
+  el.classList.toggle('sel');
+  const n = document.querySelectorAll('#wordList .word.sel').length;
+  const bar = document.getElementById('dictBar');
+  if (bar) { bar.style.display = n ? 'block' : 'none'; const c = document.getElementById('dictCnt'); if (c) c.textContent = n; }
+}
+function sendToDict() {
+  const part = curPart;
+  const d = dictLoad();
+  let added = 0, dup = 0;
+  document.querySelectorAll('#wordList .word.sel').forEach(el => {
+    const w = part.words[Number(el.dataset.i)];
+    if (!w) return;
+    if (d.some(x => x.zh === w.zh)) { dup++; return; }
+    d.push({ zh: w.zh, py: w.py, ru: w.ru, src: unitLabel(curUnit) + ' · ' + part.title, ts: Date.now() });
+    added++;
+    el.classList.remove('sel');
+    el.classList.add('indict');
+    const a = el.querySelector('.w-add'); if (a) a.textContent = '✓';
+  });
+  dictSave(d);
+  const bar = document.getElementById('dictBar');
+  if (bar) bar.style.display = 'none';
+  const btn = document.querySelector('#dictBar .btn');
+  if (btn && added) { const old = btn.textContent; btn.textContent = '✅ Добавлено: ' + added + (dup ? ' (повтор: ' + dup + ')' : ''); setTimeout(() => { btn.textContent = old; }, 1600); }
+}
+function dictRemove(i) {
+  const d = dictLoad();
+  d.splice(i, 1);
+  dictSave(d);
+  renderDict();
+}
+function dictClear() {
+  if (!confirm('Удалить все слова из словаря?')) return;
+  dictSave([]);
+  renderDict();
+}
+
+function partNum(part) {
+  // номер части = номер аудио: '2-5-1.mp3' → '5-1'
+  return (part.audio || '').replace(/^\d+-/, '').replace(/\.mp3$/, '');
+}
+function openUnit(n) {
+  const u = ALL_UNITS.find(x => x.unit === n); if (!u) return;
+  curUnit = u; curPart = null;
+  showTabbar(false);
+  if (u.src === 'idv') ensureLessonAudio(u); else showPlayer(!!partAudioKey);
+  app.innerHTML = `
+    <div class="topbar"><button class="back" onclick="goBack()">←</button>
+      <div><div class="u-title">${unitLabel(u)} · ${esc(u.ru || u.en)}</div><div class="u-sub">${esc(u.zh)}</div></div></div>
+    ${u.parts.map((part, i) => {
+      const num = part.kind === 'text' ? '📖' : (partNum(part) || (i + 1 - u.parts.filter((p, j) => j < i && p.kind === 'text').length));
+      return `
+      <div class="part" onclick="openPart(${u.unit},${part.id})">
+        <div class="part-head">
+          <div class="part-num">${num}</div>
+          <div style="flex:1">
+            <div class="part-title">${esc(part.title)}</div>
+            ${part.titleZh ? `<div class="part-zh">${esc(part.titleZh)}</div>` : ''}
+          </div>
+          ${partDone(u, part) ? '<span class="part-done">готово</span>' : ''}
+          <span class="part-arrow">›</span>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+function openPart(unitN, partId) {
+  const u = ALL_UNITS.find(x => x.unit === unitN); if (!u) return;
+  const part = u.parts.find(p => p.id === partId); if (!part) return;
+  curUnit = u; curPart = part;
+  if (part.audio) { setPartAudio(u, part); showPlayer(true); }
+  else if (u.src === 'idv') ensureLessonAudio(u);
+  else { partAudioKey = null; showPlayer(false); }
+  if (part.kind === 'words') renderWords(u, part);
+  else if (part.kind === 'hw') renderHw(u, part);
+  else if (part.kind === 'text') renderText(u, part);
+  else openTask(u, part, 0);
+}
+
+function renderText(u, part) {
+  showTabbar(false);
+  if (u.src === 'idv') ensureLessonAudio(u, part);
+  else { partAudioKey = null; showPlayer(false); }
+  const paras = String(part.text || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+  const pimg = part.image ? `<img class="lesson-img" src="${esc(part.image)}" alt="">` : '';
+  app.innerHTML = `
+    <div class="topbar"><button class="back" onclick="goBack()">←</button>
+      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div></div>
+    <div class="lesson-text">${pimg}${paras.map(p => `<p class="zh">${esc(p)}</p>`).join('')}</div>`;
+  window.scrollTo(0, 0);
+}
+
+function renderWords(u, part) {
+  showTabbar(false);
+  if (u.src === 'idv') ensureLessonAudio(u, part); else showPlayer(!!part.audio);
+  app.innerHTML = `
+    <div class="topbar"><button class="back" onclick="goBack()">←</button>
+      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div>
+      <button class="fav-btn ${isFavPart(u, part) ? 'on' : ''}" onclick="toggleFavPart()" title="В избранное">${isFavPart(u, part) ? '⭐' : '☆'}</button></div>
+    <div style="padding:0 16px 4px"><div class="hw-hint" style="color:#999">Нажми на слово, чтобы выделить → «Отправить в словарь»</div></div>
+    <div class="part" style="cursor:default;padding:6px 16px" id="wordList">
+      ${part.words.map((w, i) => `
+        <div class="word${dictHas(w.zh) ? ' indict' : ''}" data-i="${i}" onclick="selWord(this)">
+          <span class="zh">${esc(w.zh)}</span><span class="py">${esc(w.py)}</span><span class="ru">${esc(w.ru)}</span>
+          <span class="w-add">${dictHas(w.zh) ? '✓' : '+'}</span>
+        </div>`).join('')}
+    </div>
+    <div class="dict-send-bar" id="dictBar" style="display:none">
+      <button class="btn" onclick="sendToDict()">📖 Отправить в словарь (<span id="dictCnt">0</span>)</button>
+    </div>`;
+}
+function toggleFavPart() {
+  const k = favKeyPart(curUnit, curPart);
+  let f = loadFavs();
+  const i = f.indexOf(k);
+  if (i >= 0) f.splice(i, 1); else f.push(k);
+  saveFavs(f);
+  const b = document.querySelector('.fav-btn');
+  if (b) { b.textContent = i >= 0 ? '☆' : '⭐'; b.classList.toggle('on', i < 0); }
+}
+
+function openTask(unitRef, partRef, ti) {
+  const u = (typeof unitRef === 'object' && unitRef !== null) ? unitRef : ALL_UNITS.find(x => x.unit === unitRef);
+  const part = (typeof partRef === 'object' && partRef !== null) ? partRef : u.parts.find(p => p.id === partRef);
+  curUnit = u; curPart = part; curTi = ti;
+  const t = part.tasks[ti];
+  showTabbar(false);
+  if (u.src === 'idv') ensureLessonAudio(u, part); else showPlayer(!!part.audio);
+  const total = part.tasks.length;
+  const dots = part.tasks.map((x, i) => {
+    const p = prog[u.unit] && prog[u.unit][part.id];
+    const cls = p ? (p[i] === true ? 'tdot good' : p[i] === false ? 'tdot bad' : (i === ti ? 'tdot on' : 'tdot')) : (i === ti ? 'tdot on' : 'tdot');
+    return `<div class="${cls}"></div>`;
+  }).join('');
+  const animCls = slideDir === 'prev' ? 'anim-prev' : 'anim-next';
+  slideDir = 'next';
+  app.innerHTML = `
+    <div class="topbar"><button class="back" onclick="goBack()">←</button>
+      <div><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div></div>
+    <div class="task-head">
+      <div class="task-count">Задание ${ti + 1} из ${total}</div>
+      <div class="task-dots">${dots}</div>
+      <button class="fav-btn ${isFav(u, part, ti) ? 'on' : ''}" id="favBtn" onclick="toggleFav()" title="В избранное">${isFav(u, part, ti) ? '⭐' : '☆'}</button>
+    </div>
+    <div class="task-card ${animCls}" id="taskCard">${taskHtml(u, part, t, ti)}</div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="prevTask()">← Назад</button>
+      <button class="nav-btn" onclick="nextTask()">Дальше →</button>
+    </div>`;
+  window.scrollTo(0, 0);
+}
+
+function nextTask() {
+  slideDir = 'next';
+  const u = curUnit, part = curPart;
+  if (curTi < part.tasks.length - 1) { openTask(u.unit, part.id, curTi + 1); return; }
+  const idx = u.parts.findIndex(p => p.id === part.id);
+  for (let i = idx + 1; i < u.parts.length; i++) {
+    if (u.parts[i].tasks) { if (u.src === 'idv') ensureLessonAudio(u, u.parts[i]); else setPartAudio(u, u.parts[i]); openTask(u, u.parts[i], 0); return; }
+  }
+  openUnit(u.unit);
+}
+function prevTask() {
+  slideDir = 'prev';
+  const u = curUnit, part = curPart;
+  if (curTi > 0) { openTask(u.unit, part.id, curTi - 1); return; }
+  const idx = u.parts.findIndex(p => p.id === part.id);
+  for (let i = idx - 1; i >= 0; i--) {
+    if (u.parts[i].tasks) { if (u.src === 'idv') ensureLessonAudio(u, u.parts[i]); else setPartAudio(u, u.parts[i]); openTask(u, u.parts[i], u.parts[i].tasks.length - 1); return; }
+  }
+  openUnit(u.unit);
+}
+function taskHtml(u, part, t, ti) {
+  let body = '';
+  const qru = (!part.audio && t.qRu) ? `<div class="task-qru">${esc(t.qRu)}</div>` : '';
+  if (t.type === 'choice') {
+    const opts = t.options.map((o, oi) => ({ o: String(o).replace(/^[A-ZА-Я]\.\s*/, ''), oi }));
+    for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const tmp = opts[i]; opts[i] = opts[j]; opts[j] = tmp; }
+    const correctIdx = opts.findIndex(x => x.oi === t.answer);
+    body = `
+      <div class="task-q">${esc(t.q)}</div>
+      ${qru}
+      <div class="opts" data-correct="${correctIdx}">${opts.map((x, ni) => `
+        <div class="opt zh-opt" data-oi="${ni}" onclick="pick(this)">
+          <span class="letter">${'ABC'[ni]}</span><span>${esc(x.o)}</span></div>`).join('')}</div>`;
+  } else if (t.type === 'fill') {
+    body = `
+      <div class="task-q">${esc(t.q).replace('____', '______')}</div>
+      ${qru}
+      <input class="fill zh-opt" placeholder="Введи ответ иероглифами" data-ans="${esc(t.answer)}">`;
+  } else if (t.type === 'tf') {
+    body = `
+      <div class="task-q">${esc(t.q)}</div>
+      ${qru}
+      <div class="tf-btns">
+        <button class="tf-btn" data-v="1" onclick="pickTf(this)">✓ Верно</button>
+        <button class="tf-btn" data-v="0" onclick="pickTf(this)">✗ Неверно</button></div>`;
+  }
+  const hasText = part.text ? `<span class="link" onclick="document.getElementById('scriptBox').classList.toggle('show')">📄 Показать текст</span><div class="script zh-opt" id="scriptBox">${esc(part.text)}</div>` : '';
+  return body + `
+    <div class="task-result" id="taskResult"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="checkTask()">Проверить</button>
+      <button class="btn ghost" onclick="showAnswer()">Показать ответ</button>
+    </div>
+    ${hasText}`;
+}
+
+function pick(el) {
+  el.parentElement.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function pickTf(el) {
+  el.parentElement.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function getAnswer(t) {
+  if (t.type === 'choice') {
+    const sel = document.querySelector('#taskCard .opt.selected');
+    return sel ? Number(sel.dataset.oi) : null;
+  }
+  if (t.type === 'fill') {
+    const v = document.querySelector('#taskCard .fill').value.trim().replace(/\s+/g, '');
+    return v || null;
+  }
+  if (t.type === 'tf') {
+    const sel = document.querySelector('#taskCard .tf-btn.selected');
+    return sel ? (sel.dataset.v === '1') : null;
+  }
+  return null;
+}
+
+function checkTask() {
+  const t = curPart.tasks[curTi];
+  const ans = getAnswer(t);
+  const res = document.getElementById('taskResult');
+  let correct = false;
+  let fillBadMsg = null;
+  if (t.type === 'choice') {
+    const correctIdx = Number(document.querySelector('#taskCard .opts').dataset.correct);
+    document.querySelectorAll('#taskCard .opt').forEach((o, oi) => {
+      o.classList.remove('ok', 'bad');
+      if (oi === correctIdx) o.classList.add('ok');
+    });
+    if (ans === correctIdx) correct = true;
+    else if (ans !== null) document.querySelector(`#taskCard .opt[data-oi="${ans}"]`).classList.add('bad');
+  } else if (t.type === 'fill') {
+    const inp = document.querySelector('#taskCard .fill');
+    inp.classList.remove('ok', 'bad');
+    const normA = s => String(s).normalize('NFKC').replace(/[\s\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u206F\uFEFF\uFE00-\uFE0F，。！？、；：""''（）《》〈〉,.!?;:'"()…—\-·]/g, '');
+    if (ans !== null && normA(ans) === normA(t.answer)) { correct = true; inp.classList.add('ok'); }
+    else if (ans !== null) { inp.classList.add('bad'); fillBadMsg = '❌ Неверно. Ожидалось: «' + t.answer + '» (ты ввёл: «' + (inp.value || ' ') + '»)'; }
+  } else if (t.type === 'tf') {
+    document.querySelectorAll('#taskCard .tf-btn').forEach(b => {
+      b.classList.remove('ok', 'bad');
+      if ((b.dataset.v === '1') === t.answer) b.classList.add('ok');
+    });
+    if (ans === t.answer) correct = true;
+    else if (ans !== null) document.querySelector(`#taskCard .tf-btn[data-v="${ans ? '1' : '0'}"]`).classList.add('bad');
+  }
+  res.textContent = correct ? '✅ Верно!' : (fillBadMsg || (ans === null ? '— Сначала введи ответ' : '❌ Неверно'));
+  res.className = 'task-result ' + (correct ? 'ok' : 'bad');
+  if (ans !== null) {
+    prog[curUnit.unit] = prog[curUnit.unit] || {};
+    prog[curUnit.unit][curPart.id] = prog[curUnit.unit][curPart.id] || {};
+    prog[curUnit.unit][curPart.id][curTi] = correct;
+    save(prog);
+    renderDots();
+  }
+}
+
+function toggleFav() {
+  const k = favKey(curUnit, curPart, curTi);
+  let f = loadFavs();
+  const i = f.indexOf(k);
+  if (i >= 0) f.splice(i, 1); else f.push(k);
+  saveFavs(f);
+  const b = document.getElementById('favBtn');
+  if (b) { b.textContent = i >= 0 ? '☆' : '⭐'; b.classList.toggle('on', i < 0); }
+}
+function renderFavs() {
+  showTabbar(true); partAudioKey = null; showPlayer(false);
+  curUnit = null; curPart = null;
+  const favs = loadFavs();
+  const items = favs.map(k => {
+    const p3 = k.split(':').map(Number);
+    const u = ALL_UNITS.find(x => x.unit === p3[0]); if (!u) return null;
+    const part = u.parts.find(p => p.id === p3[1]); if (!part) return null;
+    if (p3.length === 2) return { k, u, part, ti: null, t: null };
+    const t = part.tasks[p3[2]]; if (!t) return null;
+    return { k, u, part, t, ti: p3[2] };
+  }).filter(Boolean);
+  const typeName = t => t.type === 'choice' ? 'Выбор' : t.type === 'fill' ? 'Ввод' : 'Верно/Неверно';
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="logo"><img src="logo.png" alt="听"></div>
+      <div><img class="title-img" src="favs.png" alt="句子"><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div></div>
+    </div>
+    ${items.length ? items.map(it => {
+      const isWords = it.ti === null;
+      const click = isWords ? `openPart(${it.u.unit},${it.part.id})` : `openTask(${it.u.unit},${it.part.id},${it.ti})`;
+      const q = isWords ? (it.part.titleZh || it.part.title || '') : String(it.t.qRu || it.t.q || '');
+      const meta = isWords ? (it.part.words ? it.part.words.length + ' слов' : '') : typeName(it.t);
+      return `
+      <div class="fav-card" onclick="${click}">
+        <div class="fav-top">
+          <span class="fav-emoji" style="background:${TINTS[it.u.unit] || '#f7f7f9'}">${it.u.emoji || EMOJI[it.u.unit] || '🎧'}</span>
+          <div style="flex:1;min-width:0">
+            <div class="fav-title">${unitLabel(it.u)} · ${esc(it.part.title)}</div>
+            <div class="fav-q">${esc(String(q).slice(0, 70))}${String(q).length > 70 ? '…' : ''}</div>
+          </div>
+          <button class="fav-del" onclick="event.stopPropagation();removeFav('${it.k}')">✕</button>
+        </div>
+        <div class="fav-meta">${meta}${it.part.titleZh && !isWords ? ' · ' + esc(it.part.titleZh) : ''}</div>
+      </div>`;
+    }).join('')
+      : '<div class="empty">Пока пусто.<br>Открой любое задание или слова и нажми ☆ — оно появится здесь.</div>'}`;
+}
+function removeFav(k) {
+  saveFavs(loadFavs().filter(x => x !== k));
+  renderFavs();
+}
+function showAnswer() {
+  const t = curPart.tasks[curTi];
+  const res = document.getElementById('taskResult');
+  if (t.type === 'choice') {
+    const correctIdx = Number(document.querySelector('#taskCard .opts').dataset.correct);
+    document.querySelectorAll('#taskCard .opt').forEach((o, oi) => { if (oi === correctIdx) o.classList.add('ok'); });
+    res.textContent = 'Ответ: ' + String(t.options[t.answer]).replace(/^[A-ZА-Я]\.\s*/, '');
+  } else if (t.type === 'fill') {
+    const inp = document.querySelector('#taskCard .fill');
+    inp.value = t.answer; inp.classList.add('ok');
+    res.textContent = 'Ответ: ' + t.answer;
+  } else if (t.type === 'tf') {
+    document.querySelectorAll('#taskCard .tf-btn').forEach(b => { if ((b.dataset.v === '1') === t.answer) b.classList.add('ok'); });
+    res.textContent = 'Ответ: ' + (t.answer ? '✓ Верно' : '✗ Неверно');
+  }
+  res.className = 'task-result ok';
+}
+
+function renderDots() {
+  const t = curPart.tasks[curTi];
+  const p = prog[curUnit.unit] && prog[curUnit.unit][curPart.id];
+  const dots = curPart.tasks.map((x, i) => {
+    const cls = p ? (p[i] === true ? 'tdot good' : p[i] === false ? 'tdot bad' : (i === curTi ? 'tdot on' : 'tdot')) : (i === curTi ? 'tdot on' : 'tdot');
+    return `<div class="${cls}"></div>`;
+  }).join('');
+  const el = document.querySelector('.task-dots');
+  if (el) el.innerHTML = dots;
+}
+
+/* ===== Домашнее задание (hw): свободные ответы + сборка текста для учителя ===== */
+function hwKey(unitN, partId, i) { return 'tingli-hw-' + unitN + '-' + partId + '-' + i; }
+function hwLoad(unitN, partId, i) { try { return localStorage.getItem(hwKey(unitN, partId, i)) || ''; } catch (e) { return ''; } }
+function hwSave(i) {
+  const ta = document.querySelector('.hw-ans[data-i="' + i + '"]');
+  if (!ta) return;
+  try { saveLocal(hwKey(curUnit.unit, curPart.id, i), ta.value); } catch (e) {}
+  hwRefresh();
+}
+function hwAnswered() {
+  return curPart.questions.filter((q, i) => hwLoad(curUnit.unit, curPart.id, i).trim()).length;
+}
+function hwText(withQ) {
+  return curPart.questions.map((q, i) => {
+    const a = hwLoad(curUnit.unit, curPart.id, i).trim();
+    return withQ ? (i + 1) + '. ' + q + '\n' + (a || '—') : (i + 1) + '. ' + (a || '—');
+  }).join('\n\n');
+}
+function hwRefresh() {
+  const n = curPart.questions.length;
+  const done = hwAnswered();
+  const c = document.getElementById('hwCount');
+  if (c) c.textContent = 'Ответов: ' + done + ' из ' + n;
+  const out = document.getElementById('hwOut');
+  if (out) out.innerHTML = hwText(true).split('\n\n').map(b => b.replace(/^(\d+\. [^\n]+)\n/, '<div class="hw-q-in">$1</div>')).join('\n\n');
+  const btn = document.getElementById('hwCopyBtn');
+  if (btn) btn.disabled = done === 0;
+}
+function hwCopy(withQ) {
+  const txt = hwText(withQ);
+  const btn = document.getElementById(withQ ? 'hwCopyBtn' : 'hwCopyBtnQ');
+  const done = () => {
+    if (!btn) return;
+    const old = btn.textContent;
+    btn.textContent = '✅ Скопировано!';
+    setTimeout(() => { btn.textContent = old; }, 1600);
+  };
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { alert('Не удалось скопировать — выдели текст ниже вручную.'); }
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fallback);
+  else fallback();
+}
+function renderHw(u, part) {
+  showTabbar(false); showPlayer(false);
+  curUnit = u; curPart = part;
+  app.innerHTML = `
+    <div class="topbar"><button class="back" onclick="goBack()">←</button>
+      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div></div>
+    ${part.text ? `<div class="script zh-opt show">${esc(part.text)}</div>` : ''}
+    ${part.questions.map((q, i) => `
+      <div class="hw-item">
+        <div class="hw-q zh-opt">${i + 1}. ${esc(q)}</div>
+        <textarea class="hw-ans" data-i="${i}" rows="2" placeholder="Твой ответ иероглифами…">${esc(hwLoad(u.unit, part.id, i))}</textarea>
+        <div class="hw-tools">
+          <button class="hw-chk" data-i="${i}" onclick="hwCheck(${i})">🤖 Проверить</button>
+          <div class="hw-vd" data-i="${i}"></div>
+        </div>
+      </div>`).join('')}
+    <div class="hw-build">
+      <div class="hw-count" id="hwCount"></div>
+      <div class="btn-row">
+        <button class="btn ghost" id="hwCheckAllBtn" onclick="hwCheckAll()">🤖 Проверить все ответы</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="hwCopyBtn" onclick="hwCopy(true)">📋 Сформировать текст для учителя</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="hwCopyBtnQ" onclick="hwCopy(false)">📋 Только ответы</button>
+      </div>
+      <div class="hw-out" id="hwOut"></div>
+    </div>`;
+  document.querySelectorAll('.hw-ans').forEach(ta => {
+    ta.addEventListener('input', () => hwSave(Number(ta.dataset.i)));
+  });
+  hwRefresh();
+  window.scrollTo(0, 0);
+}
+
+/* ===== ИИ-проверка ответов (DeepSeek через /api/tingli-check) ===== */
+async function hwCheck(i) {
+  const part = curPart;
+  const q = part.questions[i];
+  const a = hwLoad(curUnit.unit, part.id, i).trim();
+  const btn = document.querySelector('.hw-chk[data-i="' + i + '"]');
+  const vd = document.querySelector('.hw-vd[data-i="' + i + '"]');
+  if (!vd) return;
+  if (!a) { vd.textContent = '— Сначала напиши ответ'; vd.className = 'hw-vd bad'; return; }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Проверяю…'; }
+  vd.textContent = ''; vd.className = 'hw-vd';
+  try {
+    const r = await fetch('/api/tingli-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q, a, text: part.fullText || '' })
+    });
+    const d = await r.json();
+    if (!d.ok) { vd.textContent = '⚠️ ' + (d.error || 'ошибка сервера'); vd.className = 'hw-vd bad'; return; }
+    vd.innerHTML = (d.correct ? '✅ ' : '❌ ') + esc(d.comment);
+    vd.className = 'hw-vd ' + (d.correct ? 'good' : 'bad');
+  } catch (e) {
+    vd.textContent = '⚠️ Не удалось соединиться'; vd.className = 'hw-vd bad';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🤖 Проверить'; }
+  }
+}
+async function hwCheckAll() {
+  const n = curPart.questions.length;
+  const btn = document.getElementById('hwCheckAllBtn');
+  if (btn) btn.disabled = true;
+  for (let i = 0; i < n; i++) {
+    if (!hwLoad(curUnit.unit, curPart.id, i).trim()) continue;
+    await hwCheck(i);
+    await new Promise(r => setTimeout(r, 350));
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '🤖 Проверить все ответы'; }
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+/* ===== Свайпы: от левого края внутри урока = назад; влево = следующее задание ===== */
+let tsX = null, tsY = null, tsT = 0, drag = false, dragStartX = 0, dragDx = 0, dragArmed = false;
+const appEl = document.getElementById('app');
+function goBack() {
+  if (!curUnit) return;
+  if (curPart) { openUnit(curUnit.unit); return; }
+  if (IDV.find(x => x.unit === curUnit.unit)) renderIdv();
+  else if (EXTRA.find(x => x.unit === curUnit.unit)) renderMine();
+  else renderUnits();
+}
+document.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  tsX = t.clientX; tsY = t.clientY; tsT = Date.now();
+  drag = false; dragDx = 0;
+  // тянуть назад можно только внутри урока и только от левого края
+  dragArmed = !!curUnit && t.clientX < 36;
+}, { passive: true });
+document.addEventListener('touchmove', e => {
+  const t = e.touches[0];
+  const dx = t.clientX - tsX;
+  const dy = t.clientY - tsY;
+  if (!drag) {
+    if (dragArmed && dx > 15 && Math.abs(dy) < Math.abs(dx) * 1.2) {
+      drag = true; dragStartX = t.clientX; dragDx = 0;
+      appEl.style.transition = 'none';
+    } else return;
+  }
+  dragDx = t.clientX - dragStartX;
+  if (dragDx <= 0) return;
+  appEl.style.transform = 'translateX(' + Math.round(dragDx * 0.9) + 'px)';
+  appEl.style.boxShadow = Math.round(dragDx * 0.12) + 'px 0 24px rgba(0,0,0,.25)';
+  e.preventDefault();
+}, { passive: false });
+document.addEventListener('touchend', e => {
+  if (tsX === null) return;
+  const dx = e.changedTouches[0].clientX - tsX;
+  const dy = e.changedTouches[0].clientY - tsY;
+  const dt = Date.now() - tsT;
+  const wasDrag = drag;
+  tsX = null; drag = false;
+  if (wasDrag) {
+    const finish = dragDx > 90 || (dragDx > 50 && dt < 300);
+    appEl.style.transition = 'transform .28s ease, box-shadow .28s ease';
+    if (finish) {
+      appEl.style.transform = 'translateX(100%)';
+      appEl.style.boxShadow = '16px 0 40px rgba(0,0,0,.3)';
+      setTimeout(() => {
+        appEl.style.transition = 'none'; appEl.style.transform = ''; appEl.style.boxShadow = '';
+        goBack();
+      }, 290);
+    } else {
+      appEl.style.transform = ''; appEl.style.boxShadow = '';
+      setTimeout(() => { appEl.style.transition = 'none'; }, 300);
+    }
+    return;
+  }
+  if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 1.4 || dt > 700) return;
+  if (!curPart || !curPart.tasks) return;
+  // свайп влево = следующее задание / часть
+  if (dx < -70) nextTask();
+  // быстрый свайп вправо = назад
+  if (dx > 70) goBack();
+}, { passive: true });
+
+(function () {
+  var s = document.getElementById('splash');
+  if (s) { setTimeout(function () { s.classList.add('hide'); }, 2400); setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 2950); }
+})();
+renderUnits();
+tryRestore();
+</script>
+</body>
+</html>

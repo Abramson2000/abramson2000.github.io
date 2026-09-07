@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Перенос данных в облако</title>
+<style>
+  :root { --brand:#0f766e; --brand-dark:#0b5d57; --ink:#1a2430; --muted:#6b7785; --line:#e3e8ee; --bg:#f4f6f8; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background:var(--bg); color:var(--ink); padding:20px 16px 60px; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:560px; margin:0 auto; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:14px; margin:0 0 20px; }
+  .card { background:#fff; border-radius:14px; padding:16px; margin-bottom:14px; box-shadow:0 1px 3px rgba(16,24,40,.08); }
+  .card h2 { font-size:15px; margin:0 0 8px; }
+  .row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .row:last-child { border-bottom:none; }
+  .row .n { color:var(--muted); }
+  .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; word-break:break-all; }
+  .dbs { font-size:13px; }
+  .db { background:#f8fafc; border-radius:10px; padding:8px 10px; margin-bottom:6px; }
+  .db .name { font-weight:700; }
+  .db .stores { color:var(--muted); font-size:12px; margin-top:2px; }
+  .db.hit { border:1.5px solid var(--brand); background:#eef8f6; }
+  .preview { background:#f8fafc; border-radius:10px; padding:10px 12px; font-size:13px; color:#334155; max-height:220px; overflow:auto; white-space:pre-wrap; margin-top:8px; }
+  button { width:100%; padding:14px; border:none; border-radius:12px; font-size:16px; font-weight:700; background:var(--brand); color:#fff; cursor:pointer; }
+  button:active { background:var(--brand-dark); }
+  button:disabled { background:#9db5b2; cursor:not-allowed; }
+  .ok { color:var(--brand-dark); }
+  .err { color:#dc2626; }
+  .log { font-size:13px; color:var(--muted); margin-top:10px; white-space:pre-wrap; }
+  .hint { font-size:13px; color:#c2410c; background:#fff7ed; border-radius:10px; padding:10px 12px; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Перенос данных в облако</h1>
+  <p class="sub">Сканирует базы этого сайта (IndexedDB) и переносит записи в Supabase.</p>
+
+  <div class="card">
+    <h2>Текущий адрес (origin)</h2>
+    <div class="mono" id="origin"></div>
+    <div id="originHint" class="hint" style="display:none;">
+      Данные в IndexedDB привязаны к адресу. Если вносил клиники через <b>localhost:8099</b>, а не через эту ссылку — открой эту же страницу по адресу <b>http://localhost:8099/recover.html</b>.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Найденные базы</h2>
+    <div id="status" class="mono">Сканирую…</div>
+    <div id="dbs" class="dbs" style="margin-top:8px;"></div>
+  </div>
+
+  <button id="go" disabled>Перенести в облако</button>
+  <div id="log" class="log"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
+
+let found = null; // { name, dicts, clinics, people }
+
+function el(id){ return document.getElementById(id); }
+function log(msg){ el('log').textContent += msg + '\n'; }
+
+function listStores(name){
+  return new Promise((resolve,reject)=>{
+    let req;
+    try { req = indexedDB.open(name); } catch(e){ return reject(e); }
+    req.onsuccess = () => { const s = Array.from(req.result.objectStoreNames); req.result.close(); resolve(s); };
+    req.onerror = () => reject(req.error);
+    req.onblocked = () => reject(new Error('blocked'));
+  });
+}
+function readAll(name, store){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(name);
+    req.onsuccess = () => {
+      const db = req.result;
+      if(!db.objectStoreNames.contains(store)){ db.close(); return resolve([]); }
+      let tx, get;
+      try { tx = db.transaction(store,'readonly'); get = tx.objectStore(store).getAll(); }
+      catch(e){ db.close(); return reject(e); }
+      get.onsuccess = () => { db.close(); resolve(get.result || []); };
+      get.onerror = () => { db.close(); reject(get.error); };
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function main(){
+  el('origin').textContent = location.origin;
+
+  // list candidate DB names
+  const names = [];
+  try {
+    if (indexedDB.databases) {
+      const dbs = await indexedDB.databases();
+      dbs.forEach(d => names.push(d.name));
+    }
+  } catch(e){}
+  ['crm-lite','crm','contacts','crmdb','contacts-db','brizo','brizo-crm','crm-lite-db'].forEach(n => { if(!names.includes(n)) names.push(n); });
+
+  if (!names.length) {
+    el('status').innerHTML = 'Не нашёл ни одной базы в этом браузере.';
+    el('status').classList.add('err');
+    el('originHint').style.display = 'block';
+    return;
+  }
+
+  const results = [];
+  for (const name of names) {
+    try {
+      const stores = await listStores(name);
+      const counts = {};
+      for (const s of stores) { counts[s] = (await readAll(name, s)).length; }
+      results.push({ name, stores, counts });
+    } catch(e){ /* skip blocked/other */ }
+  }
+
+  // render all DBs
+  const dbsEl = el('dbs');
+  dbsEl.innerHTML = results.map(r => {
+    const total = Object.values(r.counts).reduce((a,b)=>a+b,0);
+    const storeStr = r.stores.map(s => `${s}:${r.counts[s]}`).join(', ');
+    const isHit = r.counts.clinics > 0 || r.counts.people > 0 || r.counts.dicts > 0;
+    return `<div class="db ${isHit?'hit':''}"><div class="name">${r.name} (${r.stores.length} хранилищ, ${total} записей)</div>` +
+           `<div class="stores">${storeStr || '—'}</div></div>`;
+  }).join('') || '<div class="db">ничего</div>';
+
+  // pick best candidate (most records in clinics+people+dicts)
+  let best = null, bestScore = -1;
+  for (const r of results) {
+    const score = (r.counts.clinics||0)*10 + (r.counts.people||0)*5 + (r.counts.dicts||0);
+    if (score > bestScore) { bestScore = score; best = r; }
+  }
+
+  if (!best || bestScore === 0) {
+    el('status').innerHTML = 'Базы найдены, но <b>пустые</b> (0 записей).';
+    el('status').classList.add('err');
+    el('originHint').style.display = 'block';
+    return;
+  }
+
+  // load the chosen DB fully
+  const name = best.name;
+  const dicts = await readAll(name,'dicts');
+  const clinics = await readAll(name,'clinics');
+  const people = await readAll(name,'people');
+
+  el('status').innerHTML = `Выбрана база <span style="color:var(--brand-dark);font-weight:700">${name}</span>: клиник ${clinics.length}, людей ${people.length}, справочников ${dicts.length}.`;
+  el('status').classList.add('ok');
+
+  const namesList = [].concat(clinics.map(c=>'🏥 '+(c.name||'?'))).concat(people.map(p=>'👤 '+(p.fullName||p.name||'?')));
+  if (namesList.length) {
+    const pv = document.createElement('div');
+    pv.className = 'preview';
+    pv.textContent = namesList.join('\n');
+    el('status').parentNode.appendChild(pv);
+  }
+
+  found = { name, dicts, clinics, people };
+  el('go').disabled = false;
+  window._data = found;
+}
+
+async function supabaseInsert(table, row){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method:'POST',
+    headers:{ 'apikey':SUPABASE_ANON, 'Authorization':'Bearer '+SUPABASE_ANON, 'Content-Type':'application/json', 'Prefer':'return=representation' },
+    body: JSON.stringify(row)
+  });
+  if (!res.ok) throw new Error(table + ': ' + await res.text());
+  const data = await res.json();
+  return (data && data[0]) ? data[0].id : null;
+}
+async function supabaseUpdate(table, id, row){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method:'PATCH',
+    headers:{ 'apikey':SUPABASE_ANON, 'Authorization':'Bearer '+SUPABASE_ANON, 'Content-Type':'application/json' },
+    body: JSON.stringify(row)
+  });
+  if (!res.ok) throw new Error(table + ' update: ' + await res.text());
+}
+function arr(v){ return Array.isArray(v) ? v : (v ? [v] : []); }
+
+async function migrate(){
+  const btn = el('go');
+  btn.disabled = true;
+  const { name, dicts, clinics, people } = window._data;
+  const idMap = {};
+  log('Переношу из "' + name + '"…');
+  try {
+    for (const d of dicts) {
+      if (d.type == null || d.value == null) continue;
+      await supabaseInsert('dicts', { type: String(d.type), value: String(d.value) });
+    }
+    log('Справочники: ' + dicts.length + ' ✅');
+
+    for (const c of clinics) {
+      const row = {
+        name: c.name || 'Без названия',
+        type: c.type || null,
+        region: c.region || null,
+        city: c.city || null,
+        manager: c.manager || null,
+        situation: c.situation || null,
+        tags: arr(c.tags)
+      };
+      const nid = await supabaseInsert('clinics', row);
+      if (c.id != null && nid != null) idMap[c.id] = nid;
+    }
+    log('Клиники: ' + clinics.length + ' ✅');
+
+    for (const c of clinics) {
+      if (c.linkedClinicId != null && idMap[c.linkedClinicId] != null && idMap[c.id] != null) {
+        await supabaseUpdate('clinics', idMap[c.id], { linked_clinic_id: idMap[c.linkedClinicId] });
+      }
+    }
+
+    for (const p of people) {
+      const row = {
+        full_name: p.fullName || p.name || 'Без имени',
+        clinic_id: (p.clinicId != null && idMap[p.clinicId] != null) ? idMap[p.clinicId] : null,
+        region: p.region || null,
+        city: p.city || null,
+        phone: p.phone || null,
+        email: p.email || null,
+        situation: p.situation || null,
+        tags: arr(p.tags)
+      };
+      await supabaseInsert('people', row);
+    }
+    log('Люди: ' + people.length + ' ✅');
+    log('\nГотово! ✅ Открой приложение и нажми Cmd+Shift+R.');
+    el('status').textContent = 'Перенос завершён ✅';
+  } catch(e) {
+    log('Ошибка: ' + e.message);
+    el('status').textContent = 'Ошибка при переносе.';
+    el('status').classList.add('err');
+  }
+}
+
+el('go').addEventListener('click', migrate);
+main();
+</script>
+</body>
+</html>
