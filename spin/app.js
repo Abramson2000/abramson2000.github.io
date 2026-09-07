@@ -531,19 +531,38 @@ function renderProgram() {
   <article class="continue-card">
     <div class="continue-copy">
       <div class="lesson-meta"><span class="module-tag">${next === -1 ? 'КУРС ПРОЙДЕН' : next === -2 ? 'КУРС 1А · SPICED · УРОК ' + (spCur + 1) : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num}</span><span>${next === -1 ? L.length + ' из ' + L.length + ' уроков' : next === -2 ? 'из ' + SPICED.length + ' уроков курса' : 'из ' + co.len + ' уроков курса'}</span></div>
-      <h2>${esc(next === -1 ? 'Вы прошли весь курс. Повторите любой урок или идите в разборы.' : next === -2 ? 'Курс 2 откроется после SPICED. Сейчас — «' + sl.title + '»' : l.title)}</h2>
-      <p>${esc(next === -1 ? 'Курс пройден — теперь закрепите навык в тренажёре и разборах.' : next === -2 ? 'Пройдите курс 1а целиком — и «Продажа через вызов» разблокируется. ' + (sl.intro.length > 130 ? sl.intro.slice(0, 130) + '…' : sl.intro) : intro)}</p>
+      <h2>${esc(next === -1 ? 'Вы прошли весь курс. Повторите любой урок или идите в разборы.' : next === -2 ? sl.title : l.title)}</h2>
+      <p>${esc(next === -1 ? 'Курс пройден — теперь закрепите навык в тренажёре и разборах.' : next === -2 ? (sl.intro.length > 160 ? sl.intro.slice(0, 160) + '…' : sl.intro) : intro)}</p>
       <div class="continue-actions">
         <button class="primary-button" ${next === -2 ? `data-spiced="${spCur}"` : `data-open="${next === -1 ? 0 : cur}"`}>${next === -1 ? 'Повторить с начала' : 'Продолжить урок'} <span>→</span></button>
         <span class="duration">◷ ${esc(next === -2 ? sl.mins : l.mins)}</span>
       </div>
     </div>
     <div class="continue-visual" aria-hidden="true">
-      <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-      ${next === -2
-        ? '<div class="speech-card speech-one">Сначала — карта сделки:</div><div class="speech-card speech-two">потом разговор</div>'
-        : '<div class="speech-card speech-one">«Как вы решаете<br>эту задачу сегодня?»</div><div class="speech-card speech-two">Продаёт тот,<br>кто спрашивает</div>'}
-      <span class="big-number">${next === -2 ? String(spCur + 1).padStart(2, '0') : String(co.num).padStart(2, '0')}</span>
+      <svg viewBox="0 0 360 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block">
+        <defs><linearGradient id="cvbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6ff92"/><stop offset="1" stop-color="#b6ee45"/></linearGradient></defs>
+        <rect width="360" height="340" fill="url(#cvbg)"/>
+        <circle cx="336" cy="36" r="80" fill="#ffffff" opacity=".28"/>
+        <circle cx="14" cy="336" r="104" fill="#15392a" opacity=".08"/>
+        <circle cx="190" cy="340" r="120" fill="#ffffff" opacity=".16"/>
+        <rect x="105" y="40" width="190" height="80" rx="22" fill="#ffffff"/>
+        <path d="M178 120 L168 144 L206 118 Z" fill="#ffffff"/>
+        <text x="200" y="72" text-anchor="middle" font-family="-apple-system,'Segoe UI',Roboto,sans-serif" font-size="17" font-weight="850" fill="#15392a">Продаёт тот,</text>
+        <text x="200" y="99" text-anchor="middle" font-family="-apple-system,'Segoe UI',Roboto,sans-serif" font-size="17" font-weight="850" fill="#1c6b47">кто спрашивает.</text>
+        <path d="M28 340 L28 262 Q28 226 62 218 Q90 212 118 218 Q150 226 150 262 L150 340 Z" fill="#ffffff"/>
+        <path d="M28 340 L28 262 Q28 226 62 218 Q90 212 118 218 Q150 226 150 262 L150 340 Z" fill="none" stroke="#15392a" stroke-opacity=".13" stroke-width="2"/>
+        <circle cx="78" cy="205" r="23" fill="#f6d3ac"/>
+        <path d="M55 201 Q55 182 78 182 Q101 182 101 201 Q101 190 78 190 Q55 190 55 201 Z" fill="#8a8f88" opacity=".85"/>
+        <path d="M78 196 C78 222 92 230 104 240" fill="none" stroke="#15392a" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="110" cy="246" r="10" fill="#15392a"/>
+        <circle cx="110" cy="246" r="4.5" fill="#cbff38"/>
+        <path d="M212 340 L212 252 Q212 214 246 206 Q278 200 310 206 Q346 214 346 252 L346 340 Z" fill="#15392a"/>
+        <circle cx="282" cy="148" r="23" fill="#ecc193"/>
+        <path d="M259 142 Q259 121 282 121 Q305 121 305 142 Q305 130 282 130 Q259 130 259 142 Z" fill="#262019"/>
+        <rect x="216" y="244" width="120" height="72" rx="10" fill="#ffffff" opacity=".96"/>
+        <polyline points="228,300 250,284 268,292 292,266 318,256" fill="none" stroke="#1c6b47" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="318" cy="256" r="5" fill="#1c6b47"/>
+      </svg>
     </div>
   </article>
 
