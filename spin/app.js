@@ -55,6 +55,28 @@ function spicedSectionHtml() { // html секции «Курс 1а · SPICED» (
   }).join('')}
   </div>`;
 }
+function medSectionHtml() { // html секции «Курс 1B · MEDDPICC» (карточки уроков квалификации)
+  const md = MED.length ? MED.filter((ll, k) => S.medDone.includes(k)).length : 0;
+  return `
+  <div class="section-title-row" style="margin-top:26px"><div><h2>Курс 1B · MEDDPICC — квалификация сделки</h2><p>Проверка сделки · ${MED.length} ${pluralN(MED.length, ['урок', 'урока', 'уроков'])} · квалификация перед переговорами · пройдено ${md} из ${MED.length}</p></div></div>
+  ${cloudHtml(SPIN_DATA.meddicc)}
+  <div class="module-grid">
+  ${MED.map((ll, mi) => {
+    const d = S.medDone.includes(mi);
+    const parts = (ll.practice ? ll.practice.length : 0) || ll.blocks.length;
+    const desc = ll.intro.length > 90 ? ll.intro.slice(0, 90) + '…' : ll.intro;
+    return `<article class="module-card method-card current ${d ? 'completed' : ''}" data-med="${mi}" tabindex="0" role="button" title="Урок курса MEDDPICC — открыть">
+      <div class="module-number">${mi + 1}</div>
+      <div class="module-icon">${d ? '✓' : '↗'}</div>
+      <span class="status-label">${d ? 'ИЗУЧЕН' : 'УРОК ' + (mi + 1)}</span>
+      <h3>${esc(ll.title)}</h3>
+      <p>${esc(desc)}</p>
+      <div class="module-footer"><span>${esc(ll.mins)} · ${parts} раздела</span><strong>${d ? '100%' : '→'}</strong></div>
+      <div class="module-progress"><i style="width:${d ? 100 : 0}%"></i></div>
+    </article>`;
+  }).join('')}
+  </div>`;
+}
 function pluralN(n, forms) { // forms: [1, 2, 5] → «1 курс», «2 курса», «5 курсов»
   const m10 = n % 10, m100 = n % 100;
   if (m10 === 1 && m100 !== 11) return forms[0];
@@ -120,7 +142,7 @@ S.syncAt = null;       // время последней успешной син�
 S.dirty = false;       // есть несохранённые изменения
 
 function syncPayload() {
-  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spicedDone: S.spicedDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, name: USER ? USER.name : '', email: USER ? USER.email : '' };
+  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spicedDone: S.spicedDone, medDone: S.medDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, name: USER ? USER.name : '', email: USER ? USER.email : '' };
 }
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
@@ -223,7 +245,7 @@ async function cloudLoad() {
     if (cloud && cloud.xp > local.xp) {
       // облако строго новее — берём его
       S.lesson = cloud.lesson || 0; S.done = cloud.done || []; S.practiced = cloud.practiced || [];
-      S.spicedDone = cloud.spicedDone || [];
+      S.spicedDone = cloud.spicedDone || []; S.medDone = cloud.medDone || [];
       S.xp = cloud.xp || 0; S.correct = cloud.correct || 0; S.attempts = cloud.attempts || 0;
       try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
       if (local.xp > 0) toast('Прогресс загружен с сервера: ' + cloud.xp + ' XP');
@@ -397,14 +419,15 @@ function renderProgram() {
   curSpiced = null; // выход в программу закрывает режим SPICED-урока (курс 1а)
   const doneN = S.done.length;
   const spicedN = SPICED.filter((x, k) => S.spicedDone.includes(k)).length; // курс 1а входит в общий счёт
-  const totalAll = L.length + SPICED.length;
+  const medN = MED.filter((x, k) => S.medDone.includes(k)).length; // курс 1B MEDDPICC — тоже в общем счёте
+  const totalAll = L.length + SPICED.length + MED.length;
   let next = L.findIndex((l, i) => !S.done.includes(i));
   const spicedFull = SPICED.length > 0 && spicedN >= SPICED.length; // «Курс 1а» пройден целиком — открывает Курс 2
   const gateFrom = COURSES.length > 1 ? COURSES[1].from : L.length; // уроки Курса 2+ — только после SPICED
   const spIdx = SPICED.findIndex((x, k) => !S.spicedDone.includes(k)); // первый неоткрытый урок SPICED (-1 = все открыты)
   if (!spicedFull && next !== -1 && next >= gateFrom) next = -2; // Курс 1 пройден, но Курс 1а нет → ведём в SPICED
   const cur = next === -1 || next === -2 ? 0 : next;
-  const pct = Math.round(((doneN + spicedN) / totalAll) * 100);
+  const pct = Math.round(((doneN + spicedN + medN) / totalAll) * 100);
   const l = L[cur];
   const intro = (l.intro.length > 130 ? l.intro.slice(0, 130) + '…' : l.intro);
   const practiceN = l.practice ? l.practice.length : 0;
@@ -444,29 +467,18 @@ function renderProgram() {
     </div>`;
     // после Курса 1 (СПИН, gi===0) встраиваем курс 1а — SPICED
     const spicedBlock = (gi === 0 && SPICED.length) ? spicedSectionHtml() : '';
-    return html + spicedBlock;
+    const medBlock = (gi === 0 && MED.length) ? medSectionHtml() : ''; // «Курс 1B · MEDDPICC» — сразу после SPICED
+    return html + spicedBlock + medBlock;
   }).join('');
 
   const co = courseOf(cur);
   const allDone = doneN >= L.length && L.length > 0;
   const FINALE = SPIN_DATA.finale;
-  // «Отдельные программы»: MEDDPICC (курс вне маршрута) + методы «скоро»
-  const medMeta = SPIN_DATA.meddicc || null;
-  const medDoneN = MED.filter((ll, k) => S.medDone.includes(k)).length;
-  const medAll = MED.length > 0 && medDoneN >= MED.length;
+  // «Скоро в программе»: методы, которые ещё добавляются (книги в работе)
   const soonMethods = METHODS.filter((m) => m.soon);
-  const extraCtlHtml = (MED.length || soonMethods.length) ? `
-  <div class="section-title-row" style="margin-top:26px"><div><h2>Отдельные программы</h2><p>Методы вне маршрута</p></div></div>
+  const extraCtlHtml = soonMethods.length ? `
+  <div class="section-title-row" style="margin-top:26px"><div><h2>Скоро в программе</h2><p>Методы, которые добавляются</p></div></div>
   <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-    ${MED.length && medMeta ? `<article class="module-card method-card ${medAll ? 'completed' : 'current'}" data-medgo="1" tabindex="0" role="button" title="Курс MEDDPICC — открыть">
-      <div class="module-icon">${esc(medMeta.icon || 'M')}</div>
-      <span class="status-label">${medAll ? 'ПРОЙДЕН' : esc(medMeta.tag || 'MEDDPICC')}</span>
-      <h3>${esc(medMeta.title || 'MEDDPICC: квалификация сделки')}</h3>
-      <p>${esc(medMeta.short || '')}</p>
-      <div class="method-when"><strong>Когда:</strong> ${esc(medMeta.when || '')}</div>
-      <div class="module-footer"><span>${medDoneN} из ${MED.length} ${pluralN(MED.length, ['урок', 'урока', 'уроков'])}</span><strong>→</strong></div>
-      <div class="module-progress"><i style="width:${Math.round((medDoneN / MED.length) * 100)}%"></i></div>
-    </article>` : ''}
     ${soonMethods.map((m) => `<article class="module-card method-card locked" title="Курс скоро появится — книга в работе">
       <div class="module-icon">🔒</div>
       <span class="status-label">СКОРО</span>
@@ -500,7 +512,7 @@ function renderProgram() {
     <div>
       <p class="eyebrow">ПРОГРАММА ОБУЧЕНИЯ</p>
       <h1 id="program-title">Навыки продаж</h1>
-      <p>${L.length + SPICED.length} ${pluralN(L.length + SPICED.length, ['урок', 'урока', 'уроков'])} · ${COURSES.length + (MED.length ? 1 : 0) + (SPICED.length ? 1 : 0)} ${pluralN(COURSES.length + (MED.length ? 1 : 0) + (SPICED.length ? 1 : 0), ['курс', 'курса', 'курсов'])}</p>
+      <p>${totalAll} ${pluralN(totalAll, ['урок', 'урока', 'уроков'])} · ${COURSES.length + (MED.length ? 1 : 0) + (SPICED.length ? 1 : 0)} ${pluralN(COURSES.length + (MED.length ? 1 : 0) + (SPICED.length ? 1 : 0), ['курс', 'курса', 'курсов'])}</p>
     </div>
   </div>
 
@@ -532,7 +544,7 @@ function renderProgram() {
   </article>
 
   <div class="section-title-row">
-    <div><h2>Маршрут обучения</h2><p><span id="completedCount">${doneN + spicedN}</span> из ${totalAll} уроков пройдено</p></div>
+    <div><h2>Маршрут обучения</h2><p><span id="completedCount">${doneN + spicedN + medN}</span> из ${totalAll} уроков пройдено</p></div>
     <div class="overall-progress"><span id="overallPercent">${pct}%</span><div><i id="overallBar" style="width:${pct}%"></i></div></div>
   </div>
   ${moduleGroupsHtml}
@@ -1060,17 +1072,20 @@ async function loadTeam() {
       const nm = rawNm.charAt(0).toUpperCase() + rawNm.slice(1);
       const doneN = (m.done || []).length;
       const spicedN = (m.spicedDone || []).length;
+      const medN = (m.medDone || []).length;
       const pracN = (m.practiced || []).length;
       const lvl = levelFromXp(m.xp || 0);
-      const totalN = L.length + SPICED.length; // программа: основные уроки + курс 1а SPICED
-      const pct = Math.min(100, Math.round(((doneN + spicedN) / totalN) * 100));
+      const totalN = L.length + SPICED.length + MED.length; // программа: основные + курс 1а SPICED + курс 1B MEDDPICC
+      const pct = Math.min(100, Math.round(((doneN + spicedN + medN) / totalN) * 100));
       const spFull = SPICED.length > 0 && spicedN >= SPICED.length;
+      const medFull = MED.length > 0 && medN >= MED.length;
       const gFrom = COURSES.length > 1 ? COURSES[1].from : L.length;
       const nxtI = L.findIndex((_, k) => !(m.done || []).includes(k));
-      const fresh = doneN === 0 && spicedN === 0 && pracN === 0 && !(m.xp || 0);
+      const fresh = doneN === 0 && spicedN === 0 && medN === 0 && pracN === 0 && !(m.xp || 0);
       const status = fresh ? 'Ещё не начинал(а)'
-        : nxtI === -1 && (!SPICED.length || spFull) ? 'Курс завершён ✓'
+        : nxtI === -1 && (!SPICED.length || spFull) && (!MED.length || medFull) ? 'Курс завершён ✓'
         : (!spFull && SPICED.length > 0 && (nxtI === -1 || nxtI >= gFrom)) ? 'Курс 1а SPICED · урок ' + Math.min(spicedN + 1, SPICED.length) + ' из ' + SPICED.length
+        : (nxtI === -1 && spFull && !medFull && MED.length > 0) ? 'Курс 1B MEDDPICC · урок ' + Math.min(medN + 1, MED.length) + ' из ' + MED.length
         : 'Урок ' + (nxtI + 1) + ' · ' + L[nxtI].title;
       const act = agoLabel(m.updatedAt);
       return `<article class="team-card">
@@ -1082,7 +1097,7 @@ async function loadTeam() {
           <div class="skill-track"><i style="width:${pct}%"></i></div>
         </div>
         <div class="team-nums">
-          <b>${doneN + spicedN} из ${totalN}</b>
+          <b>${doneN + spicedN + medN} из ${totalN}</b>
           <span>уроков · уровень ${lvl}</span>
           <span>${m.xp || 0} XP</span>
           <span>${pracN ? 'практика: ' + pracN + ' уроков' : 'практика: —'}</span>
@@ -1106,8 +1121,8 @@ function agoLabel(ts) {
 function renderProgress() {
   const doneN = S.done.length;
   const spicedN = SPICED.filter((x, k) => S.spicedDone.includes(k)).length; // курс 1а входит в общий счёт
-  const medN = MED.filter((x, k) => S.medDone.includes(k)).length;
-  const totalAll = L.length + SPICED.length;
+  const medN = MED.filter((x, k) => S.medDone.includes(k)).length; // курс 1B MEDDPICC — тоже в общем счёте
+  const totalAll = L.length + SPICED.length + MED.length;
   const boss = isBoss();
   const pct = S.attempts ? Math.round((S.correct / S.attempts) * 100) : 0;
   const xp = S.xp;
@@ -1139,7 +1154,7 @@ function renderProgress() {
       <div class="level-badge"><span>УРОВЕНЬ</span><strong>${String(lvl).padStart(2, '0')}</strong></div>
     </div>
     <div class="stats-grid">
-      <article><span class="stat-icon">✓</span><strong id="statLessons">${doneN + spicedN}</strong><p>уроков пройдено</p><small>из ${totalAll} в программе</small></article>
+      <article><span class="stat-icon">✓</span><strong id="statLessons">${doneN + spicedN + medN}</strong><p>уроков пройдено</p><small>из ${totalAll} в программе</small></article>
       <article><span class="stat-icon">↗</span><strong id="statAccuracy">${pct}%</strong><p>точность ответов</p><small>в тренировках</small></article>
       <article><span class="stat-icon">⚡</span><strong id="statXp">${xp}</strong><p>очков опыта</p><small>ещё ${toNext} до уровня ${lvl + 1}</small></article>
       <article class="accent-stat"><span class="stat-icon">✦</span><strong>${S.correct}</strong><p>верных ответов</p><small>всего</small></article>
