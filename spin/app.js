@@ -37,6 +37,7 @@ function spicedSectionHtml() { // html секции «Курс 1а · SPICED» (
   const sd = SPICED.length ? SPICED.filter((ll, k) => S.spicedDone.includes(k)).length : 0;
   return `
   <div class="section-title-row" style="margin-top:26px"><div><h2>Курс 1а · SPICED — расширение СПИН</h2><p>Диагностика сделки · ${SPICED.length} ${pluralN(SPICED.length, ['урок', 'урока', 'уроков'])} · Winning by Design · пройдено ${sd} из ${SPICED.length} — открывается свободно</p></div></div>
+  ${cloudHtml(SPIN_DATA.spiced)}
   <div class="module-grid">
   ${SPICED.map((ll, si) => {
     const d = S.spicedDone.includes(si);
@@ -59,6 +60,23 @@ function pluralN(n, forms) { // forms: [1, 2, 5] → «1 курс», «2 кур�
   if (m10 === 1 && m100 !== 11) return forms[0];
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return forms[1];
   return forms[2];
+}
+
+// «вытянутое облако» — описание метода под названием курса, перед уроками
+const CLOUD_COLORS = { S: '#1f5fa8', C: '#c05621', K: '#6b4fa0', P: '#3d7a3d', M: '#a8342a', '1А': '#1f7a6d', '1A': '#1f7a6d', '📘': '#5b7aa8' };
+function cloudHtml(m) {
+  if (!m) return '';
+  const icon = String(m.icon || '?').trim();
+  const color = CLOUD_COLORS[icon] || '#2b4c7e';
+  return `<div class="cloud-m">
+    <div class="cloud-ico" style="background:${color}">${esc(icon)}</div>
+    <div class="cloud-body">
+      <span class="cloud-tag">${esc(m.tag || '')}</span>
+      <p class="cloud-title">${esc(m.title || '')}</p>
+      <p class="cloud-short">${esc(m.short || '')}</p>
+      ${m.when ? `<p class="cloud-when"><b>Когда:</b> ${esc(m.when)}</p>` : ''}
+    </div>
+  </div>`;
 }
 
 // ===== вход и прогресс =====
@@ -390,14 +408,17 @@ function renderProgram() {
   const intro = (l.intro.length > 130 ? l.intro.slice(0, 130) + '…' : l.intro);
   const practiceN = l.practice ? l.practice.length : 0;
   const groups = COURSES;
+  const METHODS = SPIN_DATA.methods || [];
   // ветка «сначала Курс 1а»: урок для continue-карточки
   const spCur = spIdx === -1 ? 0 : spIdx;
   const sl = next === -2 ? (SPICED[spCur] || null) : null;
   // «Курс 1а · SPICED» встраивается в маршрут сразу после Курса 1 (СПИН),
   // перед Курсом 2 (ВЫЗОВ): рендерим группы с разрезом по индексу СПИН
   const moduleGroupsHtml = groups.map((g, gi) => {
+    const mCloud = METHODS.find((m) => !m.soon && m.open != null && courseOf(m.open).idx === gi); // облако метода — после названия курса
     const html = `
     <div class="section-title-row" style="margin-top:${g.from ? '26px' : '0'}"><div><h2>${g.name}</h2><p>${g.to - g.from} ${pluralN(g.to - g.from, ['урок', 'урока', 'уроков'])} · пройдено ${doneInOf(g)} из ${g.to - g.from}</p></div></div>
+    ${cloudHtml(mCloud)}
     <div class="module-grid">
     ${L.slice(g.from, g.to).map((ll, gi) => {
       const i = g.from + gi;
@@ -427,15 +448,52 @@ function renderProgram() {
 
   const co = courseOf(cur);
   const allDone = doneN >= L.length && L.length > 0;
-  const METHODS = SPIN_DATA.methods || [];
   const FINALE = SPIN_DATA.finale;
-  // метод-карточки: СПИН → SPICED (курс 1а) → ВЫЗОВ/РЕШЕНИЯ/КОНСУЛЬТ → MEDDPICC → ПРОАКТИВ(скоро)
-  const _methodEntries = [];
-  METHODS.forEach((m, mi) => {
-    if (mi === 1 && SPICED.length) _methodEntries.push({ t: 'spiced' });   // сразу после СПИН
-    if (m.soon && MED.length) _methodEntries.push({ t: 'med' });           // перед «скоро»-карточкой
-    _methodEntries.push({ t: 'm', mi });
-  });
+  // «Отдельные программы»: MEDDPICC (курс вне маршрута) + методы «скоро»
+  const medMeta = SPIN_DATA.meddicc || null;
+  const medDoneN = MED.filter((ll, k) => S.medDone.includes(k)).length;
+  const medAll = MED.length > 0 && medDoneN >= MED.length;
+  const soonMethods = METHODS.filter((m) => m.soon);
+  const extraCtlHtml = (MED.length || soonMethods.length) ? `
+  <div class="section-title-row" style="margin-top:26px"><div><h2>Отдельные программы</h2><p>Методы вне маршрута</p></div></div>
+  <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+    ${MED.length && medMeta ? `<article class="module-card method-card ${medAll ? 'completed' : 'current'}" data-medgo="1" tabindex="0" role="button" title="Курс MEDDPICC — открыть">
+      <div class="module-icon">${esc(medMeta.icon || 'M')}</div>
+      <span class="status-label">${medAll ? 'ПРОЙДЕН' : esc(medMeta.tag || 'MEDDPICC')}</span>
+      <h3>${esc(medMeta.title || 'MEDDPICC: квалификация сделки')}</h3>
+      <p>${esc(medMeta.short || '')}</p>
+      <div class="method-when"><strong>Когда:</strong> ${esc(medMeta.when || '')}</div>
+      <div class="module-footer"><span>${medDoneN} из ${MED.length} ${pluralN(MED.length, ['урок', 'урока', 'уроков'])}</span><strong>→</strong></div>
+      <div class="module-progress"><i style="width:${Math.round((medDoneN / MED.length) * 100)}%"></i></div>
+    </article>` : ''}
+    ${soonMethods.map((m) => `<article class="module-card method-card locked" title="Курс скоро появится — книга в работе">
+      <div class="module-icon">🔒</div>
+      <span class="status-label">СКОРО</span>
+      <h3>${esc(m.title)}</h3>
+      <p>${esc(m.short)}</p>
+      <div class="method-when"><strong>Когда:</strong> ${esc(m.when || '')}</div>
+      <div class="module-footer"><span>книга в работе</span></div>
+    </article>`).join('')}
+  </div>` : '';
+  // «Дополнительно» — выжимки книг, в самый конец страницы
+  const extraBooksHtml = EXTRA.length ? `
+  <div class="section-title-row" style="margin-top:26px"><div><h2>Дополнительно</h2><p>Выжимки книг — короткие уроки сверх программы</p></div></div>
+  <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+    ${EXTRA.map((x, xi) => {
+      const rd = S.extraDone.includes(xi);
+      const parts = (x.practice ? x.practice.length : 0) || x.blocks.length;
+      const desc = x.intro.length > 100 ? x.intro.slice(0, 100) + '…' : x.intro;
+      return `
+      <article class="module-card method-card current ${rd ? 'completed' : ''}" data-extra="${xi}" tabindex="0" role="button" title="Выжимка книги — открыть">
+        <div class="module-icon">📘</div>
+        <span class="status-label">${rd ? 'ПРОЧИТАНО' : 'КНИГА'}</span>
+        <h3>${esc(x.title)}</h3>
+        <p>${esc(desc)}</p>
+        <div class="module-footer"><span>${esc(x.mins)} · ${parts} раздела</span><strong>→</strong></div>
+        ${rd ? `<div class="module-progress"><i style="width:100%"></i></div>` : ''}
+      </article>`;
+    }).join('')}
+  </div>` : '';
   $('programBody').innerHTML = `
   <div class="page-heading">
     <div>
@@ -472,77 +530,6 @@ function renderProgram() {
     </div>
   </article>
 
-  <div class="section-title-row"><div><h2>Методы продаж</h2><p>Коротко о каждом — подробно в курсах ниже</p></div></div>
-  <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-    ${_methodEntries.map((e) => {
-      if (e.t === 'spiced') {
-        const _sd = SPICED.filter((ll, k) => S.spicedDone.includes(k)).length;
-        const _all = SPICED.length && _sd >= SPICED.length;
-        const _md = SPIN_DATA.spiced || {};
-        return `
-        <article class="module-card method-card ${_all ? 'completed' : 'current'}" data-spicedgo="1" tabindex="0" role="button" title="Курс 1а SPICED — открыть">
-          <div class="module-icon">${esc(_md.icon || '1А')}</div>
-          <span class="status-label">${_all ? 'ПРОЙДЕН' : esc(_md.tag || 'КУРС 1А')}</span>
-          <h3>${esc(_md.title || 'SPICED — расширение СПИН')}</h3>
-          <p>${esc(_md.short || '')}</p>
-          <div class="method-when"><strong>Когда:</strong> ${esc(_md.when || '')}</div>
-          <div class="module-footer"><span>${_sd} из ${SPICED.length} ${pluralN(SPICED.length, ['урок', 'урока', 'уроков'])}</span><strong>→</strong></div>
-          <div class="module-progress"><i style="width:${SPICED.length ? Math.round((_sd / SPICED.length) * 100) : 0}%"></i></div>
-        </article>`;
-      }
-      if (e.t === 'med') {
-        const _sd = MED.filter((ll, k) => S.medDone.includes(k)).length;
-        const _all = MED.length && _sd >= MED.length;
-        const _md = SPIN_DATA.meddicc || {};
-        return `
-        <article class="module-card method-card ${_all ? 'completed' : 'current'}" data-medgo="1" tabindex="0" role="button" title="Курс MEDDPICC — открыть">
-          <div class="module-icon">${esc(_md.icon || 'M')}</div>
-          <span class="status-label">${_all ? 'ПРОЙДЕН' : esc(_md.tag || 'MEDDPICC')}</span>
-          <h3>${esc(_md.title || 'MEDDPICC: квалификация сделки')}</h3>
-          <p>${esc(_md.short || '')}</p>
-          <div class="method-when"><strong>Когда:</strong> ${esc(_md.when || '')}</div>
-          <div class="module-footer"><span>${_sd} из ${MED.length} ${pluralN(MED.length, ['урок', 'урока', 'уроков'])}</span><strong>→</strong></div>
-          <div class="module-progress"><i style="width:${MED.length ? Math.round((_sd / MED.length) * 100) : 0}%"></i></div>
-        </article>`;
-      }
-      const m = METHODS[e.mi];
-      const mi = e.mi;
-      const mc = m.open != null ? courseOf(m.open).g : null;
-      const doneIn = mc ? L.slice(mc.from, mc.to).filter((ll, k) => S.done.includes(mc.from + k)).length : 0;
-      const len = mc ? mc.to - mc.from : 0;
-      const allM = mc && doneIn >= len;
-      return `
-      <article class="module-card method-card ${m.soon ? 'locked' : 'current'} ${allM ? 'completed' : ''}" ${m.soon ? '' : `data-open="${m.open}" tabindex="0" role="button"`} ${m.soon ? 'title="Курс скоро появится — книга в работе"' : ''}>
-        <div class="module-icon">${m.soon ? '🔒' : m.icon}</div>
-        <span class="status-label">${m.soon ? 'СКОРО' : allM ? 'ПРОЙДЕН' : esc(m.tag)}</span>
-        <h3>${esc(m.title)}</h3>
-        <p>${esc(m.short)}</p>
-        <div class="method-when"><strong>Когда:</strong> ${esc(m.when)}</div>
-        <div class="module-footer"><span>${m.soon ? 'книга в работе' : `${doneIn} из ${len} ${pluralN(len, ['урок', 'урока', 'уроков'])}`}</span><strong>${m.soon ? '' : '→'}</strong></div>
-        ${mc ? `<div class="module-progress"><i style="width:${len ? Math.round((doneIn / len) * 100) : 0}%"></i></div>` : ''}
-      </article>`;
-    }).join('')}
-  </div>
-
-  ${EXTRA.length ? `
-  <div class="section-title-row" style="margin-top:26px"><div><h2>Дополнительно</h2><p>Выжимки книг — короткие уроки сверх программы</p></div></div>
-  <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-    ${EXTRA.map((x, xi) => {
-      const rd = S.extraDone.includes(xi);
-      const parts = (x.practice ? x.practice.length : 0) || x.blocks.length;
-      const desc = x.intro.length > 100 ? x.intro.slice(0, 100) + '…' : x.intro;
-      return `
-      <article class="module-card method-card current ${rd ? 'completed' : ''}" data-extra="${xi}" tabindex="0" role="button" title="Выжимка книги — открыть">
-        <div class="module-icon">📘</div>
-        <span class="status-label">${rd ? 'ПРОЧИТАНО' : 'КНИГА'}</span>
-        <h3>${esc(x.title)}</h3>
-        <p>${esc(desc)}</p>
-        <div class="module-footer"><span>${esc(x.mins)} · ${parts} раздела</span><strong>→</strong></div>
-        ${rd ? `<div class="module-progress"><i style="width:100%"></i></div>` : ''}
-      </article>`;
-    }).join('')}
-  </div>` : ''}
-
   <div class="section-title-row">
     <div><h2>Маршрут обучения</h2><p><span id="completedCount">${doneN + spicedN}</span> из ${totalAll} уроков пройдено</p></div>
     <div class="overall-progress"><span id="overallPercent">${pct}%</span><div><i id="overallBar" style="width:${pct}%"></i></div></div>
@@ -562,6 +549,8 @@ function renderProgram() {
     ${FINALE.note ? `<div class="example-block"><div class="example-label">ВАЖНО</div><div class="coach-note"><p>${esc(FINALE.note)}</p></div></div>` : ''}
   </article>
   ` : ''}
+  ${extraCtlHtml}
+  ${extraBooksHtml}
   `;
 
   $('programBody').querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.jump)));
