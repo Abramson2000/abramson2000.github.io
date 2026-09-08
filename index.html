@@ -474,6 +474,14 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .hover-card.hidden { display: none; }
 .hover-card h3 { margin: 0 0 8px; font-size: 16px; }
 @media (max-width: 899px) { .hover-card { display: none !important; } }
+/* v1.160: Клиники/Партнёры на десктопе — карточка закреплена справа, список занимает оставшееся место */
+@media (min-width: 900px) {
+  body.detail-mode #view { max-width: none; margin-right: 424px; }
+  body.detail-mode .hover-card {
+    position: fixed; top: 16px; right: 16px; left: auto; bottom: 16px;
+    width: 400px; max-height: none;
+  }
+}
 .badge a.tel { color: inherit; }
 .detail-block a.tel, .contact-row a.tel { color: var(--brand); }
 
@@ -1547,6 +1555,7 @@ document.getElementById('globalSearch').addEventListener('input', e => {
 
 // ---------- render ----------
 async function render() {
+  document.body.classList.toggle('detail-mode', state.view === 'clinics' || state.view === 'distributors');
   hideHover();
   setActiveTab(state.view);
   // гейт рабочих листов — применяется при каждом рендере (кеш не обманет)
@@ -2130,6 +2139,9 @@ async function renderOrgList(kind) {
     row.addEventListener('mouseenter', () => showHoverCard(row));
     row.addEventListener('mouseleave', hideHover);
   });
+  // v1.160: в Клиниках/Партнёрах сразу показываем карточку первой строки
+  const firstRow = view.querySelector('.list-row[data-id]');
+  if (document.body.classList.contains('detail-mode') && firstRow) showHoverCard(firstRow);
   view.querySelectorAll('.transfer-btn').forEach(b => b.addEventListener('click', async e => {
     e.stopPropagation();
     e.preventDefault();
@@ -2695,6 +2707,7 @@ let hoverTimer = null;
 let hoverPinned = false;
 
 function hideHover() {
+  if (document.body.classList.contains('detail-mode')) return; // в Клиниках/Партнёрах карточка закреплена
   clearTimeout(hoverTimer);
   hoverTimer = setTimeout(() => {
     if (hoverPinned) return;
@@ -2726,11 +2739,17 @@ async function showHoverCard(row) {
     }
     panel.innerHTML = inner;
     const r = row.getBoundingClientRect();
-    const pw = 380;
-    let left = r.right + 12;
-    if (left + pw > window.innerWidth - 12) left = Math.max(12, r.left - pw - 12);
-    panel.style.top = Math.max(12, r.top) + 'px';
-    panel.style.left = left + 'px';
+    if (document.body.classList.contains('detail-mode')) {
+      // закреплённая правая панель
+      panel.style.top = '16px';
+      panel.style.left = (window.innerWidth - 400 - 16) + 'px';
+    } else {
+      const pw = 380;
+      let left = r.right + 12;
+      if (left + pw > window.innerWidth - 12) left = Math.max(12, r.left - pw - 12);
+      panel.style.top = Math.max(12, r.top) + 'px';
+      panel.style.left = left + 'px';
+    }
     panel.classList.remove('hidden');
   }, 200);
 }
@@ -2738,7 +2757,10 @@ async function showHoverCard(row) {
 {
   const panel = document.getElementById('hoverCard');
   panel.addEventListener('mouseenter', () => { hoverPinned = true; clearTimeout(hoverTimer); });
-  panel.addEventListener('mouseleave', () => { hoverPinned = false; const f = panel.querySelector('.comment-field:focus'); if (f) f.blur(); panel.classList.add('hidden'); });
+  panel.addEventListener('mouseleave', () => {
+    if (document.body.classList.contains('detail-mode')) return;
+    hoverPinned = false; const f = panel.querySelector('.comment-field:focus'); if (f) f.blur(); panel.classList.add('hidden');
+  });
 }
 
 // инлайн-редактирование комментариев: контент-редактируемое поле, сохранение по blur
