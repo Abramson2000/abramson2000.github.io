@@ -38,17 +38,18 @@ function doneInOf(g) { // сколько уроков группы пройде�
 function spicedSectionHtml() { // html секции «Курс 1а · SPICED» (карточки уроков)
   const sd = SPICED.length ? SPICED.filter((ll, k) => S.spicedDone.includes(k)).length : 0;
   return `
-  <div class="section-title-row" style="margin-top:26px"><div><h2>Курс 1а · SPICED — расширение СПИН</h2><p>Диагностика сделки · ${SPICED.length} ${pluralN(SPICED.length, ['урок', 'урока', 'уроков'])} · Winning by Design · пройдено ${sd} из ${SPICED.length} — открывается свободно</p></div></div>
+  <div class="section-title-row" style="margin-top:26px"><div><h2>Курс 1а · SPICED — расширение СПИН</h2><p>Диагностика сделки · ${SPICED.length} ${pluralN(SPICED.length, ['урок', 'урока', 'уроков'])} · Winning by Design · пройдено ${sd} из ${SPICED.length} · уроки открываются по порядку</p></div></div>
   ${cloudHtml(SPIN_DATA.spiced)}
   <div class="module-grid">
   ${SPICED.map((ll, si) => {
     const d = S.spicedDone.includes(si);
+    const open = seqOk(S.spicedDone, si);
     const parts = (ll.practice ? ll.practice.length : 0) || ll.blocks.length;
     const desc = ll.intro.length > 90 ? ll.intro.slice(0, 90) + '…' : ll.intro;
-    return `<article class="module-card method-card current ${d ? 'completed' : ''}" data-spiced="${si}" tabindex="0" role="button" title="Урок курса SPICED — открыть">
+    return `<article class="module-card method-card ${d ? 'completed' : open ? 'current' : 'locked'}" ${open ? `data-spiced="${si}"` : 'data-seq-locked="1"'} tabindex="0" role="button" title="${open ? 'Урок курса SPICED — открыть' : 'Пройдите предыдущий урок — этот откроется после него'}">
       <div class="module-number">${si + 1}</div>
-      <div class="module-icon">${d ? '✓' : '↗'}</div>
-      <span class="status-label">${d ? 'ИЗУЧЕН' : 'УРОК ' + (si + 1)}</span>
+      <div class="module-icon">${d ? '✓' : open ? '↗' : '🔒'}</div>
+      <span class="status-label">${d ? 'ИЗУЧЕН' : open ? 'УРОК ' + (si + 1) : 'ЗАБЛОКИРОВАН'}</span>
       <h3>${esc(ll.title)}</h3>
       <p>${esc(desc)}</p>
       <div class="module-footer"><span>${esc(ll.mins)} · ${parts} раздела</span><strong>${d ? '100%' : '→'}</strong></div>
@@ -65,12 +66,13 @@ function medSectionHtml() { // html секции «Курс 1B · MEDDPICC» (к
   <div class="module-grid">
   ${MED.map((ll, mi) => {
     const d = S.medDone.includes(mi);
+    const open = seqOk(S.medDone, mi);
     const parts = (ll.practice ? ll.practice.length : 0) || ll.blocks.length;
     const desc = ll.intro.length > 90 ? ll.intro.slice(0, 90) + '…' : ll.intro;
-    return `<article class="module-card method-card current ${d ? 'completed' : ''}" data-med="${mi}" tabindex="0" role="button" title="Урок курса MEDDPICC — открыть">
+    return `<article class="module-card method-card ${d ? 'completed' : open ? 'current' : 'locked'}" ${open ? `data-med="${mi}"` : 'data-seq-locked="1"'} tabindex="0" role="button" title="${open ? 'Урок курса MEDDPICC — открыть' : 'Пройдите предыдущий урок — этот откроется после него'}">
       <div class="module-number">${mi + 1}</div>
-      <div class="module-icon">${d ? '✓' : '↗'}</div>
-      <span class="status-label">${d ? 'ИЗУЧЕН' : 'УРОК ' + (mi + 1)}</span>
+      <div class="module-icon">${d ? '✓' : open ? '↗' : '🔒'}</div>
+      <span class="status-label">${d ? 'ИЗУЧЕН' : open ? 'УРОК ' + (mi + 1) : 'ЗАБЛОКИРОВАН'}</span>
       <h3>${esc(ll.title)}</h3>
       <p>${esc(desc)}</p>
       <div class="module-footer"><span>${esc(ll.mins)} · ${parts} раздела</span><strong>${d ? '100%' : '→'}</strong></div>
@@ -87,12 +89,13 @@ function proSectionHtml() { // html секции «Курс 5 · Проакти�
   <div class="module-grid">
   ${PRO.map((ll, pi) => {
     const d = S.proDone.includes(pi);
+    const open = seqOk(S.proDone, pi);
     const parts = (ll.practice ? ll.practice.length : 0) || ll.blocks.length;
     const desc = ll.intro.length > 90 ? ll.intro.slice(0, 90) + '…' : ll.intro;
-    return `<article class="module-card method-card current ${d ? 'completed' : ''}" data-pro="${pi}" tabindex="0" role="button" title="Урок курса Проактивные продажи — открыть">
+    return `<article class="module-card method-card ${d ? 'completed' : open ? 'current' : 'locked'}" ${open ? `data-pro="${pi}"` : 'data-seq-locked="1"'} tabindex="0" role="button" title="${open ? 'Урок курса Проактивные продажи — открыть' : 'Пройдите предыдущий урок — этот откроется после него'}">
       <div class="module-number">${pi + 1}</div>
-      <div class="module-icon">${d ? '✓' : '↗'}</div>
-      <span class="status-label">${d ? 'ИЗУЧЕН' : 'УРОК ' + (pi + 1)}</span>
+      <div class="module-icon">${d ? '✓' : open ? '↗' : '🔒'}</div>
+      <span class="status-label">${d ? 'ИЗУЧЕН' : open ? 'УРОК ' + (pi + 1) : 'ЗАБЛОКИРОВАН'}</span>
       <h3>${esc(ll.title)}</h3>
       <p>${esc(desc)}</p>
       <div class="module-footer"><span>${esc(ll.mins)} · ${parts} раздела</span><strong>${d ? '100%' : '→'}</strong></div>
@@ -106,6 +109,13 @@ function pluralN(n, forms) { // forms: [1, 2, 5] → «1 курс», «2 кур�
   if (m10 === 1 && m100 !== 11) return forms[0];
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return forms[1];
   return forms[2];
+}
+function seqOk(doneArr, ei) { // урок ei доступен, если пройдены все предыдущие (цепочка)
+  const m = doneArr.length ? Math.max.apply(null, doneArr) : -1;
+  return ei <= m + 1;
+}
+function seqNextLocked(doneArr, ei) { // следующий за ei заблокирован, пока ei не отмечен
+  return !doneArr.includes(ei);
 }
 
 // «вытянутое облако» — описание метода под названием курса, перед уроками
@@ -670,7 +680,8 @@ function renderProgram() {
   $('programBody').querySelectorAll('[data-progo]').forEach((b) => b.addEventListener('click', () => { const n = PRO.findIndex((x, k) => !S.proDone.includes(k)); curPro = n === -1 ? 0 : n; curMed = null; curExtra = null; curSpiced = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-spicedgo]').forEach((b) => b.addEventListener('click', () => { const n = SPICED.findIndex((x, k) => !S.spicedDone.includes(k)); curSpiced = n === -1 ? 0 : n; curMed = null; curExtra = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('.module-card.locked:not(.method-card)').forEach((b) => b.addEventListener('click', () => toast('Сначала пройдите текущий урок — этот откроется после его практики')));
-  $('programBody').querySelectorAll('.method-card.locked').forEach((b) => b.addEventListener('click', () => toast('Курс скоро появится — книга в работе')));
+  $('programBody').querySelectorAll('.method-card.locked:not([data-seq-locked])').forEach((b) => b.addEventListener('click', () => toast('Курс скоро появится — книга в работе')));
+  $('programBody').querySelectorAll('[data-seq-locked]').forEach((b) => b.addEventListener('click', () => toast('Сначала пройдите предыдущий урок — этот откроется после него')));
 }
 
 // ============ ТЕОРИЯ (уроки) ============
@@ -680,6 +691,10 @@ function renderTheory() {
   if (curExtra !== null && curExtra >= EXTRA.length) { curExtra = null; } // открытый урок стал невидим — сброс
   if (curSpiced !== null && curSpiced >= SPICED.length) { curSpiced = null; } // открытый SPICED-урок стал недоступен — сброс
   if (curPro !== null && curPro >= PRO.length) { curPro = null; } // открытый ProActive-урок стал недоступен — сброс
+  // последовательность: если открытый урок больше недоступен по цепочке — откатываем на первый доступный непройденный
+  if (curSpiced !== null && !seqOk(S.spicedDone, curSpiced)) { curSpiced = Math.min((S.spicedDone.length ? Math.max.apply(null, S.spicedDone) : -1) + 1, SPICED.length - 1); }
+  if (curMed !== null && !seqOk(S.medDone, curMed)) { curMed = Math.min((S.medDone.length ? Math.max.apply(null, S.medDone) : -1) + 1, MED.length - 1); }
+  if (curPro !== null && !seqOk(S.proDone, curPro)) { curPro = Math.min((S.proDone.length ? Math.max.apply(null, S.proDone) : -1) + 1, PRO.length - 1); }
   const mode = curSpiced !== null ? 'spiced' : curMed !== null ? 'med' : curExtra !== null ? 'extra' : curPro !== null ? 'pro' : 'main';
   const i = mode === 'spiced' ? curSpiced : mode === 'med' ? curMed : mode === 'extra' ? curExtra : mode === 'pro' ? curPro : S.lesson;
   const l = mode === 'spiced' ? SPICED[i] : mode === 'med' ? MED[i] : mode === 'extra' ? EXTRA[i] : mode === 'pro' ? PRO[i] : L[i];
@@ -693,22 +708,28 @@ function renderTheory() {
   if (mode === 'spiced') {
     railItems = `<div class="lesson-group-label"><span>Курс 1а · SPICED</span>ДИАГНОСТИКА</div>` + SPICED.map((ll, ei) => {
       const d = S.spicedDone.includes(ei);
-      return `<button class="lesson-item ${ei === i ? 'active' : d ? 'done' : ''}" data-spiced="${ei}" title="Урок расширения СПИН">
-        <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : ''}
+      const open = seqOk(S.spicedDone, ei);
+      const locked = !d && !open;
+      return `<button class="lesson-item ${ei === i ? 'active' : d ? 'done' : locked ? 'locked' : ''}" data-spiced="${ei}" ${locked ? 'data-locked="1"' : ''} title="${locked ? 'Откроется после урока ' + ((S.spicedDone.length ? Math.max.apply(null, S.spicedDone) : 0) + 1) : 'Урок расширения СПИН'}">
+        <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}
       </button>`;
     }).join('');
   } else if (mode === 'med') {
     railItems = `<div class="lesson-group-label"><span>Курс MEDDPICC</span>КВАЛИФИКАЦИЯ</div>` + MED.map((ll, ei) => {
       const d = S.medDone.includes(ei);
-      return `<button class="lesson-item ${ei === i ? 'active' : d ? 'done' : ''}" data-med="${ei}" title="Урок квалификации сделки">
-        <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : ''}
+      const open = seqOk(S.medDone, ei);
+      const locked = !d && !open;
+      return `<button class="lesson-item ${ei === i ? 'active' : d ? 'done' : locked ? 'locked' : ''}" data-med="${ei}" ${locked ? 'data-locked="1"' : ''} title="${locked ? 'Откроется после урока ' + ((S.medDone.length ? Math.max.apply(null, S.medDone) : 0) + 1) : 'Урок квалификации сделки'}">
+        <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}
       </button>`;
     }).join('');
   } else if (mode === 'pro') {
     railItems = `<div class="lesson-group-label"><span>Курс 5 · ProActive</span>УПРАВЛЕНИЕ СДЕЛКОЙ</div>` + PRO.map((ll, ei) => {
       const d = S.proDone.includes(ei);
-      return `<button class="lesson-item ${ei === i ? 'active' : d ? 'done' : ''}" data-pro="${ei}" title="Урок Проактивных продаж">
-        <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : ''}
+      const open = seqOk(S.proDone, ei);
+      const locked = !d && !open;
+      return `<button class="lesson-item ${ei === i ? 'active' : d ? 'done' : locked ? 'locked' : ''}" data-pro="${ei}" ${locked ? 'data-locked="1"' : ''} title="${locked ? 'Откроется после урока ' + ((S.proDone.length ? Math.max.apply(null, S.proDone) : 0) + 1) : 'Урок Проактивных продаж'}">
+        <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}
       </button>`;
     }).join('');
   } else if (mode === 'extra') {
@@ -732,8 +753,10 @@ function renderTheory() {
       }).join('');
       const spicedRail = (gi === 0 && SPICED.length) ? `<div class="lesson-group-label"><span>Курс 1а</span>SPICED</div>` + SPICED.map((ll, ei) => {
         const d = S.spicedDone.includes(ei);
-        return `<button class="lesson-item ${d ? 'done' : ''}" data-spiced="${ei}" title="Урок расширения СПИН — открыть">
-          <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : ''}
+        const open = seqOk(S.spicedDone, ei);
+        const locked = !d && !open;
+        return `<button class="lesson-item ${d ? 'done' : locked ? 'locked' : ''}" data-spiced="${ei}" ${locked ? 'data-locked="1"' : ''} title="${locked ? 'Откроется после урока ' + ((S.spicedDone.length ? Math.max.apply(null, S.spicedDone) : 0) + 1) : 'Урок расширения СПИН — открыть'}">
+          <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}
         </button>`;
       }).join('') : '';
       return label + items + spicedRail;
@@ -771,18 +794,21 @@ function renderTheory() {
         ${mode === 'spiced'
           ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок изучен ✓' : 'Урок изучен'}</label>
              ${i + 1 < SPICED.length
-               ? `<button class="primary-button" id="nextBtn" data-spicednext="${i + 1}">Следующий урок <span>→</span></button>`
-               : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}`
+               ? `<button class="primary-button" id="nextBtn" data-spicednext="${i + 1}" ${done ? '' : 'disabled'}>Следующий урок <span>→</span></button>`
+               : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}
+             ${i + 1 < SPICED.length && !done ? '<p class="next-hint">Сначала отметьте этот урок изученным — и откроется следующий.</p>' : ''}`
           : mode === 'med'
           ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок изучен ✓' : 'Урок изучен'}</label>
              ${i + 1 < MED.length
-               ? `<button class="primary-button" id="nextBtn" data-mednext="${i + 1}">Следующий урок <span>→</span></button>`
-               : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}`
+               ? `<button class="primary-button" id="nextBtn" data-mednext="${i + 1}" ${done ? '' : 'disabled'}>Следующий урок <span>→</span></button>`
+               : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}
+             ${i + 1 < MED.length && !done ? '<p class="next-hint">Сначала отметьте этот урок изученным — и откроется следующий.</p>' : ''}`
           : mode === 'pro'
           ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок изучен ✓' : 'Урок изучен'}</label>
              ${i + 1 < PRO.length
-               ? `<button class="primary-button" id="nextBtn" data-pronext="${i + 1}">Следующий урок <span>→</span></button>`
-               : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}`
+               ? `<button class="primary-button" id="nextBtn" data-pronext="${i + 1}" ${done ? '' : 'disabled'}>Следующий урок <span>→</span></button>`
+               : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}
+             ${i + 1 < PRO.length && !done ? '<p class="next-hint">Сначала отметьте этот урок изученным — и откроется следующий.</p>' : ''}`
           : mode === 'extra'
           ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${S.extraDone.includes(i) ? 'checked' : ''} /><span></span>${S.extraDone.includes(i) ? 'Прочитано ✓' : 'Отметить прочитанным'}</label>
              <button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`
@@ -795,10 +821,10 @@ function renderTheory() {
     </article>`;
 
   $('theoryBody').querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.jump)));
-  $('theoryBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
-  $('theoryBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.med; curExtra = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curMed = +b.dataset.med; curExtra = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
   $('theoryBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
-  $('theoryBody').querySelectorAll('[data-pro]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.pro; curMed = null; curExtra = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-pro]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curPro = +b.dataset.pro; curMed = null; curExtra = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); }));
   $('theoryBody').querySelectorAll('[data-lesson]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.locked) { toast('Сначала пройдите текущий урок — этот откроется после его практики'); return; }
     S.lesson = +b.dataset.lesson; curExtra = null; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory();
@@ -808,11 +834,11 @@ function renderTheory() {
   const nxt = $('theoryBody').querySelector('[data-next]');
   if (nxt) nxt.addEventListener('click', () => { S.lesson = +nxt.dataset.next; curExtra = null; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); });
   const mn = $('theoryBody').querySelector('[data-mednext]');
-  if (mn) mn.addEventListener('click', () => { curMed = +mn.dataset.mednext; curExtra = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); });
+  if (mn) mn.addEventListener('click', () => { if (!seqOk(S.medDone, +mn.dataset.mednext)) { toast('Сначала отметьте текущий урок изученным'); return; } curMed = +mn.dataset.mednext; curExtra = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); });
   const sn = $('theoryBody').querySelector('[data-spicednext]');
-  if (sn) sn.addEventListener('click', () => { curSpiced = +sn.dataset.spicednext; curExtra = null; curMed = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); });
+  if (sn) sn.addEventListener('click', () => { if (!seqOk(S.spicedDone, +sn.dataset.spicednext)) { toast('Сначала отметьте текущий урок изученным'); return; } curSpiced = +sn.dataset.spicednext; curExtra = null; curMed = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); });
   const pn = $('theoryBody').querySelector('[data-pronext]');
-  if (pn) pn.addEventListener('click', () => { curPro = +pn.dataset.pronext; curExtra = null; curMed = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); });
+  if (pn) pn.addEventListener('click', () => { if (!seqOk(S.proDone, +pn.dataset.pronext)) { toast('Сначала отметьте текущий урок изученным'); return; } curPro = +pn.dataset.pronext; curExtra = null; curMed = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); });
   const chk = $('lessonComplete');
   if (chk) chk.addEventListener('change', () => {
     if (mode === 'spiced') {
