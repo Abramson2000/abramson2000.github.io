@@ -524,9 +524,22 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs64', './hero-2.jpg?v=crs64', './hero-3.jpg?v=crs64', './hero-4.jpg?v=crs64', './hero-5.jpg?v=crs64', './hero-6.jpg?v=crs64', './hero-7.jpg?v=crs64', './hero-8.jpg?v=crs64', './hero-9.jpg?v=crs64', './hero-10.jpg?v=crs64'];
-let heroSeq = 0, heroTimer = null;
-function heroNext() { return HERO_SHOTS[heroSeq++ % HERO_SHOTS.length]; }
+const HERO_SHOTS = ['./hero-1.jpg?v=crs65', './hero-2.jpg?v=crs65', './hero-3.jpg?v=crs65', './hero-4.jpg?v=crs65', './hero-5.jpg?v=crs65', './hero-6.jpg?v=crs65', './hero-7.jpg?v=crs65', './hero-8.jpg?v=crs65', './hero-9.jpg?v=crs65', './hero-10.jpg?v=crs65'];
+let heroOrder = [], heroPos = 0, heroTimer = null;
+function shuffleHero() { // перемешивание без повторов подряд
+  const a = HERO_SHOTS.map((_, i) => i);
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function heroNext() {
+  if (heroPos >= heroOrder.length) {
+    const last = heroOrder.length ? heroOrder[heroOrder.length - 1] : -1;
+    heroOrder = shuffleHero();
+    if (heroOrder.length > 1 && heroOrder[0] === last) heroOrder.push(heroOrder.shift()); // не та же картинка дважды подряд
+    heroPos = 0;
+  }
+  return HERO_SHOTS[heroOrder[heroPos++]];
+}
 function stopHeroRotation() { if (heroTimer) { clearInterval(heroTimer); heroTimer = null; } }
 function startHeroRotation() {
   stopHeroRotation();
