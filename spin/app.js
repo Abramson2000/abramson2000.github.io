@@ -504,6 +504,21 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============ ПРОГРАММА ============
+// Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
+const HERO_SHOTS = ['./hero-1.jpg?v=crs60', './hero-2.jpg?v=crs60', './hero-3.jpg?v=crs60'];
+let heroSeq = 0, heroTimer = null;
+function heroNext() { return HERO_SHOTS[heroSeq++ % HERO_SHOTS.length]; }
+function stopHeroRotation() { if (heroTimer) { clearInterval(heroTimer); heroTimer = null; } }
+function startHeroRotation() {
+  stopHeroRotation();
+  heroTimer = setInterval(() => {
+    const el = $('continueHero');
+    if (!el) { stopHeroRotation(); return; }
+    el.style.opacity = '0';
+    setTimeout(() => { el.src = heroNext(); el.style.opacity = '1'; }, 550);
+  }, 8000);
+}
+
 function renderProgram() {
   refreshExtra();
   curExtra = null; // выход в программу закрывает режим доп-урока
@@ -630,28 +645,7 @@ function renderProgram() {
       </div>
     </div>
     <div class="continue-visual" aria-hidden="true">
-      <svg viewBox="0 0 360 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block">
-        <defs><linearGradient id="cvbg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#c3ef48"/><stop offset="1" stop-color="#eaffad"/></linearGradient></defs>
-        <rect width="360" height="340" fill="url(#cvbg)"/>
-        <circle cx="360" cy="8" r="64" fill="#ffffff" opacity=".35"/>
-        <circle cx="0" cy="336" r="80" fill="#15392a" opacity=".07"/>
-        <circle cx="70" cy="122" r="23" fill="#15392a"/>
-        <path d="M26 340 L26 212 Q70 190 114 212 L114 340 Z" fill="#ffffff" stroke="#15392a" stroke-opacity=".2" stroke-width="2"/>
-        <path d="M56 140 Q70 160 84 140" fill="none" stroke="#15392a" stroke-width="5" stroke-linecap="round"/>
-        <path d="M70 158 L70 205" stroke="#15392a" stroke-width="4.5"/>
-        <circle cx="70" cy="221" r="10.5" fill="#15392a"/>
-        <circle cx="70" cy="221" r="4.5" fill="#cbff38"/>
-        <rect x="48" y="252" width="11" height="11" fill="#15392a" opacity=".75"/>
-        <circle cx="288" cy="124" r="23" fill="#ffffff" stroke="#15392a" stroke-opacity=".35" stroke-width="3"/>
-        <path d="M244 340 L244 220 Q288 200 332 220 L332 340 Z" fill="#15392a"/>
-        <rect x="270" y="204" width="15" height="15" fill="#cbff38"/>
-        <rect x="250" y="242" width="58" height="46" rx="6" fill="#ffffff"/>
-        <polyline points="258,274 278,264 292,268 302,252" fill="none" stroke="#1c6b47" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="296" y="246" width="9" height="9" fill="#1c6b47"/>
-        <rect x="126" y="126" width="24" height="24" fill="#15392a"/>
-        <rect x="150" y="135" width="60" height="7" fill="#15392a" opacity=".85"/>
-        <rect x="210" y="150" width="24" height="24" fill="#ffffff"/>
-      </svg>
+      <img id="continueHero" class="continue-hero" src="${heroNext()}" alt="" />
     </div>
   </article>
 
@@ -699,6 +693,7 @@ function renderProgram() {
   $('programBody').querySelectorAll('.module-card.locked:not(.method-card)').forEach((b) => b.addEventListener('click', () => toast('Сначала пройдите текущий урок — этот откроется после его практики')));
   $('programBody').querySelectorAll('.method-card.locked:not([data-seq-locked])').forEach((b) => b.addEventListener('click', () => toast('Курс скоро появится — книга в работе')));
   $('programBody').querySelectorAll('[data-seq-locked]').forEach((b) => b.addEventListener('click', () => toast('Сначала пройдите предыдущий урок — этот откроется после него')));
+  startHeroRotation();
 }
 
 // ============ ТЕОРИЯ (уроки) ============
