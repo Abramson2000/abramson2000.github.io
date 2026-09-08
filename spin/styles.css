@@ -374,3 +374,20 @@ button { color: inherit; }
 .pm-line.clickable:hover { background: #f2f8ec; }
 .pm-track { display: block; height: 4px; border-radius: 4px; background: #e8efe2; width: 100%; overflow: hidden; }
 .pm-track em { display: block; height: 100%; background: #7fae62; border-radius: 4px; }
+
+/* ===== Офлайн-подсказка на экране входа ===== */
+.offline-hint { display: block; margin: 14px auto 0; padding: 6px 10px; border: 0; background: transparent; color: var(--green); font-size: 13px; font-weight: 800; cursor: pointer; }
+.offline-hint:hover { color: var(--ink); }
+.modal-overlay { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(21, 57, 42, .45); backdrop-filter: blur(4px); }
+.modal-card { position: relative; width: min(460px, 100%); max-height: 86vh; overflow: auto; padding: 34px 32px 28px; border-radius: 24px; background: #fff; box-shadow: 0 24px 70px rgba(10, 40, 25, .35); text-align: left; }
+.modal-card h2 { margin: 0 0 12px; font-size: 24px; letter-spacing: -.03em; color: var(--ink); }
+.modal-card > p { margin: 0 0 18px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.modal-close { position: absolute; top: 14px; right: 16px; width: 32px; height: 32px; border: 0; border-radius: 50%; background: var(--paper); color: var(--muted); font-size: 14px; cursor: pointer; }
+.modal-close:hover { background: var(--lime-soft); color: var(--ink); }
+.offline-steps { display: grid; gap: 10px; margin: 0 0 18px; }
+.offline-step { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.offline-step > span { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--ink); color: var(--lime); font-size: 12px; font-weight: 900; }
+.offline-step b { display: block; font-size: 14px; color: var(--ink); }
+.offline-step small { display: block; margin-top: 2px; color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+.offline-note { margin: 0 0 20px !important; padding: 12px 14px; border-radius: 12px; background: var(--lime-soft); color: var(--ink) !important; font-size: 13px !important; }
+.modal-ok { width: 100%; padding: 13px; font-size: 15px; }

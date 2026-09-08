@@ -398,6 +398,18 @@ async function initAuth() {
   $('appShell').style.display = 'none';
 }
 function bindLogin() {
+  // модалка «Работает в полёте» (офлайн-режим)
+  const openModal = () => { const m = $('offlineModal'); if (m) m.classList.remove('hidden'); };
+  const closeModal = () => { const m = $('offlineModal'); if (m) m.classList.add('hidden'); };
+  const hint = $('offlineHintBtn');
+  if (hint) hint.addEventListener('click', openModal);
+  const ok = $('offlineModalOk');
+  if (ok) ok.addEventListener('click', closeModal);
+  const x = $('offlineModalClose');
+  if (x) x.addEventListener('click', closeModal);
+  const ov = $('offlineModal');
+  if (ov) ov.addEventListener('click', (e) => { if (e.target === ov) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
   const doLogin = async () => {
     const raw = $('loginEmail').value.trim();
     const email = (raw.includes('@') ? raw : raw + '@crm.ru').toLowerCase();
@@ -512,7 +524,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs63', './hero-2.jpg?v=crs63', './hero-3.jpg?v=crs63', './hero-4.jpg?v=crs63', './hero-5.jpg?v=crs63', './hero-6.jpg?v=crs63', './hero-7.jpg?v=crs63', './hero-8.jpg?v=crs63', './hero-9.jpg?v=crs63', './hero-10.jpg?v=crs63'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs64', './hero-2.jpg?v=crs64', './hero-3.jpg?v=crs64', './hero-4.jpg?v=crs64', './hero-5.jpg?v=crs64', './hero-6.jpg?v=crs64', './hero-7.jpg?v=crs64', './hero-8.jpg?v=crs64', './hero-9.jpg?v=crs64', './hero-10.jpg?v=crs64'];
 let heroSeq = 0, heroTimer = null;
 function heroNext() { return HERO_SHOTS[heroSeq++ % HERO_SHOTS.length]; }
 function stopHeroRotation() { if (heroTimer) { clearInterval(heroTimer); heroTimer = null; } }
