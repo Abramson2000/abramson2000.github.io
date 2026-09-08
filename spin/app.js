@@ -119,11 +119,14 @@ function pluralN(n, forms) { // forms: [1, 2, 5] → «1 курс», «2 кур�
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return forms[1];
   return forms[2];
 }
+const REVIEW_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).get('review') === '1'; // ?review=1 — режим проверки: все уроки открыты без входа
 function seqOk(doneArr, ei) { // урок ei доступен, если пройдены все предыдущие (цепочка)
+  if (REVIEW_MODE) return true;
   const m = doneArr.length ? Math.max.apply(null, doneArr) : -1;
   return ei <= m + 1;
 }
 function seqNextLocked(doneArr, ei) { // следующий за ei заблокирован, пока ei не отмечен
+  if (REVIEW_MODE) return false;
   return !doneArr.includes(ei);
 }
 
@@ -376,6 +379,11 @@ async function initAuth() {
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
     : null;
   if (!SB) { alert('Не удалось загрузить модуль входа. Обновите страницу.'); return; }
+  // режим проверки: ?review=1 — просмотр всех уроков без входа (прогресс не сохраняется)
+  if (REVIEW_MODE) {
+    boot({ id: 'reviewer', email: 'review@crm.ru', name: 'Проверка' });
+    return;
+  }
   try {
     const { data } = await SB.auth.getSession();
     if (data && data.session && data.session.user) { boot(data.session.user); return; }
@@ -535,9 +543,9 @@ function renderProgram() {
       const done = S.done.includes(i);
       const gated = !spicedFull && g.from >= gateFrom; // курс за SPICED-гейтом (Курс 2+)
       const isCur = i === cur && !done && !gated;
-      const open = done || isCur;
-      const icon = done ? '✓' : isCur ? '↗' : '🔒';
-      const status = done ? 'ЗАВЕРШЁН' : isCur ? 'ТЕКУЩИЙ' : 'ЗАБЛОКИРОВАН';
+      const open = done || isCur || REVIEW_MODE;
+      const icon = done ? '✓' : (isCur || REVIEW_MODE) ? '↗' : '🔒';
+      const status = done ? 'ЗАВЕРШЁН' : (isCur || REVIEW_MODE) ? 'ТЕКУЩИЙ' : 'ЗАБЛОКИРОВАН';
       const desc = (ll.intro.length > 90 ? ll.intro.slice(0, 90) + '…' : ll.intro);
       const parts = (ll.practice ? ll.practice.length : 0) || ll.blocks.length;
       return `<article class="module-card ${done ? 'completed' : isCur ? 'current' : 'locked'}" ${open ? `data-open="${i}" tabindex="0" role="button"` : ''} title="${open ? '' : gated ? 'Пройдите Курс 1а · SPICED — и Курс 2 откроется' : 'Откроется после прохождения текущего урока'}">
@@ -678,7 +686,7 @@ function renderProgram() {
     curPro = null;
     const sFull = SPICED.length > 0 && SPICED.every((x, k) => S.spicedDone.includes(k));
     const gFrom = COURSES.length > 1 ? COURSES[1].from : L.length;
-    if (!sFull && i >= gFrom) { toast('Сначала пройдите Курс 1а · SPICED — потом откроется Курс 2'); return; }
+    if (!REVIEW_MODE && !sFull && i >= gFrom) { toast('Сначала пройдите Курс 1а · SPICED — потом откроется Курс 2'); return; }
     S.lesson = i; curExtra = null; curMed = null; curSpiced = null; switchTab('theory');
   }));
   $('programBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curMed = null; curSpiced = null; curPro = null; switchTab('theory'); }));
@@ -755,7 +763,7 @@ function renderTheory() {
         const done = S.done.includes(j);
         const sFull = SPICED.length > 0 && SPICED.every((x, k) => S.spicedDone.includes(k));
         const gFrom = COURSES.length > 1 ? COURSES[1].from : L.length;
-        const locked = !done && ((curT !== -1 && j > curT) || (!sFull && j >= gFrom));
+        const locked = !REVIEW_MODE && !done && ((curT !== -1 && j > curT) || (!sFull && j >= gFrom));
         return `<button class="lesson-item ${j === i ? 'active' : done ? 'done' : locked ? 'locked' : ''}" data-lesson="${j}" ${locked ? 'data-locked="1"' : ''} title="${locked ? (curT !== -1 && j > curT ? 'Откроется после урока ' + (curT + 1) : 'Пройдите Курс 1а · SPICED — и Курс 2 откроется') : ''}">
           <span>${gi + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${done ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}
         </button>`;
