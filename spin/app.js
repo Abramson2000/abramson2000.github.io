@@ -347,12 +347,16 @@ async function cloudLoad() {
     if (S.dirty) cloudSave(); else setSync('saved');
   }
 }
+// русские фамилии для логинов CRM (если в профиле supabase имя не заполнено)
+const RU_NAMES = { abramson: 'Abramson', skokova: 'Скокова', osechkina: 'Осечкина', mazaeva: 'Мазаева' };
 function userName(user) {
   // сначала имя из профиля (user_metadata.name), иначе из email
   const meta = (user && user.user_metadata) || {};
   if (meta.name && meta.name.trim()) return meta.name.trim();
   const raw = ((user && user.email) || '').split('@')[0] || '';
   if (!raw) return 'Гость';
+  const ru = RU_NAMES[raw.toLowerCase()];
+  if (ru) return ru;
   return raw[0].toUpperCase() + raw.slice(1);
 }
 function boot(user) {
@@ -524,7 +528,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs66', './hero-2.jpg?v=crs66', './hero-3.jpg?v=crs66', './hero-4.jpg?v=crs66', './hero-5.jpg?v=crs66', './hero-6.jpg?v=crs66', './hero-7.jpg?v=crs66', './hero-8.jpg?v=crs66', './hero-9.jpg?v=crs66', './hero-10.jpg?v=crs66'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs67', './hero-2.jpg?v=crs67', './hero-3.jpg?v=crs67', './hero-4.jpg?v=crs67', './hero-5.jpg?v=crs67', './hero-6.jpg?v=crs67', './hero-7.jpg?v=crs67', './hero-8.jpg?v=crs67', './hero-9.jpg?v=crs67', './hero-10.jpg?v=crs67'];
 let heroOrder = [], heroPos = 0, heroTimer = null;
 function shuffleHero() { // перемешивание без повторов подряд
   const a = HERO_SHOTS.map((_, i) => i);
