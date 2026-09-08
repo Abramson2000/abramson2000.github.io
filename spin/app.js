@@ -17,6 +17,7 @@ const refreshExtra = () => { EXTRA = EXTRA_ALL.filter((x) => !x.only || (x.only 
 const MED = (SPIN_DATA.meddicc && SPIN_DATA.meddicc.lessons) || [];
 const SPICED = (SPIN_DATA.spiced && SPIN_DATA.spiced.lessons) || []; // курс 1а — расширение СПИН
 const PRO = (SPIN_DATA.proactive && SPIN_DATA.proactive.lessons) || []; // курс 5 — Проактивные продажи (Skip Miller)
+const PRO_TRAINER = (SPIN_DATA.proactive && SPIN_DATA.proactive.trainer) || []; // 15 готовых ситуаций из мастер-курса
 let curMed = null;                     // индекс открытого MEDDPICC-урока (или null = основной урок)
 let curSpiced = null;                  // индекс открытого SPICED-урока (курс 1а)
 let curPro = null;                      // индекс открытого ProActive-урока (курс 5)
@@ -1035,8 +1036,77 @@ function renderTrainer() {
             </article>`;
           }).join('')}
         </div>`;
-      }).join('')}`;
-    b.querySelectorAll('[data-mode]').forEach((x) => x.addEventListener('click', () => { S.tMode = x.dataset.mode; S.tOrder = shuffle(BANK_BY_MODE[x.dataset.mode] || quiz); S.tIdx = 0; S.tScore = 0; S.tPick = null; renderTrainer(); }));
+      }).join('')}
+      ${PRO_TRAINER.length ? `
+      <div class="section-title-row" style="margin-top:30px">
+        <div><h2>Курс 5 · Проактивные продажи</h2><p>готовые ситуации из мастер-курса · выберите правильное действие</p></div>
+      </div>
+      <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
+        <article class="module-card current" data-mode="proact">
+          <div class="module-icon">P</div>
+          <span class="status-label">${PRO_TRAINER.length} СИТУАЦИЙ</span>
+          <h3>Ситуации ProActive</h3>
+          <p>Врач просит «информацию», заведующий хочет «в следующем году», клиент «подумает» — ваше действие?</p>
+          <div class="module-footer"><span>~8 мин</span><strong>→</strong></div>
+        </article>
+      </div>` : ''}`;
+    b.querySelectorAll('[data-mode]').forEach((x) => x.addEventListener('click', () => { S.tMode = x.dataset.mode; S.tOrder = shuffle(x.dataset.mode === 'proact' ? PRO_TRAINER : (BANK_BY_MODE[x.dataset.mode] || quiz)); S.tIdx = 0; S.tScore = 0; S.tPick = null; renderTrainer(); }));
+    return;
+  }
+  // режим «Ситуации ProActive»: задания с вариантами (готовые задачи мастер-курса), +5 XP за верный
+  if (S.tMode === 'proact' && PRO_TRAINER.length) {
+    if (S.tIdx >= S.tOrder.length) {
+      const pct = Math.round((S.tScore / S.tOrder.length) * 100);
+      const verdict = pct >= 85 ? 'Отличная реакция. Так и работайте с клиникой!' : pct >= 60 ? 'Неплохо. Повторите уроки курса 5 и попробуйте ещё раз.' : 'Пока рано. Вернитесь к урокам 1–12 Курса 5.';
+      b.innerHTML = `
+        <div class="page-heading"><p class="eyebrow">СИТУАЦИИ PROACTIVE · ИТОГ</p><h1>${S.tScore} из ${S.tOrder.length}</h1><p>${pct}% верных · ${verdict}</p></div>
+        <div class="feedback-actions">
+          <button class="primary-button" id="tAgain">Ещё раз</button>
+          <button class="secondary-button" id="tMode">Другой режим</button>
+        </div>`;
+      $('tAgain').addEventListener('click', () => { S.tOrder = shuffle(PRO_TRAINER); S.tIdx = 0; S.tScore = 0; S.tPick = null; renderTrainer(); });
+      $('tMode').addEventListener('click', () => { S.tMode = null; renderTrainer(); });
+      return;
+    }
+    const q = S.tOrder[S.tIdx];
+    const picked = S.tPick;
+    b.innerHTML = `
+      <div class="trainer-header">
+        <div><p class="eyebrow">СИТУАЦИИ PROACTIVE</p><h1 id="trainer-title">Что вы сделаете?</h1><p>Готовые ситуации из мастер-курса · выберите действие и увидите разбор.</p></div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="round-indicator"><strong>${S.tIdx + 1}</strong><span>/ ${S.tOrder.length} · ✓ ${S.tScore}</span></div>
+          <button class="mode-switch" id="tSwitch">Сменить режим</button>
+        </div>
+      </div>
+      <div class="trainer-grid">
+        <article class="scenario-card">
+          <div class="scenario-top"><span class="case-chip">СИТУАЦИЯ</span><span>Курс 5 · ProActive</span></div>
+          <blockquote id="clientPhrase">«${esc(q.q)}»</blockquote>
+        </article>
+        <article class="answers-card">
+          <div id="answerArea">
+            <p class="answer-prompt">Ваше действие:</p>
+            ${q.options.map((o, oi) => `<button class="answer-option" data-oi="${oi}" ${picked !== null ? 'disabled' : ''}><span>${String.fromCharCode(65 + oi)}</span><p>${esc(o.label)}</p></button>`).join('')}
+          </div>
+          <div id="feedbackArea" class="feedback-area hidden" aria-live="polite"></div>
+        </article>
+      </div>`;
+    b.querySelectorAll('[data-oi]').forEach((btn) => btn.addEventListener('click', () => {
+      if (S.tPick !== null) return;
+      S.tPick = +btn.dataset.oi;
+      S.attempts++;
+      const o = q.options[S.tPick];
+      const ok = !!o.good;
+      if (ok) { S.correct++; S.tScore++; addXp(5); toast('Верно · +5 XP'); } else { save(); syncChrome(); }
+      btn.classList.add(ok ? 'correct' : 'wrong');
+      q.options.forEach((x, xi) => { if (x.good) b.querySelectorAll('[data-oi]')[xi].classList.add('correct'); });
+      const fa = $('feedbackArea');
+      fa.classList.remove('hidden');
+      fa.innerHTML = `<div class="feedback-icon">${ok ? '✓' : '✗'}</div><h2>${ok ? 'Верно' : 'Неверно'}</h2><p>${esc(o.fb)}</p><div class="feedback-actions"><button class="primary-button" id="tNext">${S.tIdx + 1 >= S.tOrder.length ? 'Итог' : 'Дальше →'}</button></div>`;
+      $('tNext').addEventListener('click', () => { S.tIdx++; S.tPick = null; renderTrainer(); });
+    }));
+    const ts = $('tSwitch');
+    if (ts) ts.addEventListener('click', () => { S.tMode = null; S.tIdx = 0; S.tPick = null; renderTrainer(); });
     return;
   }
   const bank = BANK_BY_MODE[S.tMode] || quiz;
