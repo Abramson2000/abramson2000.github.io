@@ -482,6 +482,14 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
     width: 400px; max-height: none;
   }
 }
+@media (min-width: 1250px) {
+  body.detail-mode #view { margin-right: 624px; }
+  body.detail-mode .hover-card { width: 600px; }
+}
+@media (min-width: 1400px) {
+  body.detail-mode #view { margin-right: 724px; }
+  body.detail-mode .hover-card { width: 700px; }
+}
 .badge a.tel { color: inherit; }
 .detail-block a.tel, .contact-row a.tel { color: var(--brand); }
 
@@ -2740,9 +2748,10 @@ async function showHoverCard(row) {
     panel.innerHTML = inner;
     const r = row.getBoundingClientRect();
     if (document.body.classList.contains('detail-mode')) {
-      // закреплённая правая панель
+      // закреплённая правая панель (ширина зависит от экрана)
+      const pw = window.innerWidth >= 1400 ? 700 : window.innerWidth >= 1250 ? 600 : 400;
       panel.style.top = '16px';
-      panel.style.left = (window.innerWidth - 400 - 16) + 'px';
+      panel.style.left = (window.innerWidth - pw - 16) + 'px';
     } else {
       const pw = 380;
       let left = r.right + 12;
