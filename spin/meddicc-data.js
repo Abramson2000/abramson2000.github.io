@@ -1179,8 +1179,9 @@
     lessons: lessons
   };
 
-  // ---- Шпаргалка: карта сделки ----
-  SPIN_DATA.cheatSections.push({
+  // ---- Шпаргалка: карта сделки — после SPICED (Курс 1B идёт сразу за Курсом 1а) ----
+  const medAnchor = SPIN_DATA.cheatSections.findIndex((c) => c.title && (c.title.indexOf('SPICED: пять блоков') === 0 || c.title.indexOf('Если X — делай Y') === 0));
+  SPIN_DATA.cheatSections.splice(medAnchor >= 0 ? medAnchor + 1 : SPIN_DATA.cheatSections.length, 0, {
     "title": "Карта сделки MEDDPICC",
     "intro": "Восемь элементов + риски: идите по списку и честно ставьте балл. 0 — неизвестно, 1 — предположение, 2 — подтверждено одним, 3 — подтверждено фактом/несколькими. Низкая сумма — не приговор, а список того, что выяснить.",
     "items": [

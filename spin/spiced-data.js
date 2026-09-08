@@ -639,9 +639,10 @@
     when: "СПИН-вопросы дали тёплый разговор, но нет ясности: когда, у кого и на каких условиях клиент решится.",
     lessons: lessons
   };
-  // Шпаргалка SPICED — вставляется сразу после секции СПИН
+  // Шпаргалка SPICED — вставляется после шпаргалок Курса 1 (после «Если X — делай Y»)
   if (SPIN_DATA.cheatSections && Array.isArray(SPIN_DATA.cheatSections)) {
-    SPIN_DATA.cheatSections.splice(1, 0, {
+    const spicedAnchor = SPIN_DATA.cheatSections.findIndex((c) => c.title && c.title.indexOf('Если X — делай Y') === 0);
+    SPIN_DATA.cheatSections.splice(spicedAnchor >= 0 ? spicedAnchor + 1 : 1, 0, {
       title: "SPICED: пять блоков разговора",
       intro: "СПИН показывает разговор — SPICED собирает сделку в карту. Пять блоков с прицелом на решение: от ситуации до того, как принимают решение.",
       items: [
