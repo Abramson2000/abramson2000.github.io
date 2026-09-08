@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#173e2d" />
   <meta name="description" content="Учебная лаборатория навыков продаж: теория, практика, разборы и контроль прогресса." />
   <title>Навыки продаж — учебная лаборатория</title>
-  <link rel="stylesheet" href="./styles.css?v=crs60" />
+  <link rel="stylesheet" href="./styles.css?v=crs61" />
   <link rel="icon" type="image/png" sizes="512x512" href="./emblem-np-solid.png?v=2" />
   <link rel="apple-touch-icon" href="./emblem-np-solid.png?v=2" />
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -106,12 +106,20 @@
   </nav>
 
   <div class="toast hidden" id="toast" role="status">Прогресс сохранён</div>
+  <script>
+    // PWA: регистрация service worker — офлайн-режим (авиарежим)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js?v=crs61').catch(function () {});
+      });
+    }
+  </script>
   <script defer src="./supabase.min.js"></script>
-  <script defer src="./data.js?v=crs60"></script>
-  <script defer src="./meddicc-data.js?v=crs60"></script>
-  <script defer src="./bariga-data.js?v=crs60"></script>
-  <script defer src="./spiced-data.js?v=crs60"></script>
-  <script defer src="./proactive-data.js?v=crs60"></script>
-  <script defer src="./app.js?v=crs60"></script>
+  <script defer src="./data.js?v=crs61"></script>
+  <script defer src="./meddicc-data.js?v=crs61"></script>
+  <script defer src="./bariga-data.js?v=crs61"></script>
+  <script defer src="./spiced-data.js?v=crs61"></script>
+  <script defer src="./proactive-data.js?v=crs61"></script>
+  <script defer src="./app.js?v=crs61"></script>
 </body>
 </html>

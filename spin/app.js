@@ -358,6 +358,7 @@ function userName(user) {
 function boot(user) {
   USER = { id: user.id, email: user.email || '', name: userName(user) };
   LS_KEY = 'spin-lab-v1:' + USER.id;
+  try { localStorage.setItem('spin-user', JSON.stringify(USER)); } catch (e) {} // для офлайн-входа (авиарежим)
   refreshExtra();
   loadState();
   loadExtra();
@@ -388,6 +389,11 @@ async function initAuth() {
     const { data } = await SB.auth.getSession();
     if (data && data.session && data.session.user) { boot(data.session.user); return; }
   } catch (e) {}
+  // нет сети/сессии — пробуем офлайн-вход последнего пользователя этого устройства (авиарежим)
+  try {
+    const saved = JSON.parse(localStorage.getItem('spin-user'));
+    if (saved && saved.id && !navigator.onLine) { boot(saved); return; }
+  } catch (e) {}
   $('loginScreen').classList.remove('hidden');
   $('appShell').style.display = 'none';
 }
@@ -417,6 +423,7 @@ function bindLogin() {
   $('logoutBtn').addEventListener('click', async () => {
     flushSave();
     try { await SB.auth.signOut(); } catch (e) {}
+    try { localStorage.removeItem('spin-user'); } catch (e) {} // офлайн-вход больше не действует
     location.reload();
   });
   // клик по профилю (аватар/имя/XP) → вкладка прогресса; chevron ⎋ — выход
@@ -505,7 +512,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs60', './hero-2.jpg?v=crs60', './hero-3.jpg?v=crs60'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs61', './hero-2.jpg?v=crs61', './hero-3.jpg?v=crs61'];
 let heroSeq = 0, heroTimer = null;
 function heroNext() { return HERO_SHOTS[heroSeq++ % HERO_SHOTS.length]; }
 function stopHeroRotation() { if (heroTimer) { clearInterval(heroTimer); heroTimer = null; } }
