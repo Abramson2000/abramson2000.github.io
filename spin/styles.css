@@ -72,7 +72,7 @@ button { color: inherit; }
 .topbar-right { display: flex; align-items: center; gap: 12px; }
 .xp-pill { display: flex; gap: 5px; align-items: center; padding: 7px 12px; border: 1px solid var(--line); border-radius: 99px; background: white; font-size: 13px; }
 .xp-pill strong { font-size: 14px; }.xp-pill span:first-child { color: var(--green); }.xp-pill span:last-child { color: var(--muted); font-size: 11px; }
-.offline-pill { display: flex; gap: 5px; align-items: center; padding: 7px 12px; border: 1px solid var(--line); border-radius: 99px; background: white; color: var(--green); font-size: 12px; font-weight: 850; letter-spacing: .01em; cursor: pointer; transition: .15s ease; }
+.offline-pill { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: white; color: var(--green); font-size: 15px; line-height: 1; cursor: pointer; transition: .15s ease; }
 .offline-pill:hover { border-color: var(--green); background: var(--lime-soft); }
 .icon-button { width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 50%; background: white; color: var(--green); font-size: 9px; cursor: pointer; }
 .mobile-avatar, .mobile-brand { display: none; }
