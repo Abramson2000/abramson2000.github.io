@@ -512,7 +512,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs62', './hero-2.jpg?v=crs62', './hero-3.jpg?v=crs62', './hero-4.jpg?v=crs62', './hero-5.jpg?v=crs62', './hero-6.jpg?v=crs62', './hero-7.jpg?v=crs62', './hero-8.jpg?v=crs62', './hero-9.jpg?v=crs62', './hero-10.jpg?v=crs62'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs63', './hero-2.jpg?v=crs63', './hero-3.jpg?v=crs63', './hero-4.jpg?v=crs63', './hero-5.jpg?v=crs63', './hero-6.jpg?v=crs63', './hero-7.jpg?v=crs63', './hero-8.jpg?v=crs63', './hero-9.jpg?v=crs63', './hero-10.jpg?v=crs63'];
 let heroSeq = 0, heroTimer = null;
 function heroNext() { return HERO_SHOTS[heroSeq++ % HERO_SHOTS.length]; }
 function stopHeroRotation() { if (heroTimer) { clearInterval(heroTimer); heroTimer = null; } }
