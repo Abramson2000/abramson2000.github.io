@@ -443,8 +443,8 @@ function bindLogin() {
   if (profBtn) profBtn.addEventListener('click', (e) => { if (e.target.closest('#logoutBtn')) return; switchTab('progress'); });
   const xpPill = document.querySelector('.xp-pill');
   if (xpPill) xpPill.addEventListener('click', () => switchTab('progress'));
-  const mobAv = $('mobileAvatar');
-  if (mobAv) mobAv.addEventListener('click', () => switchTab('progress'));
+  const pill = $('offlinePill');
+  if (pill) pill.addEventListener('click', openModal);
 }
 const $ = (id) => document.getElementById(id);
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -524,7 +524,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs65', './hero-2.jpg?v=crs65', './hero-3.jpg?v=crs65', './hero-4.jpg?v=crs65', './hero-5.jpg?v=crs65', './hero-6.jpg?v=crs65', './hero-7.jpg?v=crs65', './hero-8.jpg?v=crs65', './hero-9.jpg?v=crs65', './hero-10.jpg?v=crs65'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs66', './hero-2.jpg?v=crs66', './hero-3.jpg?v=crs66', './hero-4.jpg?v=crs66', './hero-5.jpg?v=crs66', './hero-6.jpg?v=crs66', './hero-7.jpg?v=crs66', './hero-8.jpg?v=crs66', './hero-9.jpg?v=crs66', './hero-10.jpg?v=crs66'];
 let heroOrder = [], heroPos = 0, heroTimer = null;
 function shuffleHero() { // перемешивание без повторов подряд
   const a = HERO_SHOTS.map((_, i) => i);
