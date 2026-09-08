@@ -1333,19 +1333,21 @@ function agoLabel(ts) {
 // Какой кейс к какому методу (курсу) относится: 0–3 = курсы 1–4, 'spiced' = 1а, 'med' = 1B
 const CASE_COURSE = { case1: 0, case2: 0, case3: 0, case4: 1, case5: 2, case6: 3, case7: 3, case8: 3, case9: 0, case10: 0, case11: 1, case12: 3, case13: 'med', case14: 'med' }; // индексы COURSES 0–3 + 'med'
 const MODE_COURSE = { spin: 0, say: 0, need: 0, challenger: 1, solution: 2, consult: 3 }; // режимы тренажёра по курсам
-const MODE_NAME = { spin: 'вопросы СПИН', say: 'типы высказываний', need: 'потребности клиента', challenger: 'ходы Challenger', solution: 'диагноз до рецепта', consult: 'стратег и коалиции' };
-function pmCardHtml(name, sub, pDone, pTotal, modes, cDone, cTotal) {
+const MODE_NAME = { spin: 'вопросы СПИН', say: 'типы высказываний', need: 'потребности клиента', challenger: 'ходы Challenger', solution: 'диагноз до рецепта', consult: 'стратег и коалиции', proact: 'ситуации ProActive' };
+function pmCardHtml(name, sub, pDone, pTotal, modes, cDone, cTotal, ptogo) {
   const pPct = pTotal ? Math.round((pDone / pTotal) * 100) : 0;
   const cPct = cTotal ? Math.round((cDone / cTotal) * 100) : 0;
   return `<article class="pm-card">
     <div class="pm-head"><strong>${esc(name)}</strong><span>${esc(sub)}</span></div>
-    ${pTotal ? `<div class="pm-line"><span>✍️ практика «Проверь себя»</span><b>${pDone} из ${pTotal}</b><i class="pm-track"><em style="width:${pPct}%"></em></i></div>` : ''}
+    ${pTotal ? `<div class="pm-line clickable" data-ptogo="${ptogo}" title="Открыть практику «Проверь себя» — она в конце урока"><span>✍️ практика «Проверь себя»</span><b>${pDone} из ${pTotal}</b><i class="pm-track"><em style="width:${pPct}%"></em></i></div>` : ''}
     ${modes.length ? `<div class="pm-line clickable" data-pjump="trainer" title="Открыть тренажёр"><span>🎯 тренажёр</span><b>${modes.length} ${pluralN(modes.length, ['режим', 'режима', 'режимов'])}</b><i class="pm-note">${esc(modes.map((m) => MODE_NAME[m]).join(' · '))}</i></div>` : ''}
     ${cTotal ? `<div class="pm-line clickable" data-pjump="cases" title="Открыть кейсы"><span>🧩 кейсы</span><b>${cDone} из ${cTotal}</b><i class="pm-track"><em style="width:${cPct}%"></em></i></div>` : ''}
   </article>`;
 }
 function pmCardsHtml() {
   const rows = [];
+  // первый урок курса с непройденной практикой (для перехода «✍️ практика»)
+  const firstP = (idxs) => { const i = idxs.find((k) => !S.practiced.includes(k)); return i === undefined ? idxs[0] : i; };
   COURSES.forEach((g, ci) => {
     const idxs = [];
     for (let i = g.from; i < g.to; i++) idxs.push(i);
@@ -1353,15 +1355,23 @@ function pmCardsHtml() {
     const modes = Object.keys(MODE_COURSE).filter((m) => MODE_COURSE[m] === ci);
     const cList = cases.filter((c) => CASE_COURSE[c.id] === ci);
     const cDone = cList.filter((c) => S.cDone.includes(cases.indexOf(c))).length;
-    rows.push(pmCardHtml(g.name, idxs.length + ' уроков · уроки ' + (g.from + 1) + '–' + g.to, pDone, idxs.length, modes, cDone, cList.length));
+    rows.push(pmCardHtml(g.name, idxs.length + ' уроков · уроки ' + (g.from + 1) + '–' + g.to, pDone, idxs.length, modes, cDone, cList.length, 'main:' + firstP(idxs)));
+    // курс 1а SPICED и курс 1B MEDDPICC идут сразу после Курса 1 — как в маршруте
+    if (ci === 0 && SPICED.length) {
+      const sp = SPICED.findIndex((x, k) => !S.spPracticed.includes(k));
+      rows.push(pmCardHtml('Курс 1а · SPICED — расширение СПИН', SPICED.length + ' уроков · диагностика сделки', S.spPracticed.length, SPICED.length, [], 0, 0, 'spiced:' + (sp === -1 ? 0 : sp)));
+    }
+    if (ci === 0 && MED.length) {
+      const cList = cases.filter((c) => CASE_COURSE[c.id] === 'med');
+      const cDone = cList.filter((c) => S.cDone.includes(cases.indexOf(c))).length;
+      const md = MED.findIndex((x, k) => !S.medPracticed.includes(k));
+      rows.push(pmCardHtml('Курс 1B · MEDDPICC — квалификация', MED.length + ' уроков · проверка сделки', S.medPracticed.length, MED.length, [], cDone, cList.length, 'med:' + (md === -1 ? 0 : md)));
+    }
   });
-  if (SPICED.length) rows.push(pmCardHtml('Курс 1а · SPICED — расширение СПИН', SPICED.length + ' уроков · диагностика сделки', S.spPracticed.length, SPICED.length, [], 0, 0));
-  if (MED.length) {
-    const cList = cases.filter((c) => CASE_COURSE[c.id] === 'med');
-    const cDone = cList.filter((c) => S.cDone.includes(cases.indexOf(c))).length;
-    rows.push(pmCardHtml('Курс 1B · MEDDPICC — квалификация', MED.length + ' уроков · проверка сделки', S.medPracticed.length, MED.length, [], cDone, cList.length));
+  if (PRO.length) {
+    const pr = PRO.findIndex((x, k) => !S.proPracticed.includes(k));
+    rows.push(pmCardHtml('Курс 5 · Проактивные продажи', PRO.length + ' уроков · управление сделкой', S.proPracticed.length, PRO.length, PRO_TRAINER.length ? ['proact'] : [], 0, 0, 'pro:' + (pr === -1 ? 0 : pr)));
   }
-  if (PRO.length) rows.push(pmCardHtml('Курс 5 · Проактивные продажи', PRO.length + ' уроков · управление сделкой', S.proPracticed.length, PRO.length, [], 0, 0));
   return rows.join('');
 }
 
@@ -1398,6 +1408,50 @@ function renderProgress() {
     : jumpMed ? 'Курс 1а пройден. Остался MEDDPICC — квалификация сделки: ' + (MED.length - medN) + ' из ' + MED.length + ' уроков.'
     : jumpPro ? 'Методологии пройдены. Остался ProActive — управление сделкой: ' + (PRO.length - proN) + ' из ' + PRO.length + ' уроков.'
     : 'Всё пройдено — закрепите навык в кейсах.';
+  // карточки «Курсы программы» — строго по маршруту: Курс 1 → SPICED (1а) → MEDDPICC (1B) → Курс 2–4 → ProActive (5)
+  const progCourseCardsHtml = () => {
+    const cards = [];
+    COURSES.forEach((g, gi) => {
+      const doneIn = L.slice(g.from, g.to).filter((ll, k) => S.done.includes(g.from + k)).length;
+      const full = doneIn === g.to - g.from;
+      const cpct = Math.round((doneIn / (g.to - g.from)) * 100);
+      cards.push(`<article class="course-progress-card ${full ? 'completed' : ''}">
+        <div class="course-progress-head"><strong>${g.name}</strong><span>${doneIn} из ${g.to - g.from} ${full ? '✓' : ''}</span></div>
+        <div class="skill-track"><i style="width:${cpct}%"></i></div>
+      </article>`);
+      if (gi === 0 && SPICED.length) {
+        const dIn = S.spicedDone.length;
+        const f = dIn === SPICED.length;
+        const p = Math.round((dIn / SPICED.length) * 100);
+        const nx = SPICED.findIndex((x, k) => !S.spicedDone.includes(k));
+        cards.push(`<article class="course-progress-card ${f ? 'completed' : ''}" style="cursor:pointer" data-spicedgo="${nx === -1 ? 0 : nx}" title="Курс 1а SPICED — открыть">
+          <div class="course-progress-head"><strong>Курс 1а · SPICED — расширение СПИН</strong><span>${dIn} из ${SPICED.length} ${f ? '✓' : ''}</span></div>
+          <div class="skill-track"><i style="width:${p}%"></i></div>
+        </article>`);
+      }
+      if (gi === 0 && MED.length) {
+        const dIn = S.medDone.length;
+        const f = dIn === MED.length;
+        const p = Math.round((dIn / MED.length) * 100);
+        const nx = MED.findIndex((x, k) => !S.medDone.includes(k));
+        cards.push(`<article class="course-progress-card ${f ? 'completed' : ''}" style="cursor:pointer" data-medgo="${nx === -1 ? 0 : nx}" title="Курс 1B MEDDPICC — открыть">
+          <div class="course-progress-head"><strong>Курс 1B · MEDDPICC — квалификация</strong><span>${dIn} из ${MED.length} ${f ? '✓' : ''}</span></div>
+          <div class="skill-track"><i style="width:${p}%"></i></div>
+        </article>`);
+      }
+    });
+    if (PRO.length) {
+      const dIn = S.proDone.length;
+      const f = dIn === PRO.length;
+      const p = Math.round((dIn / PRO.length) * 100);
+      const nx = PRO.findIndex((x, k) => !S.proDone.includes(k));
+      cards.push(`<article class="course-progress-card ${f ? 'completed' : ''}" style="cursor:pointer" data-progo="${nx === -1 ? 0 : nx}" title="Курс 5 Проактивные продажи — открыть">
+        <div class="course-progress-head"><strong>Курс 5 · Проактивные продажи</strong><span>${dIn} из ${PRO.length} ${f ? '✓' : ''}</span></div>
+        <div class="skill-track"><i style="width:${p}%"></i></div>
+      </article>`);
+    }
+    return cards.join('');
+  };
   $('progressBody').innerHTML = `
     <div class="page-heading split-heading">
       <div><p class="eyebrow">ВАШ РЕЗУЛЬТАТ</p><h1 id="progress-title">Прогресс обучения</h1><p>Что уже получается и на чём сосредоточиться дальше.</p></div>
@@ -1415,45 +1469,7 @@ function renderProgress() {
     </div>` : ''}
     <div class="section-title-row" style="margin-top:26px"><div><h2>Курсы программы</h2><p>${COURSES.length + (SPICED.length ? 1 : 0) + (MED.length ? 1 : 0) + (PRO.length ? 1 : 0)} ${pluralN(COURSES.length + (SPICED.length ? 1 : 0) + (MED.length ? 1 : 0) + (PRO.length ? 1 : 0), ['курс', 'курса', 'курсов'])} по методологиям продаж</p></div></div>
     <div class="course-progress-grid">
-      ${COURSES.map((g) => {
-        const doneIn = L.slice(g.from, g.to).filter((ll, k) => S.done.includes(g.from + k)).length;
-        const full = doneIn === g.to - g.from;
-        const cpct = Math.round((doneIn / (g.to - g.from)) * 100);
-        return `<article class="course-progress-card ${full ? 'completed' : ''}">
-          <div class="course-progress-head"><strong>${g.name}</strong><span>${doneIn} из ${g.to - g.from} ${full ? '✓' : ''}</span></div>
-          <div class="skill-track"><i style="width:${cpct}%"></i></div>
-        </article>`;
-      }).join('')}
-      ${SPICED.length ? (() => {
-        const doneIn = S.spicedDone.length;
-        const full = doneIn === SPICED.length;
-        const cpct = Math.round((doneIn / SPICED.length) * 100);
-        const nxtSp = SPICED.findIndex((x, k) => !S.spicedDone.includes(k));
-        return `<article class="course-progress-card ${full ? 'completed' : ''}" style="cursor:pointer" data-spicedgo="${nxtSp === -1 ? 0 : nxtSp}" title="Курс 1а SPICED — открыть">
-          <div class="course-progress-head"><strong>Курс 1а · SPICED — расширение СПИН</strong><span>${doneIn} из ${SPICED.length} ${full ? '✓' : ''}</span></div>
-          <div class="skill-track"><i style="width:${cpct}%"></i></div>
-        </article>`;
-      })() : ''}
-      ${MED.length ? (() => {
-        const doneIn = S.medDone.length;
-        const full = doneIn === MED.length;
-        const cpct = Math.round((doneIn / MED.length) * 100);
-        const nxtMed = MED.findIndex((x, k) => !S.medDone.includes(k));
-        return `<article class="course-progress-card ${full ? 'completed' : ''}" style="cursor:pointer" data-medgo="${nxtMed === -1 ? 0 : nxtMed}" title="Курс MEDDPICC — открыть">
-          <div class="course-progress-head"><strong>MEDDPICC · квалификация сделки</strong><span>${doneIn} из ${MED.length} ${full ? '✓' : ''}</span></div>
-          <div class="skill-track"><i style="width:${cpct}%"></i></div>
-        </article>`;
-      })() : ''}
-      ${PRO.length ? (() => {
-        const doneIn = S.proDone.length;
-        const full = doneIn === PRO.length;
-        const cpct = Math.round((doneIn / PRO.length) * 100);
-        const nxtPro = PRO.findIndex((x, k) => !S.proDone.includes(k));
-        return `<article class="course-progress-card ${full ? 'completed' : ''}" style="cursor:pointer" data-progo="${nxtPro === -1 ? 0 : nxtPro}" title="Курс 5 Проактивные продажи — открыть">
-          <div class="course-progress-head"><strong>Проактивные продажи · управление сделкой</strong><span>${doneIn} из ${PRO.length} ${full ? '✓' : ''}</span></div>
-          <div class="skill-track"><i style="width:${cpct}%"></i></div>
-        </article>`;
-      })() : ''}
+      ${progCourseCardsHtml()}
     </div>
     <div class="section-title-row" style="margin-top:26px"><div><h2>Практика и кейсы</h2><p>закрепление по каждому методу: практики «Проверь себя», тренажёр, разборы встреч</p></div></div>
     <div class="pm-grid">
@@ -1502,6 +1518,21 @@ function renderProgress() {
   $('progressBody').querySelectorAll('[data-medgo]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.medgo; curSpiced = null; curPro = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-spicedgo]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spicedgo; curMed = null; curPro = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-progo]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.progo; curMed = null; curSpiced = null; switchTab('theory'); }));
+  // «✍️ практика „Проверь себя“» в карточке курса — открывает урок с практикой и прокручивает к ней
+  $('progressBody').querySelectorAll('[data-ptogo]').forEach((b) => b.addEventListener('click', () => {
+    const [m, i] = b.dataset.ptogo.split(':');
+    const idx = +i;
+    if (m === 'spiced') { curSpiced = idx; curMed = null; curPro = null; }
+    else if (m === 'med') { curMed = idx; curSpiced = null; curPro = null; }
+    else if (m === 'pro') { curPro = idx; curSpiced = null; curMed = null; }
+    else { S.lesson = idx; curSpiced = null; curMed = null; curPro = null; }
+    switchTab('theory');
+    setTimeout(() => {
+      const pa = document.getElementById('pArea');
+      const target = pa ? pa.closest('.level-card') || pa : document.querySelector('#theoryBody .question-levels');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 500);
+  }));
   const doLogout = async () => {
     flushSave();
     try { if (SB) await SB.auth.signOut(); } catch (e) {}
