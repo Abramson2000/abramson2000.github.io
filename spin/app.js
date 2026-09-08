@@ -7,6 +7,14 @@ const ch = SPIN_DATA.chBank || [];     // T/D/C/R — ходы Challenger
 const sol = SPIN_DATA.solBank || [];   // R/I/V/W/X — продажи решений
 const cons = SPIN_DATA.consBank || []; // E/R/C/G/X — стратегические продажи
 const cheat = SPIN_DATA.cheatSections;
+// Умные кавычки: не оборачиваем текст, который уже оформлен кавычками (начинается с «/„ или содержит « внутри),
+// и не ставим точку перед закрывающей кавычкой — финальная точка убирается.
+function quoteSmart(t) {
+  const s = esc(String(t == null ? '' : t)).trim();
+  if (!s) return s;
+  if (s.startsWith('«') || s.startsWith('„') || s.includes('«')) return s;
+  return '«' + s.replace(/\.+$/, '') + '»';
+}
 const cases = SPIN_DATA.cases;
 const EXTRA_ALL = SPIN_DATA.extra || []; // все доп-уроки: выжимки книг
 let EXTRA = [];                        // видимые текущему пользователю
@@ -1081,7 +1089,7 @@ function renderTrainer() {
       <div class="trainer-grid">
         <article class="scenario-card">
           <div class="scenario-top"><span class="case-chip">СИТУАЦИЯ</span><span>Курс 5 · ProActive</span></div>
-          <blockquote id="clientPhrase">«${esc(q.q)}»</blockquote>
+          <blockquote id="clientPhrase">${quoteSmart(q.q)}</blockquote>
         </article>
         <article class="answers-card">
           <div id="answerArea">
@@ -1140,7 +1148,7 @@ function renderTrainer() {
       <article class="scenario-card">
         <div class="scenario-top"><span class="case-chip">РЕПЛИКА</span><span>${ui.chip}</span></div>
         <div class="client-profile"><span class="avatar large">${ui.avatar}</span><div><strong>${ui.who}</strong><p>${ui.sub2}</p></div></div>
-        <blockquote id="clientPhrase">«${esc(q.q)}»</blockquote>
+        <blockquote id="clientPhrase">${quoteSmart(q.q)}</blockquote>
         <div class="context-box"><span>Вопрос</span><p>${ui.ask}</p></div>
       </article>
       <article class="answers-card">
