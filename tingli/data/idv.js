@@ -2124,7 +2124,8 @@ const IDV_UNITS = [
       "py": "tǐng dānxīn de",
       "ru": "очень беспокоиться"
      }
-    ]
+    ],
+    "audio": "210-f.mp3"
    }
   ]
  }
