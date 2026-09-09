@@ -5,8 +5,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>初级听力 · Тингли</title>
-<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon.png?v=2">
-<link rel="apple-touch-icon" href="tingli-icon-180.png?v=2">
+<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon.png">
+<link rel="apple-touch-icon" href="tingli-icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
   @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2') format('woff2'); }
@@ -41,6 +41,16 @@
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; line-height: 1.3; }
   .topbar .dict-clear { margin-left: auto; }
   .ver-top { margin-left: auto; font-size: 10.5px; color: #c4c4c8; letter-spacing: .3px; white-space: nowrap; flex-shrink: 0; }
+  /* ===== Режим полёта ===== */
+  .offline-card { display: flex; align-items: center; gap: 10px; margin: 10px 14px 2px; padding: 10px 12px; background: #fff; border: 1px solid #ececf0; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+  .offline-card.ok { justify-content: center; padding: 12px; }
+  .offline-title { font-size: 13px; font-weight: 700; color: #1d1d21; }
+  .offline-sub { font-size: 11px; color: #8a8a90; margin-top: 2px; }
+  .offline-bar { height: 5px; background: #f0f0f2; border-radius: 99px; margin-top: 6px; overflow: hidden; }
+  .offline-bar i { display: block; height: 100%; background: #4a7cf7; border-radius: 99px; transition: width .4s; }
+  .offline-btn { flex-shrink: 0; background: #1d1d21; color: #fff; border: 0; border-radius: 10px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .offline-btn:disabled { opacity: .5; }
+  .offline-ok { font-size: 13px; font-weight: 600; color: #1d8a4c; }
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; }
   .back { background: #fff; border: none; width: 42px; height: 42px; border-radius: 14px; font-size: 21px; cursor: pointer; color: var(--text); flex-shrink: 0; font-weight: 500; box-shadow: var(--shadow-card); }
   .back:active { transform: scale(.94); }
@@ -137,7 +147,6 @@
   .script.show { display: block; }
   .hw-item { margin: 12px 16px; }
   .hw-q { font-size: 15px; font-weight: 650; color: #16161a; line-height: 1.5; margin-bottom: 7px; }
-.hw-ex { font-size: 13px; font-weight: 400; color: #8f8f97; line-height: 1.55; margin: -3px 0 9px; padding-left: 10px; border-left: 2px solid #e0ded9; }
   .hw-ans { width: 100%; box-sizing: border-box; min-height: 56px; border: 1.5px solid #e4e3df; border-radius: 15px; padding: 11px 13px; font-size: 15.5px; line-height: 1.5; font-family: inherit; resize: vertical; background: #fff; color: #16161a; outline: none; }
   .hw-ans:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(194,58,43,.12); }
   .hw-tools { display: flex; align-items: flex-start; gap: 10px; margin-top: 9px; }
@@ -152,9 +161,6 @@
   .hw-out { white-space: pre-wrap; background: #f2f1ee; border-radius: 18px; padding: 15px; font-size: 14px; line-height: 1.6; color: #232327; margin-top: 13px; display: none; max-height: 340px; overflow: auto; }
   .hw-out.show { display: block; }
   .hw-out .hw-q-in { font-weight: 700; color: #33333a; }
-.hw-out .hw-out-label { font-weight: 700; color: #33333a; margin-bottom: 8px; }
-.hw-out .hw-out-ta { width: 100%; box-sizing: border-box; border: 1px solid #d8d6d1; border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 1.65; background: #fff; color: #232327; font-family: inherit; resize: vertical; }
-.hw-out .hw-out-ta:focus { outline: none; border-color: #b9b5ac; }
   .nav-row { display: flex; gap: 10px; margin-top: 15px; }
   .nav-btn { flex: 1; padding: 15px; border: 1.5px solid #ecebe7; border-radius: 17px; background: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
   .nav-btn:disabled { opacity: .35; }
@@ -229,7 +235,7 @@
   .task-card.anim-prev { animation: slidePrev .3s cubic-bezier(.2,.7,.3,1); }
   .app { will-change: transform; }
   body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background: url('bg.jpg') no-repeat center 25% / cover; opacity: .45; transform: translateZ(0); -webkit-transform: translateZ(0); will-change: transform; }
+    background: url('bg.jpg') no-repeat center 25% / cover; opacity: .45; filter: blur(1.2px); }
   .app { position: relative; z-index: 1; }
 
   /* Стартовый экран */
@@ -323,7 +329,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.2';
+const APP_VER = '2.3';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
 let prog = load();
@@ -537,6 +543,7 @@ function renderUnits() {
       <img class="title-img" src="title.png" alt="初级听力"><div class="sub">发展汉语<br>初级听力 II</div>
       <div class="ver-top">v${APP_VER} · © Abramson</div>
     </div>
+    ${offlineCardHtml()}
     ${UNITS.map(unitCard).join('')}
 `;
 }
@@ -551,6 +558,7 @@ function renderIdv() {
       <img class="title-img" src="idv.png" alt="口语"><div class="sub">口语课</div>
       <div class="ver-top">v${APP_VER} · © Abramson</div>
     </div>
+    ${offlineCardHtml()}
     ${IDV.length ? IDV.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
 }
@@ -564,6 +572,7 @@ function renderMine() {
       <img class="title-img" src="grammar.png" alt="语法"><div class="sub">李老师课</div>
       <div class="ver-top">v${APP_VER} · © Abramson</div>
     </div>
+    ${offlineCardHtml()}
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
 `;
 }
@@ -1059,36 +1068,22 @@ function hwAnswered() {
 }
 function hwText(withQ) {
   return curPart.questions.map((q, i) => {
-    const qs = typeof q === 'string' ? q : q.q;
     const a = hwLoad(curUnit.unit, curPart.id, i).trim();
-    return withQ ? (i + 1) + '. ' + qs + '\n' + (a || '—') : (i + 1) + '. ' + (a || '—');
+    return withQ ? (i + 1) + '. ' + q + '\n' + (a || '—') : (i + 1) + '. ' + (a || '—');
   }).join('\n\n');
-}
-function hwOutCopy() {
-  const ta = document.querySelector('.hw-out-ta');
-  if (!ta) return;
-  const done = () => { const b = document.querySelector('.hw-out .btn'); if (b) { const o = b.textContent; b.textContent = '✅ Скопировано!'; setTimeout(() => { b.textContent = o; }, 1600); } };
-  ta.focus(); ta.select();
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done, () => { try { document.execCommand('copy'); done(); } catch (e) {} });
-  else { try { document.execCommand('copy'); done(); } catch (e) {} }
 }
 function hwRefresh() {
   const n = curPart.questions.length;
   const done = hwAnswered();
   const c = document.getElementById('hwCount');
   if (c) c.textContent = 'Ответов: ' + done + ' из ' + n;
+  const out = document.getElementById('hwOut');
+  if (out) out.innerHTML = hwText(true).split('\n\n').map(b => b.replace(/^(\d+\. [^\n]+)\n/, '<div class="hw-q-in">$1</div>')).join('\n\n');
   const btn = document.getElementById('hwCopyBtn');
   if (btn) btn.disabled = done === 0;
 }
 function hwCopy(withQ) {
   const txt = hwText(withQ);
-  const out = document.getElementById('hwOut');
-  if (out) {
-    out.classList.add('show');
-    out.innerHTML = '<div class="hw-out-label">📄 Готовый текст' + (withQ ? '' : ' · только ответы') + ' — можешь поправить и скопировать:</div>' +
-      '<textarea class="hw-out-ta" rows="14" spellcheck="false">' + esc(txt) + '</textarea>' +
-      '<div class="btn-row" style="margin-top:8px"><button class="btn ghost" onclick="hwOutCopy()">📋 Скопировать из поля</button></div>';
-  }
   const btn = document.getElementById(withQ ? 'hwCopyBtn' : 'hwCopyBtnQ');
   const done = () => {
     if (!btn) return;
@@ -1113,20 +1108,15 @@ function renderHw(u, part) {
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div></div>
     ${part.text ? `<div class="script zh-opt show">${esc(part.text)}</div>` : ''}
-    ${part.questions.map((q, i) => {
-      const qs = typeof q === 'string' ? q : q.q;
-      const ex = (q && typeof q === 'object' && q.ex) ? q.ex : '';
-      return `
+    ${part.questions.map((q, i) => `
       <div class="hw-item">
-        <div class="hw-q zh-opt">${i + 1}. ${esc(qs)}</div>
-        ${ex ? `<div class="hw-ex">${esc(ex)}</div>` : ''}
+        <div class="hw-q zh-opt">${i + 1}. ${esc(q)}</div>
         <textarea class="hw-ans" data-i="${i}" rows="2" placeholder="Твой ответ иероглифами…">${esc(hwLoad(u.unit, part.id, i))}</textarea>
         <div class="hw-tools">
           <button class="hw-chk" data-i="${i}" onclick="hwCheck(${i})">🤖 Проверить</button>
           <div class="hw-vd" data-i="${i}"></div>
         </div>
-      </div>`;
-    }).join('')}
+      </div>`).join('')}
     <div class="hw-build">
       <div class="hw-count" id="hwCount"></div>
       <div class="btn-row">
@@ -1150,8 +1140,7 @@ function renderHw(u, part) {
 /* ===== ИИ-проверка ответов (DeepSeek через /api/tingli-check) ===== */
 async function hwCheck(i) {
   const part = curPart;
-  const q0 = part.questions[i];
-  const q = typeof q0 === 'string' ? q0 : q0.q;
+  const q = part.questions[i];
   const a = hwLoad(curUnit.unit, part.id, i).trim();
   const btn = document.querySelector('.hw-chk[data-i="' + i + '"]');
   const vd = document.querySelector('.hw-vd[data-i="' + i + '"]');
@@ -1256,8 +1245,70 @@ document.addEventListener('touchend', e => {
   var s = document.getElementById('splash');
   if (s) { setTimeout(function () { s.classList.add('hide'); }, 2400); setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 2950); }
 })();
+/* ===== Режим полёта (офлайн-аудио) ===== */
+const LS_OFF = 'tingli-offline-v1';
+let offRunning = false;
+function allAudioNames() {
+  const s = new Set();
+  for (const u of ALL_UNITS) for (const p of (u.parts || [])) if (p.audio) s.add(p.audio);
+  return [...s];
+}
+function offState() {
+  try { return JSON.parse(localStorage.getItem(LS_OFF) || 'null'); } catch (e) { return null; }
+}
+function offlineCardHtml() {
+  const st = offState();
+  const total = allAudioNames().length;
+  if (st && st.done >= total) return '<div class="offline-card ok" id="offlineCard"><div class="offline-ok">✈️ Всё скачано (' + total + '/' + total + ') — можно в полёт</div></div>';
+  const done = st ? st.done : 0;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const busy = st && st.running;
+  return '<div class="offline-card" id="offlineCard"><div style="flex:1"><div class="offline-title">✈️ Режим полёта</div><div class="offline-sub" id="offlineSub">' + (busy ? 'Загрузка аудио… ' + done + '/' + total : (done ? 'Скачано ' + done + ' из ' + total + ' · продолжу с этого места' : 'Скачай аудио уроков — занимайся в самолёте без интернета (' + total + ' · ~265 МБ)')) + '</div>' + (done ? '<div class="offline-bar"><i style="width:' + pct + '%"></i></div>' : '') + '</div><button class="offline-btn" id="offlineBtn" onclick="offlineStart()"' + (busy ? ' disabled' : '') + '>' + (busy ? '⏳…' : (done ? 'Продолжить' : 'Скачать')) + '</button></div>';
+}
+function offlinePaint() {
+  const el = document.getElementById('offlineCard');
+  if (el) el.outerHTML = offlineCardHtml();
+}
+async function offlineStart() {
+  if (offRunning) return;
+  if (!navigator.onLine) { alert('Нет сети — скачивание начнётся, когда появится интернет.'); return; }
+  offRunning = true;
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  const names = allAudioNames();
+  const st = offState() || { done: 0 };
+  const total = names.length;
+  let done = Math.min(st.done || 0, total);
+  try { localStorage.setItem(LS_OFF, JSON.stringify({ done: done, total: total, running: true, ts: Date.now() })); } catch (e) {}
+  offlinePaint();
+  let fail = 0;
+  for (let i = done; i < total; i++) {
+    try {
+      const r = await fetch('audio/' + names[i]);
+      if (!r.ok) { fail++; if (fail > 3) break; }
+      else { done = i + 1; fail = 0; }
+    } catch (e) { fail++; if (fail > 3) break; }
+    if ((i + 1) % 5 === 0 || i === total - 1) {
+      try { localStorage.setItem(LS_OFF, JSON.stringify({ done: done, total: total, running: true, ts: Date.now() })); } catch (e) {}
+      const sub = document.getElementById('offlineSub');
+      const bar = document.querySelector('#offlineCard .offline-bar i');
+      if (sub) sub.textContent = 'Загрузка аудио… ' + done + '/' + total;
+      if (bar) bar.style.width = Math.round(done / total * 100) + '%';
+    }
+    await new Promise(r => setTimeout(r, 60));
+  }
+  offRunning = false;
+  const ok = done >= total;
+  try { localStorage.setItem(LS_OFF, JSON.stringify({ done: done, total: total, running: false, ts: Date.now() })); } catch (e) {}
+  if (ok) saveLocal(LS_OFF, localStorage.getItem(LS_OFF));
+  offlinePaint();
+}
+
 renderUnits();
 tryRestore();
+// Service Worker: офлайн-режим
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 </script>
 </body>
 </html>

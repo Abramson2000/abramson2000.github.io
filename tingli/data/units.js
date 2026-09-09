@@ -115,7 +115,8 @@ const UNITS = [
     "kind": "words",
     "words": [
      {
-      "zh": "两张照片", "py": "liǎngzhāng zhàopiàn",
+      "zh": "两张照片",
+      "py": "liǎng zhāng zhàopiàn",
       "ru": "две фотографии"
      },
      {
@@ -615,7 +616,8 @@ const UNITS = [
       "ru": "не переходить дорогу"
      },
      {
-      "zh": "过了操场就是图书馆", "py": "guòle cāochǎng jiù shì túshūguǎn",
+      "zh": "过了操场就是图书馆",
+      "py": "guò le cāochǎng jiù shì túshūguǎn",
       "ru": "пройти площадку — и библиотека"
      },
      {
@@ -639,7 +641,8 @@ const UNITS = [
       "ru": "напротив книжного — кинотеатр"
      },
      {
-      "zh": "过了路口往东拐", "py": "guòle lùkǒu wǎng dōng guǎi",
+      "zh": "过了路口往东拐",
+      "py": "guò le lùkǒu wǎng dōng guǎi",
       "ru": "за перекрёстком повернуть на восток"
      },
      {
@@ -1134,7 +1137,8 @@ const UNITS = [
       "ru": "после окончания старшей школы"
      },
      {
-      "zh": "他后来去了日本", "py": "tā hòulái qùle Rìběn",
+      "zh": "他后来去了日本",
+      "py": "tā hòulái qù le Rìběn",
       "ru": "потом он уехал в Японию"
      },
      {
@@ -1619,7 +1623,8 @@ const UNITS = [
       "ru": "очень беспокоиться"
      },
      {
-      "zh": "去了一趟长城", "py": "qùle yítàng Chángchéng",
+      "zh": "去了一趟长城",
+      "py": "qù le yí tàng Chángchéng",
       "ru": "съездить на Великую стену"
      },
      {
@@ -2977,7 +2982,8 @@ const UNITS = [
       "ru": "попробуй это блюдо"
      },
      {
-      "zh": "味道好极了", "py": "wei dao hao jile",
+      "zh": "味道好极了",
+      "py": "wei dao hao ji le",
       "ru": "вкус отличный"
      },
      {
@@ -2991,7 +2997,8 @@ const UNITS = [
       "ru": "очень вкусно"
      },
      {
-      "zh": "太咸了", "py": "tai xianle",
+      "zh": "太咸了",
+      "py": "tai xian le",
       "ru": "слишком соленый"
      },
      {
@@ -5753,7 +5760,8 @@ const UNITS = [
       "ru": "留作业"
      },
      {
-      "zh": "把手机落在家里了", "py": "ba shou ji luo zai jia lile",
+      "zh": "把手机落在家里了",
+      "py": "ba shou ji luo zai jia li le",
       "ru": "把手机落在家里了"
      },
      {
@@ -5767,7 +5775,8 @@ const UNITS = [
       "ru": "一个U盘"
      },
      {
-      "zh": "太马虎了", "py": "tai ma hule",
+      "zh": "太马虎了",
+      "py": "tai ma hu le",
       "ru": "太马虎了"
      },
      {
@@ -6136,7 +6145,8 @@ const UNITS = [
     "kind": "words",
     "words": [
      {
-      "zh": "期中考试就要到了", "py": "qi zhong kao shi jiu yao daole",
+      "zh": "期中考试就要到了",
+      "py": "qi zhong kao shi jiu yao dao le",
       "ru": "期中考试就要到了"
      },
      {
@@ -6994,7 +7004,8 @@ const UNITS = [
       "ru": "пойти в супермаркет за покупками"
      },
      {
-      "zh": "该去上课了", "py": "gai qu shang kele",
+      "zh": "该去上课了",
+      "py": "gai qu shang ke le",
       "ru": "пора идти на занятия"
      },
      {
@@ -7013,7 +7024,8 @@ const UNITS = [
       "ru": "пакет стирального порошка"
      },
      {
-      "zh": "一张纸条", "py": "yizhang zhi tiao",
+      "zh": "一张纸条",
+      "py": "yi zhang zhi tiao",
       "ru": "записка"
      }
     ]
@@ -9096,7 +9108,8 @@ const UNITS = [
       "ru": "去动物园"
      },
      {
-      "zh": "一张交通卡", "py": "yizhang jiao tong ka",
+      "zh": "一张交通卡",
+      "py": "yi zhang jiao tong ka",
       "ru": "一张交通卡"
      },
      {
@@ -9940,7 +9953,8 @@ const UNITS = [
       "ru": "从来没出过国"
      },
      {
-      "zh": "飞机起飞了", "py": "fei ji qi feile",
+      "zh": "飞机起飞了",
+      "py": "fei ji qi fei le",
       "ru": "飞机起飞了"
      },
      {
@@ -9949,7 +9963,8 @@ const UNITS = [
       "ru": "跟家里人一起过年"
      },
      {
-      "zh": "预订了两张飞机票", "py": "yu dingle liangzhang fei ji piao",
+      "zh": "预订了两张飞机票",
+      "py": "yu ding le liang zhang fei ji piao",
       "ru": "预订了两张飞机票"
      },
      {
@@ -10380,11 +10395,13 @@ const UNITS = [
       "ru": "10号车厢"
      },
      {
-      "zh": "一张卧铺票", "py": "yizhang wo pu piao",
+      "zh": "一张卧铺票",
+      "py": "yi zhang wo pu piao",
       "ru": "一张卧铺票"
      },
      {
-      "zh": "两张软座票", "py": "liangzhang ruan zuo piao",
+      "zh": "两张软座票",
+      "py": "liang zhang ruan zuo piao",
       "ru": "两张软座票"
      },
      {
@@ -10783,7 +10800,8 @@ const UNITS = [
     "kind": "words",
     "words": [
      {
-      "zh": "找了半天也没有", "py": "zhaole ban tian ye mei you",
+      "zh": "找了半天也没有",
+      "py": "zhao le ban tian ye mei you",
       "ru": "找了半天也没有"
      },
      {
@@ -10827,7 +10845,8 @@ const UNITS = [
       "ru": "Смотреть телерекламу"
      },
      {
-      "zh": "终于明白了", "py": "zhong yu ming baile",
+      "zh": "终于明白了",
+      "py": "zhong yu ming bai le",
       "ru": "Наконец понял"
      },
      {
@@ -11622,7 +11641,8 @@ const UNITS = [
       "ru": "30集电视剧"
      },
      {
-      "zh": "可生气了", "py": "ke sheng qile",
+      "zh": "可生气了",
+      "py": "ke sheng qi le",
       "ru": "可生气了"
      },
      {
@@ -11636,7 +11656,8 @@ const UNITS = [
       "ru": "中央电视台第8频道"
      },
      {
-      "zh": "北京队输了", "py": "bei jing dui shule",
+      "zh": "北京队输了",
+      "py": "bei jing dui shu le",
       "ru": "北京队输了"
      }
     ]
