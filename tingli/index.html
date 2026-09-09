@@ -226,6 +226,19 @@
   .ic-tuan { background: var(--red); color: #fff; font-size: 17px; font-weight: 800; font-family: "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
   body.sb-on .app { margin-left: var(--sbw); }
   body.sb-on .player { left: var(--sbw); }
+  .tabbar { transition: transform .28s cubic-bezier(.25,.8,.3,1); }
+  .tabbar.sb-drag { transition: none; }
+  body.sb-off .tabbar { transform: translateX(-104%); }
+  body.sb-off .app { margin-left: 0; }
+  body.sb-off .player { left: 0; }
+  #sbBurger { position: fixed; left: 8px; top: calc(10px + env(safe-area-inset-top)); z-index: 65; width: 42px; height: 42px; border-radius: 13px; background: rgba(255,255,255,.96); border: 1px solid rgba(29,29,33,.08); box-shadow: 0 3px 12px rgba(60,60,70,.2); display: none; align-items: center; justify-content: center; font-size: 19px; color: var(--red-deep); cursor: pointer; padding: 0; }
+  body.sb-off #sbBurger { display: flex; }
+  @media (min-width: 900px) {
+    body.sb-off .tabbar { transform: none; }
+    body.sb-off .app { margin-left: var(--sbw); }
+    body.sb-off .player { left: var(--sbw); }
+    body.sb-off #sbBurger { display: none; }
+  }
   @media (min-width: 900px) {
     .tab .ic, .tab .ic-img { width: 40px; height: 40px; }
     .tab-label { font-size: 15px; }
@@ -321,6 +334,7 @@
     </button>
   </div>
 </div>
+<button id="sbBurger" onclick="toggleSb()" title="Меню">☰</button>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力</span></button>
@@ -469,6 +483,47 @@ function showTabbar(show) {
   document.getElementById('tabbar').style.display = show ? 'flex' : 'none';
   document.body.classList.toggle('sb-on', !!show);
 }
+
+function toggleSb() { document.body.classList.toggle('sb-off'); }
+
+/* Свайпы: колонка уезжает влево / возвращается от левого края */
+(function () {
+  let sbTouch = null;
+  const sbEl = () => document.getElementById('tabbar');
+  const isNarrow = () => window.innerWidth < 900;
+  document.addEventListener('touchstart', function (e) {
+    if (!isNarrow()) return;
+    const sb = sbEl();
+    if (!sb || getComputedStyle(sb).display === 'none') return;
+    const t = e.touches[0];
+    const off = document.body.classList.contains('sb-off');
+    const onSb = e.target && e.target.closest && e.target.closest('#tabbar');
+    if (!off && (onSb || t.clientX < 170)) sbTouch = { x: t.clientX, y: t.clientY, mode: 'close' };
+    else if (off && t.clientX < 30) sbTouch = { x: t.clientX, y: t.clientY, mode: 'open' };
+    if (sbTouch) sb.classList.add('sb-drag');
+  }, { passive: true });
+  document.addEventListener('touchmove', function (e) {
+    if (!sbTouch) return;
+    const t = e.touches[0];
+    const dx = t.clientX - sbTouch.x;
+    const dy = Math.abs(t.clientY - sbTouch.y);
+    if (dy > 70 && Math.abs(dx) < 14) { sbTouch = null; return; }
+    const sb = sbEl();
+    const w = sb.offsetWidth;
+    if (sbTouch.mode === 'close') sb.style.transform = 'translateX(' + Math.min(0, dx) + 'px)';
+    else sb.style.transform = 'translateX(' + Math.max(-w, dx - w) + 'px)';
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (!sbTouch) return;
+    const sb = sbEl();
+    const dx = e.changedTouches[0].clientX - sbTouch.x;
+    sb.classList.remove('sb-drag');
+    sb.style.transform = '';
+    if (sbTouch.mode === 'close' && dx < -55) document.body.classList.add('sb-off');
+    else if (sbTouch.mode === 'open' && dx > 55) document.body.classList.remove('sb-off');
+    sbTouch = null;
+  }, { passive: true });
+})();
 
 /* ===== Экраны ===== */
 
