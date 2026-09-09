@@ -19,6 +19,7 @@ const cases = SPIN_DATA.cases;
 const EXTRA_ALL = SPIN_DATA.extra || []; // все доп-уроки: выжимки книг
 let EXTRA = [];                        // видимые текущему пользователю
 let curExtra = null;                   // индекс открытого доп-урока (или null = основной урок)
+let curXb = 0;                            // индекс открытого блока-урока доп-курса (поуроковый режим)
 // уроки с only:'boss' видит только владелец (abramson@crm.ru); остальные скрыты
 const refreshExtra = () => { EXTRA = EXTRA_ALL.filter((x) => !x.only || (x.only === 'boss' && USER && USER.email === 'abramson@crm.ru')); };
 // ситуации «Удалённых продаж» для тренажёра: кексы курса x4 с номером урока
@@ -536,7 +537,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs77', './hero-2.jpg?v=crs77', './hero-3.jpg?v=crs77', './hero-4.jpg?v=crs77', './hero-5.jpg?v=crs77', './hero-6.jpg?v=crs77', './hero-7.jpg?v=crs77', './hero-8.jpg?v=crs77', './hero-9.jpg?v=crs77', './hero-10.jpg?v=crs77'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs78', './hero-2.jpg?v=crs78', './hero-3.jpg?v=crs78', './hero-4.jpg?v=crs78', './hero-5.jpg?v=crs78', './hero-6.jpg?v=crs78', './hero-7.jpg?v=crs78', './hero-8.jpg?v=crs78', './hero-9.jpg?v=crs78', './hero-10.jpg?v=crs78'];
 let heroOrder = [], heroPos = 0, heroTimer = null;
 function shuffleHero() { // перемешивание без повторов подряд
   const a = HERO_SHOTS.map((_, i) => i);
@@ -566,6 +567,7 @@ function startHeroRotation() {
 function renderProgram() {
   refreshExtra();
   curExtra = null; // выход в программу закрывает режим доп-урока
+  curXb = 0;
   curMed = null;   // выход в программу закрывает режим MEDDPICC-урока
   curSpiced = null; // выход в программу закрывает режим SPICED-урока (курс 1а)
   curPro = null;    // выход в программу закрывает режим ProActive-урока (курс 5)
@@ -727,7 +729,7 @@ function renderProgram() {
     if (!REVIEW_MODE && !sFull && i >= gFrom) { toast('Сначала пройдите Курс 1а · SPICED — потом откроется Курс 2'); return; }
     S.lesson = i; curExtra = null; curMed = null; curSpiced = null; switchTab('theory');
   }));
-  $('programBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curMed = null; curSpiced = null; curPro = null; switchTab('theory'); }));
+  $('programBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curXb = 0; curMed = null; curSpiced = null; curPro = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.med; curExtra = null; curSpiced = null; curPro = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-pro]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.pro; curMed = null; curExtra = null; curSpiced = null; switchTab('theory'); }));
@@ -745,6 +747,7 @@ function renderTheory() {
   refreshExtra();
   if (curMed !== null && curMed >= MED.length) { curMed = null; }  // открытый MED-урок стал недоступен — сброс
   if (curExtra !== null && curExtra >= EXTRA.length) { curExtra = null; } // открытый урок стал невидим — сброс
+  if (curExtra === null) curXb = 0;
   if (curSpiced !== null && curSpiced >= SPICED.length) { curSpiced = null; } // открытый SPICED-урок стал недоступен — сброс
   if (curPro !== null && curPro >= PRO.length) { curPro = null; } // открытый ProActive-урок стал недоступен — сброс
   // последовательность: если открытый урок больше недоступен по цепочке — откатываем на первый доступный непройденный
@@ -754,6 +757,9 @@ function renderTheory() {
   const mode = curSpiced !== null ? 'spiced' : curMed !== null ? 'med' : curExtra !== null ? 'extra' : curPro !== null ? 'pro' : 'main';
   const i = mode === 'spiced' ? curSpiced : mode === 'med' ? curMed : mode === 'extra' ? curExtra : mode === 'pro' ? curPro : S.lesson;
   const l = mode === 'spiced' ? SPICED[i] : mode === 'med' ? MED[i] : mode === 'extra' ? EXTRA[i] : mode === 'pro' ? PRO[i] : L[i];
+  const xMode = mode === 'extra' && !!l.course && l.blocks && l.blocks.length > 1; // поуроковый режим доп-курса
+  if (xMode && curXb >= l.blocks.length) curXb = 0;
+  const xb = xMode ? curXb : 0;
   const done = mode === 'spiced' ? S.spicedDone.includes(i) : mode === 'med' ? S.medDone.includes(i) : mode === 'extra' ? false : mode === 'pro' ? S.proDone.includes(i) : S.done.includes(i);
   const free = mode !== 'main'; // у выжимок, MEDDPICC, SPICED и ProActive практика не блокирует следующий шаг
   const hasP = !(l.practice && l.practice.length) || (free ? true : S.practiced.includes(i)); // практика пройдена (или её нет) — можно дальше
@@ -789,11 +795,17 @@ function renderTheory() {
       </button>`;
     }).join('');
   } else if (mode === 'extra') {
-    railItems = `<div class="lesson-group-label"><span>Extra</span>ДОПОЛНИТЕЛЬНО</div>` + EXTRA.map((ll, ei) => {
-      return `<button class="lesson-item ${ei === i ? 'active' : ''}" data-extra="${ei}" title="${ll.course ? 'Открыть курс' : 'Выжимка книги'}">
-        <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${S.extraDone.includes(ei) ? '<b>✓</b>' : ''}
-      </button>`;
-    }).join('');
+    if (xMode) {
+      const shr = (h) => esc(String(h).replace(/^Модуль\s*\d+\s*·\s*Урок\s*\d+\.\s*/i, ''));
+      railItems = `<div class="lesson-group-label"><span>Дополнительно</span>УРОКИ КУРСА</div>` + l.blocks.map((bl, bi2) =>
+        `<button class="lesson-item ${bi2 === xb ? 'active' : ''}" data-xb="${bi2}" title="Урок ${bi2 + 1}"><span>${bi2 + 1}</span><div><strong>${shr(bl.h)}</strong><small>${bi2 + 1} из ${l.blocks.length}</small></div></button>`).join('');
+    } else {
+      railItems = `<div class="lesson-group-label"><span>Extra</span>ДОПОЛНИТЕЛЬНО</div>` + EXTRA.map((ll, ei) => {
+        return `<button class="lesson-item ${ei === i ? 'active' : ''}" data-extra="${ei}" title="${ll.course ? 'Открыть курс' : 'Выжимка книги'}">
+          <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${S.extraDone.includes(ei) ? '<b>✓</b>' : ''}
+        </button>`;
+      }).join('');
+    }
   } else {
     railItems = COURSES.map((g, gi) => {
       const label = `<div class="lesson-group-label"><span>Курс ${COURSES.indexOf(g) + 1}</span>${g.tag}</div>`;
@@ -821,7 +833,7 @@ function renderTheory() {
   // Шпаргалки теперь — отдельная вкладка (внизу), дубль в списке уроков не нужен
 
   const co = mode === 'main' ? courseOf(i) : null;
-  const kicker = mode === 'spiced' ? 'КУРС 1А · SPICED · УРОК ' + (i + 1) + ' ИЗ ' + SPICED.length : mode === 'med' ? 'КУРС MEDDPICC · УРОК ' + (i + 1) + ' ИЗ ' + MED.length : mode === 'extra' ? (EXTRA[i].course ? 'ДОПОЛНИТЕЛЬНО · УЧЕБНЫЙ КУРС' : 'ДОПОЛНИТЕЛЬНО · ВЫЖИМКА ИЗ КНИГИ') : mode === 'pro' ? 'КУРС 5 · ПРОАКТИВНЫЕ ПРОДАЖИ · УРОК ' + (i + 1) + ' ИЗ ' + PRO.length : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num + ' ИЗ ' + co.len;
+  const kicker = mode === 'spiced' ? 'КУРС 1А · SPICED · УРОК ' + (i + 1) + ' ИЗ ' + SPICED.length : mode === 'med' ? 'КУРС MEDDPICC · УРОК ' + (i + 1) + ' ИЗ ' + MED.length : mode === 'extra' ? (xMode ? 'ДОПОЛНИТЕЛЬНО · УЧЕБНЫЙ КУРС · УРОК ' + (xb + 1) + ' ИЗ ' + l.blocks.length : (EXTRA[i].course ? 'ДОПОЛНИТЕЛЬНО · УЧЕБНЫЙ КУРС' : 'ДОПОЛНИТЕЛЬНО · ВЫЖИМКА ИЗ КНИГИ')) : mode === 'pro' ? 'КУРС 5 · ПРОАКТИВНЫЕ ПРОДАЖИ · УРОК ' + (i + 1) + ' ИЗ ' + PRO.length : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num + ' ИЗ ' + co.len;
   const railTitle = mode === 'spiced' ? 'Расширение СПИН' : mode === 'med' ? 'Квалификация сделки' : mode === 'extra' ? 'Дополнительные уроки' : mode === 'pro' ? 'Проактивные продажи' : 'Уроки курсов';
   const railEyebrow = mode === 'spiced' ? 'SPICED · КУРС 1А' : mode === 'med' ? 'MEDDPICC' : mode === 'extra' ? 'ДОПОЛНИТЕЛЬНО' : mode === 'pro' ? 'PROACTIVE · КУРС 5' : 'ПРОГРАММА';
   $('theoryBody').innerHTML = `
@@ -833,19 +845,27 @@ function renderTheory() {
     </aside>
     <article class="lesson-content">
       <div class="lesson-kicker"><span>${kicker}</span><span>◷ ${esc(l.mins)}</span></div>
-      <h1 id="theory-title">${esc(l.title)}</h1>
-      <p class="lead">${esc(l.intro)}</p>
-      ${l.book ? `<p style="font-size:13px;opacity:.7;margin-top:10px">${l.course ? '📚 Источники курса' : '📖 По книге'}: ${esc(l.book)}</p>` : ''}
-      ${l.blocks.map((b, bi) => `
+      <h1 id="theory-title">${xMode ? esc(l.blocks[xb].h) : esc(l.title)}</h1>
+      ${xMode ? '' : `<p class="lead">${esc(l.intro)}</p>`}
+      ${l.book && !xMode ? `<p style="font-size:13px;opacity:.7;margin-top:10px">${l.course ? '📚 Источники курса' : '📖 По книге'}: ${esc(l.book)}</p>` : ''}
+      ${xMode ? (function () { const b = l.blocks[xb]; return `
+        ${b.p.map((par) => `<p>${esc(par)}</p>`).join('')}
+        ${b.ex ? `<div class="example-block"><div class="example-label">ПРИМЕР</div><div class="coach-note"><p>${esc(b.ex)}</p></div></div>` : ''}
+        ${(b.practice && b.practice.length) ? blockPracticeHtml(l, xb, b) : ''}`; })()
+      : l.blocks.map((b, bi) => `
         <h2 class="content-heading">${esc(b.h)}</h2>
         ${b.p.map((par) => `<p>${esc(par)}</p>`).join('')}
         ${b.ex ? `<div class="example-block"><div class="example-label">ПРИМЕР</div><div class="coach-note"><p>${esc(b.ex)}</p></div></div>` : ''}
         ${(l.course && b.practice && b.practice.length) ? blockPracticeHtml(l, bi, b) : ''}
       `).join('')}
-      <h2 class="content-heading">Запомнить</h2>
+      ${xMode ? (xb < l.remember.length ? `<h2 class="content-heading">Запомнить</h2>
+      <div class="question-levels">
+        <div class="level-card"><span>!</span><div><p>${esc(l.remember[xb])}</p></div></div>
+      </div>` : '')
+      : `<h2 class="content-heading">Запомнить</h2>
       <div class="question-levels">
         ${l.remember.map((r, ri) => `<div class="level-card"><span>!</span><div><p>${esc(r)}</p></div></div>`).join('')}
-      </div>
+      </div>`}
       ${practiceHtml(l, i, done)}
       <div class="lesson-footer">
         ${mode === 'spiced'
@@ -867,8 +887,12 @@ function renderTheory() {
                : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}
              ${i + 1 < PRO.length && !done ? '<p class="next-hint">Сначала отметьте этот урок изученным — и откроется следующий.</p>' : ''}`
           : mode === 'extra'
-          ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${S.extraDone.includes(i) ? 'checked' : ''} /><span></span>${S.extraDone.includes(i) ? 'Изучено ✓' : 'Отметить изученным'}</label>
-             <button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`
+          ? (xMode
+             ? (xb + 1 < l.blocks.length
+                ? `<button class="primary-button" id="nextBtn" data-xbnext="1">Следующий урок <span>→</span></button>`
+                : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`)
+             : `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${S.extraDone.includes(i) ? 'checked' : ''} /><span></span>${S.extraDone.includes(i) ? 'Изучено ✓' : 'Отметить изученным'}</label>
+             <button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`)
           : `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок пройден ✓' : 'Урок изучен'}</label>
              ${i + 1 < L.length
                ? `<button class="primary-button" id="nextBtn" data-next="${i + 1}" ${hasP ? '' : 'disabled'}>Следующий урок <span>→</span></button>`
@@ -880,8 +904,11 @@ function renderTheory() {
   $('theoryBody').querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.jump)));
   $('theoryBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
   $('theoryBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curMed = +b.dataset.med; curExtra = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
-  $('theoryBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curXb = 0; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
   $('theoryBody').querySelectorAll('[data-pro]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curPro = +b.dataset.pro; curMed = null; curExtra = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-xb]').forEach((b) => b.addEventListener('click', () => { curXb = Math.max(0, +b.dataset.xb); window.scrollTo({ top: 0 }); renderTheory(); }));
+  const xbn = $('theoryBody').querySelector('[data-xbnext]');
+  if (xbn) xbn.addEventListener('click', () => { curXb++; window.scrollTo({ top: 0 }); renderTheory(); });
   $('theoryBody').querySelectorAll('[data-lesson]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.locked) { toast('Сначала пройдите текущий урок — этот откроется после его практики'); return; }
     S.lesson = +b.dataset.lesson; curExtra = null; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory();
