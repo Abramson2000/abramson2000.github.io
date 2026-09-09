@@ -38,6 +38,7 @@
   .logo { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .logo img { width: 100%; height: 100%; object-fit: contain; }
   .title-img { height: 56px; width: auto; display: block; flex-shrink: 0; }
+  .team-title { font-size: 30px; font-weight: 900; color: var(--red-deep); letter-spacing: 3px; font-family: "SimSun","Songti SC","STSong",serif; line-height: 1.05; flex-shrink: 0; }
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; line-height: 1.3; }
   .topbar .dict-clear { margin-left: auto; }
   .ver-line { padding: 3px 18px 0; font-size: 10.5px; color: #c4c4c8; letter-spacing: .3px; }
@@ -204,20 +205,32 @@
   .loop-btn svg { width: 22px; height: 22px; display: block; }
   .loop-btn.loop-on { background: #58585e; color: #fff; box-shadow: 0 4px 14px rgba(60,60,70,.35); }
 
-  /* Таб-бар */
-  .tabbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid rgba(29,29,33,.06); display: none; justify-content: space-around; gap: 2px; padding: 10px 0 calc(9px + env(safe-area-inset-bottom)); z-index: 50; }
-  .tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 3px 6px 1px; }
-  .tab .ic { display: flex; align-items: center; justify-content: center; }
-  .tab .ic-img { width: 46px; height: 46px; object-fit: contain; display: block; transition: transform .15s ease; }
+  /* Сайдбар слева (вместо нижнего таб-бара) */
+  :root { --sbw: 150px; }
+  @media (min-width: 900px) { :root { --sbw: 210px; } }
+  .tabbar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sbw); background: rgba(255,255,255,.93); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-right: 1px solid rgba(29,29,33,.07); display: none; flex-direction: column; align-items: stretch; gap: 2px; padding: calc(12px + env(safe-area-inset-top)) 10px 14px; z-index: 60; overflow-y: auto; }
+  .sb-brand { display: flex; align-items: center; gap: 9px; padding: 2px 6px 16px; }
+  .sb-brand img { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; }
+  .sb-name { font-size: 13.5px; font-weight: 800; line-height: 1.15; }
+  .sb-sub { font-size: 9.5px; color: var(--muted); font-weight: 700; letter-spacing: .2px; }
+  .tab { display: flex; flex-direction: row; align-items: center; gap: 10px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 9px 8px; border-radius: 12px; width: 100%; text-align: left; transition: background .15s ease; }
+  .tab:hover { background: rgba(29,29,33,.04); }
+  .tab .ic { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 9px; }
+  .tab .ic-img { width: 34px; height: 34px; object-fit: contain; display: block; }
   .tab .ic-img-on { display: none; }
   .tab.active .ic-img-on { display: block; }
   .tab.active .ic-img-off { display: none; }
-  .tab.active .ic-img-on { transform: scale(1.07); }
+  .tab-label { font-size: 14px; font-weight: 700; color: #6e6e76; white-space: nowrap; letter-spacing: .3px; }
+  .tab.active { background: var(--red-soft); }
+  .tab.active .tab-label { color: var(--red-deep); }
+  .ic-tuan { background: var(--red); color: #fff; font-size: 17px; font-weight: 800; font-family: "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
+  body.sb-on .app { margin-left: var(--sbw); }
+  body.sb-on .player { left: var(--sbw); }
   @media (min-width: 900px) {
-    .tab .ic-img { width: 68px; height: 68px; }
-    .tabbar { padding: 16px 0 calc(12px + env(safe-area-inset-bottom)); }
+    .tab .ic, .tab .ic-img { width: 40px; height: 40px; }
+    .tab-label { font-size: 15px; }
+    .sb-brand img { width: 44px; height: 44px; }
   }
-  .tab.active .ic { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 3px 10px rgba(194,58,43,.35); }
 
   .big-score { background: linear-gradient(135deg, #26262c, #1d1d21); color: #fff; border-radius: 26px; padding: 24px 22px; margin-bottom: 18px; box-shadow: var(--shadow-pop); }
   .big-score .label { font-size: 13px; color: #b9b9c2; font-weight: 600; }
@@ -309,11 +322,13 @@
   </div>
 </div>
 <div class="tabbar" id="tabbar">
-  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt="听力"><img class="ic-img ic-img-off" src="tab-ting-off.png" alt="听力"></span></button>
-  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt="语法"><img class="ic-img ic-img-off" src="tab-fa-off.png" alt="语法"></span></button>
-  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt="口语"><img class="ic-img ic-img-off" src="tab-yu-off.png" alt="口语"></span></button>
-  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png" alt="句子"><img class="ic-img ic-img-off" src="tab-ju-off.png" alt="句子"></span></button>
-  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt="词典"><img class="ic-img ic-img-off" src="tab-ci-off.png" alt="词典"></span></button>
+  <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">Тингли</div><div class="sb-sub" id="sbVer"></div></div></div>
+  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力</span></button>
+  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法</span></button>
+  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语</span></button>
+  <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic ic-tuan" id="ic-team">团</span><span class="tab-label">团队</span></button>
+  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png" alt=""></span><span class="tab-label">句子</span></button>
+  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典</span></button>
 </div>
 <script src="data/units.js"></script>
 <script src="data/extra.js"></script>
@@ -330,7 +345,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.8';
+const APP_VER = '2.9';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
 let prog = load();
@@ -439,16 +454,21 @@ function goTab(t) {
   document.getElementById('tab-lessons').classList.toggle('active', t === 'lessons');
   document.getElementById('tab-mine').classList.toggle('active', t === 'mine');
   document.getElementById('tab-idv').classList.toggle('active', t === 'idv');
+  document.getElementById('tab-team').classList.toggle('active', t === 'team');
   document.getElementById('tab-favs').classList.toggle('active', t === 'favs');
   document.getElementById('tab-dict').classList.toggle('active', t === 'dict');
 
   if (t === 'lessons') renderUnits();
   else if (t === 'mine') renderMine();
   else if (t === 'idv') renderIdv();
+  else if (t === 'team') renderTeam();
   else if (t === 'favs') renderFavs();
   else renderDict();
 }
-function showTabbar(show) { document.getElementById('tabbar').style.display = show ? 'flex' : 'none'; }
+function showTabbar(show) {
+  document.getElementById('tabbar').style.display = show ? 'flex' : 'none';
+  document.body.classList.toggle('sb-on', !!show);
+}
 
 /* ===== Экраны ===== */
 
@@ -530,7 +550,7 @@ async function tryRestore() {
     sendBackup(); // облако = объединение
     const cur = typeof tab !== 'undefined' ? tab : 'lessons';
     if (cur === 'lessons') renderUnits(); else if (cur === 'mine') renderMine();
-    else if (cur === 'idv') renderIdv(); else if (cur === 'favs') renderFavs();
+    else if (cur === 'idv') renderIdv(); else if (cur === 'team') renderTeam(); else if (cur === 'favs') renderFavs();
     else renderDict();
   } catch (e) {}
 }
@@ -553,13 +573,29 @@ const ALL_UNITS = UNITS.concat(EXTRA, IDV);
 function renderIdv() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
   curUnit = null; curPart = null;
+  const list = IDV.filter(u => (u.src || 'idv') === 'idv');
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="idv.png" alt="口语"><div class="sub">口语课</div>
     </div>
     <div class="ver-line">v${APP_VER} · © Abramson</div>
-    ${IDV.length ? IDV.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
+    ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
+`;
+  refreshUnitBadges();
+}
+
+function renderTeam() {
+  showTabbar(true); partAudioKey = null; showPlayer(false);
+  curUnit = null; curPart = null;
+  const list = IDV.filter(u => u.src === 'team');
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="logo"><img src="logo.png" alt="听"></div>
+      <div class="team-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
+    </div>
+    <div class="ver-line">v${APP_VER} · © Abramson</div>
+    ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
   refreshUnitBadges();
 }
@@ -672,7 +708,7 @@ function openUnit(n) {
   const u = ALL_UNITS.find(x => x.unit === n); if (!u) return;
   curUnit = u; curPart = null;
   showTabbar(false);
-  if (u.src === 'idv') ensureLessonAudio(u); else showPlayer(!!partAudioKey);
+  if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u); else showPlayer(!!partAudioKey);
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div><div class="u-title">${unitLabel(u)} · ${esc(u.ru || u.en)}</div><div class="u-sub">${esc(u.zh)}</div></div></div>
@@ -698,7 +734,7 @@ function openPart(unitN, partId) {
   const part = u.parts.find(p => p.id === partId); if (!part) return;
   curUnit = u; curPart = part;
   if (part.audio) { setPartAudio(u, part); showPlayer(true); }
-  else if (u.src === 'idv') ensureLessonAudio(u);
+  else if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u);
   else { partAudioKey = null; showPlayer(false); }
   if (part.kind === 'words') renderWords(u, part);
   else if (part.kind === 'hw') renderHw(u, part);
@@ -709,7 +745,7 @@ function openPart(unitN, partId) {
 
 function renderText(u, part) {
   showTabbar(false);
-  if (u.src === 'idv') ensureLessonAudio(u, part);
+  if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u, part);
   else if (part && part.audio) {
     if (partAudioKey !== u.unit + '-' + part.id) setPartAudio(u, part);
     showPlayer(true);
@@ -726,7 +762,7 @@ function renderText(u, part) {
 
 function renderWords(u, part) {
   showTabbar(false);
-  if (u.src === 'idv') ensureLessonAudio(u, part); else showPlayer(!!part.audio);
+  if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u, part); else showPlayer(!!part.audio);
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div>
@@ -830,7 +866,7 @@ function openTask(unitRef, partRef, ti) {
   curUnit = u; curPart = part; curTi = ti;
   const t = part.tasks[ti];
   showTabbar(false);
-  if (u.src === 'idv') ensureLessonAudio(u, part); else showPlayer(!!part.audio);
+  if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u, part); else showPlayer(!!part.audio);
   const total = part.tasks.length;
   const dots = part.tasks.map((x, i) => {
     const p = prog[u.unit] && prog[u.unit][part.id];
@@ -861,7 +897,7 @@ function nextTask() {
   if (curTi < part.tasks.length - 1) { openTask(u.unit, part.id, curTi + 1); return; }
   const idx = u.parts.findIndex(p => p.id === part.id);
   for (let i = idx + 1; i < u.parts.length; i++) {
-    if (u.parts[i].tasks) { if (u.src === 'idv') ensureLessonAudio(u, u.parts[i]); else setPartAudio(u, u.parts[i]); openTask(u, u.parts[i], 0); return; }
+    if (u.parts[i].tasks) { if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u, u.parts[i]); else setPartAudio(u, u.parts[i]); openTask(u, u.parts[i], 0); return; }
   }
   openUnit(u.unit);
 }
@@ -871,7 +907,7 @@ function prevTask() {
   if (curTi > 0) { openTask(u.unit, part.id, curTi - 1); return; }
   const idx = u.parts.findIndex(p => p.id === part.id);
   for (let i = idx - 1; i >= 0; i--) {
-    if (u.parts[i].tasks) { if (u.src === 'idv') ensureLessonAudio(u, u.parts[i]); else setPartAudio(u, u.parts[i]); openTask(u, u.parts[i], u.parts[i].tasks.length - 1); return; }
+    if (u.parts[i].tasks) { if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u, u.parts[i]); else setPartAudio(u, u.parts[i]); openTask(u, u.parts[i], u.parts[i].tasks.length - 1); return; }
   }
   openUnit(u.unit);
 }
@@ -1349,6 +1385,8 @@ async function offlineUnit(n, ev) {
   await refreshUnitBadges();
 }
 
+const sbVerEl = document.getElementById('sbVer');
+if (sbVerEl) sbVerEl.textContent = 'v' + APP_VER;
 renderUnits();
 tryRestore();
 // Service Worker: офлайн-режим

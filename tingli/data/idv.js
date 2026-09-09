@@ -2088,7 +2088,7 @@ const IDV_UNITS = [
   "emoji": "📖",
   "zh": "",
   "ru": "Текст и примеры",
-  "src": "idv",
+  "src": "team",
   "parts": [
    {
     "id": 0,
