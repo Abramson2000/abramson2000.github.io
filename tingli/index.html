@@ -51,6 +51,10 @@
   .offline-btn { flex-shrink: 0; background: #1d1d21; color: #fff; border: 0; border-radius: 10px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; }
   .offline-btn:disabled { opacity: .5; }
   .offline-ok { font-size: 13px; font-weight: 600; color: #1d8a4c; }
+  .unit-dl { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #e3e3e8; background: #f7f7f9; font-size: 13px; line-height: 1; cursor: pointer; margin-right: 4px; }
+  .unit-dl.done { background: #e7f6ec; border-color: #b7e3c4; color: #1d8a4c; }
+  .unit-dl.part { background: #eef3ff; border-color: #c9d8fb; color: #4a7cf7; }
+  .unit-dl:disabled { opacity: .5; }
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; }
   .back { background: #fff; border: none; width: 42px; height: 42px; border-radius: 14px; font-size: 21px; cursor: pointer; color: var(--text); flex-shrink: 0; font-weight: 500; box-shadow: var(--shadow-card); }
   .back:active { transform: scale(.94); }
@@ -329,7 +333,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.3';
+const APP_VER = '2.4';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
 let prog = load();
@@ -546,6 +550,7 @@ function renderUnits() {
     ${offlineCardHtml()}
     ${UNITS.map(unitCard).join('')}
 `;
+  refreshUnitBadges();
 }
 const IDV = (typeof IDV_UNITS !== 'undefined') ? IDV_UNITS : [];
 const ALL_UNITS = UNITS.concat(EXTRA, IDV);
@@ -561,6 +566,7 @@ function renderIdv() {
     ${offlineCardHtml()}
     ${IDV.length ? IDV.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
+  refreshUnitBadges();
 }
 
 function renderMine() {
@@ -575,11 +581,12 @@ function renderMine() {
     ${offlineCardHtml()}
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
 `;
+  refreshUnitBadges();
 }
 function unitCard(u) {
   const s = unitStats(u);
   const nm = u.label ? u.label + ' ·' : u.unit + '.';
-  return `<div class="unit-card" onclick="openUnit(${u.unit})">
+  return `<div class="unit-card" data-u="${u.unit}" onclick="openUnit(${u.unit})">
     <div class="unit-emoji" style="background:${TINTS[u.unit] || '#f7f7f9'}">${u.emoji || EMOJI[u.unit] || '🎧'}</div>
     <div style="flex:1">
       <div class="unit-zh">${nm} ${esc(u.ru || u.en)}</div>
@@ -590,6 +597,7 @@ function unitCard(u) {
         ${s.pct === 100 ? '<span class="done-badge">готово</span>' : ''}
       </div>
     </div>
+    ${u.parts.some(p => p.audio) ? `<button class="unit-dl" onclick="offlineUnit(${u.unit}, event)" title="Скачать аудио урока — будет работать без интернета">⬇️</button>` : ''}
     <div class="unit-arrow">›</div>
   </div>`;
 }
@@ -1263,11 +1271,73 @@ function offlineCardHtml() {
   const done = st ? st.done : 0;
   const pct = total ? Math.round(done / total * 100) : 0;
   const busy = st && st.running;
-  return '<div class="offline-card" id="offlineCard"><div style="flex:1"><div class="offline-title">✈️ Режим полёта</div><div class="offline-sub" id="offlineSub">' + (busy ? 'Загрузка аудио… ' + done + '/' + total : (done ? 'Скачано ' + done + ' из ' + total + ' · продолжу с этого места' : 'Скачай аудио уроков — занимайся в самолёте без интернета (' + total + ' · ~265 МБ)')) + '</div>' + (done ? '<div class="offline-bar"><i style="width:' + pct + '%"></i></div>' : '') + '</div><button class="offline-btn" id="offlineBtn" onclick="offlineStart()"' + (busy ? ' disabled' : '') + '>' + (busy ? '⏳…' : (done ? 'Продолжить' : 'Скачать')) + '</button></div>';
+  return '<div class="offline-card" id="offlineCard"><div style="flex:1"><div class="offline-title">✈️ Режим полёта</div><div class="offline-sub" id="offlineSub">' + (busy ? 'Загрузка аудио… ' + done + '/' + total : (done ? 'Скачано ' + done + ' из ' + total + ' · продолжу с этого места' : 'Скачай всё аудио (' + total + ' · ~265 МБ) — или отдельные уроки кнопкой ⬇️ на карточке')) + '</div>' + (done ? '<div class="offline-bar"><i style="width:' + pct + '%"></i></div>' : '') + '</div><button class="offline-btn" id="offlineBtn" onclick="offlineStart()"' + (busy ? ' disabled' : '') + '>' + (busy ? '⏳…' : (done ? 'Продолжить' : 'Скачать')) + '</button></div>';
 }
 function offlinePaint() {
   const el = document.getElementById('offlineCard');
   if (el) el.outerHTML = offlineCardHtml();
+}
+function unitAudioNames(n) {
+  const u = ALL_UNITS.find(x => x.unit === n);
+  if (!u) return [];
+  const s = new Set();
+  for (const p of (u.parts || [])) if (p.audio) s.add(p.audio);
+  return [...s];
+}
+function tingliCacheName() {
+  return caches.keys().then(ks => ks.find(k => k.indexOf('tingli-cache') === 0) || '');
+}
+async function unitDlState(n) {
+  const names = unitAudioNames(n);
+  if (!names.length) return null;
+  const cn = await tingliCacheName();
+  if (!cn) return { names: names, done: 0, total: names.length };
+  const c = await caches.open(cn);
+  let done = 0;
+  for (const nm of names) { try { if (await c.match('audio/' + nm)) done++; } catch (e) {} }
+  return { names: names, done: done, total: names.length };
+}
+async function refreshUnitBadges() {
+  const cards = document.querySelectorAll('.unit-card');
+  for (const card of cards) {
+    const n = Number(card.getAttribute('data-u'));
+    if (!n) continue;
+    const btn = card.querySelector('.unit-dl');
+    if (!btn) continue;
+    const st = await unitDlState(n);
+    if (!st) { btn.style.display = 'none'; continue; }
+    btn.style.display = '';
+    if (st.done >= st.total) { btn.textContent = '✓'; btn.className = 'unit-dl done'; btn.title = 'Аудио урока скачано — работает без интернета'; }
+    else if (st.done > 0) { btn.textContent = '⬇'; btn.className = 'unit-dl part'; btn.title = 'Скачано ' + st.done + ' из ' + st.total + ' — докачать'; }
+    else { btn.textContent = '⬇️'; btn.className = 'unit-dl'; btn.title = 'Скачать аудио урока — будет работать без интернета'; }
+  }
+}
+let dlUnit = null;
+async function offlineUnit(n, ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  if (dlUnit) return;
+  if (!navigator.onLine) { alert('Нет сети — скачивание начнётся, когда появится интернет.'); return; }
+  const st = await unitDlState(n);
+  if (!st || !st.names.length) return;
+  dlUnit = n;
+  const btn = document.querySelector('.unit-card[data-u="' + n + '"] .unit-dl');
+  if (btn) { btn.disabled = true; btn.textContent = '0%'; btn.className = 'unit-dl part'; }
+  let done = st.done;
+  const names = st.names;
+  let fail = 0;
+  for (let i = st.done; i < names.length; i++) {
+    try {
+      const r = await fetch('audio/' + names[i]);
+      if (!r.ok) { fail++; if (fail > 2) break; }
+      else { done = i + 1; fail = 0; }
+    } catch (e) { fail++; if (fail > 2) break; }
+    if (btn && (i % 2 === 0 || i === names.length - 1)) {
+      btn.textContent = Math.round(done / names.length * 100) + '%';
+    }
+  }
+  dlUnit = null;
+  if (btn) btn.disabled = false;
+  await refreshUnitBadges();
 }
 async function offlineStart() {
   if (offRunning) return;
