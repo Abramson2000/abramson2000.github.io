@@ -40,7 +40,7 @@
   .title-img { height: 56px; width: auto; display: block; flex-shrink: 0; }
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; line-height: 1.3; }
   .topbar .dict-clear { margin-left: auto; }
-  .ver-top { margin-left: auto; font-size: 10.5px; color: #c4c4c8; letter-spacing: .3px; white-space: nowrap; flex-shrink: 0; }
+  .ver-line { padding: 3px 18px 0; font-size: 10.5px; color: #c4c4c8; letter-spacing: .3px; }
 
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; }
   .back { background: #fff; border: none; width: 42px; height: 42px; border-radius: 14px; font-size: 21px; cursor: pointer; color: var(--text); flex-shrink: 0; font-weight: 500; box-shadow: var(--shadow-card); }
@@ -61,7 +61,8 @@
   .pbar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--red-deep), var(--red)); transition: width .4s ease; }
   .unit-progress { font-size: 12px; color: var(--muted); white-space: nowrap; font-weight: 600; }
   .done-badge { font-size: 11px; font-weight: 700; color: var(--ok); background: var(--ok-soft); border-radius: 99px; padding: 3px 10px; }
-  .unit-dl { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--text); color: #fff; font-size: 14px; line-height: 1; cursor: pointer; margin-right: 4px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(29,29,33,.22); transition: transform .12s ease, background .12s ease; -webkit-appearance: none; appearance: none; }
+  .unit-dl { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--text); color: #fff; cursor: pointer; margin-right: 4px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(29,29,33,.22); transition: transform .12s ease, background .12s ease; -webkit-appearance: none; appearance: none; }
+  .unit-dl svg { width: 15px; height: 15px; display: block; }
   .unit-dl:active { transform: scale(.92); }
   .unit-dl.done { background: linear-gradient(135deg, var(--red-deep), var(--red)); box-shadow: 0 3px 10px rgba(194,58,43,.32); }
   .unit-dl.part { background: var(--red-soft); color: var(--red); box-shadow: inset 0 0 0 1.5px var(--red); }
@@ -325,7 +326,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.6';
+const APP_VER = '2.7';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
 let prog = load();
@@ -537,8 +538,8 @@ function renderUnits() {
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="title.png" alt="初级听力"><div class="sub">发展汉语<br>初级听力 II</div>
-      <div class="ver-top">v${APP_VER} · © Abramson</div>
     </div>
+    <div class="ver-line">v${APP_VER} · © Abramson</div>
     ${UNITS.map(unitCard).join('')}
 `;
   refreshUnitBadges();
@@ -552,8 +553,8 @@ function renderIdv() {
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="idv.png" alt="口语"><div class="sub">口语课</div>
-      <div class="ver-top">v${APP_VER} · © Abramson</div>
     </div>
+    <div class="ver-line">v${APP_VER} · © Abramson</div>
     ${IDV.length ? IDV.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
   refreshUnitBadges();
@@ -566,8 +567,8 @@ function renderMine() {
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="grammar.png" alt="语法"><div class="sub">李老师课</div>
-      <div class="ver-top">v${APP_VER} · © Abramson</div>
     </div>
+    <div class="ver-line">v${APP_VER} · © Abramson</div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
 `;
   refreshUnitBadges();
@@ -586,7 +587,7 @@ function unitCard(u) {
         ${s.pct === 100 ? '<span class="done-badge">готово</span>' : ''}
       </div>
     </div>
-    ${u.parts.some(p => p.audio) ? `<button class="unit-dl" onclick="offlineUnit(${u.unit}, event)" title="Скачать аудио урока — будет работать без интернета">⬇️</button>` : ''}
+    ${u.parts.some(p => p.audio) ? `<button class="unit-dl" onclick="offlineUnit(${u.unit}, event)" title="Скачать аудио урока — будет работать без интернета">${dlSvg('dl')}</button>` : ''}
     <div class="unit-arrow">›</div>
   </div>`;
 }
@@ -599,9 +600,9 @@ function renderDict() {
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="dict.png" alt="词典"><div class="sub">我的词典 · ${d.length}</div>
-      <div class="ver-top">v${APP_VER} · © Abramson</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
+    <div class="ver-line">v${APP_VER} · © Abramson</div>
     ${d.length ? d.map((w, i) => `
       <div class="dict-item">
         <div class="dict-zh zh-opt">${esc(w.zh)}</div>
@@ -996,8 +997,8 @@ function renderFavs() {
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="favs.png" alt="句子"><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
-      <div class="ver-top">v${APP_VER} · © Abramson</div>
     </div>
+    <div class="ver-line">v${APP_VER} · © Abramson</div>
     ${items.length ? items.map(it => {
       const isWords = it.ti === null;
       const click = isWords ? `openPart(${it.u.unit},${it.part.id})` : `openTask(${it.u.unit},${it.part.id},${it.ti})`;
@@ -1243,6 +1244,12 @@ document.addEventListener('touchend', e => {
   if (s) { setTimeout(function () { s.classList.add('hide'); }, 2400); setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 2950); }
 })();
 /* ===== Офлайн-аудио по урокам ===== */
+function dlSvg(kind) {
+  const p = kind === 'check'
+    ? '<path d="M5 13l5 5L20 7"/>'
+    : '<path d="M12 4v11"/><path d="M6 11l6 6 6-6"/><path d="M5 21h14"/>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+}
 function unitAudioNames(n) {
   const u = ALL_UNITS.find(x => x.unit === n);
   if (!u) return [];
@@ -1273,9 +1280,9 @@ async function refreshUnitBadges() {
     const st = await unitDlState(n);
     if (!st) { btn.style.display = 'none'; continue; }
     btn.style.display = '';
-    if (st.done >= st.total) { btn.textContent = '✓'; btn.className = 'unit-dl done'; btn.title = 'Скачано — нажми, чтобы удалить'; }
-    else if (st.done > 0) { btn.textContent = '⬇'; btn.className = 'unit-dl part'; btn.title = 'Скачано ' + st.done + ' из ' + st.total + ' — нажми, чтобы докачать'; }
-    else { btn.textContent = '⬇️'; btn.className = 'unit-dl'; btn.title = 'Скачать аудио урока — будет работать без интернета'; }
+    if (st.done >= st.total) { btn.innerHTML = dlSvg('check'); btn.className = 'unit-dl done'; btn.title = 'Скачано — нажми, чтобы удалить'; }
+    else if (st.done > 0) { btn.innerHTML = dlSvg('dl'); btn.className = 'unit-dl part'; btn.title = 'Скачано ' + st.done + ' из ' + st.total + ' — нажми, чтобы докачать'; }
+    else { btn.innerHTML = dlSvg('dl'); btn.className = 'unit-dl'; btn.title = 'Скачать аудио урока — будет работать без интернета'; }
   }
 }
 let dlUnit = null;
@@ -1299,7 +1306,7 @@ async function offlineUnit(n, ev) {
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   dlUnit = n;
   const btn = document.querySelector('.unit-card[data-u="' + n + '"] .unit-dl');
-  if (btn) { btn.disabled = true; btn.textContent = '0%'; btn.className = 'unit-dl part'; }
+  if (btn) { btn.disabled = true; btn.textContent = '0%'; btn.className = 'unit-dl part'; btn.style.fontSize = '11px'; btn.style.fontWeight = '700'; }
   let done = st.done;
   const names = st.names;
   let fail = 0;
