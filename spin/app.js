@@ -528,7 +528,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs69', './hero-2.jpg?v=crs69', './hero-3.jpg?v=crs69', './hero-4.jpg?v=crs69', './hero-5.jpg?v=crs69', './hero-6.jpg?v=crs69', './hero-7.jpg?v=crs69', './hero-8.jpg?v=crs69', './hero-9.jpg?v=crs69', './hero-10.jpg?v=crs69'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs70', './hero-2.jpg?v=crs70', './hero-3.jpg?v=crs70', './hero-4.jpg?v=crs70', './hero-5.jpg?v=crs70', './hero-6.jpg?v=crs70', './hero-7.jpg?v=crs70', './hero-8.jpg?v=crs70', './hero-9.jpg?v=crs70', './hero-10.jpg?v=crs70'];
 let heroOrder = [], heroPos = 0, heroTimer = null;
 function shuffleHero() { // перемешивание без повторов подряд
   const a = HERO_SHOTS.map((_, i) => i);
@@ -636,16 +636,16 @@ function renderProgram() {
   </div>` : '';
   // «Дополнительно» — выжимки книг, в самый конец страницы
   const extraBooksHtml = EXTRA.length ? `
-  <div class="section-title-row" style="margin-top:26px"><div><h2>Дополнительно</h2><p>Выжимки книг — короткие уроки сверх программы</p></div></div>
+  <div class="section-title-row" style="margin-top:26px"><div><h2>Дополнительно</h2><p>Курсы и выжимки книг — короткие уроки сверх программы</p></div></div>
   <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
     ${EXTRA.map((x, xi) => {
       const rd = S.extraDone.includes(xi);
       const parts = (x.practice ? x.practice.length : 0) || x.blocks.length;
       const desc = x.intro.length > 100 ? x.intro.slice(0, 100) + '…' : x.intro;
       return `
-      <article class="module-card method-card current ${rd ? 'completed' : ''}" data-extra="${xi}" tabindex="0" role="button" title="Выжимка книги — открыть">
-        <div class="module-icon">📘</div>
-        <span class="status-label">${rd ? 'ПРОЧИТАНО' : 'КНИГА'}</span>
+      <article class="module-card method-card current ${rd ? 'completed' : ''}" data-extra="${xi}" tabindex="0" role="button" title="${x.course ? 'Открыть курс' : 'Выжимка книги — открыть'}">
+        <div class="module-icon">${x.course ? '🎓' : '📘'}</div>
+        <span class="status-label">${rd ? 'ПРОЙДЕН' : x.course ? 'КУРС' : 'КНИГА'}</span>
         <h3>${esc(x.title)}</h3>
         <p>${esc(desc)}</p>
         <div class="module-footer"><span>${esc(x.mins)} · ${parts} раздела</span><strong>→</strong></div>
@@ -781,8 +781,8 @@ function renderTheory() {
       </button>`;
     }).join('');
   } else if (mode === 'extra') {
-    railItems = `<div class="lesson-group-label"><span>Книги</span>ВЫЖИМКИ</div>` + EXTRA.map((ll, ei) => {
-      return `<button class="lesson-item ${ei === i ? 'active' : ''}" data-extra="${ei}" title="Выжимка книги">
+    railItems = `<div class="lesson-group-label"><span>Extra</span>ДОПОЛНИТЕЛЬНО</div>` + EXTRA.map((ll, ei) => {
+      return `<button class="lesson-item ${ei === i ? 'active' : ''}" data-extra="${ei}" title="${ll.course ? 'Открыть курс' : 'Выжимка книги'}">
         <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${S.extraDone.includes(ei) ? '<b>✓</b>' : ''}
       </button>`;
     }).join('');
@@ -813,8 +813,8 @@ function renderTheory() {
   // Шпаргалки теперь — отдельная вкладка (внизу), дубль в списке уроков не нужен
 
   const co = mode === 'main' ? courseOf(i) : null;
-  const kicker = mode === 'spiced' ? 'КУРС 1А · SPICED · УРОК ' + (i + 1) + ' ИЗ ' + SPICED.length : mode === 'med' ? 'КУРС MEDDPICC · УРОК ' + (i + 1) + ' ИЗ ' + MED.length : mode === 'extra' ? 'ДОПОЛНИТЕЛЬНО · ВЫЖИМКА ИЗ КНИГИ' : mode === 'pro' ? 'КУРС 5 · ПРОАКТИВНЫЕ ПРОДАЖИ · УРОК ' + (i + 1) + ' ИЗ ' + PRO.length : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num + ' ИЗ ' + co.len;
-  const railTitle = mode === 'spiced' ? 'Расширение СПИН' : mode === 'med' ? 'Квалификация сделки' : mode === 'extra' ? 'Выжимки книг' : mode === 'pro' ? 'Проактивные продажи' : 'Уроки курсов';
+  const kicker = mode === 'spiced' ? 'КУРС 1А · SPICED · УРОК ' + (i + 1) + ' ИЗ ' + SPICED.length : mode === 'med' ? 'КУРС MEDDPICC · УРОК ' + (i + 1) + ' ИЗ ' + MED.length : mode === 'extra' ? (EXTRA[i].course ? 'ДОПОЛНИТЕЛЬНО · УЧЕБНЫЙ КУРС' : 'ДОПОЛНИТЕЛЬНО · ВЫЖИМКА ИЗ КНИГИ') : mode === 'pro' ? 'КУРС 5 · ПРОАКТИВНЫЕ ПРОДАЖИ · УРОК ' + (i + 1) + ' ИЗ ' + PRO.length : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num + ' ИЗ ' + co.len;
+  const railTitle = mode === 'spiced' ? 'Расширение СПИН' : mode === 'med' ? 'Квалификация сделки' : mode === 'extra' ? 'Дополнительные уроки' : mode === 'pro' ? 'Проактивные продажи' : 'Уроки курсов';
   const railEyebrow = mode === 'spiced' ? 'SPICED · КУРС 1А' : mode === 'med' ? 'MEDDPICC' : mode === 'extra' ? 'ДОПОЛНИТЕЛЬНО' : mode === 'pro' ? 'PROACTIVE · КУРС 5' : 'ПРОГРАММА';
   $('theoryBody').innerHTML = `
     <aside class="lesson-rail">
@@ -827,7 +827,7 @@ function renderTheory() {
       <div class="lesson-kicker"><span>${kicker}</span><span>◷ ${esc(l.mins)}</span></div>
       <h1 id="theory-title">${esc(l.title)}</h1>
       <p class="lead">${esc(l.intro)}</p>
-      ${l.book ? `<p style="font-size:13px;opacity:.7;margin-top:10px">📖 По книге: ${esc(l.book)}</p>` : ''}
+      ${l.book ? `<p style="font-size:13px;opacity:.7;margin-top:10px">${l.course ? '📚 Источники курса' : '📖 По книге'}: ${esc(l.book)}</p>` : ''}
       ${l.blocks.map((b, bi) => `
         <h2 class="content-heading">${esc(b.h)}</h2>
         ${b.p.map((par) => `<p>${esc(par)}</p>`).join('')}
@@ -858,7 +858,7 @@ function renderTheory() {
                : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}
              ${i + 1 < PRO.length && !done ? '<p class="next-hint">Сначала отметьте этот урок изученным — и откроется следующий.</p>' : ''}`
           : mode === 'extra'
-          ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${S.extraDone.includes(i) ? 'checked' : ''} /><span></span>${S.extraDone.includes(i) ? 'Прочитано ✓' : 'Отметить прочитанным'}</label>
+          ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${S.extraDone.includes(i) ? 'checked' : ''} /><span></span>${S.extraDone.includes(i) ? 'Изучено ✓' : 'Отметить изученным'}</label>
              <button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`
           : `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок пройден ✓' : 'Урок изучен'}</label>
              ${i + 1 < L.length
@@ -974,7 +974,7 @@ function bindPractice(lessonIdx, done, mode) {
           <div class="question-levels" id="pDone">
             <div class="level-card" style="grid-template-columns:1fr;gap:6px;text-align:center">
               <h3 style="font-size:26px">${mode === 'main' ? 'Практика урока ' + (lessonIdx + 1) + ' завершена' : 'Практика завершена'}</h3>
-              <p>${mode === 'med' ? 'Разберите фидбеки выше — и отметьте урок изученным.' : mode === 'extra' ? 'Выжимка усвоена — можно отметить её прочитанной выше.' : 'Разберите фидбеки выше — и отметьте урок пройденным.'}</p>
+              <p>${mode === 'med' ? 'Разберите фидбеки выше — и отметьте урок изученным.' : mode === 'extra' ? 'Материал усвоен — можно отметить его изученным выше.' : 'Разберите фидбеки выше — и отметьте урок пройденным.'}</p>
             </div>
           </div>`;
       } else { pState.i++; pState.pick = null; const html = practiceHtml(l, lessonIdx, done); const area = document.getElementById('pArea'); area.outerHTML = html.replace('id="pArea"', 'id="pArea"'); bindPractice(lessonIdx, done, mode); }
