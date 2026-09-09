@@ -21,6 +21,14 @@ let EXTRA = [];                        // видимые текущему пол
 let curExtra = null;                   // индекс открытого доп-урока (или null = основной урок)
 // уроки с only:'boss' видит только владелец (abramson@crm.ru); остальные скрыты
 const refreshExtra = () => { EXTRA = EXTRA_ALL.filter((x) => !x.only || (x.only === 'boss' && USER && USER.email === 'abramson@crm.ru')); };
+// ситуации «Удалённых продаж» для тренажёра: кексы курса x4 с номером урока
+function x4Situations() {
+  const x = EXTRA_ALL.find((e) => e.id === 'x4');
+  if (!x || !x.blocks) return [];
+  const out = [];
+  x.blocks.forEach((bl, bi) => (bl.practice || []).forEach((k) => out.push({ q: k.q, options: k.options, ln: bi + 1, lt: bl.h })));
+  return out;
+}
 // курс MEDDPICC — квалификация сделки (8 элементов + риски)
 const MED = (SPIN_DATA.meddicc && SPIN_DATA.meddicc.lessons) || [];
 const SPICED = (SPIN_DATA.spiced && SPIN_DATA.spiced.lessons) || []; // курс 1а — расширение СПИН
@@ -528,7 +536,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs74', './hero-2.jpg?v=crs74', './hero-3.jpg?v=crs74', './hero-4.jpg?v=crs74', './hero-5.jpg?v=crs74', './hero-6.jpg?v=crs74', './hero-7.jpg?v=crs74', './hero-8.jpg?v=crs74', './hero-9.jpg?v=crs74', './hero-10.jpg?v=crs74'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs75', './hero-2.jpg?v=crs75', './hero-3.jpg?v=crs75', './hero-4.jpg?v=crs75', './hero-5.jpg?v=crs75', './hero-6.jpg?v=crs75', './hero-7.jpg?v=crs75', './hero-8.jpg?v=crs75', './hero-9.jpg?v=crs75', './hero-10.jpg?v=crs75'];
 let heroOrder = [], heroPos = 0, heroTimer = null;
 function shuffleHero() { // перемешивание без повторов подряд
   const a = HERO_SHOTS.map((_, i) => i);
@@ -1150,22 +1158,41 @@ function renderTrainer() {
           <p>Врач просит «информацию», заведующий хочет «в следующем году», клиент «подумает» — ваше действие?</p>
           <div class="module-footer"><span>~8 мин</span><strong>→</strong></div>
         </article>
+      </div>` : ''}
+      ${EXTRA.some((e) => e.id === 'x4') && x4Situations().length ? `
+      <div class="section-title-row" style="margin-top:30px">
+        <div><h2>Дополнительно · Удалённые продажи</h2><p>готовые ситуации из курса: звонок, переписка, стенд · выберите правильное действие</p></div>
+      </div>
+      <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
+        <article class="module-card current" data-mode="remote">
+          <div class="module-icon">У</div>
+          <span class="status-label">${x4Situations().length} СИТУАЦИЙ</span>
+          <h3>Ситуации удалённых продаж</h3>
+          <p>Секретарь «не даёт номера», врач говорит «дорого», партнёр тянет с ответом — ваше действие?</p>
+          <div class="module-footer"><span>~8 мин</span><strong>→</strong></div>
+        </article>
       </div>` : ''}`;
-    b.querySelectorAll('[data-mode]').forEach((x) => x.addEventListener('click', () => { S.tMode = x.dataset.mode; S.tOrder = shuffle(x.dataset.mode === 'proact' ? PRO_TRAINER : (BANK_BY_MODE[x.dataset.mode] || quiz)); S.tIdx = 0; S.tScore = 0; S.tPick = null; renderTrainer(); }));
+    b.querySelectorAll('[data-mode]').forEach((x) => x.addEventListener('click', () => { S.tMode = x.dataset.mode; S.tOrder = shuffle(x.dataset.mode === 'proact' ? PRO_TRAINER : x.dataset.mode === 'remote' ? x4Situations() : (BANK_BY_MODE[x.dataset.mode] || quiz)); S.tIdx = 0; S.tScore = 0; S.tPick = null; renderTrainer(); }));
     return;
   }
-  // режим «Ситуации ProActive»: задания с вариантами (готовые задачи мастер-курса), +5 XP за верный
-  if (S.tMode === 'proact' && PRO_TRAINER.length) {
+  // режимы «Ситуации» (ProActive / Удалённые продажи): задания с вариантами, +5 XP за верный
+  const SIT_META = {
+    proact: { eyebrow: 'СИТУАЦИИ PROACTIVE', sub: 'Готовые ситуации из мастер-курса · выберите действие и увидите разбор.', chip: 'Курс 5 · ProActive', ok: 'Отличная реакция. Так и работайте с клиникой!', mid: 'Неплохо. Повторите уроки курса 5 и попробуйте ещё раз.', low: 'Пока рано. Вернитесь к урокам 1–12 Курса 5.' },
+    remote: { eyebrow: 'СИТУАЦИИ · УДАЛЁННЫЕ ПРОДАЖИ', sub: 'Ситуации из курса: звонок, переписка, стенд · выберите действие и увидите разбор.', chip: 'Удалённые продажи', ok: 'Отличная реакция. Так и работайте с клиникой!', mid: 'Неплохо. Повторите уроки курса и попробуйте ещё раз.', low: 'Пока рано. Вернитесь к урокам курса.' },
+  };
+  const SIT_BANK = S.tMode === 'proact' ? PRO_TRAINER : S.tMode === 'remote' ? x4Situations() : [];
+  if ((S.tMode === 'proact' && PRO_TRAINER.length) || (S.tMode === 'remote' && SIT_BANK.length)) {
+    const sm = SIT_META[S.tMode];
     if (S.tIdx >= S.tOrder.length) {
       const pct = Math.round((S.tScore / S.tOrder.length) * 100);
-      const verdict = pct >= 85 ? 'Отличная реакция. Так и работайте с клиникой!' : pct >= 60 ? 'Неплохо. Повторите уроки курса 5 и попробуйте ещё раз.' : 'Пока рано. Вернитесь к урокам 1–12 Курса 5.';
+      const verdict = pct >= 85 ? sm.ok : pct >= 60 ? sm.mid : sm.low;
       b.innerHTML = `
-        <div class="page-heading"><p class="eyebrow">СИТУАЦИИ PROACTIVE · ИТОГ</p><h1>${S.tScore} из ${S.tOrder.length}</h1><p>${pct}% верных · ${verdict}</p></div>
+        <div class="page-heading"><p class="eyebrow">${sm.eyebrow} · ИТОГ</p><h1>${S.tScore} из ${S.tOrder.length}</h1><p>${pct}% верных · ${verdict}</p></div>
         <div class="feedback-actions">
           <button class="primary-button" id="tAgain">Ещё раз</button>
           <button class="secondary-button" id="tMode">Другой режим</button>
         </div>`;
-      $('tAgain').addEventListener('click', () => { S.tOrder = shuffle(PRO_TRAINER); S.tIdx = 0; S.tScore = 0; S.tPick = null; renderTrainer(); });
+      $('tAgain').addEventListener('click', () => { S.tOrder = shuffle(SIT_BANK); S.tIdx = 0; S.tScore = 0; S.tPick = null; renderTrainer(); });
       $('tMode').addEventListener('click', () => { S.tMode = null; renderTrainer(); });
       return;
     }
@@ -1173,7 +1200,7 @@ function renderTrainer() {
     const picked = S.tPick;
     b.innerHTML = `
       <div class="trainer-header">
-        <div><p class="eyebrow">СИТУАЦИИ PROACTIVE</p><h1 id="trainer-title">Что вы сделаете?</h1><p>Готовые ситуации из мастер-курса · выберите действие и увидите разбор.</p></div>
+        <div><p class="eyebrow">${sm.eyebrow}</p><h1 id="trainer-title">Что вы сделаете?</h1><p>${sm.sub}</p></div>
         <div style="display:flex;align-items:center;gap:14px">
           <div class="round-indicator"><strong>${S.tIdx + 1}</strong><span>/ ${S.tOrder.length} · ✓ ${S.tScore}</span></div>
           <button class="mode-switch" id="tSwitch">Сменить режим</button>
@@ -1181,7 +1208,7 @@ function renderTrainer() {
       </div>
       <div class="trainer-grid">
         <article class="scenario-card">
-          <div class="scenario-top"><span class="case-chip">СИТУАЦИЯ</span><span>Курс 5 · ProActive</span></div>
+          <div class="scenario-top"><span class="case-chip">СИТУАЦИЯ</span><span>${sm.chip}${q.ln ? ' · Урок ' + q.ln : ''}</span></div>
           <blockquote id="clientPhrase">${quoteSmart(q.q)}</blockquote>
         </article>
         <article class="answers-card">
