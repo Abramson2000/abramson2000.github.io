@@ -99,9 +99,12 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Статика и аудио: cache-first, при промахе — сеть с дозаписью в кэш
+  // Статика и аудио: cache-first, при промахе — сеть с дозаписью в кэш.
+  // Аудио качаем в обход HTTP-кэша браузера (cache:no-store), чтобы удаление
+  // из Cache Storage действительно делало файл недоступным офлайн.
+  const isAudio = url.pathname.indexOf('/audio/') !== -1;
   e.respondWith(
-    caches.match(req).then((hit) => hit || fetch(req).then((r) => {
+    caches.match(req).then((hit) => hit || fetch(req, isAudio ? { cache: 'no-store' } : {}).then((r) => {
       if (r.ok) {
         const cp = r.clone();
         caches.open(CACHE).then((c) => c.put(req, cp));

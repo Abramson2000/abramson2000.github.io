@@ -41,20 +41,7 @@
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; line-height: 1.3; }
   .topbar .dict-clear { margin-left: auto; }
   .ver-top { margin-left: auto; font-size: 10.5px; color: #c4c4c8; letter-spacing: .3px; white-space: nowrap; flex-shrink: 0; }
-  /* ===== Режим полёта ===== */
-  .offline-card { display: flex; align-items: center; gap: 10px; margin: 10px 14px 2px; padding: 10px 12px; background: #fff; border: 1px solid #ececf0; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
-  .offline-card.ok { justify-content: center; padding: 12px; }
-  .offline-title { font-size: 13px; font-weight: 700; color: #1d1d21; }
-  .offline-sub { font-size: 11px; color: #8a8a90; margin-top: 2px; }
-  .offline-bar { height: 5px; background: #f0f0f2; border-radius: 99px; margin-top: 6px; overflow: hidden; }
-  .offline-bar i { display: block; height: 100%; background: #4a7cf7; border-radius: 99px; transition: width .4s; }
-  .offline-btn { flex-shrink: 0; background: #1d1d21; color: #fff; border: 0; border-radius: 10px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; }
-  .offline-btn:disabled { opacity: .5; }
-  .offline-ok { font-size: 13px; font-weight: 600; color: #1d8a4c; }
-  .unit-dl { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #e3e3e8; background: #f7f7f9; font-size: 13px; line-height: 1; cursor: pointer; margin-right: 4px; }
-  .unit-dl.done { background: #e7f6ec; border-color: #b7e3c4; color: #1d8a4c; }
-  .unit-dl.part { background: #eef3ff; border-color: #c9d8fb; color: #4a7cf7; }
-  .unit-dl:disabled { opacity: .5; }
+
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; }
   .back { background: #fff; border: none; width: 42px; height: 42px; border-radius: 14px; font-size: 21px; cursor: pointer; color: var(--text); flex-shrink: 0; font-weight: 500; box-shadow: var(--shadow-card); }
   .back:active { transform: scale(.94); }
@@ -333,7 +320,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.4';
+const APP_VER = '2.5';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
 let prog = load();
@@ -547,7 +534,6 @@ function renderUnits() {
       <img class="title-img" src="title.png" alt="初级听力"><div class="sub">发展汉语<br>初级听力 II</div>
       <div class="ver-top">v${APP_VER} · © Abramson</div>
     </div>
-    ${offlineCardHtml()}
     ${UNITS.map(unitCard).join('')}
 `;
   refreshUnitBadges();
@@ -563,7 +549,6 @@ function renderIdv() {
       <img class="title-img" src="idv.png" alt="口语"><div class="sub">口语课</div>
       <div class="ver-top">v${APP_VER} · © Abramson</div>
     </div>
-    ${offlineCardHtml()}
     ${IDV.length ? IDV.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
   refreshUnitBadges();
@@ -578,7 +563,6 @@ function renderMine() {
       <img class="title-img" src="grammar.png" alt="语法"><div class="sub">李老师课</div>
       <div class="ver-top">v${APP_VER} · © Abramson</div>
     </div>
-    ${offlineCardHtml()}
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
 `;
   refreshUnitBadges();
@@ -1253,30 +1237,7 @@ document.addEventListener('touchend', e => {
   var s = document.getElementById('splash');
   if (s) { setTimeout(function () { s.classList.add('hide'); }, 2400); setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 2950); }
 })();
-/* ===== Режим полёта (офлайн-аудио) ===== */
-const LS_OFF = 'tingli-offline-v1';
-let offRunning = false;
-function allAudioNames() {
-  const s = new Set();
-  for (const u of ALL_UNITS) for (const p of (u.parts || [])) if (p.audio) s.add(p.audio);
-  return [...s];
-}
-function offState() {
-  try { return JSON.parse(localStorage.getItem(LS_OFF) || 'null'); } catch (e) { return null; }
-}
-function offlineCardHtml() {
-  const st = offState();
-  const total = allAudioNames().length;
-  if (st && st.done >= total) return '<div class="offline-card ok" id="offlineCard"><div class="offline-ok">✈️ Всё скачано (' + total + '/' + total + ') — можно в полёт</div></div>';
-  const done = st ? st.done : 0;
-  const pct = total ? Math.round(done / total * 100) : 0;
-  const busy = st && st.running;
-  return '<div class="offline-card" id="offlineCard"><div style="flex:1"><div class="offline-title">✈️ Режим полёта</div><div class="offline-sub" id="offlineSub">' + (busy ? 'Загрузка аудио… ' + done + '/' + total : (done ? 'Скачано ' + done + ' из ' + total + ' · продолжу с этого места' : 'Скачай всё аудио (' + total + ' · ~265 МБ) — или отдельные уроки кнопкой ⬇️ на карточке')) + '</div>' + (done ? '<div class="offline-bar"><i style="width:' + pct + '%"></i></div>' : '') + '</div><button class="offline-btn" id="offlineBtn" onclick="offlineStart()"' + (busy ? ' disabled' : '') + '>' + (busy ? '⏳…' : (done ? 'Продолжить' : 'Скачать')) + '</button></div>';
-}
-function offlinePaint() {
-  const el = document.getElementById('offlineCard');
-  if (el) el.outerHTML = offlineCardHtml();
-}
+/* ===== Офлайн-аудио по урокам ===== */
 function unitAudioNames(n) {
   const u = ALL_UNITS.find(x => x.unit === n);
   if (!u) return [];
@@ -1307,8 +1268,8 @@ async function refreshUnitBadges() {
     const st = await unitDlState(n);
     if (!st) { btn.style.display = 'none'; continue; }
     btn.style.display = '';
-    if (st.done >= st.total) { btn.textContent = '✓'; btn.className = 'unit-dl done'; btn.title = 'Аудио урока скачано — работает без интернета'; }
-    else if (st.done > 0) { btn.textContent = '⬇'; btn.className = 'unit-dl part'; btn.title = 'Скачано ' + st.done + ' из ' + st.total + ' — докачать'; }
+    if (st.done >= st.total) { btn.textContent = '✓'; btn.className = 'unit-dl done'; btn.title = 'Скачано — нажми, чтобы удалить'; }
+    else if (st.done > 0) { btn.textContent = '⬇'; btn.className = 'unit-dl part'; btn.title = 'Скачано ' + st.done + ' из ' + st.total + ' — нажми, чтобы докачать'; }
     else { btn.textContent = '⬇️'; btn.className = 'unit-dl'; btn.title = 'Скачать аудио урока — будет работать без интернета'; }
   }
 }
@@ -1316,9 +1277,21 @@ let dlUnit = null;
 async function offlineUnit(n, ev) {
   if (ev && ev.stopPropagation) ev.stopPropagation();
   if (dlUnit) return;
-  if (!navigator.onLine) { alert('Нет сети — скачивание начнётся, когда появится интернет.'); return; }
   const st = await unitDlState(n);
   if (!st || !st.names.length) return;
+  // уже скачано — удаляем
+  if (st.done >= st.total) {
+    if (!confirm('Удалить скачанное аудио урока? Без интернета оно больше не откроется.')) return;
+    const cn = await tingliCacheName();
+    if (cn) {
+      const c = await caches.open(cn);
+      for (const nm of st.names) { try { await c.delete('audio/' + nm); } catch (e) {} }
+    }
+    await refreshUnitBadges();
+    return;
+  }
+  if (!navigator.onLine) { alert('Нет сети — скачивание начнётся, когда появится интернет.'); return; }
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   dlUnit = n;
   const btn = document.querySelector('.unit-card[data-u="' + n + '"] .unit-dl');
   if (btn) { btn.disabled = true; btn.textContent = '0%'; btn.className = 'unit-dl part'; }
@@ -1339,43 +1312,11 @@ async function offlineUnit(n, ev) {
   if (btn) btn.disabled = false;
   await refreshUnitBadges();
 }
-async function offlineStart() {
-  if (offRunning) return;
-  if (!navigator.onLine) { alert('Нет сети — скачивание начнётся, когда появится интернет.'); return; }
-  offRunning = true;
-  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-  const names = allAudioNames();
-  const st = offState() || { done: 0 };
-  const total = names.length;
-  let done = Math.min(st.done || 0, total);
-  try { localStorage.setItem(LS_OFF, JSON.stringify({ done: done, total: total, running: true, ts: Date.now() })); } catch (e) {}
-  offlinePaint();
-  let fail = 0;
-  for (let i = done; i < total; i++) {
-    try {
-      const r = await fetch('audio/' + names[i]);
-      if (!r.ok) { fail++; if (fail > 3) break; }
-      else { done = i + 1; fail = 0; }
-    } catch (e) { fail++; if (fail > 3) break; }
-    if ((i + 1) % 5 === 0 || i === total - 1) {
-      try { localStorage.setItem(LS_OFF, JSON.stringify({ done: done, total: total, running: true, ts: Date.now() })); } catch (e) {}
-      const sub = document.getElementById('offlineSub');
-      const bar = document.querySelector('#offlineCard .offline-bar i');
-      if (sub) sub.textContent = 'Загрузка аудио… ' + done + '/' + total;
-      if (bar) bar.style.width = Math.round(done / total * 100) + '%';
-    }
-    await new Promise(r => setTimeout(r, 60));
-  }
-  offRunning = false;
-  const ok = done >= total;
-  try { localStorage.setItem(LS_OFF, JSON.stringify({ done: done, total: total, running: false, ts: Date.now() })); } catch (e) {}
-  if (ok) saveLocal(LS_OFF, localStorage.getItem(LS_OFF));
-  offlinePaint();
-}
 
 renderUnits();
 tryRestore();
 // Service Worker: офлайн-режим
+try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
