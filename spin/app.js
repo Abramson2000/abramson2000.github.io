@@ -528,7 +528,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs72', './hero-2.jpg?v=crs72', './hero-3.jpg?v=crs72', './hero-4.jpg?v=crs72', './hero-5.jpg?v=crs72', './hero-6.jpg?v=crs72', './hero-7.jpg?v=crs72', './hero-8.jpg?v=crs72', './hero-9.jpg?v=crs72', './hero-10.jpg?v=crs72'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs73', './hero-2.jpg?v=crs73', './hero-3.jpg?v=crs73', './hero-4.jpg?v=crs73', './hero-5.jpg?v=crs73', './hero-6.jpg?v=crs73', './hero-7.jpg?v=crs73', './hero-8.jpg?v=crs73', './hero-9.jpg?v=crs73', './hero-10.jpg?v=crs73'];
 let heroOrder = [], heroPos = 0, heroTimer = null;
 function shuffleHero() { // перемешивание без повторов подряд
   const a = HERO_SHOTS.map((_, i) => i);
@@ -832,6 +832,7 @@ function renderTheory() {
         <h2 class="content-heading">${esc(b.h)}</h2>
         ${b.p.map((par) => `<p>${esc(par)}</p>`).join('')}
         ${b.ex ? `<div class="example-block"><div class="example-label">ПРИМЕР</div><div class="coach-note"><p>${esc(b.ex)}</p></div></div>` : ''}
+        ${(l.course && b.practice && b.practice.length) ? blockPracticeHtml(l, bi, b) : ''}
       `).join('')}
       <h2 class="content-heading">Запомнить</h2>
       <div class="question-levels">
@@ -914,6 +915,56 @@ function renderTheory() {
     save(); syncChrome(); renderTheory();
   });
   bindPractice(i, done, mode);
+  bindBlockPractice(l);
+}
+
+// мини-практика после урока-блока курса (extra с course:true): по одному вопросу за раз
+let bpState = {}; // { [blockIdx]: { i, pick } }
+function blockPracticeHtml(l, bi, b) {
+  const qs = b.practice;
+  const st = bpState[bi] || (bpState[bi] = { i: 0, pick: null });
+  if (st.i >= qs.length) {
+    return `<div class="question-levels" style="margin:18px 0"><div class="level-card" style="grid-template-columns:1fr;gap:6px;text-align:center"><h3 style="font-size:18px">✓ Практика урока ${bi + 1} пройдена</h3><p style="font-size:13px;opacity:.7">Ответы разобраны выше — листайте к следующему уроку.</p></div></div>`;
+  }
+  const q = qs[st.i];
+  return `
+    <div class="question-levels" style="margin:18px 0" id="bpArea-${bi}">
+      <div class="level-card" style="grid-template-columns:1fr;gap:10px">
+        <p style="font-size:12px;opacity:.6;font-weight:800;letter-spacing:.08em">ПРОВЕРЬ СЕБЯ · УРОК ${bi + 1} · ВОПРОС ${st.i + 1} ИЗ ${qs.length}</p>
+        <p style="font-weight:800;color:var(--ink);font-size:16px">${esc(q.q)}</p>
+        <div id="bpOpts-${bi}">
+          ${q.options.map((o, oi) => `<button class="answer-option" data-bp="${bi}" data-p="${oi}" ${st.pick !== null ? 'disabled' : ''}><span>${String.fromCharCode(65 + oi)}</span><p>${esc(o.label)}</p></button>`).join('')}
+        </div>
+        <div id="bpFb-${bi}"></div>
+      </div>
+    </div>`;
+}
+function bindBlockPractice(l) {
+  if (!l || !l.course || !l.blocks) return;
+  document.querySelectorAll('[data-bp]').forEach((btn) => btn.addEventListener('click', () => {
+    const bi = +btn.dataset.bp;
+    const b = l.blocks[bi];
+    if (!b || !b.practice) return;
+    const st = bpState[bi] || (bpState[bi] = { i: 0, pick: null });
+    if (st.pick !== null) return;
+    const oi = +btn.dataset.p;
+    const q = b.practice[st.i];
+    const o = q.options[oi];
+    st.pick = oi;
+    S.attempts++; if (o.good) { S.correct++; addXp(5); }
+    save();
+    btn.classList.add(o.good ? 'correct' : 'wrong');
+    document.querySelectorAll('#bpOpts-' + bi + ' .answer-option').forEach((x, xi) => { if (xi !== oi && !o.good) x.classList.add(xi === q.options.findIndex((z) => z.good) ? 'correct' : 'dim'); });
+    const fb = document.getElementById('bpFb-' + bi);
+    const last = st.i + 1 >= b.practice.length;
+    fb.innerHTML = `<div class="feedback-area"><div class="feedback-tip"><strong>${o.good ? '✓ Верно' : '✗ Не совсем'}</strong><p>${esc(o.fb)}</p></div><button class="primary-button" id="bpNext-${bi}">${last ? 'К следующему уроку ↓' : 'Дальше →'}</button></div>`;
+    document.getElementById('bpNext-' + bi).addEventListener('click', () => {
+      if (last) { delete bpState[bi]; bpState[bi] = { i: b.practice.length, pick: null }; }
+      else { bpState[bi] = { i: st.i + 1, pick: null }; }
+      const area = document.getElementById('bpArea-' + bi);
+      if (area) { const html = blockPracticeHtml(l, bi, b); area.outerHTML = html.replace('id="bpArea-' + bi + '"', 'id="bpArea-' + bi + '"'); bindBlockPractice(l); }
+    });
+  }));
 }
 
 // практика урока (по одному вопросу)
