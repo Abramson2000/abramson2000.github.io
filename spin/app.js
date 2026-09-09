@@ -157,7 +157,7 @@ let SB = null;
 const S = {
   tab: 'program',
   lesson: 0,
-  pTab: 'trainer',   // внутри Практики: 'trainer' | 'cases'
+  pTab: null,     // внутри Практики: 'selfcheck' | 'trainer' | 'cases' (null = дефолт по роли)
   done: [],            // индексы уроков
   practiced: [],       // уроки, где практика «Проверь себя» отвечена до конца
   spPracticed: [],     // практики уроков курса 1а SPICED (до конца)
@@ -528,7 +528,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs73', './hero-2.jpg?v=crs73', './hero-3.jpg?v=crs73', './hero-4.jpg?v=crs73', './hero-5.jpg?v=crs73', './hero-6.jpg?v=crs73', './hero-7.jpg?v=crs73', './hero-8.jpg?v=crs73', './hero-9.jpg?v=crs73', './hero-10.jpg?v=crs73'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs74', './hero-2.jpg?v=crs74', './hero-3.jpg?v=crs74', './hero-4.jpg?v=crs74', './hero-5.jpg?v=crs74', './hero-6.jpg?v=crs74', './hero-7.jpg?v=crs74', './hero-8.jpg?v=crs74', './hero-9.jpg?v=crs74', './hero-10.jpg?v=crs74'];
 let heroOrder = [], heroPos = 0, heroTimer = null;
 function shuffleHero() { // перемешивание без повторов подряд
   const a = HERO_SHOTS.map((_, i) => i);
@@ -1040,16 +1040,19 @@ function bindPractice(lessonIdx, done, mode) {
 // ============ ПРАКТИКА (тренажёр + кейсы) ============
 function renderPractice() {
   const b = $('practiceBody');
+  const tab = S.pTab || ((USER && USER.email === BOSS_EMAIL) ? 'selfcheck' : 'trainer');
+  S.pTab = tab;
   b.innerHTML = `
     <div class="practice-head">
       <div class="seg-control">
-        <button class="${S.pTab === 'trainer' ? 'active' : ''}" data-ptab="trainer">Тренажёр</button>
-        <button class="${S.pTab === 'cases' ? 'active' : ''}" data-ptab="cases">Кейсы</button>
+        <button class="${tab === 'selfcheck' ? 'active' : ''}" data-ptab="selfcheck">Проверь себя</button>
+        <button class="${tab === 'trainer' ? 'active' : ''}" data-ptab="trainer">Тренажёр</button>
+        <button class="${tab === 'cases' ? 'active' : ''}" data-ptab="cases">Кейсы</button>
       </div>
     </div>
     <div id="practiceContent"></div>`;
   b.querySelectorAll('[data-ptab]').forEach((x) => x.addEventListener('click', () => { S.pTab = x.dataset.ptab; renderPractice(); }));
-  if (S.pTab === 'cases') renderCases(); else renderTrainer();
+  if (tab === 'cases') renderCases(); else if (tab === 'selfcheck') renderSelfCheck(); else renderTrainer();
 }
 
 // ============ ШПАРГАЛКИ ============
@@ -1357,6 +1360,117 @@ function renderCases() {
     fa.innerHTML = `<div class="feedback-tip" style="border-left-color:${o.grade === 'bad' ? '#d8795e' : 'var(--green)'}"><strong>${gradeMeta[o.grade].t} · +${gradeMeta[o.grade].pts} · ${esc(o.tag)}</strong><p>${esc(o.fb)}</p></div><div class="feedback-actions"><button class="primary-button" id="cNext">${S.cScene + 1 >= c.scenes.length ? 'Итог встречи' : 'Дальше →'}</button></div>`;
     $('cNext').addEventListener('click', () => { S.cScene++; S.cPick = null; renderCases(); });
   }));
+}
+
+// ============ ПРОВЕРЬ СЕБЯ (практики курсов) ============
+// Собирает все поурочные практики «Проверь себя» по курсам и запускает их из вкладки «Практика».
+function selfCheckCatalog() {
+  const isBoss = USER && USER.email === BOSS_EMAIL;
+  const cat = [];
+  const add = (id, name, sub, icon, lessons, open) => {
+    const qs = [];
+    lessons.forEach((ll) => (ll.qs || []).forEach((k) => qs.push({ q: k.q, options: k.options, ln: ll.num, lt: ll.title })));
+    if (!qs.length) return;
+    cat.push({ id, name, sub, icon, open, qs });
+  };
+  // курсы программы — практика открывается после первого пройденного урока курса
+  add('spiced', 'Курс 1а · SPICED', 'Диагностика сделки · Winning by Design', 'S',
+    SPICED.map((ll, i) => ({ num: i + 1, title: ll.title, qs: ll.practice || [] })),
+    isBoss || REVIEW_MODE || S.spicedDone.length > 0);
+  add('med', 'Курс MEDDPICC', 'Квалификация сделки · 8 элементов и риски', 'M',
+    MED.map((ll, i) => ({ num: i + 1, title: ll.title, qs: ll.practice || [] })),
+    isBoss || REVIEW_MODE || S.medDone.length > 0);
+  add('pro', 'Курс 5 · ProActive', 'Управление сделкой · Skip Miller', 'P',
+    PRO.map((ll, i) => ({ num: i + 1, title: ll.title, qs: ll.practice || [] })),
+    isBoss || REVIEW_MODE || S.proDone.length > 0);
+  // дополнительные курсы — практики открыты всегда
+  const x3 = EXTRA_ALL.find((e) => e.id === 'x3');
+  if (x3 && x3.practice && x3.practice.length) add('x3', 'Телефонные продажи', 'Разрыв шаблона вместо скрипта · Рабичев', 'Т',
+    [{ num: 1, title: x3.title, qs: x3.practice }], true);
+  const x4 = EXTRA_ALL.find((e) => e.id === 'x4');
+  if (x4) add('x4', 'Удалённые продажи', 'Телефон, переписка, стенд · 28 уроков', 'У',
+    x4.blocks.map((b, i) => ({ num: i + 1, title: b.h, qs: b.practice || [] })), true);
+  return cat;
+}
+function renderSelfCheck() {
+  const b = $('practiceContent');
+  if (!S.sc) {
+    const cat = selfCheckCatalog();
+    b.innerHTML = `
+      <div class="page-heading">
+        <p class="eyebrow">ПРОВЕРЬ СЕБЯ</p>
+        <h1 id="sc-title">Практики курсов</h1>
+        <p>Вопросы после каждого урока — отвечайте и сверяйтесь с разбором. Прошли урок — его практика открыта здесь для повторения. +5 XP за верный ответ.</p>
+      </div>
+      <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+        ${cat.map((c) => `
+        <article class="module-card ${c.open ? 'current' : 'locked'}" ${c.open ? `data-sc="${c.id}"` : ''} tabindex="0" role="button" ${c.open ? '' : 'title="Пройдите хотя бы один урок курса — и практика откроется"'}>
+          <div class="module-icon">${c.icon}</div>
+          <span class="status-label">${c.qs.length} ${pluralN(c.qs.length, ['ВОПРОС', 'ВОПРОСА', 'ВОПРОСОВ'])}</span>
+          <h3>${esc(c.name)}</h3>
+          <p>${esc(c.sub)}</p>
+          <div class="module-footer"><span>${c.open ? 'Начать →' : '🔒 После первого урока курса'}</span></div>
+        </article>`).join('')}
+      </div>`;
+    b.querySelectorAll('[data-sc]').forEach((x) => x.addEventListener('click', () => { S.sc = { id: x.dataset.sc, i: 0, pick: null, score: 0 }; renderSelfCheck(); }));
+    return;
+  }
+  const c = selfCheckCatalog().find((z) => z.id === S.sc.id) || selfCheckCatalog()[0];
+  if (!c) { S.sc = null; renderSelfCheck(); return; }
+  if (S.sc.i >= c.qs.length) {
+    const pct = Math.round((S.sc.score / c.qs.length) * 100);
+    const verdict = pct >= 85 ? 'Отличный результат. Практика закрепилась!' : pct >= 60 ? 'Неплохо. Повторите вопросы с разборами — и попробуйте ещё раз.' : 'Пока рано. Вернитесь к урокам курса и ответьте снова.';
+    b.innerHTML = `
+      <div class="page-heading"><p class="eyebrow">ПРОВЕРЬ СЕБЯ · ${esc(c.name.toUpperCase())}</p><h1>${S.sc.score} из ${c.qs.length}</h1><p>${pct}% верных · ${verdict}</p></div>
+      <div class="feedback-actions">
+        <button class="primary-button" id="scAgain">Ещё раз</button>
+        <button class="secondary-button" id="scList">Другие практики</button>
+      </div>`;
+    $('scAgain').addEventListener('click', () => { S.sc = { id: c.id, i: 0, pick: null, score: 0 }; renderSelfCheck(); });
+    $('scList').addEventListener('click', () => { S.sc = null; renderSelfCheck(); });
+    return;
+  }
+  const k = c.qs[S.sc.i];
+  const picked = S.sc.pick;
+  b.innerHTML = `
+    <div class="trainer-header">
+      <div><p class="eyebrow">ПРОВЕРЬ СЕБЯ · ${esc(c.name.toUpperCase())}</p><h1 id="sc-title">Урок ${k.ln}: ${esc(k.lt)}</h1><p>вопрос после урока · ответьте и увидите разбор</p></div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="round-indicator"><strong>${S.sc.i + 1}</strong><span>/ ${c.qs.length} · ✓ ${S.sc.score}</span></div>
+        <button class="mode-switch" id="scSwitch">← Практики</button>
+      </div>
+    </div>
+    <div class="trainer-grid">
+      <article class="scenario-card">
+        <div class="scenario-top"><span class="case-chip">ВОПРОС</span><span>${esc(c.name)}</span></div>
+        <div class="client-profile"><span class="avatar large">${c.icon}</span><div><strong>${esc(c.name)}</strong><p>Урок ${k.ln} · ${esc(k.lt.slice(0, 60))}${k.lt.length > 60 ? '…' : ''}</p></div></div>
+        <blockquote id="scPhrase">${quoteSmart(k.q)}</blockquote>
+      </article>
+      <article class="answers-card">
+        <div id="answerArea">
+          <p class="answer-prompt">Ваш ответ:</p>
+          ${k.options.map((o, oi) => `<button class="answer-option" data-o="${oi}" ${picked !== null ? 'disabled' : ''}><span>${String.fromCharCode(65 + oi)}</span><p>${esc(o.label)}</p></button>`).join('')}
+        </div>
+        <div id="feedbackArea" class="feedback-area hidden" aria-live="polite"></div>
+      </article>
+    </div>`;
+  b.querySelectorAll('[data-o]').forEach((btn) => btn.addEventListener('click', () => {
+    if (S.sc.pick !== null) return;
+    const oi = +btn.dataset.o;
+    const o = k.options[oi];
+    S.sc.pick = oi;
+    S.attempts++;
+    if (o.good) { S.correct++; S.sc.score++; addXp(5); toast('Верно · +5 XP'); }
+    save();
+    btn.classList.add(o.good ? 'correct' : 'wrong');
+    k.options.forEach((x, xi) => { if (x.good) b.querySelectorAll('[data-o]')[xi].classList.add('correct'); });
+    const fa = $('feedbackArea');
+    fa.classList.remove('hidden');
+    fa.innerHTML = `<div class="feedback-icon">${o.good ? '✓' : '✗'}</div><h2>${o.good ? 'Верно' : 'Неверно'}</h2><p>${esc(o.fb)}</p><div class="feedback-actions"><button class="primary-button" id="scNext">${S.sc.i + 1 >= c.qs.length ? 'Итог' : 'Дальше →'}</button></div>`;
+    $('scNext').addEventListener('click', () => { S.sc.i++; S.sc.pick = null; renderSelfCheck(); });
+  }));
+  const sw = $('scSwitch');
+  if (sw) sw.addEventListener('click', () => { S.sc = null; renderSelfCheck(); });
 }
 
 // ============ ПРОГРЕСС ============
