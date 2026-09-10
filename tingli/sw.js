@@ -1,7 +1,7 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.19.3 (2026-09-11: озвучка 入乡随俗 — более низкий и взрослый голос Yunyang) + font-build: simsun-subset-STSong-1415 — маркер прекэша
+// data-build: v2.19.4 (2026-09-11: полоса прокрутки снова автоскрывается; номер версии прижат влево) + font-build: simsun-subset-STSong-1415 — маркер прекэша
 const CACHE = 'tingli-cache-v1';
 
 const ASSETS = [
