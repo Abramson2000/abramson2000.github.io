@@ -41,7 +41,7 @@
   .team-title { font-size: 30px; font-weight: 900; color: var(--red-deep); letter-spacing: 3px; font-family: "SimSun","Songti SC","STSong",serif; line-height: 1.05; flex-shrink: 0; }
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; line-height: 1.3; }
   .topbar .dict-clear { margin-left: auto; }
-  .ver-line { padding: 3px 18px 0; font-size: 10.5px; color: #c4c4c8; letter-spacing: .3px; }
+  .ver-line { padding: 20px 18px 30px; font-size: 12.5px; color: #8e8e96; letter-spacing: .4px; text-align: center; font-weight: 500; }
 
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; }
   .back { background: #fff; border: none; width: 42px; height: 42px; border-radius: 14px; font-size: 21px; cursor: pointer; color: var(--text); flex-shrink: 0; font-weight: 500; box-shadow: var(--shadow-card); }
@@ -349,7 +349,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.19.0';
+const APP_VER = '2.19.1';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -620,6 +620,7 @@ async function tryRestore() {
   } catch (e) {}
 }
 
+function verTail() { return '<div class="ver-line">Abramson © ' + APP_VER + '</div>'; }
 function renderUnits() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
   curUnit = null; curPart = null;
@@ -628,8 +629,8 @@ function renderUnits() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="title.png" alt="初级听力"><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
-    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${UNITS.map(unitCard).join('')}
+    ${verTail()}
 `;
   refreshUnitBadges();
 }
@@ -644,8 +645,8 @@ function renderIdv() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="idv.png" alt="口语"><div class="sub">口语课</div>
     </div>
-    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
+    ${verTail()}
 `;
   refreshUnitBadges();
 }
@@ -659,8 +660,8 @@ function renderTeam() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <div class="team-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
-    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
+    ${verTail()}
 `;
   refreshUnitBadges();
 }
@@ -673,8 +674,8 @@ function renderMine() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="grammar.png" alt="语法"><div class="sub">李老师课</div>
     </div>
-    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
+    ${verTail()}
 `;
   refreshUnitBadges();
 }
@@ -707,7 +708,6 @@ function renderDict() {
       <img class="title-img" src="dict.png" alt="词典"><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
-    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${d.length ? d.map((w, i) => `
       <div class="dict-item">
         <div class="dict-zh zh-opt">${esc(w.zh)}</div>
@@ -719,6 +719,7 @@ function renderDict() {
         <button class="dict-del" onclick="dictRemove(${i})" title="Удалить">✕</button>
       </div>`).join('')
       : '<div class="empty">Словарь пуст.<br>Открой список слов, выдели слово и нажми «📖 Отправить в словарь».</div>'}
+    ${verTail()}
 `;
 }
 
@@ -1103,7 +1104,6 @@ function renderFavs() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="favs.png" alt="句子"><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
     </div>
-    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${items.length ? items.map(it => {
       const isWords = it.ti === null;
       const click = isWords ? `openPart(${it.u.unit},${it.part.id})` : `openTask(${it.u.unit},${it.part.id},${it.ti})`;
@@ -1122,7 +1122,8 @@ function renderFavs() {
         <div class="fav-meta">${meta}${it.part.titleZh && !isWords ? ' · ' + esc(it.part.titleZh) : ''}</div>
       </div>`;
     }).join('')
-      : '<div class="empty">Пока пусто.<br>Открой любое задание или слова и нажми ☆ — оно появится здесь.</div>'}`;
+      : '<div class="empty">Пока пусто.<br>Открой любое задание или слова и нажми ☆ — оно появится здесь.</div>'}
+    ${verTail()}`;
 }
 function removeFav(k) {
   saveFavs(loadFavs().filter(x => x !== k));

@@ -1,7 +1,7 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.19.0 (2026-09-10: новый урок 7.2 в 语法 «上不了网 · 语法点» + ДЗ) + font-build: simsun-subset-STSong-1412 — маркер прекэша
+// data-build: v2.19.1 (2026-09-10: номер версии перенесён вниз и стал заметным; CORS для ИИ-проверки ДЗ; прекэш мимо HTTP-кеша) + font-build: simsun-subset-STSong-1415 — маркер прекэша
 const CACHE = 'tingli-cache-v1';
 
 const ASSETS = [
@@ -69,8 +69,14 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
+  // cache:'reload' — тянем свежие файлы в обход HTTP-кеша (иначе после деплоя
+  // можно закешировать старые data/*.js и «потерять» новый урок)
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then((c) => Promise.all(ASSETS.map((u) =>
+        fetch(u, { cache: 'reload' }).then((r) => { if (r && r.ok) return c.put(u, r); }).catch(() => null)
+      )))
+      .then(() => self.skipWaiting())
   );
 });
 
