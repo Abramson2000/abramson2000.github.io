@@ -27,6 +27,7 @@
     --shadow-pop: 0 2px 6px rgba(29,29,33,.08), 0 14px 34px rgba(29,29,33,.1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { overflow-y: scroll; scrollbar-gutter: stable; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; letter-spacing: 0; }
   .zh, .zh-opt, .fill, .script, .word .zh { font-family: "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; }
   .app { max-width: 720px; margin: 0 auto; padding: 16px 16px 130px; }
@@ -223,6 +224,7 @@
   .tab-label { font-size: 22px; font-weight: 700; color: #6e6e76; white-space: nowrap; letter-spacing: .3px; font-family: "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; }
   .tab.active { background: var(--red-soft); }
   .tab.active .tab-label { color: var(--red-deep); }
+  .sb-ver { margin-top: auto; padding: 18px 8px calc(6px + env(safe-area-inset-bottom)); font-size: 12px; color: #a6a6ae; letter-spacing: .3px; text-align: center; font-weight: 500; }
   .ic-tuan { background: var(--red); color: #fff; font-size: 27px; font-weight: 800; font-family: "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
   /* меню — оверлей поверх контента; контент справа полупрозрачный, пока меню открыто */
   .app, .player { transition: opacity .3s ease; }
@@ -333,6 +335,7 @@
   <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队</span></button>
   <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png" alt=""></span><span class="tab-label">句子</span></button>
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典</span></button>
+  <div class="sb-ver" id="sbVerLine"></div>
 </div>
 <script src="data/units.js"></script>
 <script src="data/extra.js"></script>
@@ -345,15 +348,23 @@ const load = () => { try { return JSON.parse(localStorage.getItem(LS) || '{}'); 
 const save = p => saveLocal(LS, JSON.stringify(p));
 const loadFavs = () => { try { return JSON.parse(localStorage.getItem(LS_FAV) || '[]'); } catch { return []; } };
 const saveFavs = f => saveLocal(LS_FAV, JSON.stringify(f));
+const POS_KEY = 'tingli-pos-v1';
+const posSave = () => { if (!curUnit || !curPart) return; try { const m = JSON.parse(localStorage.getItem(POS_KEY) || '{}'); m[curUnit.unit + ':' + curPart.id] = Math.round(window.scrollY); saveLocal(POS_KEY, JSON.stringify(m)); } catch (e) {} };
+const posRestore = () => { if (!curUnit || !curPart) return; let y = 0; try { const m = JSON.parse(localStorage.getItem(POS_KEY) || '{}'); y = m[curUnit.unit + ':' + curPart.id] || 0; } catch (e) {} window.scrollTo(0, y || 0); };
+let _posT = null;
+window.addEventListener('scroll', () => { clearTimeout(_posT); _posT = setTimeout(posSave, 250); }, { passive: true });
+window.addEventListener('pagehide', posSave);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') posSave(); });
 const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.19.1';
+const APP_VER = '2.19.2';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
+const unitName = u => { const l = unitLabel(u); if (!u.ru) return l; const sep = /^Урок[\s.]/.test(l) ? '. ' : (/^\d/.test(l) ? ' ' : ' · '); return l + sep + u.ru; };
 let prog = load();
 let tab = 'lessons';
 let curUnit = null, curPart = null, curTi = 0, slideDir = 'next';
@@ -471,6 +482,7 @@ function goTab(t) {
   else if (t === 'team') renderTeam();
   else if (t === 'favs') renderFavs();
   else renderDict();
+  window.scrollTo(0, 0);
 }
 function showTabbar(show) {
   document.getElementById('tabbar').style.display = show ? 'flex' : 'none';
@@ -620,7 +632,6 @@ async function tryRestore() {
   } catch (e) {}
 }
 
-function verTail() { return '<div class="ver-line">Abramson © ' + APP_VER + '</div>'; }
 function renderUnits() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
   curUnit = null; curPart = null;
@@ -630,7 +641,6 @@ function renderUnits() {
       <img class="title-img" src="title.png" alt="初级听力"><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
     ${UNITS.map(unitCard).join('')}
-    ${verTail()}
 `;
   refreshUnitBadges();
 }
@@ -646,7 +656,6 @@ function renderIdv() {
       <img class="title-img" src="idv.png" alt="口语"><div class="sub">口语课</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
-    ${verTail()}
 `;
   refreshUnitBadges();
 }
@@ -661,7 +670,6 @@ function renderTeam() {
       <div class="team-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
-    ${verTail()}
 `;
   refreshUnitBadges();
 }
@@ -675,17 +683,15 @@ function renderMine() {
       <img class="title-img" src="grammar.png" alt="语法"><div class="sub">李老师课</div>
     </div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
-    ${verTail()}
 `;
   refreshUnitBadges();
 }
 function unitCard(u) {
   const s = unitStats(u);
-  const nm = u.label ? u.label + ' ·' : u.unit + '.';
   return `<div class="unit-card" data-u="${u.unit}" onclick="openUnit(${u.unit})">
     <div class="unit-emoji" style="background:${TINTS[u.unit] || '#f7f7f9'}">${u.emoji || EMOJI[u.unit] || '🎧'}</div>
     <div style="flex:1">
-      <div class="unit-zh">${nm} ${esc(u.ru || u.en)}</div>
+      <div class="unit-zh">${esc(unitName(u))}</div>
       <div class="unit-zh-sub">${esc(u.zh)}</div>
       <div class="unit-meta">
         <div class="pbar"><i style="width:${s.pct}%"></i></div>
@@ -719,7 +725,6 @@ function renderDict() {
         <button class="dict-del" onclick="dictRemove(${i})" title="Удалить">✕</button>
       </div>`).join('')
       : '<div class="empty">Словарь пуст.<br>Открой список слов, выдели слово и нажми «📖 Отправить в словарь».</div>'}
-    ${verTail()}
 `;
 }
 
@@ -777,7 +782,7 @@ function openUnit(n) {
   if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u); else showPlayer(!!partAudioKey);
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
-      <div><div class="u-title">${unitLabel(u)} · ${esc(u.ru || u.en)}</div><div class="u-sub">${esc(u.zh)}</div></div></div>
+      <div><div class="u-title">${esc(unitName(u))}</div><div class="u-sub">${esc(u.zh)}</div></div></div>
     ${u.parts.map((part, i) => {
       const num = part.kind === 'text' ? '📖' : (partNum(part) || (i + 1 - u.parts.filter((p, j) => j < i && p.kind === 'text').length));
       return `
@@ -793,6 +798,7 @@ function openUnit(n) {
         </div>
       </div>`;
     }).join('')}`;
+  window.scrollTo(0, 0);
 }
 
 function openPart(unitN, partId) {
@@ -821,9 +827,9 @@ function renderText(u, part) {
   const pimg = part.image ? `<img class="lesson-img" src="${esc(part.image)}" alt="">` : '';
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
-      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div></div>
+      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
     <div class="lesson-text">${pimg}${paras.map(p => `<p class="zh">${esc(p)}</p>`).join('')}</div>`;
-  window.scrollTo(0, 0);
+  posRestore();
 }
 
 function renderWords(u, part) {
@@ -831,7 +837,7 @@ function renderWords(u, part) {
   if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u, part); else showPlayer(!!part.audio);
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
-      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div>
+      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div>
       <button class="fav-btn ${isFavPart(u, part) ? 'on' : ''}" onclick="toggleFavPart()" title="В избранное">${isFavPart(u, part) ? '⭐' : '☆'}</button></div>
     <div style="padding:0 16px 4px"><div class="hw-hint" style="color:#999">Нажми на слово, чтобы выделить → «Отправить в словарь»</div></div>
     <div class="part" style="cursor:default;padding:6px 16px" id="wordList">
@@ -869,7 +875,7 @@ function renderMatch(u, part) {
   };
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
-      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div></div>
+      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
     <div class="match-hint">${esc(part.text || '')} Выбирай по очереди: плитку слева, затем пару справа. Верные пары закрепятся сверху.</div>
     <div class="match-done" id="matchDone"></div>
     <div class="match-grid">
@@ -880,7 +886,7 @@ function renderMatch(u, part) {
   const L = document.getElementById('matchL'), R = document.getElementById('matchR');
   matchState.L.forEach(x => { L.insertAdjacentHTML('beforeend', `<div class="match-tile l" data-k="${x.k}" onclick="matchPick('l',${x.k})">${esc(x.v)}</div>`); });
   matchState.R.forEach(x => { R.insertAdjacentHTML('beforeend', `<div class="match-tile r" data-k="${x.k}" onclick="matchPick('r',${x.k})">${esc(x.v)}</div>`); });
-  window.scrollTo(0, 0);
+  posRestore();
 }
 function matchPick(side, k) {
   const ms = matchState;
@@ -943,7 +949,7 @@ function openTask(unitRef, partRef, ti) {
   slideDir = 'next';
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
-      <div><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div></div>
+      <div><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
     <div class="task-head">
       <div class="task-count">Задание ${ti + 1} из ${total}</div>
       <div class="task-dots">${dots}</div>
@@ -954,7 +960,7 @@ function openTask(unitRef, partRef, ti) {
       <button class="nav-btn" onclick="prevTask()">← Назад</button>
       <button class="nav-btn" onclick="nextTask()">Дальше →</button>
     </div>`;
-  window.scrollTo(0, 0);
+  posRestore();
 }
 
 function nextTask() {
@@ -1122,8 +1128,7 @@ function renderFavs() {
         <div class="fav-meta">${meta}${it.part.titleZh && !isWords ? ' · ' + esc(it.part.titleZh) : ''}</div>
       </div>`;
     }).join('')
-      : '<div class="empty">Пока пусто.<br>Открой любое задание или слова и нажми ☆ — оно появится здесь.</div>'}
-    ${verTail()}`;
+      : '<div class="empty">Пока пусто.<br>Открой любое задание или слова и нажми ☆ — оно появится здесь.</div>'}`;
 }
 function removeFav(k) {
   saveFavs(loadFavs().filter(x => x !== k));
@@ -1224,7 +1229,7 @@ function renderHw(u, part) {
   curUnit = u; curPart = part;
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
-      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${unitLabel(u)} · ${esc(u.zh)}</div></div></div>
+      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
     ${part.text ? `<div class="script zh-opt show">${esc(part.text)}</div>` : ''}
     ${part.questions.map((q, i) => {
       const qs = typeof q === 'string' ? q : q.q;
@@ -1257,7 +1262,7 @@ function renderHw(u, part) {
     ta.addEventListener('input', () => hwSave(Number(ta.dataset.i)));
   });
   hwRefresh();
-  window.scrollTo(0, 0);
+  posRestore();
 }
 
 /* ===== ИИ-проверка ответов (DeepSeek через /api/tingli-check) ===== */
@@ -1306,6 +1311,7 @@ let tsX = null, tsY = null, tsT = 0, drag = false, dragStartX = 0, dragDx = 0, d
 const appEl = document.getElementById('app');
 function goBack() {
   if (!curUnit) return;
+  posSave();
   if (curPart) { openUnit(curUnit.unit); return; }
   if (IDV.find(x => x.unit === curUnit.unit)) renderIdv();
   else if (EXTRA.find(x => x.unit === curUnit.unit)) renderMine();
@@ -1453,6 +1459,8 @@ async function offlineUnit(n, ev) {
 
 const sbVerEl = document.getElementById('sbVer');
 if (sbVerEl) sbVerEl.textContent = '';
+const sbVerLine = document.getElementById('sbVerLine');
+if (sbVerLine) sbVerLine.textContent = 'Abramson © ' + APP_VER;
 document.body.classList.add('sb-off'); // меню стартует скрытым — выезжает по ☰
 renderUnits();
 tryRestore();
