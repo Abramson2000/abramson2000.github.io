@@ -1,7 +1,7 @@
 // Service Worker «Навыки продаж» — офлайн-режим (авиарежим)
 // Стратегия: навигация (index.html) — network-first; статика с ?v= — cache-first;
 // API и внешние домены (supabase) — только сеть, не кэшируются.
-const CACHE = 'spin-cache-v79';
+const CACHE = 'spin-cache-v80';
 
 const ASSETS = [
   './',
