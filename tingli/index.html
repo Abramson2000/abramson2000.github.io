@@ -206,9 +206,9 @@
   .loop-btn.loop-on { background: #58585e; color: #fff; box-shadow: 0 4px 14px rgba(60,60,70,.35); }
 
   /* Сайдбар слева (вместо нижнего таб-бара) */
-  :root { --sbw: 150px; }
-  @media (min-width: 900px) { :root { --sbw: 210px; } }
-  .tabbar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sbw); background: rgba(255,255,255,.93); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-right: 1px solid rgba(29,29,33,.07); display: none; flex-direction: column; align-items: stretch; gap: 2px; padding: calc(12px + env(safe-area-inset-top)) 10px 14px; z-index: 60; overflow-y: auto; }
+  :root { --sbw: 300px; }
+  @media (min-width: 900px) { :root { --sbw: 420px; } }
+  .tabbar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sbw); max-width: 82vw; box-shadow: 0 0 44px rgba(29,29,33,.22); background: rgba(255,255,255,.93); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-right: 1px solid rgba(29,29,33,.07); display: none; flex-direction: column; align-items: stretch; gap: 2px; padding: calc(12px + env(safe-area-inset-top)) 10px 14px; z-index: 60; overflow-y: auto; }
   .sb-brand { display: flex; align-items: center; gap: 9px; padding: 2px 6px 16px; }
   .sb-brand img { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; }
   .sb-name { font-size: 13.5px; font-weight: 800; line-height: 1.15; }
@@ -224,21 +224,14 @@
   .tab.active { background: var(--red-soft); }
   .tab.active .tab-label { color: var(--red-deep); }
   .ic-tuan { background: var(--red); color: #fff; font-size: 17px; font-weight: 800; font-family: "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
-  body.sb-on .app { margin-left: var(--sbw); }
-  body.sb-on .player { left: var(--sbw); }
+  /* меню — оверлей поверх контента; контент справа полупрозрачный, пока меню открыто */
+  .app, .player { transition: opacity .3s ease; }
+  body.sb-open .app, body.sb-open .player { opacity: .45; }
   .tabbar { transition: transform .28s cubic-bezier(.25,.8,.3,1); }
   .tabbar.sb-drag { transition: none; }
   body.sb-off .tabbar { transform: translateX(-104%); }
-  body.sb-off .app { margin-left: 0; }
-  body.sb-off .player { left: 0; }
   #sbBurger { position: fixed; left: 8px; top: calc(10px + env(safe-area-inset-top)); z-index: 65; width: 42px; height: 42px; border-radius: 13px; background: rgba(255,255,255,.96); border: 1px solid rgba(29,29,33,.08); box-shadow: 0 3px 12px rgba(60,60,70,.2); display: none; align-items: center; justify-content: center; font-size: 19px; color: var(--red-deep); cursor: pointer; padding: 0; }
   body.sb-off #sbBurger { display: flex; }
-  @media (min-width: 900px) {
-    body.sb-off .tabbar { transform: none; }
-    body.sb-off .app { margin-left: var(--sbw); }
-    body.sb-off .player { left: var(--sbw); }
-    body.sb-off #sbBurger { display: none; }
-  }
   @media (min-width: 900px) {
     .tab .ic, .tab .ic-img { width: 40px; height: 40px; }
     .tab-label { font-size: 15px; }
@@ -359,7 +352,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.9';
+const APP_VER = '2.10';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
 let prog = load();
@@ -465,6 +458,7 @@ function unitStats(u) {
 }
 function goTab(t) {
   tab = t;
+  sbClose(); // выбрали раздел — меню сразу убираем
   document.getElementById('tab-lessons').classList.toggle('active', t === 'lessons');
   document.getElementById('tab-mine').classList.toggle('active', t === 'mine');
   document.getElementById('tab-idv').classList.toggle('active', t === 'idv');
@@ -482,9 +476,29 @@ function goTab(t) {
 function showTabbar(show) {
   document.getElementById('tabbar').style.display = show ? 'flex' : 'none';
   document.body.classList.toggle('sb-on', !!show);
+  if (!show) sbClose(); // уходим на экран урока — меню убираем
 }
 
-function toggleSb() { document.body.classList.toggle('sb-off'); }
+function sbClose() {
+  document.body.classList.add('sb-off');
+  document.body.classList.remove('sb-open');
+}
+function sbOpen() {
+  document.body.classList.remove('sb-off');
+  document.body.classList.add('sb-open');
+}
+function toggleSb() {
+  if (document.body.classList.contains('sb-off')) sbOpen(); else sbClose();
+}
+
+// клик по полупрозрачной правой части закрывает меню
+document.addEventListener('click', function (e) {
+  if (document.body.classList.contains('sb-off')) return;
+  const tb = document.getElementById('tabbar');
+  if (!tb || getComputedStyle(tb).display === 'none') return;
+  if (e.target && e.target.closest && (e.target.closest('#tabbar') || e.target.closest('#sbBurger'))) return;
+  sbClose();
+}, true);
 
 /* Свайпы: колонка уезжает влево / возвращается от левого края */
 (function () {
@@ -498,7 +512,7 @@ function toggleSb() { document.body.classList.toggle('sb-off'); }
     const t = e.touches[0];
     const off = document.body.classList.contains('sb-off');
     const onSb = e.target && e.target.closest && e.target.closest('#tabbar');
-    if (!off && (onSb || t.clientX < 170)) sbTouch = { x: t.clientX, y: t.clientY, mode: 'close' };
+    if (!off && (onSb || t.clientX < Math.min(sb.offsetWidth, 340))) sbTouch = { x: t.clientX, y: t.clientY, mode: 'close' };
     else if (off && t.clientX < 30) sbTouch = { x: t.clientX, y: t.clientY, mode: 'open' };
     if (sbTouch) sb.classList.add('sb-drag');
   }, { passive: true });
@@ -519,8 +533,8 @@ function toggleSb() { document.body.classList.toggle('sb-off'); }
     const dx = e.changedTouches[0].clientX - sbTouch.x;
     sb.classList.remove('sb-drag');
     sb.style.transform = '';
-    if (sbTouch.mode === 'close' && dx < -55) document.body.classList.add('sb-off');
-    else if (sbTouch.mode === 'open' && dx > 55) document.body.classList.remove('sb-off');
+    if (sbTouch.mode === 'close' && dx < -55) sbClose();
+    else if (sbTouch.mode === 'open' && dx > 55) sbOpen();
     sbTouch = null;
   }, { passive: true });
 })();
@@ -1442,6 +1456,7 @@ async function offlineUnit(n, ev) {
 
 const sbVerEl = document.getElementById('sbVer');
 if (sbVerEl) sbVerEl.textContent = 'v' + APP_VER;
+document.body.classList.add('sb-off'); // меню стартует скрытым — выезжает по ☰
 renderUnits();
 tryRestore();
 // Service Worker: офлайн-режим
