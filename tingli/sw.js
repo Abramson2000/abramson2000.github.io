@@ -1,7 +1,7 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.18 (2026-09-10: облачный API — абсолютный CF-адрес, работает и с crmuro.ru) + font-build: simsun-subset-STSong-1412 — маркер прекэша
+// data-build: v2.18.2 (2026-09-10: иконки 团队 — красная и белая; версия внизу «Abramson © 2.18.2») + font-build: simsun-subset-STSong-1412 — маркер прекэша
 const CACHE = 'tingli-cache-v1';
 
 const ASSETS = [

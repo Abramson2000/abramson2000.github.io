@@ -349,7 +349,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.18';
+const APP_VER = '2.18.2';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -628,7 +628,7 @@ function renderUnits() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="title.png" alt="初级听力"><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
-    <div class="ver-line">v${APP_VER} · © Abramson</div>
+    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${UNITS.map(unitCard).join('')}
 `;
   refreshUnitBadges();
@@ -644,7 +644,7 @@ function renderIdv() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="idv.png" alt="口语"><div class="sub">口语课</div>
     </div>
-    <div class="ver-line">v${APP_VER} · © Abramson</div>
+    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
   refreshUnitBadges();
@@ -659,7 +659,7 @@ function renderTeam() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <div class="team-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
-    <div class="ver-line">v${APP_VER} · © Abramson</div>
+    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
   refreshUnitBadges();
@@ -673,7 +673,7 @@ function renderMine() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="grammar.png" alt="语法"><div class="sub">李老师课</div>
     </div>
-    <div class="ver-line">v${APP_VER} · © Abramson</div>
+    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
 `;
   refreshUnitBadges();
@@ -707,7 +707,7 @@ function renderDict() {
       <img class="title-img" src="dict.png" alt="词典"><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
-    <div class="ver-line">v${APP_VER} · © Abramson</div>
+    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${d.length ? d.map((w, i) => `
       <div class="dict-item">
         <div class="dict-zh zh-opt">${esc(w.zh)}</div>
@@ -1103,7 +1103,7 @@ function renderFavs() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <img class="title-img" src="favs.png" alt="句子"><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
     </div>
-    <div class="ver-line">v${APP_VER} · © Abramson</div>
+    <div class="ver-line">Abramson © ${APP_VER}</div>
     ${items.length ? items.map(it => {
       const isWords = it.ti === null;
       const click = isWords ? `openPart(${it.u.unit},${it.part.id})` : `openTask(${it.u.unit},${it.part.id},${it.ti})`;
@@ -1451,7 +1451,7 @@ async function offlineUnit(n, ev) {
 }
 
 const sbVerEl = document.getElementById('sbVer');
-if (sbVerEl) sbVerEl.textContent = 'v' + APP_VER;
+if (sbVerEl) sbVerEl.textContent = '';
 document.body.classList.add('sb-off'); // меню стартует скрытым — выезжает по ☰
 renderUnits();
 tryRestore();
