@@ -537,7 +537,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs82', './hero-2.jpg?v=crs82', './hero-3.jpg?v=crs82', './hero-4.jpg?v=crs82', './hero-5.jpg?v=crs82', './hero-6.jpg?v=crs82', './hero-7.jpg?v=crs82', './hero-8.jpg?v=crs82', './hero-9.jpg?v=crs82', './hero-10.jpg?v=crs82'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs83', './hero-2.jpg?v=crs83', './hero-3.jpg?v=crs83', './hero-4.jpg?v=crs83', './hero-5.jpg?v=crs83', './hero-6.jpg?v=crs83', './hero-7.jpg?v=crs83', './hero-8.jpg?v=crs83', './hero-9.jpg?v=crs83', './hero-10.jpg?v=crs83'];
 let heroOrder = [], heroPos = 0, heroTimer = null;
 function shuffleHero() { // перемешивание без повторов подряд
   const a = HERO_SHOTS.map((_, i) => i);
