@@ -1,7 +1,7 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.16 (2026-09-10: урок 211 — название «入乡随俗», задание — просто «Текст») + font-build: simsun-subset-STSong-1412 — маркер прекэша
+// data-build: v2.17 (2026-09-10: иконка 团队 — PNG как у остальных вкладок, в офлайн-кеше) + font-build: simsun-subset-STSong-1412 — маркер прекэша
 const CACHE = 'tingli-cache-v1';
 
 const ASSETS = [
@@ -37,6 +37,8 @@ const ASSETS = [
   './recolored_tab-yu-off.png',
   './recolored_tab-yu.png',
   './tab-ci-off.png',
+  './tab-tuan.png',
+  './tab-tuan-off.png',
   './tab-ci.png',
   './tab-fa-off.png',
   './tab-fa.png',
