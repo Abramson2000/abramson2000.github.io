@@ -349,7 +349,9 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.17';
+const APP_VER = '2.18';
+// Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
+const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
 let prog = load();
@@ -553,7 +555,7 @@ async function sendBackup() {
       if (k && k.indexOf('tingli-') === 0) data[k] = localStorage.getItem(k);
     }
     if (!data[LS]) return; // ещё ничего не наработано
-    await fetch('/api/backup', { method: 'PUT', body: JSON.stringify(data) });
+    await fetch(API_BASE + '/api/backup', { method: 'POST', body: JSON.stringify(data) });
   } catch (e) { /* сеть недоступна — попробуем в следующий раз */ }
 }
 // ---- облачный синк прогресса (merge при старте) ----
@@ -584,7 +586,7 @@ function syncToast(msg) {
 }
 async function tryRestore() {
   try {
-    const r = await fetch('/api/backup');
+    const r = await fetch(API_BASE + '/api/backup');
     if (!r.ok) return;
     const cloud = await r.json();
     if (!cloud || !cloud[LS]) return; // облако пустое — локальное уйдёт туда само (sendBackup)
@@ -1270,7 +1272,7 @@ async function hwCheck(i) {
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Проверяю…'; }
   vd.textContent = ''; vd.className = 'hw-vd';
   try {
-    const r = await fetch('/api/tingli-check', {
+    const r = await fetch(API_BASE + '/api/tingli-check', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ q, a, text: part.fullText || '' })
