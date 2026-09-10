@@ -193,6 +193,9 @@ function loadState() {
     S.xp = r.xp || 0; S.correct = r.correct || 0; S.attempts = r.attempts || 0;
     S.cDone = r.cDone || [];
     if (['program', 'theory', 'practice', 'cheat', 'progress'].includes(r.tab)) S.tab = r.tab;
+    // вернуться на то же место в теории: открытый доп-курс и его урок
+    curExtra = (typeof r.extra === 'number' && r.extra >= 0) ? r.extra : null;
+    curXb = (typeof r.xb === 'number' && r.xb >= 0) ? r.xb : 0;
   } catch (e) {}
 }
 let _syncT = null;
@@ -202,7 +205,7 @@ S.syncAt = null;       // время последней успешной син�
 S.dirty = false;       // есть несохранённые изменения
 
 function syncPayload() {
-  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, name: USER ? USER.name : '', email: USER ? USER.email : '' };
+  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
 }
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
@@ -341,6 +344,8 @@ async function cloudLoad() {
       S.spPracticed = cloud.spPracticed || []; S.medPracticed = cloud.medPracticed || []; S.proPracticed = cloud.proPracticed || [];
       S.spicedDone = cloud.spicedDone || []; S.medDone = cloud.medDone || []; S.proDone = cloud.proDone || [];
       S.xp = cloud.xp || 0; S.correct = cloud.correct || 0; S.attempts = cloud.attempts || 0;
+      curExtra = (typeof cloud.extra === 'number' && cloud.extra >= 0) ? cloud.extra : null;
+      curXb = (typeof cloud.xb === 'number' && cloud.xb >= 0) ? cloud.xb : 0;
       try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
       if (local.xp > 0) toast('Прогресс загружен с сервера: ' + cloud.xp + ' XP');
     } else if (local.xp > 0 && (!cloud || cloud.xp < local.xp)) {
@@ -537,7 +542,7 @@ document.addEventListener('keydown', (e) => {
 
 // ============ ПРОГРАММА ============
 // Ротация иллюстрации на первом экране (карточка «Продолжить урок»)
-const HERO_SHOTS = ['./hero-1.jpg?v=crs83', './hero-2.jpg?v=crs83', './hero-3.jpg?v=crs83', './hero-4.jpg?v=crs83', './hero-5.jpg?v=crs83', './hero-6.jpg?v=crs83', './hero-7.jpg?v=crs83', './hero-8.jpg?v=crs83', './hero-9.jpg?v=crs83', './hero-10.jpg?v=crs83'];
+const HERO_SHOTS = ['./hero-1.jpg?v=crs84', './hero-2.jpg?v=crs84', './hero-3.jpg?v=crs84', './hero-4.jpg?v=crs84', './hero-5.jpg?v=crs84', './hero-6.jpg?v=crs84', './hero-7.jpg?v=crs84', './hero-8.jpg?v=crs84', './hero-9.jpg?v=crs84', './hero-10.jpg?v=crs84'];
 let heroOrder = [], heroPos = 0, heroTimer = null;
 function shuffleHero() { // перемешивание без повторов подряд
   const a = HERO_SHOTS.map((_, i) => i);
@@ -904,11 +909,11 @@ function renderTheory() {
   $('theoryBody').querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.jump)));
   $('theoryBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
   $('theoryBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curMed = +b.dataset.med; curExtra = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
-  $('theoryBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curXb = 0; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curXb = 0; curMed = null; curSpiced = null; curPro = null; save(); window.scrollTo({ top: 0 }); renderTheory(); }));
   $('theoryBody').querySelectorAll('[data-pro]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curPro = +b.dataset.pro; curMed = null; curExtra = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); }));
-  $('theoryBody').querySelectorAll('[data-xb]').forEach((b) => b.addEventListener('click', () => { curXb = Math.max(0, +b.dataset.xb); window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-xb]').forEach((b) => b.addEventListener('click', () => { curXb = Math.max(0, +b.dataset.xb); save(); window.scrollTo({ top: 0 }); renderTheory(); }));
   const xbn = $('theoryBody').querySelector('[data-xbnext]');
-  if (xbn) xbn.addEventListener('click', () => { curXb++; window.scrollTo({ top: 0 }); renderTheory(); });
+  if (xbn) xbn.addEventListener('click', () => { curXb++; save(); window.scrollTo({ top: 0 }); renderTheory(); });
   $('theoryBody').querySelectorAll('[data-lesson]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.locked) { toast('Сначала пройдите текущий урок — этот откроется после его практики'); return; }
     S.lesson = +b.dataset.lesson; curExtra = null; curMed = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory();
