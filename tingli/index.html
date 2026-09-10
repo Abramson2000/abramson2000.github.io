@@ -210,20 +210,20 @@
   @media (min-width: 900px) { :root { --sbw: 420px; } }
   .tabbar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sbw); max-width: 82vw; box-shadow: 0 0 44px rgba(29,29,33,.22); background: rgba(255,255,255,.93); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-right: 1px solid rgba(29,29,33,.07); display: none; flex-direction: column; align-items: stretch; gap: 2px; padding: calc(12px + env(safe-area-inset-top)) 10px 14px; z-index: 60; overflow-y: auto; }
   .sb-brand { display: flex; align-items: center; gap: 16px; padding: 4px 8px 22px; }
-  .sb-brand img { width: 76px; height: 76px; object-fit: contain; flex-shrink: 0; }
-  .sb-name { font-size: 27px; font-weight: 800; line-height: 1.15; }
-  .sb-sub { font-size: 19px; color: var(--muted); font-weight: 700; letter-spacing: .2px; }
-  .tab { display: flex; flex-direction: row; align-items: center; gap: 16px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 14px 10px; border-radius: 20px; width: 100%; text-align: left; transition: background .15s ease; }
+  .sb-brand img { width: 61px; height: 61px; object-fit: contain; flex-shrink: 0; }
+  .sb-name { font-size: 22px; font-weight: 800; line-height: 1.15; }
+  .sb-sub { font-size: 15px; color: var(--muted); font-weight: 700; letter-spacing: .2px; }
+  .tab { display: flex; flex-direction: row; align-items: center; gap: 16px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 14px 12px; border-radius: 19px; width: 100%; text-align: left; transition: background .15s ease; }
   .tab:hover { background: rgba(29,29,33,.04); }
-  .tab .ic { display: flex; align-items: center; justify-content: center; width: 68px; height: 68px; flex-shrink: 0; border-radius: 16px; }
-  .tab .ic-img { width: 68px; height: 68px; object-fit: contain; display: block; }
+  .tab .ic { display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; flex-shrink: 0; border-radius: 14px; }
+  .tab .ic-img { width: 54px; height: 54px; object-fit: contain; display: block; }
   .tab .ic-img-on { display: none; }
   .tab.active .ic-img-on { display: block; }
   .tab.active .ic-img-off { display: none; }
-  .tab-label { font-size: 28px; font-weight: 700; color: #6e6e76; white-space: nowrap; letter-spacing: .3px; }
+  .tab-label { font-size: 22px; font-weight: 700; color: #6e6e76; white-space: nowrap; letter-spacing: .3px; }
   .tab.active { background: var(--red-soft); }
   .tab.active .tab-label { color: var(--red-deep); }
-  .ic-tuan { background: var(--red); color: #fff; font-size: 34px; font-weight: 800; font-family: "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
+  .ic-tuan { background: var(--red); color: #fff; font-size: 27px; font-weight: 800; font-family: "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
   /* меню — оверлей поверх контента; контент справа полупрозрачный, пока меню открыто */
   .app, .player { transition: opacity .3s ease; }
   body.sb-open .app, body.sb-open .player { opacity: .45; }
@@ -231,9 +231,9 @@
   .tabbar.sb-drag { transition: none; }
   body.sb-off .tabbar { transform: translateX(-104%); }
   @media (min-width: 900px) {
-    .tab .ic, .tab .ic-img { width: 80px; height: 80px; }
-    .tab-label { font-size: 30px; }
-    .sb-brand img { width: 88px; height: 88px; }
+    .tab .ic, .tab .ic-img { width: 64px; height: 64px; }
+    .tab-label { font-size: 24px; }
+    .sb-brand img { width: 70px; height: 70px; }
   }
 
   .big-score { background: linear-gradient(135deg, #26262c, #1d1d21); color: #fff; border-radius: 26px; padding: 24px 22px; margin-bottom: 18px; box-shadow: var(--shadow-pop); }
@@ -349,7 +349,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.12';
+const APP_VER = '2.13';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
 let prog = load();
