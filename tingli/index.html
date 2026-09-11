@@ -164,6 +164,16 @@
   .hw-out .hw-out-label { font-weight: 700; color: #33333a; margin-bottom: 8px; }
   .hw-out .hw-out-ta { width: 100%; box-sizing: border-box; border: 1px solid #d8d6d1; border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 1.65; background: #fff; color: #232327; font-family: inherit; resize: vertical; }
   .hw-out .hw-out-ta:focus { outline: none; border-color: #b9b5ac; }
+  /* срок выполнения ДЗ */
+  .hw-due { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 16px 0; padding: 10px 14px; background: #f7f6f3; border-radius: 15px; font-size: 13.5px; color: #55555c; }
+  .hw-due b { font-weight: 700; color: #33333a; }
+  .hw-due input[type=date] { border: 1.5px solid #e4e3df; border-radius: 10px; padding: 5px 8px; font-size: 13.5px; font-family: inherit; background: #fff; color: #16161a; }
+  .hw-due-state { font-weight: 700; color: #88888f; }
+  .hw-due-x { margin-left: auto; border: none; background: none; color: #a6a6ae; font-size: 15px; cursor: pointer; padding: 2px 4px; }
+  .due-badge { display: inline-block; margin-left: 8px; font-size: 11.5px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: #eef0f4; color: #5a5f6b; vertical-align: middle; white-space: nowrap; }
+  .due-badge.soon { background: #fff3d9; color: #9a6b00; }
+  .due-badge.over { background: #fdeaea; color: #b32d2d; }
+  .due-badge.done { background: #e8f6ed; color: #1a8f4c; }
   .nav-row { display: flex; gap: 10px; margin-top: 15px; }
   .nav-btn { flex: 1; padding: 15px; border: 1.5px solid #ecebe7; border-radius: 17px; background: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
   .nav-btn:disabled { opacity: .35; }
@@ -359,7 +369,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.19.7';
+const APP_VER = '2.19.8';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -793,6 +803,7 @@ function openUnit(n) {
             <div class="part-title">${esc(part.title)}</div>
             ${part.titleZh ? `<div class="part-zh">${esc(part.titleZh)}</div>` : ''}
           </div>
+          ${part.kind === 'hw' ? dueBadge(u.unit, part.id, hwAllDone(u, part)) : ''}
           ${partDone(u, part) ? '<span class="part-done">готово</span>' : ''}
           <span class="part-arrow">›</span>
         </div>
@@ -1175,6 +1186,45 @@ function hwSave(i) {
 function hwAnswered() {
   return curPart.questions.filter((q, i) => hwLoad(curUnit.unit, curPart.id, i).trim()).length;
 }
+/* ===== срок выполнения ДЗ ===== */
+function dueKey(unitN, partId) { return 'tingli-due-' + unitN + '-' + partId; }
+function dueGet(unitN, partId) { try { return localStorage.getItem(dueKey(unitN, partId)) || ''; } catch (e) { return ''; } }
+function dueDays(d) { if (!d) return null; const p = String(d).split('-'); if (p.length !== 3) return null; const t = new Date(+p[0], +p[1] - 1, +p[2]); const n = new Date(); const t0 = new Date(n.getFullYear(), n.getMonth(), n.getDate()); return Math.round((t - t0) / 86400000); }
+function dueFmt(d) { if (!d) return ''; const p = String(d).split('-'); return p.length === 3 ? (p[2] + '.' + p[1] + '.' + p[0].slice(2)) : d; }
+function dueState(unitN, partId) {
+  const d = dueGet(unitN, partId); if (!d) return '<span class="hw-due-state">не задан</span>';
+  const n = dueDays(d); if (n === null) return '';
+  let c = '#88888f', t = '';
+  if (n < 0) { c = '#c93a3a'; t = 'просрочено на ' + (-n) + ' ' + dayWord(-n); }
+  else if (n === 0) { c = '#c07a00'; t = 'срок — сегодня!'; }
+  else if (n === 1) { c = '#c07a00'; t = 'остался 1 день'; }
+  else if (n <= 4) { c = '#c07a00'; t = 'осталось ' + n + ' ' + dayWord(n); }
+  else { c = '#1a8f4c'; t = 'осталось ' + n + ' ' + dayWord(n); }
+  return '<span class="hw-due-state" style="color:' + c + '">' + t + '</span>';
+}
+function dayWord(n) { const m = n % 10, h = n % 100; if (h >= 11 && h <= 14) return 'дней'; if (m === 1) return 'день'; if (m >= 2 && m <= 4) return 'дня'; return 'дней'; }
+function hwAllDone(u, part) {
+  if (!part.questions || !part.questions.length) return false;
+  for (let i = 0; i < part.questions.length; i++) { if (!hwLoad(u.unit, part.id, i).trim()) return false; }
+  return true;
+}
+function dueBadge(unitN, partId, done) {
+  const d = dueGet(unitN, partId); if (!d) return '';
+  const n = dueDays(d);
+  let cls = '', txt = '⏰ до ' + dueFmt(d);
+  if (done) { cls = 'done'; txt = '✅ ' + dueFmt(d); }
+  else if (n !== null && n < 0) { cls = 'over'; txt = '⌛ просрочено ' + dueFmt(d); }
+  else if (n !== null && n <= 2) { cls = 'soon'; txt = '⏰ до ' + dueFmt(d) + (n === 0 ? ' — сегодня!' : n === 1 ? ' — завтра!' : ''); }
+  return '<span class="due-badge ' + cls + '">' + txt + '</span>';
+}
+function dueBarHtml(u, part) {
+  return '<div class="hw-due"><b>Срок сдачи:</b>' +
+    '<input type="date" value="' + esc(dueGet(u.unit, part.id)) + '" onchange="dueSetVal(this.value)">' +
+    dueState(u.unit, part.id) +
+    (dueGet(u.unit, part.id) ? '<button class="hw-due-x" onclick="dueSetVal(\'\')" title="Убрать срок">✕</button>' : '') +
+    '</div>';
+}
+function dueSetVal(v) { if (!curUnit || !curPart) return; saveLocal(dueKey(curUnit.unit, curPart.id), v || ''); renderHw(curUnit, curPart); }
 function hwText(withQ) {
   return curPart.questions.map((q, i) => {
     const qs = typeof q === 'string' ? q : q.q;
@@ -1230,6 +1280,7 @@ function renderHw(u, part) {
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
+    ${dueBarHtml(u, part)}
     ${part.text ? `<div class="script zh-opt show">${esc(part.text)}</div>` : ''}
     ${part.questions.map((q, i) => {
       const qs = typeof q === 'string' ? q : q.q;
