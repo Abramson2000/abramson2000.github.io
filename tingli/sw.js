@@ -1,7 +1,7 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.19.12 (2026-09-11: 入乡随俗 — добавлен финальный абзац, новая озвучка 211-0e) + font-build: simsun-subset-STSong-1415 — маркер прекэша
+// data-build: v2.19.13 (2026-09-11: 口语 урок 10 — 14 новых слов в «Слова», стало 19) + font-build: simsun-subset-STSong-1423 — маркер прекэша
 const CACHE = 'tingli-cache-v1';
 
 const ASSETS = [
