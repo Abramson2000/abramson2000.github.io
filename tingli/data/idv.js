@@ -2048,7 +2048,7 @@ const IDV_UNITS = [
   "parts": [
    {
     "id": 0,
-    "title": "Диалог",
+    "title": "Диалог 入乡随俗",
     "titleZh": "课文（一）",
     "kind": "text",
     "audio": "210-d.mp3",
@@ -2056,7 +2056,7 @@ const IDV_UNITS = [
    },
    {
     "id": 1,
-    "title": "Слова",
+    "title": "Фразы 1",
     "titleZh": "生词",
     "kind": "words",
     "words": [
@@ -2160,7 +2160,7 @@ const IDV_UNITS = [
    },
    {
     "id": 2,
-    "title": "Фразы",
+    "title": "Фразы 2",
     "titleZh": "词语",
     "kind": "words",
     "audio": "210-2.mp3",
