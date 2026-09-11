@@ -2022,8 +2022,8 @@ const IDV_UNITS = [
    {
     "id": 4,
     "kind": "hw",
-    "title": "Отвечаем письменно",
-    "titleZh": "作业 · 问答",
+    "title": "ДЗ",
+    "titleZh": "作业",
     "questions": [
      "你最近跟谁见过面？见过几次？",
      "你跟你的客户见过面吗？",
@@ -2100,8 +2100,8 @@ const IDV_UNITS = [
    },
    {
     "id": 1,
-    "title": "Пишем примеры",
-    "titleZh": "作业 · 写例子",
+    "title": "ДЗ",
+    "titleZh": "作业",
     "kind": "hw",
     "text": "Напиши 2 своих примера с каждой конструкцией.",
     "questions": [
