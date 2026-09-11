@@ -369,7 +369,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.19.9';
+const APP_VER = '2.19.10';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -1213,8 +1213,11 @@ function dueBadge(unitN, partId, done) {
   const n = dueDays(d);
   let cls = '', txt = '⏰ до ' + dueFmt(d);
   if (done) { cls = 'done'; txt = '✅ ' + dueFmt(d); }
-  else if (n !== null && n < 0) { cls = 'over'; txt = '⌛ просрочено ' + dueFmt(d); }
-  else if (n !== null && n <= 2) { cls = 'soon'; txt = '⏰ до ' + dueFmt(d) + (n === 0 ? ' — сегодня!' : n === 1 ? ' — завтра!' : ''); }
+  else if (n === null) { txt = '⏰ до ' + dueFmt(d); }
+  else if (n < 0) { cls = 'over'; txt = '⌛ ' + (-n) + ' ' + dayWord(-n) + ' просрочки'; }
+  else if (n === 0) { cls = 'soon'; txt = '⏰ сегодня!'; }
+  else if (n === 1) { cls = 'soon'; txt = '⏰ 1 день · до ' + dueFmt(d); }
+  else { txt = '⏰ ' + n + ' ' + dayWord(n) + ' · до ' + dueFmt(d); }
   return '<span class="due-badge ' + cls + '">' + txt + '</span>';
 }
 function dueBarHtml(u, part) {
