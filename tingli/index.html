@@ -369,7 +369,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.19.10';
+const APP_VER = '2.19.11';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -1227,7 +1227,27 @@ function dueBarHtml(u, part) {
     (dueGet(u.unit, part.id) ? '<button class="hw-due-x" onclick="dueSetVal(\'\')" title="Убрать срок">✕</button>' : '') +
     '</div>';
 }
-function dueSetVal(v) { if (!curUnit || !curPart) return; saveLocal(dueKey(curUnit.unit, curPart.id), v || ''); renderHw(curUnit, curPart); }
+function dueSetVal(v) { if (!curUnit || !curPart) return; saveLocal(dueKey(curUnit.unit, curPart.id), v || ''); updateAppBadge(); renderHw(curUnit, curPart); }
+/* счётчик ДЗ значком на иконке приложения (PWA Badging API) */
+function appBadgeCount() {
+  let n = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const m = /^tingli-due-(\d+)-(\d+)$/.exec(localStorage.key(i) || '');
+      if (!m) continue;
+      const meta = localStorage.getItem('tingli-hwmeta-' + m[1] + '-' + m[2]);
+      let done = false;
+      if (meta) { try { done = !!JSON.parse(meta).done; } catch (e) {} }
+      if (!done) n++;
+    }
+  } catch (e) {}
+  return n;
+}
+function updateAppBadge() {
+  if (!('setAppBadge' in navigator)) return;
+  const n = appBadgeCount();
+  try { if (n > 0) navigator.setAppBadge(n); else navigator.clearAppBadge(); } catch (e) {}
+}
 function hwText(withQ) {
   return curPart.questions.map((q, i) => {
     const qs = typeof q === 'string' ? q : q.q;
@@ -1250,7 +1270,7 @@ function hwRefresh() {
   if (c) c.textContent = 'Ответов: ' + done + ' из ' + n;
   const btn = document.getElementById('hwCopyBtn');
   if (btn) btn.disabled = done === 0;
-  try { saveLocal('tingli-hwmeta-' + curUnit.unit + '-' + curPart.id, JSON.stringify({ n: n, done: done === n, answered: done })); } catch (e) {}
+  try { saveLocal('tingli-hwmeta-' + curUnit.unit + '-' + curPart.id, JSON.stringify({ n: n, done: done === n, answered: done })); updateAppBadge(); } catch (e) {}
 }
 function hwCopy(withQ) {
   const txt = hwText(withQ);
@@ -1519,6 +1539,7 @@ if (sbVerLine) sbVerLine.textContent = 'Abramson © ' + APP_VER;
 document.body.classList.add('sb-off'); // меню стартует скрытым — выезжает по ☰
 renderUnits();
 tryRestore();
+updateAppBadge();
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
