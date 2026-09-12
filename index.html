@@ -599,15 +599,15 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <div class="d-sec">Справочники</div>
       <button class="tab d-item" data-view="refgos">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M10 21v-4h4v4"/><path d="M10 11h4"/></svg>
-        <span>Гос ЛПУ</span>
+        <span>Гос ЛПУ</span><em class="cnt" data-cnt="refgos"></em>
       </button>
       <button class="tab d-item" data-view="refpriv">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
-        <span>Частные клиники</span>
+        <span>Частные клиники</span><em class="cnt" data-cnt="refpriv"></em>
       </button>
       <button class="tab d-item" data-view="refdoc">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11h4M19 9v4"/></svg>
-        <span>Врачи</span>
+        <span>Врачи</span><em class="cnt" data-cnt="refdoc"></em>
       </button>
       <div class="d-sec">Система</div>
       <button class="tab d-item" data-view="settings">
@@ -670,15 +670,15 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <div class="d-sec">Справочники</div>
       <button class="tab" data-view="refgos">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M10 21v-4h4v4"/><path d="M10 11h4"/></svg>
-        <span>Гос ЛПУ</span>
+        <span>Гос ЛПУ <em class="cnt" data-cnt="refgos"></em></span>
       </button>
       <button class="tab" data-view="refpriv">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
-        <span>Частные клиники</span>
+        <span>Частные клиники <em class="cnt" data-cnt="refpriv"></em></span>
       </button>
       <button class="tab" data-view="refdoc">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11h4M19 9v4"/></svg>
-        <span>Врачи</span>
+        <span>Врачи <em class="cnt" data-cnt="refdoc"></em></span>
       </button>
       <div class="d-sec">Система</div>
       <button class="tab" data-view="settings">
@@ -1166,7 +1166,10 @@ async function refreshCounts() {
         (c.kind || 'hospital') === 'hospital' &&
         MONEY_YEARS.some(y => yearTotal(c, y) != null)
       ).length,
-      cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && (c.tags || []).includes('cns')).length
+      cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && (c.tags || []).includes('cns')).length,
+      refgos: clinics.filter(c => c.kind === 'ref_gos').length,
+      refpriv: clinics.filter(c => c.kind === 'ref_priv').length,
+      refdoc: people.filter(p => isRefDoc(p)).length
     };
     paintCounts();
   } catch (_) {}
