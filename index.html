@@ -1542,7 +1542,7 @@ async function populateFilters() {
   fillSelect('f_city', cities, 'Города');
   fillSelect('f_manager', managers, 'Менеджеры');
   fillSelect('f_year', YEAR_OPTIONS, 'Годы');
-  try { fillTagSelect((await listClinics()).filter(c => !isRefKind(c.kind))); } catch (_) { fillTagSelect([]); }
+  fillTagSelect([]);   // метки — только в Справочниках (в «Клиниках» фильтра меток нет)
   // применить зависимость к уже выбранным значениям (после переключения вкладок)
   syncRegionOptions();
   syncCityOptions();
