@@ -2057,7 +2057,7 @@ const IDV_UNITS = [
    {
     "id": 1,
     "title": "Фразы 1",
-    "titleZh": "生词",
+    "titleZh": "词语 1",
     "kind": "words",
     "words": [
      {
@@ -2161,7 +2161,7 @@ const IDV_UNITS = [
    {
     "id": 2,
     "title": "Фразы 2",
-    "titleZh": "词语",
+    "titleZh": "词语 2",
     "kind": "words",
     "audio": "210-2.mp3",
     "words": [
