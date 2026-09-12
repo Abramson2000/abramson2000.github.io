@@ -1437,6 +1437,7 @@ document.querySelectorAll('.tab').forEach(btn => {
 });
 
 // ---------- фильтры ----------
+let filterCtx = '';
 async function updateFiltersUI() {
   const bar = document.getElementById('filters');
   const fab = document.getElementById('fab');
@@ -1452,6 +1453,9 @@ async function updateFiltersUI() {
   if (mainBar) mainBar.classList.toggle('hidden', inAnalysis);
   if (anBar) anBar.classList.toggle('hidden', !inAnalysis || managersZone);
   if (mgBar) mgBar.classList.toggle('hidden', !managersZone);
+  const isRef = ['refgos', 'refpriv', 'refdoc'].includes(state.view);
+  const fctx = isRef ? 'ref' : 'main';
+  if (fctx !== filterCtx) { filterCtx = fctx; state.filters.region = ''; state.filters.city = ''; }
   if (state.view === 'clinics' || state.view === 'distributors' || state.view === 'money') {
     bar.classList.remove('hidden');
     await populateFilters();
@@ -1463,6 +1467,11 @@ async function updateFiltersUI() {
     } else {
       document.getElementById('f_manager').classList.remove('hidden');
     }
+  } else if (isRef) {
+    bar.classList.remove('hidden');
+    document.getElementById('f_year').classList.add('hidden');
+    document.getElementById('f_manager').classList.add('hidden');
+    await populateRefFilters();
   } else {
     bar.classList.add('hidden');
   }
@@ -1472,6 +1481,26 @@ async function updateFiltersUI() {
 let locAll = { regions: [], cities: [] };
 let locMap = { regionCities: {}, cityRegions: {} };
 const ruCmp = (a, b) => a.localeCompare(b, 'ru');
+
+// фильтры справочников: регионы/города только из карточек этого справочника
+async function populateRefFilters() {
+  let rows = [];
+  if (state.view === 'refdoc') {
+    rows = (await listPeople()).filter(isRefDoc);
+  } else {
+    const kind = state.view === 'refgos' ? 'ref_gos' : 'ref_priv';
+    rows = (await listClinics()).filter(c => c.kind === kind);
+  }
+  const regions = [...new Set(rows.map(r => r.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
+  if (state.filters.region && !regions.includes(state.filters.region)) state.filters.region = '';
+  const cities = [...new Set(rows.filter(r => !state.filters.region || r.region === state.filters.region)
+    .map(r => r.city).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
+  if (state.filters.city && !cities.includes(state.filters.city)) state.filters.city = '';
+  fillSelect('f_region', regions, 'Регионы');
+  fillSelect('f_city', cities, 'Города');
+  document.getElementById('f_region').value = state.filters.region || '';
+  document.getElementById('f_city').value = state.filters.city || '';
+}
 
 async function populateFilters() {
   const [regions, cities, managers] = await Promise.all([
@@ -2574,6 +2603,8 @@ async function renderRefOrgs(kind) {
     (c.region || '').toLowerCase().includes(s) ||
     (c.situation || '').toLowerCase().includes(s) ||
     (c.tags || []).some(t => t.toLowerCase().includes(s)));
+  const f = state.filters;
+  clinics = clinics.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const head = `<div class="cns-head"><span>${esc(label)} · <b>${clinics.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (clinics.length
@@ -2603,6 +2634,8 @@ async function renderRefDoctors() {
     (p.situation || '').toLowerCase().includes(s) ||
     (p.tags || []).some(t => t.toLowerCase().includes(s)));
   docs.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
+  const f = state.filters;
+  docs = docs.filter(p => (!f.region || p.region === f.region) && (!f.city || p.city === f.city));
   const head = `<div class="cns-head"><span>Врачи · <b>${docs.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (docs.length
     ? '<div class="list">' + docs.map(p => {
