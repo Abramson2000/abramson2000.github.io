@@ -2572,6 +2572,7 @@ async function renderRefOrgs(kind) {
     (c.name || '').toLowerCase().includes(s) ||
     (c.city || '').toLowerCase().includes(s) ||
     (c.region || '').toLowerCase().includes(s) ||
+    (c.situation || '').toLowerCase().includes(s) ||
     (c.tags || []).some(t => t.toLowerCase().includes(s)));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const head = `<div class="cns-head"><span>${esc(label)} · <b>${clinics.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
@@ -2599,6 +2600,7 @@ async function renderRefDoctors() {
     (p.region || '').toLowerCase().includes(s) ||
     (p.phone || '').toLowerCase().includes(s) ||
     (p.email || '').toLowerCase().includes(s) ||
+    (p.situation || '').toLowerCase().includes(s) ||
     (p.tags || []).some(t => t.toLowerCase().includes(s)));
   docs.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
   const head = `<div class="cns-head"><span>Врачи · <b>${docs.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
