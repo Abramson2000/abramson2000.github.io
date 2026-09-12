@@ -694,6 +694,7 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
     <select id="f_city"><option value="">Города</option></select>
     <select id="f_year" class="hidden"><option value="">Годы</option></select>
     <select id="f_manager"><option value="">Менеджеры</option></select>
+    <select id="f_tag" class="hidden"><option value="">Метки</option></select>
   </div>
 
   <main id="view" class="view"></main>
@@ -1458,7 +1459,7 @@ async function updateFiltersUI() {
   if (mgBar) mgBar.classList.toggle('hidden', !managersZone);
   const isRef = ['refgos', 'refpriv', 'refdoc'].includes(state.view);
   const fctx = isRef ? 'ref' : 'main';
-  if (fctx !== filterCtx) { filterCtx = fctx; state.filters.region = ''; state.filters.city = ''; }
+  if (fctx !== filterCtx) { filterCtx = fctx; state.filters.region = ''; state.filters.city = ''; state.filters.tag = ''; }
   if (state.view === 'clinics' || state.view === 'distributors' || state.view === 'money') {
     bar.classList.remove('hidden');
     await populateFilters();
@@ -1486,6 +1487,17 @@ let locMap = { regionCities: {}, cityRegions: {} };
 const ruCmp = (a, b) => a.localeCompare(b, 'ru');
 
 // фильтры справочников: регионы/города только из карточек этого справочника
+function fillTagSelect(rows) {
+  const sel = document.getElementById('f_tag');
+  if (!sel) return;
+  const tags = [...new Set((rows || []).flatMap(r => refTags(r.tags)))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'ru'));
+  if (state.filters.tag && !tags.includes(state.filters.tag)) state.filters.tag = '';
+  if (!tags.length) { sel.classList.add('hidden'); sel.innerHTML = '<option value="">Метки</option>'; return; }
+  sel.classList.remove('hidden');
+  fillSelect('f_tag', tags, 'Метки');
+  sel.value = state.filters.tag || '';
+}
+
 async function populateRefFilters() {
   let rows = [];
   if (state.view === 'refdoc') {
@@ -1503,6 +1515,7 @@ async function populateRefFilters() {
   fillSelect('f_city', cities, 'Города');
   document.getElementById('f_region').value = state.filters.region || '';
   document.getElementById('f_city').value = state.filters.city || '';
+  fillTagSelect(rows);
 }
 
 async function populateFilters() {
@@ -1529,6 +1542,7 @@ async function populateFilters() {
   fillSelect('f_city', cities, 'Города');
   fillSelect('f_manager', managers, 'Менеджеры');
   fillSelect('f_year', YEAR_OPTIONS, 'Годы');
+  try { fillTagSelect((await listClinics()).filter(c => !isRefKind(c.kind))); } catch (_) { fillTagSelect([]); }
   // применить зависимость к уже выбранным значениям (после переключения вкладок)
   syncRegionOptions();
   syncCityOptions();
@@ -2166,6 +2180,7 @@ async function renderOrgList(kind) {
       (c.tags || []).some(t => t.toLowerCase().includes(s))) &&
     (!f.region || c.region === f.region) &&
     (!f.city || c.city === f.city) &&
+    (!f.tag || (c.tags || []).includes(f.tag)) &&
     (!f.manager || c.manager === f.manager)
   );
   const active = s || f.type || f.region || f.city || f.manager;
@@ -2317,6 +2332,7 @@ async function renderMoney() {
       (c.manager || '').toLowerCase().includes(s)) &&
     (!f.region || c.region === f.region) &&
     (!f.city || c.city === f.city) &&
+    (!f.tag || (c.tags || []).includes(f.tag)) &&
     (!f.manager || c.manager === f.manager)
   );
   // сортировка: по сумме (вверх/вниз) или по алфавиту; 0₽-бейджи — в середине (только при выбранном годе), пустые — вниз по алфавиту
@@ -2607,7 +2623,7 @@ async function renderRefOrgs(kind) {
     (c.situation || '').toLowerCase().includes(s) ||
     (c.tags || []).some(t => t.toLowerCase().includes(s)));
   const f = state.filters;
-  clinics = clinics.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city));
+  clinics = clinics.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city) && (!f.tag || (c.tags || []).includes(f.tag)));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const head = `<div class="cns-head"><span>${esc(label)} · <b>${clinics.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (clinics.length
@@ -2638,7 +2654,7 @@ async function renderRefDoctors() {
     (p.tags || []).some(t => t.toLowerCase().includes(s)));
   docs.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
   const f = state.filters;
-  docs = docs.filter(p => (!f.region || p.region === f.region) && (!f.city || p.city === f.city));
+  docs = docs.filter(p => (!f.region || p.region === f.region) && (!f.city || p.city === f.city) && (!f.tag || (p.tags || []).includes(f.tag)));
   const head = `<div class="cns-head"><span>Врачи · <b>${docs.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (docs.length
     ? '<div class="list">' + docs.map(p => {
