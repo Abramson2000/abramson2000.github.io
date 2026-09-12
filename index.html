@@ -596,6 +596,15 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5L8 13.8l-6-4.6h7.6z"/></svg>
         <span>Саша</span>
       </button>
+      <div class="d-sec">Справочники</div>
+      <button class="tab d-item" data-view="refgos">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M10 21v-4h4v4"/><path d="M10 11h4"/></svg>
+        <span>Гос ЛПУ</span>
+      </button>
+      <button class="tab d-item" data-view="refpriv">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
+        <span>Частные клиники</span>
+      </button>
       <div class="d-sec">Система</div>
       <button class="tab d-item" data-view="settings">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -653,6 +662,15 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <button class="tab sasha-tab" data-view="sasha">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5L8 13.8l-6-4.6h7.6z"/></svg>
         <span>Саша</span>
+      </button>
+      <div class="d-sec">Справочники</div>
+      <button class="tab" data-view="refgos">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M10 21v-4h4v4"/><path d="M10 11h4"/></svg>
+        <span>Гос ЛПУ</span>
+      </button>
+      <button class="tab" data-view="refpriv">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
+        <span>Частные клиники</span>
       </button>
       <div class="d-sec">Система</div>
       <button class="tab" data-view="settings">
@@ -1414,7 +1432,7 @@ document.querySelectorAll('.tab').forEach(btn => {
 async function updateFiltersUI() {
   const bar = document.getElementById('filters');
   const fab = document.getElementById('fab');
-  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns'];
+  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv'];
   fab.classList.toggle('hidden', menuViews.includes(state.view));
   // мобильная нижняя плашка: у Саши свой 3-й стол (Саша/Настя/Галя), у остальных 2-й стол анализа
   const inAnalysis = ['analysis', 'money', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(state.view);
@@ -1585,6 +1603,8 @@ async function render() {
     else if (state.view === 'analysis') renderAnalysis();
     else if (state.view === 'calls') renderCalls();
     else if (state.view === 'cns') await renderCns();
+    else if (state.view === 'refgos') await renderRefs('gos_lpu');
+    else if (state.view === 'refpriv') await renderRefs('priv_clinic');
     else if (state.view === 'visits') renderVisits();
     else if (state.view === 'nastya' && WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) await renderNastya();
     else if (state.view === 'galya' && WORKLISTS.galya.emails.includes(CURRENT_EMAIL)) await renderGalya();
@@ -2516,6 +2536,29 @@ async function renderDicts() {
   });
 }
 
+// ---------- справочники: Гос ЛПУ / Частные клиники ----------
+const REF_DICTS = { gos_lpu: 'Гос ЛПУ', priv_clinic: 'Частные клиники' };
+async function renderRefs(type) {
+  const view = document.getElementById('view');
+  const label = REF_DICTS[type] || type;
+  let vals = [];
+  try { vals = await getDict(type); } catch (_) { vals = []; }
+  const s = state.search;
+  if (s) vals = vals.filter(v => (v || '').toLowerCase().includes(s));
+  const canEdit = CURRENT_ROLE === 'admin' || CURRENT_ROLE === 'manager';
+  view.innerHTML = `<div class="cns-head"><span>${esc(label)} · <b>${vals.length}</b></span></div>
+    <div class="detail-block">
+      <div class="k">${esc(label)}</div>
+      <div class="chips">
+        ${vals.length ? vals.map(v => `<span class="chip">${esc(v)}${canEdit ? ` <span class="x" data-dict="${type}" data-val="${esc(v)}">✕</span>` : ''}</span>`).join('') : '<span class="sub" style="color:var(--muted)">пусто</span>'}
+      </div>
+      ${canEdit ? `<div class="add-row">
+        <input type="text" placeholder="Добавить" data-add="${type}" />
+        <button class="btn" data-add-btn="${type}">＋</button>
+      </div>` : ''}
+    </div>`;
+}
+
 // ---------- forms ----------
 async function openClinicForm(id, presetKind) {
   const c = id ? await getClinic(id) : {};
@@ -2894,14 +2937,14 @@ document.getElementById('view').addEventListener('click', async e => {
     const value = (input.value || '').trim();
     if (!value) { toast('Введите значение'); return; }
     await addDictValue(type, value);
-    toast('Добавлено'); renderDicts();
+    toast('Добавлено'); render();
     return;
   }
   const x = e.target.closest('.chip .x');
   if (x) {
     const { dict, val } = x.dataset;
     await deleteDictValue(dict, val);
-    toast('Удалено'); renderDicts();
+    toast('Удалено'); render();
   }
 });
 
