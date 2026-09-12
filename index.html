@@ -605,6 +605,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
         <span>Частные клиники</span>
       </button>
+      <button class="tab d-item" data-view="refdoc">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11h4M19 9v4"/></svg>
+        <span>Врачи</span>
+      </button>
       <div class="d-sec">Система</div>
       <button class="tab d-item" data-view="settings">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -671,6 +675,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <button class="tab" data-view="refpriv">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
         <span>Частные клиники</span>
+      </button>
+      <button class="tab" data-view="refdoc">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11h4M19 9v4"/></svg>
+        <span>Врачи</span>
       </button>
       <div class="d-sec">Система</div>
       <button class="tab" data-view="settings">
@@ -1153,9 +1161,9 @@ async function refreshCounts() {
     tabCounts = {
       clinics: clinics.filter(c => (c.kind || 'hospital') === 'hospital').length,
       distributors: clinics.filter(c => c.kind === 'distributor').length,
-      people: people.length,
+      people: people.filter(p => !isRefDoc(p)).length,
       money: clinics.filter(c =>
-        (c.kind || 'hospital') !== 'distributor' &&
+        (c.kind || 'hospital') === 'hospital' &&
         MONEY_YEARS.some(y => yearTotal(c, y) != null)
       ).length,
       cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && (c.tags || []).includes('cns')).length
@@ -1432,7 +1440,7 @@ document.querySelectorAll('.tab').forEach(btn => {
 async function updateFiltersUI() {
   const bar = document.getElementById('filters');
   const fab = document.getElementById('fab');
-  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv'];
+  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc'];
   fab.classList.toggle('hidden', menuViews.includes(state.view));
   // мобильная нижняя плашка: у Саши свой 3-й стол (Саша/Настя/Галя), у остальных 2-й стол анализа
   const inAnalysis = ['analysis', 'money', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(state.view);
@@ -1477,6 +1485,7 @@ async function populateFilters() {
   try {
     const clinics = await listClinics();
     (clinics || []).forEach(c => {
+      if (isRefKind(c.kind)) return;
       if (!c.region && !c.city) return;
       if (c.region && c.city) {
         (locMap.regionCities[c.region] = locMap.regionCities[c.region] || new Set()).add(c.city);
@@ -1603,8 +1612,9 @@ async function render() {
     else if (state.view === 'analysis') renderAnalysis();
     else if (state.view === 'calls') renderCalls();
     else if (state.view === 'cns') await renderCns();
-    else if (state.view === 'refgos') await renderRefs('gos_lpu');
-    else if (state.view === 'refpriv') await renderRefs('priv_clinic');
+    else if (state.view === 'refgos') await renderRefOrgs('ref_gos');
+    else if (state.view === 'refpriv') await renderRefOrgs('ref_priv');
+    else if (state.view === 'refdoc') await renderRefDoctors();
     else if (state.view === 'visits') renderVisits();
     else if (state.view === 'nastya' && WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) await renderNastya();
     else if (state.view === 'galya' && WORKLISTS.galya.emails.includes(CURRENT_EMAIL)) await renderGalya();
@@ -2267,7 +2277,7 @@ async function renderMoney() {
   const year = state.moneyYear || curYear();
   const trendOn = !!state.moneyYear;
   clinics = clinics.filter(c =>
-    c.kind !== 'distributor' &&
+    (c.kind || 'hospital') === 'hospital' &&
     (!s ||
       (c.name || '').toLowerCase().includes(s) ||
       (c.city || '').toLowerCase().includes(s) ||
@@ -2422,7 +2432,7 @@ function telLink(phone) {
 
 async function renderPeople() {
   const view = document.getElementById('view');
-  let people = await listPeople();
+  let people = (await listPeople()).filter(p => !isRefDoc(p));
   const s = state.search;
   if (s) {
     people = people.filter(p =>
@@ -2536,27 +2546,158 @@ async function renderDicts() {
   });
 }
 
-// ---------- справочники: Гос ЛПУ / Частные клиники ----------
-const REF_DICTS = { gos_lpu: 'Гос ЛПУ', priv_clinic: 'Частные клиники' };
-async function renderRefs(type) {
+// ---------- справочники: Гос ЛПУ / Частные клиники / Врачи ----------
+const REF_KIND_LABEL = { ref_gos: 'Гос ЛПУ', ref_priv: 'Частные клиники' };
+const REFDOC_TAG = 'refdoc';
+const isRefKind = k => k === 'ref_gos' || k === 'ref_priv';
+const isRefDoc = p => (p.tags || []).includes(REFDOC_TAG);
+const refTags = t => (t || []).filter(x => x !== REFDOC_TAG);
+const canEditRef = () => CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer';
+
+function refLoc(c) { return [c.region, c.city].filter(Boolean).join(' / '); }
+function refTagRow(t) {
+  const tg = refTags(t);
+  return tg.length ? `<div class="row">${tg.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>` : '';
+}
+function refEmpty(s, extra) {
+  return `<div class="empty">${s ? 'Ничего не найдено' : 'Пока пусто — добавь карточку кнопкой «＋ Добавить»'}${extra || ''}</div>`;
+}
+
+async function renderRefOrgs(kind) {
   const view = document.getElementById('view');
-  const label = REF_DICTS[type] || type;
-  let vals = [];
-  try { vals = await getDict(type); } catch (_) { vals = []; }
+  const label = REF_KIND_LABEL[kind] || kind;
   const s = state.search;
-  if (s) vals = vals.filter(v => (v || '').toLowerCase().includes(s));
-  const canEdit = CURRENT_ROLE === 'admin' || CURRENT_ROLE === 'manager';
-  view.innerHTML = `<div class="cns-head"><span>${esc(label)} · <b>${vals.length}</b></span></div>
-    <div class="detail-block">
-      <div class="k">${esc(label)}</div>
-      <div class="chips">
-        ${vals.length ? vals.map(v => `<span class="chip">${esc(v)}${canEdit ? ` <span class="x" data-dict="${type}" data-val="${esc(v)}">✕</span>` : ''}</span>`).join('') : '<span class="sub" style="color:var(--muted)">пусто</span>'}
-      </div>
-      ${canEdit ? `<div class="add-row">
-        <input type="text" placeholder="Добавить" data-add="${type}" />
-        <button class="btn" data-add-btn="${type}">＋</button>
-      </div>` : ''}
-    </div>`;
+  let clinics = (await listClinics()).filter(c => c.kind === kind);
+  if (s) clinics = clinics.filter(c =>
+    (c.name || '').toLowerCase().includes(s) ||
+    (c.city || '').toLowerCase().includes(s) ||
+    (c.region || '').toLowerCase().includes(s) ||
+    (c.tags || []).some(t => t.toLowerCase().includes(s)));
+  clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+  const head = `<div class="cns-head"><span>${esc(label)} · <b>${clinics.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
+  view.innerHTML = head + (clinics.length
+    ? '<div class="list">' + clinics.map(c => `<div class="card list-row" data-id="${c.id}" data-kind="refclinic">
+        <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span></div>
+        <div class="list-row-sub">${refLoc(c) ? esc(refLoc(c)) : '—'}</div>
+        ${refTagRow(c.tags)}
+      </div>`).join('') + '</div>'
+    : refEmpty(s));
+  const b = document.getElementById('refAddBtn');
+  if (b) b.addEventListener('click', () => openRefOrgForm(null, kind));
+}
+
+async function renderRefDoctors() {
+  const view = document.getElementById('view');
+  const s = state.search;
+  const clinicMap = {};
+  (await listClinics()).forEach(c => { clinicMap[c.id] = c.name; });
+  let docs = (await listPeople()).filter(isRefDoc);
+  if (s) docs = docs.filter(p =>
+    (p.fullName || '').toLowerCase().includes(s) ||
+    (p.position || '').toLowerCase().includes(s) ||
+    (p.city || '').toLowerCase().includes(s) ||
+    (p.region || '').toLowerCase().includes(s) ||
+    (p.phone || '').toLowerCase().includes(s) ||
+    (p.email || '').toLowerCase().includes(s) ||
+    (p.tags || []).some(t => t.toLowerCase().includes(s)));
+  docs.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
+  const head = `<div class="cns-head"><span>Врачи · <b>${docs.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
+  view.innerHTML = head + (docs.length
+    ? '<div class="list">' + docs.map(p => {
+        const sub = [clinicMap[p.clinicId] || '', p.position || ''].filter(Boolean).join(' / ');
+        return `<div class="card list-row" data-id="${p.id}" data-kind="refdoc">
+          <div class="list-row-top"><span class="list-row-name">${esc(p.fullName)}</span></div>
+          <div class="list-row-sub">${esc(sub || '—')}</div>
+          ${refTagRow(p.tags)}
+        </div>`;
+      }).join('') + '</div>'
+    : refEmpty(s));
+  const b = document.getElementById('refAddBtn');
+  if (b) b.addEventListener('click', () => openRefDoctorForm(null));
+}
+
+async function refClinicOptions(selectedId) {
+  const all = (await listClinics()).filter(c => isRefKind(c.kind))
+    .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+  return all.map(c => `<option value="${c.id}"${String(c.id) === String(selectedId) ? ' selected' : ''}>${esc(c.name)}${c.city ? ' · ' + esc(c.city) : ''}</option>`).join('');
+}
+
+// карточка организации справочника
+async function openRefOrgForm(id, kind) {
+  const c = id ? await getClinic(id) : {};
+  const k = c.kind || kind || 'ref_gos';
+  const [regions, cities] = await Promise.all([datalistOptions('region'), datalistOptions('city')]);
+  openModal(id ? 'Карточка: ' + (c.name || '') : 'Новая карточка · ' + (REF_KIND_LABEL[k] || ''), `
+    <div class="field"><label>Название *</label><input id="f_name" value="${esc(c.name)}" /></div>
+    <div class="row2">
+      <div class="field"><label>Регион</label><input id="fm_region" list="dl_region" value="${esc(c.region)}" /><datalist id="dl_region">${regions}</datalist></div>
+      <div class="field"><label>Город</label><input id="fm_city" list="dl_city" value="${esc(c.city)}" /><datalist id="dl_city">${cities}</datalist></div>
+    </div>
+    <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc(refTags(c.tags).join(', '))}" placeholder="специальность, источник" /></div>
+    <div class="field"><label>Комментарии</label><textarea id="f_situation">${esc(c.situation)}</textarea></div>
+    <button class="btn" id="f_save">Сохранить</button>
+    ${id ? '<div class="btn-row"><button class="btn ghost" id="f_delete">Удалить</button></div>' : ''}
+  `);
+  document.getElementById('f_save').addEventListener('click', () => saveRefOrg(id, k));
+  if (id) document.getElementById('f_delete').addEventListener('click', () => deleteClinic(id));
+}
+
+async function saveRefOrg(id, kind) {
+  const name = document.getElementById('f_name').value.trim();
+  if (!name) { toast('Название обязательно'); return; }
+  const region = document.getElementById('fm_region').value.trim();
+  const city = document.getElementById('fm_city').value.trim();
+  const tags = parseTags(document.getElementById('f_tags').value);
+  const situation = document.getElementById('f_situation').value.trim();
+  await addDictValues('region', [region]);
+  await addDictValues('city', [city]);
+  const row = { name, region, city, tags, situation, kind, manager: '', linkedClinicId: null };
+  if (id) await updateClinic(id, row); else await addClinic(row);
+  closeModal(); toast('Сохранено'); render(); updateFiltersUI(); refreshCounts();
+}
+
+// карточка врача справочника
+async function openRefDoctorForm(id) {
+  const p = id ? await getPerson(id) : {};
+  const [regions, cities, clinicOpts] = await Promise.all([
+    datalistOptions('region'), datalistOptions('city'), refClinicOptions(p.clinicId)
+  ]);
+  openModal(id ? 'Врач: ' + (p.fullName || '') : 'Новый врач', `
+    <div class="field"><label>ФИО *</label><input id="f_fullName" value="${esc(p.fullName)}" /></div>
+    <div class="field"><label>Должность</label><input id="f_position" value="${esc(p.position)}" /></div>
+    <div class="field"><label>Учреждение</label><select id="f_clinic"><option value="">— выберите —</option>${clinicOpts}</select></div>
+    <div class="row2">
+      <div class="field"><label>Регион</label><input id="fm_region" list="dl_region" value="${esc(p.region)}" /><datalist id="dl_region">${regions}</datalist></div>
+      <div class="field"><label>Город</label><input id="fm_city" list="dl_city" value="${esc(p.city)}" /><datalist id="dl_city">${cities}</datalist></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(p.phone)}" /></div>
+      <div class="field"><label>Почта</label><input id="f_email" value="${esc(p.email)}" /></div>
+    </div>
+    <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc(refTags(p.tags).join(', '))}" placeholder="специальность, источник (конференция)" /></div>
+    <div class="field"><label>Комментарии</label><textarea id="f_situation">${esc(p.situation)}</textarea></div>
+    <button class="btn" id="f_save">Сохранить</button>
+    ${id ? '<div class="btn-row"><button class="btn ghost" id="f_delete">Удалить</button></div>' : ''}
+  `);
+  document.getElementById('f_save').addEventListener('click', () => saveRefDoctor(id));
+  if (id) document.getElementById('f_delete').addEventListener('click', () => deletePerson(id));
+  maskPhoneInput(document.getElementById('f_phone'));
+}
+
+async function saveRefDoctor(id) {
+  const fullName = document.getElementById('f_fullName').value.trim();
+  if (!fullName) { toast('ФИО обязательно'); return; }
+  const position = document.getElementById('f_position').value.trim();
+  const clinicId = document.getElementById('f_clinic').value ? Number(document.getElementById('f_clinic').value) : null;
+  const region = document.getElementById('fm_region').value.trim();
+  const city = document.getElementById('fm_city').value.trim();
+  const phone = document.getElementById('f_phone').value.trim();
+  const email = document.getElementById('f_email').value.trim();
+  const situation = document.getElementById('f_situation').value.trim();
+  const tags = [...new Set([...parseTags(document.getElementById('f_tags').value), REFDOC_TAG])];
+  const row = { fullName, position, clinicId, region, city, phone, email, situation, tags };
+  if (id) await updatePerson(id, row); else await addPerson(row);
+  closeModal(); toast('Сохранено'); render(); refreshCounts();
 }
 
 // ---------- forms ----------
@@ -2926,6 +3067,8 @@ document.getElementById('view').addEventListener('click', async e => {
     hideHover();
     const { id, kind } = card.dataset;
     if (kind === 'nastya') return;
+    if (kind === 'refclinic') { openRefOrgForm(Number(id)); return; }
+    if (kind === 'refdoc') { openRefDoctorForm(Number(id)); return; }
     if (kind === 'clinic') showClinic(Number(id));
     else showPerson(Number(id));
     return;
