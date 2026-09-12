@@ -1590,6 +1590,11 @@ function fillSelect(id, values, emptyLabel) {
   });
 });
 
+document.getElementById('f_tag').addEventListener('change', e => {
+  state.filters.tag = e.target.value;
+  render();
+});
+
 document.getElementById('f_region').addEventListener('change', e => {
   state.filters.region = e.target.value;
   // если выбран город, которого нет в этом регионе — сбрасываем его
