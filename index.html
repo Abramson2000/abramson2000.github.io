@@ -1161,7 +1161,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.5.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.5.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3062,17 +3062,31 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
     return `<div class="v money-line"><span>${y}</span><span>${parts.length ? parts.join(' · ') : '—'}</span></div>`;
   }).join('');
   const sortedContacts = [...contacts].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
+  const peopleBlock = `<div class="detail-block">
+      <div class="k">Люди (${contacts.length})</div>
+      ${sortedContacts.length ? sortedContacts.map(p => `<div class="v contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' — ' + esc(p.position) : ''}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}${p.phone ? phoneLines(p.phone) : ''}</div>`).join('') : '<div class="v" style="color:var(--muted)">нет</div>'}
+    </div>`;
+  const urBlock = isRef && urRows ? `<div class="detail-block"><div class="k">Продажи Уро (₽)</div>${urRows}</div>` : '';
+  // v3.5.3: в Справочниках порядок — Название, Регион, Город, Люди, Продажи Уро, далее комментарии/метки
+  if (isRef) {
+    return `
+      ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
+      ${[['Регион', c.region], ['Город', c.city]]
+        .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
+      ${peopleBlock}
+      ${commentField('clinics', c.id, c.situation, canEditNow)}
+      ${urBlock}
+      ${tagsHtml(c.tags)}
+    `;
+  }
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-    ${isRef ? (urRows ? `<div class="detail-block"><div class="k">Продажи Уро (₽)</div>${urRows}</div>` : '') : `<div class="detail-block"><div class="k">Продажи (₽) — Boston / HugeMed</div>${moneyRows}</div>`}
+    <div class="detail-block"><div class="k">Продажи (₽) — Boston / HugeMed</div>${moneyRows}</div>
     ${[['Регион', c.region], ['Город', c.city], ['Менеджер', c.manager], ['Связь', linked ? linked.name : null]]
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
     ${commentField('clinics', c.id, c.situation, canEditNow)}
     ${tagsHtml(c.tags)}
-    <div class="detail-block">
-      <div class="k">Люди (${contacts.length})</div>
-      ${sortedContacts.length ? sortedContacts.map(p => `<div class="v contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' — ' + esc(p.position) : ''}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}${p.phone ? phoneLines(p.phone) : ''}</div>`).join('') : '<div class="v" style="color:var(--muted)">нет</div>'}
-    </div>
+    ${peopleBlock}
   `;
 }
 
