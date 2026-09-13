@@ -2823,7 +2823,7 @@ async function openClinicForm(id, presetKind) {
       <div class="field"><label>Город</label><input id="fm_city" list="dl_city" value="${esc(c.city)}" /><datalist id="dl_city">${cities}</datalist></div>
     </div>
     <div class="field"><label>Менеджер</label><input id="fm_manager" list="dl_manager" value="${esc(c.manager || myManager || '')}" /><datalist id="dl_manager">${managers}</datalist></div>
-    ${isRefKind(kind) ? '' : salesFormFields(c)}
+    ${salesFormFields(c, isRefKind(kind))}
     <div class="field"><label>Связь (другая клиника/суб)</label>
       <select id="f_link"><option value="">— нет —</option>${linkOptions}</select>
     </div>
@@ -2848,7 +2848,13 @@ function readMoney(id) {
   return isFinite(n) ? n : NaN;
 }
 
-function salesFormFields(c) {
+function salesFormFields(c, isRef) {
+  if (isRef) {
+    const ur = ['2023', '2024'].map((y) =>
+      `<div class="money-cell"><label>${y}</label><input id="f_sales${y}" type="text" inputmode="numeric" value="${c['sales' + y] != null ? c['sales' + y] : ''}" placeholder="—" /></div>`
+    ).join('');
+    return `<div class="field"><label>Продажа Уро (₽)</label><div class="money-grid">${ur}</div></div>`;
+  }
   const boston = MONEY_YEARS.map((y) =>
     `<div class="money-cell"><label>${y}</label><input id="f_sales${y}" type="text" inputmode="numeric" value="${c['sales' + y] != null ? c['sales' + y] : ''}" placeholder="—" /></div>`
   ).join('');
@@ -2870,9 +2876,15 @@ async function saveClinic(id) {
   const situation = document.getElementById('f_situation').value.trim();
   const tags = parseTags(document.getElementById('f_tags').value);
   const linkedClinicId = document.getElementById('f_link').value ? Number(document.getElementById('f_link').value) : null;
-  const noMoney = isRefKind(kind) || !document.getElementById('f_sales' + MONEY_YEARS[0]);
-  const sales = noMoney ? MONEY_YEARS.map(() => null) : MONEY_YEARS.map(y => readMoney('f_sales' + y));
-  const hms = noMoney ? HUGEMED_YEARS.map(() => null) : HUGEMED_YEARS.map(y => readMoney('f_hm' + y));
+  const isRefK = isRefKind(kind);
+  let sales, hms;
+  if (isRefK) {
+    sales = MONEY_YEARS.map(y => (y === '2023' || y === '2024') ? readMoney('f_sales' + y) : null);
+    hms = HUGEMED_YEARS.map(() => null);
+  } else {
+    sales = MONEY_YEARS.map(y => readMoney('f_sales' + y));
+    hms = HUGEMED_YEARS.map(y => readMoney('f_hm' + y));
+  }
   if (sales.some(v => Number.isNaN(v)) || hms.some(v => Number.isNaN(v))) { toast('Некорректное число в продажах'); return; }
 
   await addDictValues('region', [region]);
@@ -2960,6 +2972,10 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
   const canEditNow = canEditCard === undefined
     ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit())
     : !!canEditCard;
+  const urRows = isRef ? ['2023', '2024'].map(y => {
+    const v = c['sales' + y];
+    return `<div class="v money-line"><span>${y}</span><span>${v != null ? 'Продажа Уро ' + fmtMoney(v) + ' ₽' : '—'}</span></div>`;
+  }).join('') : '';
   const moneyRows = MONEY_YEARS.map(y => {
     const b = c['sales' + y], h = c['hugemed' + y];
     const parts = [];
@@ -2970,7 +2986,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
   const sortedContacts = [...contacts].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-    ${(isRef || isRefEdit()) ? '' : `<div class="detail-block"><div class="k">Продажи (₽) — Boston / HugeMed</div>${moneyRows}</div>`}
+    ${isRef ? (urRows ? `<div class="detail-block"><div class="k">Продажи Уро (₽)</div>${urRows}</div>` : '') : `<div class="detail-block"><div class="k">Продажи (₽) — Boston / HugeMed</div>${moneyRows}</div>`}
     ${[['Регион', c.region], ['Город', c.city], ['Менеджер', c.manager], ['Связь', linked ? linked.name : null]]
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
     ${commentField('clinics', c.id, c.situation, canEditNow)}
