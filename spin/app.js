@@ -1447,7 +1447,7 @@ function selfCheckCatalog() {
   if (x3 && x3.practice && x3.practice.length) add('x3', 'Телефонные продажи', 'Разрыв шаблона вместо скрипта · Рабичев', 'Т',
     [{ num: 1, title: x3.title, qs: x3.practice }], true);
   const x4 = EXTRA_ALL.find((e) => e.id === 'x4');
-  if (x4) add('x4', 'Удалённые продажи', 'Телефон, переписка, стенд · 28 уроков', 'У',
+  if (x4) add('x4', 'Удалённые продажи', 'Телефон, переписка, стенд, приёмы · 31 урок', 'У',
     x4.blocks.map((b, i) => ({ num: i + 1, title: b.h, qs: b.practice || [] })), true);
   return cat;
 }
