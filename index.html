@@ -521,6 +521,8 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .detail-block a.tel, .contact-row a.tel { color: var(--brand); }
 
 /* инлайн-редактирование комментариев (contenteditable) */
+.site-link { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:9px; background:var(--brand); color:#fff; font-weight:600; font-size:13px; text-decoration:none; }
+.site-link:hover { filter:brightness(1.08); }
 .comment-field {
   min-height: 24px; cursor: text; white-space: pre-wrap; word-break: break-word;
   border-radius: 8px; padding: 4px 6px; margin: -4px -6px;
@@ -1177,7 +1179,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.6.4';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.7.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3146,13 +3148,32 @@ async function savePerson(id) {
 }
 
 // ---------- detail ----------
+// v3.7.0: сайт учреждения хранится строкой «Сайт: URL» в примечаниях; в карточке — отдельной кнопкой
+const SITE_LINE_RE = /^\s*Сайт:\s*(https?:\/\/\S+)\s*$/i;
+function splitSite(sit) {
+  const lines = String(sit || '').split('\n');
+  let site = ''; const rest = [];
+  for (const ln of lines) {
+    const m = ln.match(SITE_LINE_RE);
+    if (m) { if (!site) site = m[1]; continue; }
+    rest.push(ln);
+  }
+  return { site, rest: rest.join('\n').replace(/^\s+|\s+$/g, '') };
+}
+function siteBlock(sit) {
+  const { site } = splitSite(sit);
+  if (!site) return '';
+  let dom = site; try { dom = new URL(site).hostname.replace(/^www\./, ''); } catch (e) {}
+  return `<div class="detail-block"><div class="k">Сайт</div><div class="v"><a class="site-link" href="${esc(site)}" target="_blank" rel="noopener">🌐 ${esc(dom)}</a></div></div>`;
+}
 function commentField(table, id, situation, canEditNow) {
   const editable = canEditNow === undefined
     ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer')
     : (!!canEditNow && CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer');
+  const { site, rest } = splitSite(situation);
   return `<div class="detail-block">
       <div class="k">Комментарии / ситуация</div>
-      <div class="v comment-field" ${editable ? 'contenteditable="true" spellcheck="false"' : ''} data-table="${table}" data-id="${id}">${esc(situation)}</div>
+      <div class="v comment-field" ${editable ? 'contenteditable="true" spellcheck="false"' : ''} data-table="${table}" data-id="${id}" data-site="${esc(site)}">${esc(rest)}</div>
     </div>`;
 }
 
@@ -3189,6 +3210,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
       ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
       ${[['Регион', c.region], ['Город', c.city]]
         .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
+      ${siteBlock(c.situation)}
       ${peopleBlock}
       ${commentField('clinics', c.id, c.situation, canEditNow)}
       ${urBlock}
@@ -3198,6 +3220,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
     <div class="detail-block"><div class="k">Продажи (₽) — Boston / HugeMed</div>${moneyRows}</div>
+    ${siteBlock(c.situation)}
     ${[['Регион', c.region], ['Город', c.city], ['Менеджер', c.manager], ['Связь', linked ? linked.name : null]]
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
     ${commentField('clinics', c.id, c.situation, canEditNow)}
@@ -3296,7 +3319,9 @@ document.addEventListener('focusout', async e => {
   if (!field) return;
   const text = readComment(field);
   if (text === field._orig) return;
-  await setSituation(field.dataset.table, Number(field.dataset.id), text);
+  const site = field.dataset.site || '';
+  const full = site ? (text ? text.replace(/\s+$/, '') + '\nСайт: ' + site : 'Сайт: ' + site) : text;
+  await setSituation(field.dataset.table, Number(field.dataset.id), full);
   toast('Сохранено');
 });
 
