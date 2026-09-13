@@ -229,6 +229,9 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
 }
 .tag.manager { background: #f1f1f1; color: #404040; }
 .tag.type { background: #f1f1f1; color: #404040; }
+/* v3.5.4: метки в списках — кликабельные (тап включает фильтр по этой метке) */
+.tag-click { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .12s, color .12s; }
+.tag-click:hover, .tag-click:active { background: var(--brand); color: #fff; }
 
 .badge {
   display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px;
@@ -1161,7 +1164,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.5.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.5.4';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2715,7 +2718,7 @@ function hideEmptySections() {
 function refLoc(c) { return [c.region, c.city].filter(Boolean).join(' / '); }
 function refTagRow(t) {
   const tg = refTags(t);
-  return tg.length ? `<div class="row">${tg.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>` : '';
+  return tg.length ? `<div class="row">${tg.map(x => `<span class="tag tag-click" data-tag="${esc(x)}" title="Показать всё с меткой «${esc(x)}»">${esc(x)}</span>`).join('')}</div>` : '';
 }
 function refEmpty(s, extra) {
   return `<div class="empty">${s ? 'Ничего не найдено' : 'Пока пусто — добавь карточку кнопкой «＋ Добавить»'}${extra || ''}</div>`;
@@ -3280,6 +3283,16 @@ function addDictPrompt() {
 // делегирование кликов по view
 document.getElementById('view').addEventListener('click', async e => {
   if (e.target.closest('a.tel')) return;
+  // v3.5.4: тап по метке в списке — сразу включаем фильтр по этой метке
+  const tagEl = e.target.closest('.tag-click[data-tag]');
+  if (tagEl) {
+    e.preventDefault(); e.stopPropagation();
+    state.filters.tags = [tagEl.dataset.tag];
+    try { syncTagMenu(); } catch (_) {}
+    await render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
   const card = e.target.closest('.card');
   if (card) {
     hideHover();
