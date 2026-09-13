@@ -2639,7 +2639,7 @@ async function renderRefOrgs(kind) {
       </div>`).join('') + '</div>'
     : refEmpty(s));
   const b = document.getElementById('refAddBtn');
-  if (b) b.addEventListener('click', () => openRefOrgForm(null, kind));
+  if (b) b.addEventListener('click', () => openClinicForm(null, kind));
 }
 
 async function renderRefDoctors() {
@@ -2672,7 +2672,7 @@ async function renderRefDoctors() {
       }).join('') + '</div>'
     : refEmpty(s));
   const b = document.getElementById('refAddBtn');
-  if (b) b.addEventListener('click', () => openRefDoctorForm(null));
+  if (b) b.addEventListener('click', () => openPersonForm(null, null, { refdoc: true }));
 }
 
 async function refClinicOptions(selectedId) {
@@ -2780,11 +2780,14 @@ async function openClinicForm(id, presetKind) {
   ]);
   const linkOptions = await clinicSelectOptions(c.linkedClinicId);
 
-  openModal(id ? 'Редактировать организацию' : (kind === 'distributor' ? 'Новый дистрибьютор' : 'Новая клиника'), `
+  const KIND_OPTS = [['hospital', 'Больница'], ['distributor', 'Партнеры'], ['ref_gos', 'Гос ЛПУ'], ['ref_priv', 'Частные клиники']];
+  const kindOptsHtml = KIND_OPTS.map(([v, l]) => `<option value="${v}"${kind === v ? ' selected' : ''}>${l}</option>`).join('');
+  const titleMap = { distributor: 'Новый дистрибьютор', ref_gos: 'Новое Гос ЛПУ', ref_priv: 'Новая частная клиника' };
+
+  openModal(id ? 'Редактировать организацию' : (titleMap[kind] || 'Новая клиника'), `
     <div class="field"><label>Вид *</label>
       <select id="f_kind">
-        <option value="hospital"${kind === 'hospital' ? ' selected' : ''}>Больница</option>
-        <option value="distributor"${kind === 'distributor' ? ' selected' : ''}>Партнеры</option>
+        ${kindOptsHtml}
       </select>
     </div>
     <div class="field"><label>Название *</label><input id="f_name" value="${esc(c.name)}" /></div>
@@ -2857,11 +2860,13 @@ async function saveClinic(id) {
   closeModal(); toast('Сохранено'); render(); updateFiltersUI(); refreshCounts();
 }
 
-async function openPersonForm(id, presetClinicId) {
+async function openPersonForm(id, presetClinicId, opts) {
+  const o = opts || {};
   const p = id ? await getPerson(id) : (presetClinicId != null ? { clinicId: presetClinicId } : {});
-  const clinicOptions = await clinicSelectOptions(p.clinicId);
+  const isDoc = isRefDoc(p) || !!o.refdoc;
+  const clinicOptions = isDoc ? await refClinicOptions(p.clinicId) : await clinicSelectOptions(p.clinicId);
 
-  openModal(id ? 'Редактировать человека' : 'Новый человек', `
+  openModal(id ? (isDoc ? 'Редактировать врача' : 'Редактировать человека') : (isDoc ? 'Новый врач' : 'Новый человек'), `
     <div class="field"><label>ФИО *</label><input id="f_fullName" value="${esc(p.fullName)}" /></div>
     <div class="field"><label>Должность</label><input id="f_position" value="${esc(p.position)}" /></div>
     <div class="field"><label>Учреждение (клиника) *</label>
@@ -2872,7 +2877,8 @@ async function openPersonForm(id, presetClinicId) {
       <div class="field"><label>Почта</label><input id="f_email" value="${esc(p.email)}" /></div>
     </div>
     <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(p.situation)}</textarea></div>
-    <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc((p.tags || []).join(', '))}" /></div>
+    <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc(refTags(p.tags).join(', '))}" /></div>
+    <input type="hidden" id="f_refdoc" value="${isDoc ? '1' : ''}" />
     <button class="btn" id="f_save" data-id="${p.id || ''}">Сохранить</button>
     ${id ? `<div class="btn-row"><button class="btn ghost" id="f_delete">${CURRENT_ROLE === 'admin' ? 'Удалить' : (p.markedDel ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button></div>` : ''}
   `);
@@ -2895,6 +2901,8 @@ async function savePerson(id) {
   const position = document.getElementById('f_position').value.trim();
   const situation = document.getElementById('f_situation').value.trim();
   const tags = parseTags(document.getElementById('f_tags').value);
+  const rd = document.getElementById('f_refdoc');
+  if (rd && rd.value === '1' && !tags.includes(REFDOC_TAG)) tags.unshift(REFDOC_TAG);
 
   const row = { fullName, position, region, city, clinicId, phone, email, situation, tags };
   if (id) await updatePerson(id, row);
@@ -2941,14 +2949,15 @@ function clinicDetailBody(c, linked, contacts) {
 }
 
 function personDetailBody(p, clinics) {
-  const orgs = (clinics || []).map(c => c && c.name).filter(Boolean);
+  const list = (clinics || []).filter(Boolean);
+  const orgs = list.map(c => `<span class="org-link" data-clinic="${c.id}">${esc(c.name)}</span>`);
   return `
-    ${orgs.length ? `<div class="detail-block"><div class="k">${orgs.length > 1 ? 'Учреждения' : 'Учреждение'}</div><div class="v">${orgs.map(esc).join('<br>')}</div></div>` : ''}
+    ${orgs.length ? `<div class="detail-block"><div class="k">${orgs.length > 1 ? 'Учреждения' : 'Учреждение'}</div><div class="v">${orgs.join('<br>')}</div></div>` : ''}
     ${[['Должность', p.position], ['Почта', p.email]]
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
     ${p.phone ? `<div class="detail-block"><div class="k">Телефон</div><div class="v">${telLink(p.phone)}</div></div>` : ''}
     ${commentField('people', p.id, p.situation)}
-    ${tagsHtml(p.tags)}
+    ${tagsHtml(refTags(p.tags))}
   `;
 }
 
@@ -2974,7 +2983,7 @@ async function showHoverCard(row) {
   hoverTimer = setTimeout(async () => {
     const panel = document.getElementById('hoverCard');
     let inner;
-    if (kind === 'person') {
+    if (kind === 'person' || kind === 'refdoc') {
       const p = await getPerson(id);
       if (!p || seq !== hoverSeq) return;
       const clinics = await personAllClinics(p);
@@ -3066,6 +3075,10 @@ async function showPerson(id) {
   `);
   if (canEdit) document.getElementById('d_edit').addEventListener('click', () => openPersonForm(id));
   document.getElementById('d_close').addEventListener('click', closeModal);
+  document.querySelectorAll('.org-link').forEach(el => {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => { const cid = Number(el.dataset.clinic); if (cid) { closeModal(); showClinic(cid); } });
+  });
 }
 
 // ---------- delete ----------
@@ -3126,8 +3139,8 @@ document.getElementById('view').addEventListener('click', async e => {
     hideHover();
     const { id, kind } = card.dataset;
     if (kind === 'nastya') return;
-    if (kind === 'refclinic') { openRefOrgForm(Number(id)); return; }
-    if (kind === 'refdoc') { openRefDoctorForm(Number(id)); return; }
+    if (kind === 'refclinic') { showClinic(Number(id)); return; }
+    if (kind === 'refdoc') { showPerson(Number(id)); return; }
     if (kind === 'clinic') showClinic(Number(id));
     else showPerson(Number(id));
     return;
