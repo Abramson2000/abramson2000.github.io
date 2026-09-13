@@ -543,7 +543,7 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <div class="topbar-row">
         <button class="burger" id="burgerBtn" aria-label="Меню"><span></span><span></span><span></span></button>
         <span class="brand"><img src="logo.jpg" class="brand-logo" alt="" /><span class="brand-name">Абрамовская база</span></span>
-        <span id="brandVersion" class="brand-version">v2.1 · © Abramson</span>
+        <span id="brandVersion" class="brand-version">© Abramson</span>
       </div>
       <div id="diag" style="display:none;font-size:10px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%"></div>
     </div>
@@ -615,7 +615,7 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
         <span>Настройки</span>
       </button>
     </nav>
-    <div class="d-foot">База v2.0 · синк 08:00</div>
+    <div class="d-foot" id="drawerFoot">Абрамовская база</div>
   </aside>
 
   <aside class="sidebar">
@@ -1123,6 +1123,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
+const APP_VER = '3.2.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1296,8 +1297,11 @@ async function bootstrap() {
   if (isGuest && state.view === 'money') state.view = 'clinics';
   showApp();
   applyAccent();
-  document.getElementById('brandVersion').textContent = 'v2.1 · © Abramson';
-  document.getElementById('footerVersion').textContent = '';
+  const verLine = 'v' + APP_VER + ' · © Abramson';
+  document.getElementById('brandVersion').textContent = verLine;
+  document.getElementById('footerVersion').textContent = verLine;
+  const df = document.getElementById('drawerFoot');
+  if (df) df.textContent = 'Абрамовская база · v' + APP_VER;
   updateFiltersUI();
   render();
   refreshCounts();
