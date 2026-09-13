@@ -1123,7 +1123,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.2.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.3.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1306,8 +1306,6 @@ async function bootstrap() {
   const verLine = 'v' + APP_VER + ' · © Abramson';
   document.getElementById('brandVersion').textContent = verLine;
   document.getElementById('footerVersion').textContent = verLine;
-  const df = document.getElementById('drawerFoot');
-  if (df) df.textContent = 'Абрамовская база · v' + APP_VER;
   updateFiltersUI();
   render();
   refreshCounts();
@@ -1652,6 +1650,7 @@ document.getElementById('globalSearch').addEventListener('input', e => {
 
 // ---------- render ----------
 async function render() {
+  if (isRefEdit() && REFEDIT_DENIED.includes(state.view)) { state.view = 'clinics'; }
   document.body.classList.toggle('detail-mode', state.view === 'clinics' || state.view === 'distributors');
   hideHover();
   setActiveTab(state.view);
