@@ -910,10 +910,26 @@ async function deleteDictValue(type, value) {
 }
 
 // ---------- клиники ----------
+// v3.5.2: Supabase отдаёт максимум 1000 строк на запрос — грузим постранично,
+// иначе часть карточек (например «Клиники») молча пропадала из списков
+const PAGE_SIZE = 1000;
+async function fetchAllRows(table, orderCol, tieCol) {
+  const out = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    let q = sb.from(table).select('*').order(orderCol, { ascending: true });
+    if (tieCol) q = q.order(tieCol, { ascending: true });
+    const { data, error } = await q.range(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    const part = data || [];
+    out.push(...part);
+    if (part.length < PAGE_SIZE) break;
+    if (from > 50000) break;
+  }
+  return out;
+}
 async function listClinics() {
-  const { data, error } = await sb.from('clinics').select('*').order('name');
-  if (error) throw error;
-  return (data || []).map(fromClinic);
+  const rows = await fetchAllRows('clinics', 'name', 'id');
+  return rows.map(fromClinic);
 }
 async function getClinic(id) {
   const { data, error } = await sb.from('clinics').select('*').eq('id', id).maybeSingle();
@@ -940,9 +956,8 @@ async function setClinicMarked(id, val) {
 
 // ---------- люди ----------
 async function listPeople() {
-  const { data, error } = await sb.from(peopleSource).select('*').order('full_name');
-  if (error) throw error;
-  return (data || []).map(fromPerson);
+  const rows = await fetchAllRows(peopleSource, 'full_name', 'id');
+  return rows.map(fromPerson);
 }
 async function getPerson(id) {
   const { data, error } = await sb.from(peopleSource).select('*').eq('id', id).maybeSingle();
@@ -1146,7 +1161,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.5.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.5.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
