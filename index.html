@@ -3211,6 +3211,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
       ${[['Регион', c.region], ['Город', c.city]]
         .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
       ${siteBlock(c.situation)}
+      ${linked ? `<div class="detail-block"><div class="k">Связь</div><div class="v"><span class="org-link" data-clinic="${linked.id}">${esc(linked.name)}</span></div></div>` : ''}
       ${peopleBlock}
       ${commentField('clinics', c.id, c.situation, canEditNow)}
       ${urBlock}
