@@ -1290,10 +1290,16 @@ async function bootstrap() {
   if (window.__d) window.__d.m.push('role ' + (Date.now() - window.__d.t) + 'ms');
   setPeopleSource(CURRENT_ROLE);
   const isGuest = CURRENT_ROLE === 'guest';
-  const readOnly = isGuest || CURRENT_ROLE === 'viewer';
+  const hideMoney = isGuest || isRefEdit();
+  const readOnly = isGuest || CURRENT_ROLE === 'viewer' || isRefEdit();
   document.getElementById('fab').classList.toggle('hidden', readOnly);
   // деньги — только для тех, у кого есть доступ (гость видит анализ, но не деньги)
-  document.querySelectorAll('.money-tab').forEach(t => t.classList.toggle('hidden', isGuest));
+  document.querySelectorAll('.money-tab').forEach(t => t.classList.toggle('hidden', hideMoney));
+  if (isRefEdit()) {
+    REFEDIT_DENIED.forEach(v => document.querySelectorAll('[data-view="' + v + '"]').forEach(el => el.classList.add('hidden')));
+    hideEmptySections();
+    if (REFEDIT_DENIED.includes(state.view)) state.view = 'clinics';
+  }
   if (isGuest && state.view === 'money') state.view = 'clinics';
   showApp();
   applyAccent();
@@ -1430,6 +1436,7 @@ document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     let v = btn.dataset.view === 'back' ? 'clinics' : btn.dataset.view;
     if (v === 'money' && CURRENT_ROLE === 'guest') v = 'visits';  // без доступа к деньгам — сразу на Визиты
+    if (isRefEdit() && REFEDIT_DENIED.includes(v)) v = 'clinics';
     if (v === 'managers') v = 'sasha';  // «Менеджеры» — сразу на свой лист (3-й стол)
     if (v === 'nastya' && !WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) v = 'clinics';
     if (v === 'galya' && !WORKLISTS.galya.emails.includes(CURRENT_EMAIL)) v = 'clinics';
@@ -1764,10 +1771,10 @@ async function bindCnsAdd(view) {
 function renderAnalysis() {
   const view = document.getElementById('view');
   view.innerHTML = `<div class="analysis-sheet">
-    <div class="sheet-item" data-goto="money">
+    ${isRefEdit() ? '' : `<div class="sheet-item" data-goto="money">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
       <span>Деньги</span>
-    </div>
+    </div>`}
     <div class="sheet-item" data-goto="calls">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
       <span>Звонки</span>
@@ -1966,6 +1973,7 @@ function phoneLines(phone) {
 
 // продажи из связанной основной клиники (всегда актуально)
 function moneyBlockHtml(mc) {
+  if (isRefEdit()) return '';
   const rows = [];
   ['2021', '2022', '2023', '2024', '2025', '2026'].forEach(y => {
     const v = mc['sales_' + y];
@@ -2609,7 +2617,23 @@ const REFDOC_TAG = 'refdoc';
 const isRefKind = k => k === 'ref_gos' || k === 'ref_priv';
 const isRefDoc = p => (p.tags || []).includes(REFDOC_TAG);
 const refTags = t => (t || []).filter(x => x !== REFDOC_TAG);
-const canEditRef = () => CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer';
+const canEditRef = () => (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer') || isRefEdit();
+// --- ограниченный пользователь (Евсеев): основное — только просмотр и без денег; справочники — просмотр и правка; команду не видит
+// отдельной роли в базе нет (CHECK-ограничение user_managers.role), поэтому роль в базе — viewer, а права — по e-mail
+const REFEDIT_EMAILS = ['evseev@crm.ru'];
+const isRefEdit = () => REFEDIT_EMAILS.includes((CURRENT_EMAIL || '').toLowerCase());
+const REFEDIT_DENIED = ['money', 'cns', 'nastya', 'galya', 'sasha', 'managers', 'settings'];
+const canEditMain = () => CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit();
+function hideEmptySections() {
+  document.querySelectorAll('.d-sec').forEach(sec => {
+    let el = sec.nextElementSibling, empty = true;
+    while (el && !el.classList.contains('d-sec')) {
+      if (el.matches('button.tab') && !el.classList.contains('hidden')) empty = false;
+      el = el.nextElementSibling;
+    }
+    sec.classList.toggle('hidden', empty);
+  });
+}
 
 function refLoc(c) { return [c.region, c.city].filter(Boolean).join(' / '); }
 function refTagRow(t) {
@@ -2917,8 +2941,10 @@ async function savePerson(id) {
 }
 
 // ---------- detail ----------
-function commentField(table, id, situation) {
-  const editable = CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer';
+function commentField(table, id, situation, canEditNow) {
+  const editable = canEditNow === undefined
+    ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer')
+    : (!!canEditNow && CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer');
   return `<div class="detail-block">
       <div class="k">Комментарии / ситуация</div>
       <div class="v comment-field" ${editable ? 'contenteditable="true" spellcheck="false"' : ''} data-table="${table}" data-id="${id}">${esc(situation)}</div>
@@ -2930,8 +2956,11 @@ function readComment(field) {
   return String(t || '').replace(/\u00A0/g, ' ').replace(/\r\n?/g, '\n').trim();
 }
 
-function clinicDetailBody(c, linked, contacts) {
+function clinicDetailBody(c, linked, contacts, canEditCard) {
   const isRef = isRefKind(c.kind);
+  const canEditNow = canEditCard === undefined
+    ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit())
+    : !!canEditCard;
   const moneyRows = MONEY_YEARS.map(y => {
     const b = c['sales' + y], h = c['hugemed' + y];
     const parts = [];
@@ -2942,10 +2971,10 @@ function clinicDetailBody(c, linked, contacts) {
   const sortedContacts = [...contacts].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-    ${isRef ? '' : `<div class="detail-block"><div class="k">Продажи (₽) — Boston / HugeMed</div>${moneyRows}</div>`}
+    ${(isRef || isRefEdit()) ? '' : `<div class="detail-block"><div class="k">Продажи (₽) — Boston / HugeMed</div>${moneyRows}</div>`}
     ${[['Регион', c.region], ['Город', c.city], ['Менеджер', c.manager], ['Связь', linked ? linked.name : null]]
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
-    ${commentField('clinics', c.id, c.situation)}
+    ${commentField('clinics', c.id, c.situation, canEditNow)}
     ${tagsHtml(c.tags)}
     <div class="detail-block">
       <div class="k">Люди (${contacts.length})</div>
@@ -2954,15 +2983,18 @@ function clinicDetailBody(c, linked, contacts) {
   `;
 }
 
-function personDetailBody(p, clinics) {
+function personDetailBody(p, clinics, canEditCard) {
   const list = (clinics || []).filter(Boolean);
+  const canEditNow = canEditCard === undefined
+    ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit())
+    : !!canEditCard;
   const orgs = list.map(c => `<span class="org-link" data-clinic="${c.id}">${esc(c.name)}</span>`);
   return `
     ${orgs.length ? `<div class="detail-block"><div class="k">${orgs.length > 1 ? 'Учреждения' : 'Учреждение'}</div><div class="v">${orgs.join('<br>')}</div></div>` : ''}
     ${[['Должность', p.position], ['Почта', p.email]]
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
     ${p.phone ? `<div class="detail-block"><div class="k">Телефон</div><div class="v">${telLink(p.phone)}</div></div>` : ''}
-    ${commentField('people', p.id, p.situation)}
+    ${commentField('people', p.id, p.situation, canEditNow)}
     ${tagsHtml(refTags(p.tags))}
   `;
 }
@@ -3050,9 +3082,9 @@ async function showClinic(id) {
   if (!c) return;
   const linked = c.linkedClinicId ? await getClinic(c.linkedClinicId) : null;
   const contacts = await peopleByClinic(id);
-  const canEdit = CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer';
+  const canEdit = canEditMain() || (isRefEdit() && isRefKind(c.kind));
 
-  openModal(c.name, clinicDetailBody(c, linked, contacts) + `
+  openModal(c.name, clinicDetailBody(c, linked, contacts, canEdit) + `
     <div class="btn-row">
       ${canEdit ? '<button class="btn" id="d_edit">Редактировать</button>' : ''}
       <button class="btn ghost" id="d_close">Закрыть</button>
@@ -3071,9 +3103,10 @@ async function showPerson(id) {
   const p = await getPerson(id);
   if (!p) return;
   const clinics = await personAllClinics(p);
-  const canEdit = CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer';
+  const isRefP = isRefDoc(p) || (clinics || []).some(c => c && isRefKind(c.kind));
+  const canEdit = canEditMain() || (isRefEdit() && isRefP);
 
-  openModal(p.fullName, personDetailBody(p, clinics) + `
+  openModal(p.fullName, personDetailBody(p, clinics, canEdit) + `
     <div class="btn-row">
       ${canEdit ? '<button class="btn" id="d_edit">Редактировать</button>' : ''}
       <button class="btn ghost" id="d_close">Закрыть</button>
