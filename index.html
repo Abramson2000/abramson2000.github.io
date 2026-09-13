@@ -94,6 +94,25 @@ body {
 }
 .filters select:focus { outline: 2px solid var(--brand); }
 .filters select:has(option[value=""]:checked) { color: var(--muted); }
+/* мультивыбор меток */
+.tagpick { flex: 1 1 0; min-width: 0; position: relative; }
+.tagpick > summary {
+  list-style: none; cursor: pointer; padding: 7px 26px 7px 12px; border: 1px solid var(--line); border-radius: 10px;
+  font-size: 13px; background: var(--card); color: var(--muted); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23737373' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.tagpick > summary::-webkit-details-marker { display: none; }
+.tagpick.on > summary { color: var(--ink); border-color: var(--brand); }
+.tagpick-menu {
+  position: absolute; z-index: 40; top: calc(100% + 4px); left: 0; min-width: 200px; max-width: 280px; max-height: 260px; overflow: auto;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.14); padding: 6px;
+}
+.tagpick-menu label { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; font-size: 13px; color: var(--ink); cursor: pointer; }
+.tagpick-menu label:hover { background: #f5f5f5; }
+.tagpick-menu input { accent-color: var(--brand); }
+.tagpick-clear { width: 100%; margin-top: 4px; padding: 6px; border: 0; border-radius: 8px; background: #f1f1f1; color: #404040; font-size: 12.5px; font-weight: 600; cursor: pointer; }
 
 /* Views */
 .view { max-width: 720px; margin: 0 auto; padding: 12px 16px; }
@@ -695,6 +714,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
     <select id="f_year" class="hidden"><option value="">Годы</option></select>
     <select id="f_manager"><option value="">Менеджеры</option></select>
     <select id="f_tag" class="hidden"><option value="">Метки</option></select>
+    <details id="f_tagWrap" class="tagpick hidden">
+      <summary id="f_tagSummary">Метки</summary>
+      <div id="f_tagMenu" class="tagpick-menu"></div>
+    </details>
   </div>
 
   <main id="view" class="view"></main>
@@ -1099,7 +1122,7 @@ const DICT_LABELS = {
   sub: 'Суб / партнёр'
 };
 
-const state = { view: 'clinics', search: '', filters: { region: '', city: '', manager: '' }, moneySort: 'desc', moneySource: 'both', moneyYear: '', moneyFilter: 'all', nastyaId: null, fromCalls: false };
+const state = { view: 'clinics', search: '', filters: { region: '', city: '', manager: '', tag: '', tags: [] }, moneySort: 'desc', moneySource: 'both', moneyYear: '', moneyFilter: 'all', nastyaId: null, fromCalls: false };
 
 // ---------- цвет выделения ----------
 const ACCENT_OPTIONS = [
@@ -1123,7 +1146,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.4.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.5.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1468,7 +1491,7 @@ async function updateFiltersUI() {
   if (mgBar) mgBar.classList.toggle('hidden', !managersZone);
   const isRef = ['refgos', 'refpriv', 'refdoc'].includes(state.view);
   const fctx = isRef ? 'ref' : 'main';
-  if (fctx !== filterCtx) { filterCtx = fctx; state.filters.region = ''; state.filters.city = ''; state.filters.tag = ''; }
+  if (fctx !== filterCtx) { filterCtx = fctx; state.filters.region = ''; state.filters.city = ''; state.filters.tag = ''; state.filters.tags = []; }
   if (state.view === 'clinics' || state.view === 'distributors' || state.view === 'money') {
     bar.classList.remove('hidden');
     await populateFilters();
@@ -1495,17 +1518,56 @@ let locAll = { regions: [], cities: [] };
 let locMap = { regionCities: {}, cityRegions: {} };
 const ruCmp = (a, b) => a.localeCompare(b, 'ru');
 
-// фильтры справочников: регионы/города только из карточек этого справочника
-function fillTagSelect(rows) {
-  const sel = document.getElementById('f_tag');
-  if (!sel) return;
-  const tags = [...new Set((rows || []).flatMap(r => refTags(r.tags)))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'ru'));
-  if (state.filters.tag && !tags.includes(state.filters.tag)) state.filters.tag = '';
-  if (!tags.length) { sel.classList.add('hidden'); sel.innerHTML = '<option value="">Метки</option>'; return; }
-  sel.classList.remove('hidden');
-  fillSelect('f_tag', tags, 'Метки');
-  sel.value = state.filters.tag || '';
+// совпадение по меткам: выбрано несколько — достаточно любой (логика «ИЛИ»)
+function tagHit(f, tags) {
+  const sel = (f && f.tags) || [];
+  if (!sel.length) return true;
+  const have = tags || [];
+  return sel.some(t => have.includes(t));
 }
+
+// фильтры справочников: регионы/города только из карточек этого справочника
+let tagAllTags = [];
+function syncTagMenu() {
+  const wrap = document.getElementById('f_tagWrap');
+  if (!wrap) return;
+  const sel = document.getElementById('f_tag');
+  if (sel) sel.classList.add('hidden');
+  const chosen = state.filters.tags || [];
+  const sum = document.getElementById('f_tagSummary');
+  sum.textContent = chosen.length ? (chosen.length === 1 ? chosen[0] : 'Метки: ' + chosen.length + ' — ' + chosen.join(', ')) : 'Метки';
+  wrap.classList.toggle('on', chosen.length > 0);
+  const menu = document.getElementById('f_tagMenu');
+  if (!tagAllTags.length) { wrap.classList.add('hidden'); wrap.open = false; menu.innerHTML = ''; return; }
+  wrap.classList.remove('hidden');
+  menu.innerHTML =
+    tagAllTags.map(t => `<label><input type="checkbox" value="${esc(t)}" ${chosen.includes(t) ? 'checked' : ''} /><span>${esc(t)}</span></label>`).join('')
+    + `<button type="button" class="tagpick-clear${chosen.length ? '' : ' hidden'}">Сбросить метки</button>`;
+  menu.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      state.filters.tags = [...menu.querySelectorAll('input[type=checkbox]')].filter(x => x.checked).map(x => x.value);
+      syncTagMenu();
+      render();
+    });
+  });
+  const clr = menu.querySelector('.tagpick-clear');
+  if (clr) clr.addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    state.filters.tags = []; syncTagMenu(); render();
+  });
+}
+function fillTagSelect(rows) {
+  const tags = [...new Set((rows || []).flatMap(r => refTags(r.tags)))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'ru'));
+  tagAllTags = tags;
+  state.filters.tags = (state.filters.tags || []).filter(t => tags.includes(t));
+  if (state.filters.tag) { if (tags.includes(state.filters.tag) && !state.filters.tags.includes(state.filters.tag)) state.filters.tags.push(state.filters.tag); state.filters.tag = ''; }
+  syncTagMenu();
+}
+
+document.addEventListener('click', e => {
+  const w = document.getElementById('f_tagWrap');
+  if (w && !w.contains(e.target)) w.open = false;
+});
 
 async function populateRefFilters() {
   let rows = [];
@@ -1601,6 +1663,7 @@ function fillSelect(id, values, emptyLabel) {
 
 document.getElementById('f_tag').addEventListener('change', e => {
   state.filters.tag = e.target.value;
+  state.filters.tags = e.target.value ? [e.target.value] : [];
   render();
 });
 
@@ -2196,7 +2259,7 @@ async function renderOrgList(kind) {
       (c.tags || []).some(t => t.toLowerCase().includes(s))) &&
     (!f.region || c.region === f.region) &&
     (!f.city || c.city === f.city) &&
-    (!f.tag || (c.tags || []).includes(f.tag)) &&
+    (tagHit(f, c.tags)) &&
     (!f.manager || c.manager === f.manager)
   );
   const active = s || f.type || f.region || f.city || f.manager;
@@ -2348,7 +2411,7 @@ async function renderMoney() {
       (c.manager || '').toLowerCase().includes(s)) &&
     (!f.region || c.region === f.region) &&
     (!f.city || c.city === f.city) &&
-    (!f.tag || (c.tags || []).includes(f.tag)) &&
+    (tagHit(f, c.tags)) &&
     (!f.manager || c.manager === f.manager)
   );
   // сортировка: по сумме (вверх/вниз) или по алфавиту; 0₽-бейджи — в середине (только при выбранном годе), пустые — вниз по алфавиту
@@ -2655,7 +2718,7 @@ async function renderRefOrgs(kind) {
     (c.situation || '').toLowerCase().includes(s) ||
     (c.tags || []).some(t => t.toLowerCase().includes(s)));
   const f = state.filters;
-  clinics = clinics.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city) && (!f.tag || (c.tags || []).includes(f.tag)));
+  clinics = clinics.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city) && (tagHit(f, c.tags)));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const head = `<div class="cns-head"><span>${esc(label)} · <b>${clinics.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (clinics.length
@@ -2686,7 +2749,7 @@ async function renderRefDoctors() {
     (p.tags || []).some(t => t.toLowerCase().includes(s)));
   docs.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
   const f = state.filters;
-  docs = docs.filter(p => (!f.region || p.region === f.region) && (!f.city || p.city === f.city) && (!f.tag || (p.tags || []).includes(f.tag)));
+  docs = docs.filter(p => (!f.region || p.region === f.region) && (!f.city || p.city === f.city) && (tagHit(f, p.tags)));
   const head = `<div class="cns-head"><span>Врачи · <b>${docs.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (docs.length
     ? '<div class="list">' + docs.map(p => {
