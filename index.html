@@ -1177,7 +1177,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.6.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.6.4';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2626,7 +2626,7 @@ async function renderPeople() {
     if (p.clinicId && clinicMap[p.clinicId]) orgs.push(clinicMap[p.clinicId]);
     (extraMap[p.id] || []).forEach(cid => { const n = clinicMap[cid]; if (n && !orgs.includes(n)) orgs.push(n); });
     const org = orgs.join(', ');
-    const sub = [org, p.position].filter(Boolean).join(' / ');
+    const sub = [org, shortPos(p.position)].filter(Boolean).join(' / ');
     html += `<div class="card list-row${p.markedDel ? ' marked-del' : ''}" data-id="${p.id}" data-kind="person">
       <div class="list-row-top">
         <span class="list-row-name">${esc(p.fullName)}</span>
@@ -2790,7 +2790,7 @@ async function renderRefDoctors() {
   const head = `<div class="cns-head"><span>Врачи · <b>${docs.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (docs.length
     ? '<div class="list">' + docs.map(p => {
-        const sub = [clinicMap[p.clinicId] || '', p.position || ''].filter(Boolean).join(' / ');
+        const sub = [clinicMap[p.clinicId] || '', shortPos(p.position)].filter(Boolean).join(' / ');
         return `<div class="card list-row" data-id="${p.id}" data-kind="refdoc">
           <div class="list-row-top"><span class="list-row-name">${esc(p.fullName)}</span></div>
           <div class="list-row-sub">${esc(sub || '—')}</div>
@@ -2826,7 +2826,7 @@ async function renderRefFirms() {
         return `<div class="card list-row" data-id="${c.id}" data-kind="refclinic">
           <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span></div>
           <div class="list-row-sub">${refLoc(c) ? esc(refLoc(c)) : '—'}</div>
-          ${ppl.length ? `<div class="row firm-people">${ppl.map(p => `<span class="firm-person" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' · ' + esc(p.position) : ''}</span>`).join('')}</div>` : ''}
+          ${ppl.length ? `<div class="row firm-people">${ppl.map(p => `<span class="firm-person" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' · ' + esc(shortPos(p.position)) : ''}</span>`).join('')}</div>` : ''}
           ${c.situation ? `<div class="list-row-sub firm-note">${esc(c.situation)}</div>` : ''}
           ${refTagRow(c.tags)}
         </div>`;
@@ -2971,6 +2971,64 @@ async function openClinicForm(id, presetKind) {
   if (id) document.getElementById('f_delete').addEventListener('click', () => deleteClinic(id));
 }
 
+// v3.6.4: короткая должность («пара слов») для карточек и списков
+function shortPos(p) {
+  if (!p) return '';
+  let s = String(p).replace(/\([^)]*\)/g, ' ').split(/[,;·\n]/)[0].replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  const l = s.toLowerCase().replace(/ё/g, 'е');
+  const has = re => re.test(l);
+  if (has(/помощник\s+зав/)) return 'Помощник заведующего';
+  if (has(/зам.*главн.*врач|зам.*главврач/)) return 'Зам. главврача';
+  if (has(/зам.*хирург/)) return 'Зам. по хирургии';
+  if (has(/зам.*эконом/)) return 'Зам. по экономике';
+  if (has(/^зам(\s|$|\.)/) || has(/заместител/)) return 'Заместитель';
+  if (has(/главн.*врач|главврач/)) return 'Главврач';
+  if (has(/(^|\s)гл\.?\s+уролог|главн.*уролог/)) return 'Главный уролог';
+  if (has(/профессор/)) return 'Профессор';
+  if (has(/доцент/)) return 'Доцент';
+  if (has(/академик|член-корр/)) return 'Академик';
+  if (has(/аспирант/)) return 'Аспирант';
+  if (has(/ассистент/)) return 'Ассистент';
+  if (has(/ординатор|стажер|стажёр/)) return has(/уролог/) ? 'Врач-уролог' : 'Ординатор';
+  if (has(/научн.*сотрудник/)) return 'Научный сотрудник';
+  if (has(/зав|завед/)) {
+    if (has(/аптек/)) return 'Зав. аптекой';
+    if (has(/кафедр|каф\.?\s/)) return 'Зав. кафедрой';
+    if (has(/оперблок/)) return 'Зав. оперблоком';
+    if (has(/лаборатор/)) return 'Зав. лабораторией';
+    return 'Зав. отделением';
+  }
+  if (has(/ген.*директор/)) return 'Ген. директор';
+  if (has(/директор/)) return 'Директор';
+  if (has(/(^|\s)юрист/)) return 'Юрист';
+  if (has(/менеджер|мнеджер/)) return has(/закуп/) ? 'Менеджер по закупкам' : 'Менеджер';
+  if (has(/закуп|снабжен/)) return has(/начальник/) ? 'Нач. отдела закупок' : (has(/руковод/) ? 'Руководитель закупок' : 'Закупки');
+  if (has(/начальник/)) return has(/уролог|отделен/) ? 'Начальник отделения' : 'Нач. отдела';
+  if (has(/руководител/)) {
+    if (has(/направлен/)) return 'Руководитель направления';
+    if (has(/отдел|отделен/)) return 'Руководитель отделения';
+    return 'Руководитель';
+  }
+  if (has(/уролог-?андролог/)) return 'Уролог-андролог';
+  if (has(/урогинеколог/)) return 'Урогинеколог';
+  if (has(/онкоуролог/)) return has(/^(врач|доктор)/) ? 'Врач-уролог' : 'Онкоуролог';
+  if (has(/дистрибьютор|поставщик/)) return 'Дистрибьютор';
+  if (has(/анестезиолог|анастезиолог/)) return 'Анестезиолог';
+  if (has(/уролог/)) return has(/^(врач|доктор)/) ? 'Врач-уролог' : 'Уролог';
+  if (has(/онколог/)) return has(/^(врач|доктор)/) ? 'Врач-онколог' : 'Онколог';
+  if (has(/гинеколог/)) return has(/^(врач|доктор)/) ? 'Врач-гинеколог' : 'Гинеколог';
+  if (has(/нефролог/)) return 'Нефролог';
+  if (has(/м\/с|медсестр|мед\.\s*сестр|сестра/)) return has(/главн/) ? 'Главная медсестра' : 'Медсестра';
+  if (has(/начмед/)) return 'Начмед';
+  if (has(/специалист/)) return 'Специалист';
+  if (has(/представител/)) return 'Представитель';
+  if (has(/студент/)) return 'Студент';
+  if (has(/инженер/)) return 'Инженер';
+  if (has(/^(врач|доктор)/)) return 'Врач';
+  const w = s.split(' ');
+  return w.length > 2 ? w.slice(0, 2).join(' ') : s;
+}
 function parseTags(s) {
   return (s || '').split(',').map(t => t.trim()).filter(Boolean);
 }
@@ -3122,7 +3180,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
   const sortedContacts = [...contacts].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
   const peopleBlock = `<div class="detail-block">
       <div class="k">Люди (${contacts.length})</div>
-      ${sortedContacts.length ? sortedContacts.map(p => `<div class="v contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' — ' + esc(p.position) : ''}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}${p.phone ? phoneLines(p.phone) : ''}</div>`).join('') : '<div class="v" style="color:var(--muted)">нет</div>'}
+      ${sortedContacts.length ? sortedContacts.map(p => `<div class="v contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' — <span title="' + esc(p.position) + '">' + esc(shortPos(p.position)) + '</span>' : ''}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}${p.phone ? phoneLines(p.phone) : ''}</div>`).join('') : '<div class="v" style="color:var(--muted)">нет</div>'}
     </div>`;
   const urBlock = isRef && !isFirmKind(c.kind) && urRows ? `<div class="detail-block"><div class="k">Продажи Уро (₽)</div>${urRows}</div>` : '';
   // v3.5.3: в Справочниках порядок — Название, Регион, Город, Люди, Продажи Уро, далее комментарии/метки
