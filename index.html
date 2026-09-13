@@ -232,6 +232,11 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
 /* v3.5.4: метки в списках — кликабельные (тап включает фильтр по этой метке) */
 .tag-click { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .12s, color .12s; }
 .tag-click:hover, .tag-click:active { background: var(--brand); color: #fff; }
+/* v3.6.0: «Компании» — человек в строке списка (тап → карточка человека) */
+.firm-people { gap: 6px; }
+.firm-person { cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--brand); -webkit-tap-highlight-color: transparent; }
+.firm-person:hover, .firm-person:active { text-decoration: underline; }
+.firm-note { font-size: 12px; color: var(--muted); }
 
 .badge {
   display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px;
@@ -631,6 +636,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11h4M19 9v4"/></svg>
         <span>Врачи</span><em class="cnt" data-cnt="refdoc"></em>
       </button>
+      <button class="tab d-item" data-view="reffirm">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M14 9h4a2 2 0 0 1 2 2v10"/><path d="M7 7h2M7 11h2M7 15h2M17 13h1M17 17h1"/></svg>
+        <span>Компании</span><em class="cnt" data-cnt="reffirm"></em>
+      </button>
       <div class="d-sec">Система</div>
       <button class="tab d-item" data-view="settings">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -701,6 +710,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <button class="tab" data-view="refdoc">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11h4M19 9v4"/></svg>
         <span>Врачи <em class="cnt" data-cnt="refdoc"></em></span>
+      </button>
+      <button class="tab" data-view="reffirm">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M14 9h4a2 2 0 0 1 2 2v10"/><path d="M7 7h2M7 11h2M7 15h2M17 13h1M17 17h1"/></svg>
+        <span>Компании <em class="cnt" data-cnt="reffirm"></em></span>
       </button>
       <div class="d-sec">Система</div>
       <button class="tab" data-view="settings">
@@ -1164,7 +1177,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.5.4';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.6.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1204,7 +1217,7 @@ async function refreshCounts() {
     tabCounts = {
       clinics: clinics.filter(c => (c.kind || 'hospital') === 'hospital').length,
       distributors: clinics.filter(c => c.kind === 'distributor').length,
-      people: people.filter(p => !isRefDoc(p)).length,
+      people: people.filter(p => !isHiddenPerson(p)).length,
       money: clinics.filter(c =>
         (c.kind || 'hospital') === 'hospital' &&
         MONEY_YEARS.some(y => yearTotal(c, y) != null)
@@ -1212,7 +1225,8 @@ async function refreshCounts() {
       cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && (c.tags || []).includes('cns')).length,
       refgos: clinics.filter(c => c.kind === 'ref_gos').length,
       refpriv: clinics.filter(c => c.kind === 'ref_priv').length,
-      refdoc: people.filter(p => isRefDoc(p)).length
+      refdoc: people.filter(p => isRefDoc(p)).length,
+      reffirm: clinics.filter(c => c.kind === 'ref_firm').length
     };
     paintCounts();
   } catch (_) {}
@@ -1495,7 +1509,7 @@ let filterCtx = '';
 async function updateFiltersUI() {
   const bar = document.getElementById('filters');
   const fab = document.getElementById('fab');
-  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc'];
+  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm'];
   fab.classList.toggle('hidden', menuViews.includes(state.view));
   // мобильная нижняя плашка: у Саши свой 3-й стол (Саша/Настя/Галя), у остальных 2-й стол анализа
   const inAnalysis = ['analysis', 'money', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(state.view);
@@ -1507,7 +1521,7 @@ async function updateFiltersUI() {
   if (mainBar) mainBar.classList.toggle('hidden', inAnalysis);
   if (anBar) anBar.classList.toggle('hidden', !inAnalysis || managersZone);
   if (mgBar) mgBar.classList.toggle('hidden', !managersZone);
-  const isRef = ['refgos', 'refpriv', 'refdoc'].includes(state.view);
+  const isRef = ['refgos', 'refpriv', 'refdoc', 'reffirm'].includes(state.view);
   const fctx = isRef ? 'ref' : 'main';
   if (fctx !== filterCtx) { filterCtx = fctx; state.filters.region = ''; state.filters.city = ''; state.filters.tag = ''; state.filters.tags = []; }
   if (state.view === 'clinics' || state.view === 'distributors' || state.view === 'money') {
@@ -1592,7 +1606,7 @@ async function populateRefFilters() {
   if (state.view === 'refdoc') {
     rows = (await listPeople()).filter(isRefDoc);
   } else {
-    const kind = state.view === 'refgos' ? 'ref_gos' : 'ref_priv';
+    const kind = state.view === 'refgos' ? 'ref_gos' : (state.view === 'refpriv' ? 'ref_priv' : 'ref_firm');
     rows = (await listClinics()).filter(c => c.kind === kind);
   }
   const regions = [...new Set(rows.map(r => r.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
@@ -1757,6 +1771,7 @@ async function render() {
     else if (state.view === 'refgos') await renderRefOrgs('ref_gos');
     else if (state.view === 'refpriv') await renderRefOrgs('ref_priv');
     else if (state.view === 'refdoc') await renderRefDoctors();
+    else if (state.view === 'reffirm') await renderRefFirms();
     else if (state.view === 'visits') renderVisits();
     else if (state.view === 'nastya' && WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) await renderNastya();
     else if (state.view === 'galya' && WORKLISTS.galya.emails.includes(CURRENT_EMAIL)) await renderGalya();
@@ -2577,7 +2592,7 @@ function telLink(phone) {
 
 async function renderPeople() {
   const view = document.getElementById('view');
-  let people = (await listPeople()).filter(p => !isRefDoc(p));
+  let people = (await listPeople()).filter(p => !isHiddenPerson(p));
   const s = state.search;
   if (s) {
     people = people.filter(p =>
@@ -2692,11 +2707,15 @@ async function renderDicts() {
 }
 
 // ---------- справочники: Гос ЛПУ / Частные клиники / Врачи ----------
-const REF_KIND_LABEL = { ref_gos: 'Гос ЛПУ', ref_priv: 'Частные клиники' };
+const REF_KIND_LABEL = { ref_gos: 'Гос ЛПУ', ref_priv: 'Частные клиники', ref_firm: 'Компании' };
 const REFDOC_TAG = 'refdoc';
-const isRefKind = k => k === 'ref_gos' || k === 'ref_priv';
+const FIRM_TAG = 'firmcontact'; // контакт компании: карточка человека есть, но в списки людей он не попадает
+const isRefKind = k => k === 'ref_gos' || k === 'ref_priv' || k === 'ref_firm';
+const isFirmKind = k => k === 'ref_firm';
 const isRefDoc = p => (p.tags || []).includes(REFDOC_TAG);
-const refTags = t => (t || []).filter(x => x !== REFDOC_TAG);
+const isFirmContact = p => (p.tags || []).includes(FIRM_TAG);
+const isHiddenPerson = p => isRefDoc(p) || isFirmContact(p);
+const refTags = t => (t || []).filter(x => x !== REFDOC_TAG && x !== FIRM_TAG);
 const canEditRef = () => (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer') || isRefEdit();
 // --- ограниченный пользователь (Евсеев): основное — только просмотр и без денег; справочники — просмотр и правка; команду не видит
 // отдельной роли в базе нет (CHECK-ограничение user_managers.role), поэтому роль в базе — viewer, а права — по e-mail
@@ -2781,6 +2800,40 @@ async function renderRefDoctors() {
     : refEmpty(s));
   const b = document.getElementById('refAddBtn');
   if (b) b.addEventListener('click', () => openPersonForm(null, null, { refdoc: true }));
+}
+
+// ---------- Компании (ref_firm) ----------
+async function renderRefFirms() {
+  const view = document.getElementById('view');
+  const s = state.search;
+  const [clinics, people] = await Promise.all([listClinics(), listPeople()]);
+  let firms = clinics.filter(c => c.kind === 'ref_firm');
+  if (s) firms = firms.filter(c =>
+    (c.name || '').toLowerCase().includes(s) ||
+    (c.city || '').toLowerCase().includes(s) ||
+    (c.region || '').toLowerCase().includes(s) ||
+    (c.situation || '').toLowerCase().includes(s) ||
+    (c.tags || []).some(t => t.toLowerCase().includes(s)));
+  const f = state.filters;
+  firms = firms.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city) && tagHit(f, c.tags));
+  firms.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+  const byClinic = {};
+  people.forEach(p => { if (p.clinicId) (byClinic[p.clinicId] = byClinic[p.clinicId] || []).push(p); });
+  const head = `<div class="cns-head"><span>Компании · <b>${firms.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
+  view.innerHTML = head + (firms.length
+    ? '<div class="list">' + firms.map(c => {
+        const ppl = (byClinic[c.id] || []).slice().sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
+        return `<div class="card list-row" data-id="${c.id}" data-kind="refclinic">
+          <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span></div>
+          <div class="list-row-sub">${refLoc(c) ? esc(refLoc(c)) : '—'}</div>
+          ${ppl.length ? `<div class="row firm-people">${ppl.map(p => `<span class="firm-person" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' · ' + esc(p.position) : ''}</span>`).join('')}</div>` : ''}
+          ${c.situation ? `<div class="list-row-sub firm-note">${esc(c.situation)}</div>` : ''}
+          ${refTagRow(c.tags)}
+        </div>`;
+      }).join('') + '</div>'
+    : refEmpty(s));
+  const b = document.getElementById('refAddBtn');
+  if (b) b.addEventListener('click', () => openClinicForm(null, 'ref_firm'));
 }
 
 async function refClinicOptions(selectedId) {
@@ -3069,7 +3122,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
       <div class="k">Люди (${contacts.length})</div>
       ${sortedContacts.length ? sortedContacts.map(p => `<div class="v contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' — ' + esc(p.position) : ''}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}${p.phone ? phoneLines(p.phone) : ''}</div>`).join('') : '<div class="v" style="color:var(--muted)">нет</div>'}
     </div>`;
-  const urBlock = isRef && urRows ? `<div class="detail-block"><div class="k">Продажи Уро (₽)</div>${urRows}</div>` : '';
+  const urBlock = isRef && !isFirmKind(c.kind) && urRows ? `<div class="detail-block"><div class="k">Продажи Уро (₽)</div>${urRows}</div>` : '';
   // v3.5.3: в Справочниках порядок — Название, Регион, Город, Люди, Продажи Уро, далее комментарии/метки
   if (isRef) {
     return `
@@ -3283,6 +3336,14 @@ function addDictPrompt() {
 // делегирование кликов по view
 document.getElementById('view').addEventListener('click', async e => {
   if (e.target.closest('a.tel')) return;
+  // v3.6.0: в «Компаниях» тап по человеку — открываем его карточку (списка этих людей нет)
+  const fpEl = e.target.closest('.firm-person[data-person]');
+  if (fpEl) {
+    e.preventDefault(); e.stopPropagation();
+    hideHover();
+    await showPerson(Number(fpEl.dataset.person));
+    return;
+  }
   // v3.5.4: тап по метке в списке — сразу включаем фильтр по этой метке
   const tagEl = e.target.closest('.tag-click[data-tag]');
   if (tagEl) {
@@ -3299,8 +3360,7 @@ document.getElementById('view').addEventListener('click', async e => {
     const { id, kind } = card.dataset;
     if (kind === 'nastya') return;
     if (kind === 'refclinic') { showClinic(Number(id)); return; }
-    if (kind === 'refdoc') { showPerson(Number(id)); return; }
-    if (kind === 'clinic') showClinic(Number(id));
+    if (kind === 'refdoc') { showPerson(Number(id)); return; }    if (kind === 'clinic') showClinic(Number(id));
     else showPerson(Number(id));
     return;
   }
