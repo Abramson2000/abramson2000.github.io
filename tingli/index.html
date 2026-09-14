@@ -348,10 +348,10 @@
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典</span></button>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.20.4"></script>
-<script src="data/extra.js?v=2.20.4"></script>
-<script src="data/idv.js?v=2.20.4"></script>
-<script src="data/biz.js?v=2.20.4"></script>
+<script src="data/units.js?v=2.20.5"></script>
+<script src="data/extra.js?v=2.20.5"></script>
+<script src="data/idv.js?v=2.20.5"></script>
+<script src="data/biz.js?v=2.20.5"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -371,7 +371,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.20.4';
+const APP_VER = '2.20.5';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -390,9 +390,11 @@ audio.preload = 'auto';
 let partAudioKey = null;
 // Кэш blob-URL: грузим файл целиком через fetch → seek/skip работают без серверного Range
 const audioBlobCache = {};
+// Версионированный URL аудио: новый номер версии = обход кэша (старые mp3 не залипают)
+function audUrl(name) { return 'audio/' + name + '?v=' + APP_VER; }
 async function getAudioUrl(name) {
   if (audioBlobCache[name]) return audioBlobCache[name];
-  const r = await fetch('audio/' + name);
+  const r = await fetch(audUrl(name));
   if (!r.ok) return 'audio/' + name; // fallback на прямую ссылку
   const url = URL.createObjectURL(await r.blob());
   audioBlobCache[name] = url;
@@ -1492,7 +1494,7 @@ async function unitDlState(n) {
   if (!cn) return { names: names, done: 0, total: names.length };
   const c = await caches.open(cn);
   let done = 0;
-  for (const nm of names) { try { if (await c.match('audio/' + nm)) done++; } catch (e) {} }
+  for (const nm of names) { try { if (await c.match(audUrl(nm))) done++; } catch (e) {} }
   return { names: names, done: done, total: names.length };
 }
 async function refreshUnitBadges() {
@@ -1522,7 +1524,7 @@ async function offlineUnit(n, ev) {
     const cn = await tingliCacheName();
     if (cn) {
       const c = await caches.open(cn);
-      for (const nm of st.names) { try { await c.delete('audio/' + nm); } catch (e) {} }
+      for (const nm of st.names) { try { await c.delete(audUrl(nm)); } catch (e) {} }
     }
     await refreshUnitBadges();
     return;
@@ -1537,7 +1539,7 @@ async function offlineUnit(n, ev) {
   let fail = 0;
   for (let i = st.done; i < names.length; i++) {
     try {
-      const r = await fetch('audio/' + names[i]);
+      const r = await fetch(audUrl(names[i]));
       if (!r.ok) { fail++; if (fail > 2) break; }
       else { done = i + 1; fail = 0; }
     } catch (e) { fail++; if (fail > 2) break; }
