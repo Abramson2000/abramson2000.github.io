@@ -247,6 +247,19 @@
     .tab-label { font-size: 24px; }
     .sb-brand img { width: 70px; height: 70px; }
   }
+  /* Кнопка ☰ — только для узких окон с мышью (на телефоне её нет, там свайп) */
+  .menu-btn { display: none; position: fixed; top: calc(10px + env(safe-area-inset-top)); left: 10px; z-index: 65; width: 46px; height: 46px; border-radius: 14px; border: 1px solid rgba(29,29,33,.08); background: rgba(255,255,255,.92); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 6px 18px rgba(29,29,33,.14); font-size: 20px; line-height: 1; color: #4a4a52; cursor: pointer; align-items: center; justify-content: center; }
+  .menu-btn:active { transform: scale(.95); }
+  @media (hover: hover) and (pointer: fine) and (max-width: 899.98px) {
+    body:not(.in-unit) .menu-btn { display: flex; }
+  }
+  /* Десктоп: колонка меню всегда на виду, контент сдвинут вправо */
+  @media (min-width: 900px) {
+    #tabbar { display: flex !important; transform: none !important; box-shadow: none; }
+    body { padding-left: var(--sbw); }
+    .player { left: var(--sbw); }
+    body.sb-open .app, body.sb-open .player { opacity: 1; }
+  }
 
   .big-score { background: linear-gradient(135deg, #26262c, #1d1d21); color: #fff; border-radius: 26px; padding: 24px 22px; margin-bottom: 18px; box-shadow: var(--shadow-pop); }
   .big-score .label { font-size: 13px; color: #b9b9c2; font-weight: 600; }
@@ -309,6 +322,7 @@
   <img class="splash-title" src="title.png" alt="初级听力">
 </div></div>
 <div class="app" id="app"></div>
+<button class="menu-btn" id="menuBtn" onclick="sbOpen()" aria-label="Меню">☰</button>
 <div class="player" id="player">
   <div class="p-bar">
     <div class="spd-wrap" title="Скорость">
@@ -348,10 +362,10 @@
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典</span></button>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.20.7"></script>
-<script src="data/extra.js?v=2.20.7"></script>
-<script src="data/idv.js?v=2.20.7"></script>
-<script src="data/biz.js?v=2.20.7"></script>
+<script src="data/units.js?v=2.20.8"></script>
+<script src="data/extra.js?v=2.20.8"></script>
+<script src="data/idv.js?v=2.20.8"></script>
+<script src="data/biz.js?v=2.20.8"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -371,7 +385,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.20.7';
+const APP_VER = '2.20.8';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -503,6 +517,7 @@ function goTab(t) {
 function showTabbar(show) {
   document.getElementById('tabbar').style.display = show ? 'flex' : 'none';
   document.body.classList.toggle('sb-on', !!show);
+  document.body.classList.toggle('in-unit', !show);
   if (!show) sbClose(); // уходим на экран урока — меню убираем
 }
 
@@ -805,9 +820,12 @@ function partNum(part) {
   // номер части = номер аудио: '2-5-1.mp3' → '5-1'
   return (part.audio || '').replace(/^\d+-/, '').replace(/\.mp3$/, '');
 }
+let originTab = 'lessons';
 function openUnit(n) {
   const u = ALL_UNITS.find(x => x.unit === n); if (!u) return;
+  const fromList = !curUnit;
   curUnit = u; curPart = null;
+  if (fromList) originTab = tab || 'lessons';
   showTabbar(false);
   if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u); else showPlayer(!!partAudioKey);
   app.innerHTML = `
@@ -1408,9 +1426,7 @@ function goBack() {
   if (!curUnit) return;
   posSave();
   if (curPart) { openUnit(curUnit.unit); return; }
-  if (IDV.find(x => x.unit === curUnit.unit)) renderIdv();
-  else if (EXTRA.find(x => x.unit === curUnit.unit)) renderMine();
-  else renderUnits();
+  goTab(originTab || 'lessons'); // возвращаемся на ту вкладку, откуда открыли урок
 }
 document.addEventListener('touchstart', e => {
   const t = e.touches[0];
