@@ -350,6 +350,7 @@
 <script src="data/units.js"></script>
 <script src="data/extra.js"></script>
 <script src="data/idv.js"></script>
+<script src="data/biz.js"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -369,7 +370,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.19.19';
+const APP_VER = '2.19.20';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -654,7 +655,7 @@ function renderUnits() {
 `;
   refreshUnitBadges();
 }
-const IDV = (typeof IDV_UNITS !== 'undefined') ? IDV_UNITS : [];
+const IDV = ((typeof IDV_UNITS !== 'undefined') ? IDV_UNITS : []).concat((typeof BIZ_UNITS !== 'undefined') ? BIZ_UNITS : []);
 const ALL_UNITS = UNITS.concat(EXTRA, IDV);
 function renderIdv() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
