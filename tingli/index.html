@@ -343,6 +343,7 @@
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法</span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语</span></button>
   <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队</span></button>
+  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=1922" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=1922" alt=""></span><span class="tab-label">商务</span></button>
   <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png" alt=""></span><span class="tab-label">句子</span></button>
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典</span></button>
   <div class="sb-ver" id="sbVerLine"></div>
@@ -370,7 +371,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.19.22';
+const APP_VER = '2.20.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -484,6 +485,7 @@ function goTab(t) {
   document.getElementById('tab-mine').classList.toggle('active', t === 'mine');
   document.getElementById('tab-idv').classList.toggle('active', t === 'idv');
   document.getElementById('tab-team').classList.toggle('active', t === 'team');
+  document.getElementById('tab-biz').classList.toggle('active', t === 'biz');
   document.getElementById('tab-favs').classList.toggle('active', t === 'favs');
   document.getElementById('tab-dict').classList.toggle('active', t === 'dict');
 
@@ -491,6 +493,7 @@ function goTab(t) {
   else if (t === 'mine') renderMine();
   else if (t === 'idv') renderIdv();
   else if (t === 'team') renderTeam();
+  else if (t === 'biz') renderBiz();
   else if (t === 'favs') renderFavs();
   else renderDict();
   window.scrollTo(0, 0);
@@ -655,8 +658,9 @@ function renderUnits() {
 `;
   refreshUnitBadges();
 }
-const IDV = ((typeof IDV_UNITS !== 'undefined') ? IDV_UNITS : []).concat((typeof BIZ_UNITS !== 'undefined') ? BIZ_UNITS : []);
-const ALL_UNITS = UNITS.concat(EXTRA, IDV);
+const IDV = (typeof IDV_UNITS !== 'undefined') ? IDV_UNITS : [];
+const BIZ = (typeof BIZ_UNITS !== 'undefined') ? BIZ_UNITS : [];
+const ALL_UNITS = UNITS.concat(EXTRA, IDV, BIZ);
 function renderIdv() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
   curUnit = null; curPart = null;
@@ -667,6 +671,19 @@ function renderIdv() {
       <img class="title-img" src="idv.png" alt="口语"><div class="sub">口语课</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
+`;
+  refreshUnitBadges();
+}
+
+function renderBiz() {
+  showTabbar(true); partAudioKey = null; showPlayer(false);
+  curUnit = null; curPart = null;
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="logo"><img src="logo.png" alt="听"></div>
+      <div class="team-title">商务汉语</div><div class="sub">经贸中级汉语口语 · деловой китайский</div>
+    </div>
+    ${BIZ.length ? BIZ.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
   refreshUnitBadges();
 }

@@ -1,7 +1,7 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.19.19 (2026-09-12: 口语 урок 10 — китайские подписи 词语 1 / 词语 2) + font-build: simsun-subset-STSong-1426 — маркер прекэша
+// data-build: v2.20.0 (2026-09-14: новый раздел «商务» — бизнес-китайский по «经贸中级汉语口语», урок 1 建立联系 / урок 2 宴请) + font-build: simsun-subset-STSong-1426 — маркер прекэша
 const CACHE = 'tingli-cache-v1';
 
 const ASSETS = [
@@ -11,6 +11,7 @@ const ASSETS = [
   './data/units.js',
   './data/extra.js',
   './data/idv.js',
+  './data/biz.js',
   './apple-touch-icon-v2.png',
   './apple-touch-icon.png',
   './bg.jpg',
@@ -37,6 +38,8 @@ const ASSETS = [
   './recolored_tab-yu-off.png',
   './recolored_tab-yu.png',
   './tab-ci-off.png',
+  './tab-biz.png',
+  './tab-biz-off.png',
   './tab-tuan.png',
   './tab-tuan-off.png',
   './tab-ci.png',
