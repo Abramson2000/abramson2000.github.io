@@ -1179,7 +1179,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.8.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.8.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1937,7 +1937,7 @@ async function renderCalls() {
     view.innerHTML = '<div class="empty">Звонков пока нет — назначь дату в карточке клиники</div>';
     return;
   }
-  view.innerHTML = `<div class="money-total-line"><b>ЗВОНКИ</b><button id="calls-sync" class="sort-toggle" title="Синхронизировать с Напоминаниями" style="margin-left:auto">⟳</button></div>
+  view.innerHTML = `<div class="money-total-line"><b>ЗВОНКИ</b></div>
     <div class="list">` + rows.map(c => {
     const d = fmtDate(c.next_contact);
     const nd = new Date(String(c.next_contact).slice(0, 10) + 'T00:00:00');
@@ -1962,18 +1962,6 @@ async function renderCalls() {
       state.view = key;
       render();
     });
-  });
-  const syncBtn = document.getElementById('calls-sync');
-  if (syncBtn) syncBtn.addEventListener('click', () => {
-    syncBtn.disabled = true;
-    syncBtn.textContent = '…';
-    const done = () => { syncBtn.disabled = false; syncBtn.textContent = '⟳'; };
-    const ac = new AbortController();
-    const t = setTimeout(() => ac.abort(), 20000);
-    fetch('/api/sync')
-      .then(r => r.json().catch(() => ({})))
-      .then(j => { clearTimeout(t); toast(j.ok ? '✓ Синхронизация запущена' : ('⚠️ ' + (j.error || 'ошибка'))); done(); })
-      .catch(() => { clearTimeout(t); toast('⚠️ Синхронизация недоступна'); done(); });
   });
 }
 
