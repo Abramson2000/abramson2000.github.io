@@ -179,6 +179,7 @@ const S = {
   medDone: [],           // изученные уроки MEDDPICC (локально, не в облаке)
   spicedDone: [],        // изученные уроки SPICED — курс 1а (локально, не в облаке)
   proDone: [],           // изученные уроки ProActive — курс 5 (локально, не в облаке)
+  xDone: {},             // доп-курсы (x4): пройденные уроки { id: [индексы уроков] } (локально + облако)
   // тренажёр
   tMode: null, tIdx: 0, tPick: null, tScore: 0, tOrder: [],
   // кейс
@@ -192,6 +193,7 @@ function loadState() {
     S.spPracticed = r.spPracticed || []; S.medPracticed = r.medPracticed || []; S.proPracticed = r.proPracticed || [];
     S.xp = r.xp || 0; S.correct = r.correct || 0; S.attempts = r.attempts || 0;
     S.cDone = r.cDone || [];
+    if (r.xd && typeof r.xd === 'object') S.xDone = r.xd;
     if (['program', 'theory', 'practice', 'cheat', 'progress'].includes(r.tab)) S.tab = r.tab;
     // вернуться на то же место в теории: открытый доп-курс и его урок
     curExtra = (typeof r.extra === 'number' && r.extra >= 0) ? r.extra : null;
@@ -205,7 +207,7 @@ S.syncAt = null;       // время последней успешной син�
 S.dirty = false;       // есть несохранённые изменения
 
 function syncPayload() {
-  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
+  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xd: S.xDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
 }
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
@@ -243,6 +245,43 @@ function loadPro() {
 }
 function savePro() {
   try { localStorage.setItem('spin-pro:' + USER.id, JSON.stringify(S.proDone)); } catch (e) {}
+}
+// ===== доп-курсы (x4): пройденные уроки + возврат на место =====
+function loadXDone() {
+  try { const r = localStorage.getItem('spin-xdone:' + USER.id); if (r) S.xDone = JSON.parse(r) || {}; } catch (e) {}
+}
+function saveXDone() {
+  try { localStorage.setItem('spin-xdone:' + USER.id, JSON.stringify(S.xDone || {})); } catch (e) {}
+}
+function mergeXDone(a, b) { // объединение отметок уроков из двух источников
+  const out = {};
+  const keys = Object.keys(a || {}).concat(Object.keys(b || {}));
+  keys.forEach((k) => {
+    const arr = [].concat(Array.isArray(a && a[k]) ? a[k] : [], Array.isArray(b && b[k]) ? b[k] : []).map(Number).filter((n) => !isNaN(n));
+    out[k] = Array.from(new Set(arr)).sort((p, q) => p - q);
+  });
+  return out;
+}
+function xDoneArr(id) { if (!Array.isArray(S.xDone[id])) S.xDone[id] = []; return S.xDone[id]; }
+function xIsDone(id, bi) { return xDoneArr(id).includes(bi); }
+function xToggleDone(id, bi, on) {
+  const arr = xDoneArr(id);
+  const at = arr.indexOf(bi);
+  if (on && at === -1) arr.push(bi);
+  else if (!on && at !== -1) arr.splice(at, 1);
+  arr.sort((p, q) => p - q);
+  saveXDone(); save();
+}
+function xProgress(x) { // прогресс доп-курса: сколько уроков пройдено
+  const total = (x && x.blocks) ? x.blocks.length : 0;
+  const done = (x && x.blocks) ? xDoneArr(x.id).filter((i) => i < total).length : 0;
+  return { done: done, total: total, pct: total ? Math.round((done / total) * 100) : 0, full: total > 0 && done >= total };
+}
+function xResume(xi) { // куда вернуться в курсе: первый непройденный урок
+  const x = EXTRA[xi];
+  if (!x || !x.blocks || !x.blocks.length) return 0;
+  for (let i = 0; i < x.blocks.length; i++) if (!xIsDone(x.id, i)) return i;
+  return x.blocks.length - 1;
 }
 function setSync(st) {
   S.sync = st;
@@ -353,6 +392,9 @@ async function cloudLoad() {
       S.dirty = true;
       toast('Прогресс этого устройства отправлен на сервер');
     }
+    // доп-курс x4: отметки уроков — объединяем локальные и облачные (не теряем ни те, ни другие)
+    const xdm = mergeXDone(local.xd, cloud && cloud.xd);
+    if (JSON.stringify(xdm) !== JSON.stringify(S.xDone || {})) { S.xDone = xdm; saveXDone(); S.dirty = true; }
     // равные или оба пустые — ничего не делаем
     updateSyncUI();
   } catch (e) {} finally {
@@ -383,6 +425,7 @@ function boot(user) {
   loadMed();
   loadSpiced();
   loadPro();
+  loadXDone();
   $('loginScreen').classList.add('hidden');
   $('appShell').style.display = '';
   $('profileName').textContent = USER.name;
@@ -654,20 +697,39 @@ function renderProgram() {
   <div class="section-title-row" style="margin-top:26px"><div><h2>Дополнительно</h2><p>Курсы и выжимки книг — короткие уроки сверх программы</p></div></div>
   <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
     ${EXTRA.map((x, xi) => {
-      const rd = S.extraDone.includes(xi);
-      const parts = (x.practice ? x.practice.length : 0) || x.blocks.length;
+      const pr = (x.course && x.blocks) ? xProgress(x) : null;
+      const rd = pr ? pr.full : S.extraDone.includes(xi);
+      const parts = (x.practice ? x.practice.length : 0) || (x.blocks ? x.blocks.length : 0);
       const desc = x.intro.length > 100 ? x.intro.slice(0, 100) + '…' : x.intro;
+      const foot = pr ? `${pr.done} из ${pr.total} уроков` : `${esc(x.mins)} · ${parts} раздела`;
       return `
       <article class="module-card method-card current ${rd ? 'completed' : ''}" data-extra="${xi}" tabindex="0" role="button" title="${x.course ? 'Открыть курс' : 'Выжимка книги — открыть'}">
         <div class="module-icon">${x.course ? '🎓' : '📘'}</div>
         <span class="status-label">${rd ? 'ПРОЙДЕН' : x.course ? 'КУРС' : 'КНИГА'}</span>
         <h3>${esc(x.title)}</h3>
         <p>${esc(desc)}</p>
-        <div class="module-footer"><span>${esc(x.mins)} · ${parts} раздела</span><strong>→</strong></div>
-        ${rd ? `<div class="module-progress"><i style="width:100%"></i></div>` : ''}
+        <div class="module-footer"><span>${foot}</span><strong>→</strong></div>
+        ${pr && pr.done ? `<div class="module-progress"><i style="width:${pr.pct}%"></i></div>` : ''}
       </article>`;
     }).join('')}
   </div>` : '';
+  // быстрый доступ к доп-курсу (x4) — прямо с главного экрана, без долгой прокрутки
+  const x4i = EXTRA.findIndex((x) => x.course && x.blocks && x.blocks.length > 1);
+  const x4c = x4i >= 0 ? EXTRA[x4i] : null;
+  const x4pr = x4c ? xProgress(x4c) : null;
+  const x4rs = x4c ? xResume(x4i) : 0;
+  const x4clean = (h) => esc(String(h).replace(/^Модуль\s*\d+\s*·\s*Урок\s*\d+\.\s*/i, ''));
+  const x4QuickHtml = x4c ? `
+  <article class="quick-extra" data-xgo="${x4i}" role="button" tabindex="0" title="Открыть дополнительный курс">
+    <span class="qe-ic">🎓</span>
+    <div class="qe-copy">
+      <p class="qe-kicker">ДОПОЛНИТЕЛЬНО · ${esc(String(x4c.title).split(':')[0].toUpperCase())}</p>
+      <strong>Урок ${x4rs + 1} из ${x4pr.total}. ${x4clean(x4c.blocks[x4rs].h)}</strong>
+      <div class="qe-bar"><i style="width:${x4pr.pct}%"></i></div>
+    </div>
+    <span class="qe-meta">${x4pr.done} из ${x4pr.total} · ${x4pr.pct}%</span>
+    <button class="primary-button" data-xgo="${x4i}">${x4pr.done ? 'Продолжить' : 'Начать курс'} <span>→</span></button>
+  </article>` : '';
   $('programBody').innerHTML = `
   <div class="page-heading">
     <div>
@@ -699,6 +761,8 @@ function renderProgram() {
       <img id="continueHero" class="continue-hero" src="${heroNext()}" alt="" />
     </div>
   </article>
+
+  ${x4QuickHtml}
 
   <div class="section-title-row">
     <div><h2>Маршрут обучения</h2><p><span id="completedCount">${doneN + spicedN + medN + proN}</span> из ${totalAll} уроков пройдено</p></div>
@@ -734,7 +798,8 @@ function renderProgram() {
     if (!REVIEW_MODE && !sFull && i >= gFrom) { toast('Сначала пройдите Курс 1а · SPICED — потом откроется Курс 2'); return; }
     S.lesson = i; curExtra = null; curMed = null; curSpiced = null; switchTab('theory');
   }));
-  $('programBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curXb = 0; curMed = null; curSpiced = null; curPro = null; switchTab('theory'); }));
+  $('programBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curXb = xResume(curExtra); curMed = null; curSpiced = null; curPro = null; save(); switchTab('theory'); }));
+  $('programBody').querySelectorAll('[data-xgo]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); const xi = +b.dataset.xgo; curExtra = xi; curXb = xResume(xi); curMed = null; curSpiced = null; curPro = null; save(); switchTab('theory'); window.scrollTo({ top: 0 }); }));
   $('programBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.med; curExtra = null; curSpiced = null; curPro = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-pro]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.pro; curMed = null; curExtra = null; curSpiced = null; switchTab('theory'); }));
@@ -802,8 +867,10 @@ function renderTheory() {
   } else if (mode === 'extra') {
     if (xMode) {
       const shr = (h) => esc(String(h).replace(/^Модуль\s*\d+\s*·\s*Урок\s*\d+\.\s*/i, ''));
-      railItems = `<div class="lesson-group-label"><span>Дополнительно</span>УРОКИ КУРСА</div>` + l.blocks.map((bl, bi2) =>
-        `<button class="lesson-item ${bi2 === xb ? 'active' : ''}" data-xb="${bi2}" title="Урок ${bi2 + 1}"><span>${bi2 + 1}</span><div><strong>${shr(bl.h)}</strong><small>${bi2 + 1} из ${l.blocks.length}</small></div></button>`).join('');
+      railItems = `<div class="lesson-group-label"><span>Дополнительно</span>УРОКИ КУРСА</div>` + l.blocks.map((bl, bi2) => {
+        const dd = xIsDone(l.id, bi2);
+        return `<button class="lesson-item ${bi2 === xb ? 'active' : ''} ${dd ? 'done' : ''}" data-xb="${bi2}" title="Урок ${bi2 + 1}"><span>${bi2 + 1}</span><div><strong>${shr(bl.h)}</strong><small>${bi2 + 1} из ${l.blocks.length}</small></div>${dd ? '<b>✓</b>' : ''}</button>`;
+      }).join('');
     } else {
       railItems = `<div class="lesson-group-label"><span>Extra</span>ДОПОЛНИТЕЛЬНО</div>` + EXTRA.map((ll, ei) => {
         return `<button class="lesson-item ${ei === i ? 'active' : ''}" data-extra="${ei}" title="${ll.course ? 'Открыть курс' : 'Выжимка книги'}">
@@ -893,9 +960,10 @@ function renderTheory() {
              ${i + 1 < PRO.length && !done ? '<p class="next-hint">Сначала отметьте этот урок изученным — и откроется следующий.</p>' : ''}`
           : mode === 'extra'
           ? (xMode
-             ? (xb + 1 < l.blocks.length
+             ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${xIsDone(l.id, xb) ? 'checked' : ''} /><span></span>${xIsDone(l.id, xb) ? 'Урок изучен ✓' : 'Урок изучен'}</label>
+                ${xb + 1 < l.blocks.length
                 ? `<button class="primary-button" id="nextBtn" data-xbnext="1">Следующий урок <span>→</span></button>`
-                : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`)
+                : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}`
              : `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${S.extraDone.includes(i) ? 'checked' : ''} /><span></span>${S.extraDone.includes(i) ? 'Изучено ✓' : 'Отметить изученным'}</label>
              <button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`)
           : `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок пройден ✓' : 'Урок изучен'}</label>
@@ -909,7 +977,7 @@ function renderTheory() {
   $('theoryBody').querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.jump)));
   $('theoryBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
   $('theoryBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curMed = +b.dataset.med; curExtra = null; curSpiced = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
-  $('theoryBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curXb = 0; curMed = null; curSpiced = null; curPro = null; save(); window.scrollTo({ top: 0 }); renderTheory(); }));
+  $('theoryBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curXb = xResume(curExtra); curMed = null; curSpiced = null; curPro = null; save(); window.scrollTo({ top: 0 }); renderTheory(); }));
   $('theoryBody').querySelectorAll('[data-pro]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curPro = +b.dataset.pro; curMed = null; curExtra = null; curSpiced = null; window.scrollTo({ top: 0 }); renderTheory(); }));
   $('theoryBody').querySelectorAll('[data-xb]').forEach((b) => b.addEventListener('click', () => { curXb = Math.max(0, +b.dataset.xb); save(); window.scrollTo({ top: 0 }); renderTheory(); }));
   const xbn = $('theoryBody').querySelector('[data-xbnext]');
@@ -944,6 +1012,12 @@ function renderTheory() {
       if (chk.checked && !S.proDone.includes(i)) { S.proDone.push(i); addXp(30); toast('Урок изучен · +30 XP'); }
       else if (!chk.checked && S.proDone.includes(i)) { S.proDone = S.proDone.filter((x) => x !== i); S.xp = Math.max(0, S.xp - 30); toast('Урок снят · −30 XP'); }
       savePro(); renderTheory(); return;
+    }
+    if (mode === 'extra' && xMode) {
+      xToggleDone(l.id, xb, chk.checked);
+      if (chk.checked) { addXp(30); toast('Урок изучен · +30 XP'); }
+      else { S.xp = Math.max(0, S.xp - 30); toast('Урок снят · −30 XP'); }
+      renderTheory(); return;
     }
     if (mode === 'extra') {
       if (chk.checked && !S.extraDone.includes(i)) { S.extraDone.push(i); addXp(30); toast('Выжимка прочитана · +30 XP'); }
@@ -1721,6 +1795,15 @@ function renderProgress() {
         <div class="skill-track"><i style="width:${p}%"></i></div>
       </article>`);
     }
+    const x4i = EXTRA.findIndex((x) => x.course && x.blocks && x.blocks.length > 1);
+    if (x4i >= 0) {
+      const x4c = EXTRA[x4i];
+      const pr = xProgress(x4c);
+      cards.push(`<article class="course-progress-card ${pr.full ? 'completed' : ''}" style="cursor:pointer" data-xgo="${x4i}" title="Дополнительный курс — открыть">
+        <div class="course-progress-head"><strong>Дополнительно · ${esc(String(x4c.title).split(':')[0])}</strong><span>${pr.done} из ${pr.total} ${pr.full ? '✓' : ''}</span></div>
+        <div class="skill-track"><i style="width:${pr.pct}%"></i></div>
+      </article>`);
+    }
     return cards.join('');
   };
   $('progressBody').innerHTML = `
@@ -1789,6 +1872,7 @@ function renderProgress() {
   $('progressBody').querySelectorAll('[data-medgo]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.medgo; curSpiced = null; curPro = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-spicedgo]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spicedgo; curMed = null; curPro = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-progo]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.progo; curMed = null; curSpiced = null; switchTab('theory'); }));
+  $('progressBody').querySelectorAll('[data-xgo]').forEach((b) => b.addEventListener('click', () => { const xi = +b.dataset.xgo; curExtra = xi; curXb = xResume(xi); curMed = null; curSpiced = null; curPro = null; save(); switchTab('theory'); window.scrollTo({ top: 0 }); }));
   // «✍️ практика „Проверь себя“» в карточке курса — открывает урок с практикой и прокручивает к ней
   $('progressBody').querySelectorAll('[data-ptogo]').forEach((b) => b.addEventListener('click', () => {
     const [m, i] = b.dataset.ptogo.split(':');

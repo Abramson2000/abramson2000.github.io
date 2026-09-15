@@ -108,6 +108,18 @@ button { color: inherit; }
 .section-title-row h2 { margin: 0; font-size: 24px; letter-spacing: -.03em; }.section-title-row p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
 .overall-progress { width: min(260px, 34%); display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 800; }
 .overall-progress div { flex: 1; height: 6px; overflow: hidden; border-radius: 9px; background: var(--line); }.overall-progress i { display: block; width: 27%; height: 100%; background: var(--green); transition: width .35s ease; }
+.quick-extra { display: grid; grid-template-columns: 46px minmax(0,1fr) auto auto; align-items: center; gap: 16px; margin-top: 16px; padding: 15px 18px; border: 1px solid var(--line); border-radius: 18px; background: white; cursor: pointer; transition: .18s ease; }
+.quick-extra:hover { border-color: var(--green); box-shadow: 0 12px 30px rgba(25,94,63,.1); transform: translateY(-2px); }
+.quick-extra:focus-visible { outline: 3px solid var(--lime); outline-offset: 2px; }
+.qe-ic { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 14px; background: var(--mint); font-size: 22px; }
+.qe-copy { min-width: 0; }
+.qe-kicker { margin: 0; color: var(--muted); font-size: 10px; font-weight: 900; letter-spacing: .1em; }
+.qe-copy strong { display: block; margin-top: 3px; font-size: 15px; line-height: 1.25; letter-spacing: -.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qe-bar { height: 5px; max-width: 420px; margin-top: 8px; overflow: hidden; border-radius: 6px; background: #e4ebe4; }
+.qe-bar i { display: block; height: 100%; background: var(--green); transition: width .35s ease; }
+.qe-meta { color: var(--muted); font-size: 12px; font-weight: 800; white-space: nowrap; }
+.quick-extra .primary-button { white-space: nowrap; }
+@media (max-width: 760px) { .quick-extra { grid-template-columns: 40px minmax(0,1fr); gap: 12px; } .qe-ic { width: 40px; height: 40px; border-radius: 12px; font-size: 19px; } .qe-meta { display: none; } .quick-extra .primary-button { grid-column: 1 / -1; width: 100%; } }
 .module-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 .module-card { position: relative; min-height: 260px; padding: 22px; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: white; transition: .2s ease; }
 .module-card.current { border: 2px solid var(--green); cursor: pointer; box-shadow: 0 12px 35px rgba(25,94,63,.1); }
