@@ -6,19 +6,19 @@
 //   /api/* и внешние домены (supabase) — только сеть.
 // Прекэш: все файлы приложения кладутся по одному; сбой одного файла НЕ ломает установку.
 // Страница может запросить статус/скачивание: postMessage({type:'status'|'precache'}).
-const CACHE = 'spin-cache-v88';
+const CACHE = 'spin-cache-v89';
 
 const CORE = [
   './',
   './index.html',
-  './styles.css?v=crs88',
-  './app.js?v=crs88',
-  './data.js?v=crs88',
-  './meddicc-data.js?v=crs88',
-  './spiced-data.js?v=crs88',
-  './proactive-data.js?v=crs88',
-  './boss-gate.js?v=crs88',
-  './remote-sales-data.js?v=crs88',
+  './styles.css?v=crs89',
+  './app.js?v=crs89',
+  './data.js?v=crs89',
+  './meddicc-data.js?v=crs89',
+  './spiced-data.js?v=crs89',
+  './proactive-data.js?v=crs89',
+  './boss-gate.js?v=crs89',
+  './remote-sales-data.js?v=crs89',
   './supabase.min.js',
   './manifest.webmanifest',
   './emblem-np.png',

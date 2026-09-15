@@ -262,6 +262,22 @@ function mergeXDone(a, b) { // объединение отметок уроко�
   });
   return out;
 }
+function openXMod(spec) { // открыть доп-курс на конкретном курсе (модуле)
+  const p = String(spec).split(':').map(Number);
+  const xi = p[0], mi = p[1];
+  const x = EXTRA[xi];
+  if (!x) return;
+  const mods = xMods(x);
+  const m = mods[mi];
+  if (!m) return;
+  curExtra = xi;
+  curMed = null; curSpiced = null; curPro = null;
+  const e = xEntry(x);
+  curXb = m.items.some((it) => it.bi === e) ? e : xModResume(x, m);
+  save();
+  switchTab('theory');
+  window.scrollTo({ top: 0 });
+}
 function xDoneArr(id) { if (!Array.isArray(S.xDone[id])) S.xDone[id] = []; return S.xDone[id]; }
 function xIsDone(id, bi) { return xDoneArr(id).includes(bi); }
 function xToggleDone(id, bi, on) {
@@ -282,6 +298,52 @@ function xResume(xi) { // куда вернуться в курсе: первы�
   if (!x || !x.blocks || !x.blocks.length) return 0;
   for (let i = 0; i < x.blocks.length; i++) if (!xIsDone(x.id, i)) return i;
   return x.blocks.length - 1;
+}
+// ——— разделение доп-курса на курсы по модулям ———
+const X_MOD_NAMES = { 1: 'Звонок', 2: 'Переписка', 3: 'Порядок в работе', 4: 'Стенд на выставке', 5: 'Приёмы и смысл' };
+function xMods(x) {
+  const out = [];
+  (x && x.blocks ? x.blocks : []).forEach((bl, bi) => {
+    const m = /^Модуль\s*(\d+)\s*·\s*Урок\s*(\d+)\.\s*(.*)$/.exec(String(bl.h || ''));
+    const num = m ? +m[1] : (out.length ? out[out.length - 1].num : 1);
+    const title = m ? m[3] : String(bl.h || '');
+    let cur = out[out.length - 1];
+    if (!cur || cur.num !== num) {
+      cur = { num: num, name: X_MOD_NAMES[num] || ('Курс ' + num), items: [] };
+      out.push(cur);
+    }
+    cur.items.push({ bi: bi, title: title, lesson: m ? +m[2] : bi + 1 });
+  });
+  return out;
+}
+function xModProgress(x, mod) {
+  const total = mod.items.length;
+  const done = mod.items.filter((it) => xIsDone(x.id, it.bi)).length;
+  return { done: done, total: total, pct: total ? Math.round((done / total) * 100) : 0, full: total > 0 && done >= total };
+}
+function xModResume(x, mod) {
+  const it = mod.items.find((i) => !xIsDone(x.id, i.bi));
+  return it ? it.bi : mod.items[0].bi;
+}
+function xActiveMod(x) { // курс, в котором человек сейчас — первый с непройденными уроками
+  const mods = xMods(x);
+  if (!mods.length) return null;
+  for (const m of mods) if (!xModProgress(x, m).full) return m;
+  return mods[mods.length - 1];
+}
+function xModOf(x, bi) { // в каком курсе лежит урок
+  const mods = xMods(x);
+  for (const m of mods) if (m.items.some((i) => i.bi === bi)) return m;
+  return mods[0] || null;
+}
+function xEntry(x) { // то самое место: последний открытый урок, иначе первый непройденный
+  const n = (x && x.blocks) ? x.blocks.length : 0;
+  if (!n) return 0;
+  const last = (typeof curXb === 'number' && curXb >= 0 && curXb < n) ? curXb : -1;
+  const first = xResume(EXTRA.indexOf(x));
+  if (last >= 0 && !xIsDone(x.id, last)) return last;
+  if (!xIsDone(x.id, first)) return first;
+  return last >= 0 ? last : first;
 }
 function setSync(st) {
   S.sync = st;
@@ -715,7 +777,7 @@ function startHeroRotation() {
 function renderProgram() {
   refreshExtra();
   curExtra = null; // выход в программу закрывает режим доп-урока
-  curXb = 0;
+  // позицию curXb НЕ сбрасываем: это «где я остановился» — из неё строится быстрый доступ
   curMed = null;   // выход в программу закрывает режим MEDDPICC-урока
   curSpiced = null; // выход в программу закрывает режим SPICED-урока (курс 1а)
   curPro = null;    // выход в программу закрывает режим ProActive-урока (курс 5)
@@ -792,17 +854,41 @@ function renderProgram() {
       <div class="module-footer"><span>книга в работе</span></div>
     </article>`).join('')}
   </div>` : '';
-  // «Дополнительно» — выжимки книг, в самый конец страницы
+  // «Дополнительно» — курсы по темам + выжимки книг, в самый конец страницы
   const extraBooksHtml = EXTRA.length ? `
-  <div class="section-title-row" style="margin-top:26px"><div><h2>Дополнительно</h2><p>Курсы и выжимки книг — короткие уроки сверх программы</p></div></div>
-  <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-    ${EXTRA.map((x, xi) => {
+  <div class="section-title-row" style="margin-top:26px"><div><h2>Дополнительно</h2><p>Курсы сверх программы — разбиты по темам</p></div></div>
+  ${EXTRA.map((x, xi) => {
       const pr = (x.course && x.blocks) ? xProgress(x) : null;
+      const mods = (x.course && x.blocks && x.blocks.length) ? xMods(x) : [];
+      if (mods.length > 1) {
+        const courseName = esc(String(x.title).split(':')[0]);
+        return `
+      <div class="extra-course" style="margin-top:18px">
+        <div class="section-title-row"><div><h3 style="margin:0;font-size:17px;letter-spacing:-.02em">${courseName}</h3><p>${mods.length} ${pluralN(mods.length, ['курс', 'курса', 'курсов'])} · пройдено ${pr.done} из ${pr.total} уроков</p></div></div>
+        <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+          ${mods.map((m, mi) => {
+            const mp = xModProgress(x, m);
+            const first = String((m.items[0] || {}).title || '');
+            const ftxt = first.length > 58 ? first.slice(0, 58) + '…' : first;
+            return `
+            <article class="module-card method-card current ${mp.full ? 'completed' : ''}" data-xmod="${xi}:${mi}" tabindex="0" role="button" title="Открыть курс — ${esc(m.name)}">
+              <div class="module-icon">${mp.full ? '✓' : '🎓'}</div>
+              <span class="status-label">${mp.full ? 'ПРОЙДЕН' : 'КУРС ' + (mi + 1)}</span>
+              <h3>Модуль ${m.num} · ${esc(m.name)}</h3>
+              <p>${m.items.length} ${pluralN(m.items.length, ['урок', 'урока', 'уроков'])} · ${esc(ftxt)}</p>
+              <div class="module-footer"><span>${mp.done} из ${mp.total} уроков</span><strong>→</strong></div>
+              ${mp.done ? `<div class="module-progress"><i style="width:${mp.pct}%"></i></div>` : ''}
+            </article>`;
+          }).join('')}
+        </div>
+      </div>`;
+      }
       const rd = pr ? pr.full : S.extraDone.includes(xi);
       const parts = (x.practice ? x.practice.length : 0) || (x.blocks ? x.blocks.length : 0);
       const desc = x.intro.length > 100 ? x.intro.slice(0, 100) + '…' : x.intro;
       const foot = pr ? `${pr.done} из ${pr.total} уроков` : `${esc(x.mins)} · ${parts} раздела`;
       return `
+      <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:14px">
       <article class="module-card method-card current ${rd ? 'completed' : ''}" data-extra="${xi}" tabindex="0" role="button" title="${x.course ? 'Открыть курс' : 'Выжимка книги — открыть'}">
         <div class="module-icon">${x.course ? '🎓' : '📘'}</div>
         <span class="status-label">${rd ? 'ПРОЙДЕН' : x.course ? 'КУРС' : 'КНИГА'}</span>
@@ -810,21 +896,23 @@ function renderProgram() {
         <p>${esc(desc)}</p>
         <div class="module-footer"><span>${foot}</span><strong>→</strong></div>
         ${pr && pr.done ? `<div class="module-progress"><i style="width:${pr.pct}%"></i></div>` : ''}
-      </article>`;
-    }).join('')}
-  </div>` : '';
+      </article>
+      </div>`;
+    }).join('')}` : '';
   // быстрый доступ к доп-курсу (x4) — прямо с главного экрана, без долгой прокрутки
   const x4i = EXTRA.findIndex((x) => x.course && x.blocks && x.blocks.length > 1);
   const x4c = x4i >= 0 ? EXTRA[x4i] : null;
   const x4pr = x4c ? xProgress(x4c) : null;
-  const x4rs = x4c ? xResume(x4i) : 0;
+  const x4entry = x4c ? xEntry(x4c) : 0;                      // урок, на котором остановился
+  const x4cur = x4c ? xModOf(x4c, x4entry) : null;           // и курс, в котором этот урок
+  const x4rs = x4entry;
   const x4clean = (h) => esc(String(h).replace(/^Модуль\s*\d+\s*·\s*Урок\s*\d+\.\s*/i, ''));
   const x4QuickHtml = x4c ? `
   <article class="quick-extra" data-xgo="${x4i}" role="button" tabindex="0" title="Открыть дополнительный курс">
     <span class="qe-ic">🎓</span>
     <div class="qe-copy">
-      <p class="qe-kicker">ДОПОЛНИТЕЛЬНО · ${esc(String(x4c.title).split(':')[0].toUpperCase())}</p>
-      <strong>Урок ${x4rs + 1} из ${x4pr.total}. ${x4clean(x4c.blocks[x4rs].h)}</strong>
+      <p class="qe-kicker">ДОПОЛНИТЕЛЬНО${x4cur ? ' · КУРС ' + x4cur.num + ' · ' + esc(x4cur.name.toUpperCase()) : ''}</p>
+      <strong>Урок ${x4rs + 1} из ${x4c.blocks.length}. ${x4clean(x4c.blocks[x4rs].h)}</strong>
       <div class="qe-bar"><i style="width:${x4pr.pct}%"></i></div>
     </div>
     <span class="qe-meta">${x4pr.done} из ${x4pr.total} · ${x4pr.pct}%</span>
@@ -900,7 +988,8 @@ function renderProgram() {
     S.lesson = i; curExtra = null; curMed = null; curSpiced = null; switchTab('theory');
   }));
   $('programBody').querySelectorAll('[data-extra]').forEach((b) => b.addEventListener('click', () => { curExtra = +b.dataset.extra; curXb = xResume(curExtra); curMed = null; curSpiced = null; curPro = null; save(); switchTab('theory'); }));
-  $('programBody').querySelectorAll('[data-xgo]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); const xi = +b.dataset.xgo; curExtra = xi; curXb = xResume(xi); curMed = null; curSpiced = null; curPro = null; save(); switchTab('theory'); window.scrollTo({ top: 0 }); }));
+  $('programBody').querySelectorAll('[data-xgo]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); const xi = +b.dataset.xgo; curExtra = xi; curXb = xEntry(EXTRA[xi]); curMed = null; curSpiced = null; curPro = null; save(); switchTab('theory'); window.scrollTo({ top: 0 }); }));
+  $('programBody').querySelectorAll('[data-xmod]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); openXMod(b.dataset.xmod); }));
   $('programBody').querySelectorAll('[data-med]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.med; curExtra = null; curSpiced = null; curPro = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; switchTab('theory'); }));
   $('programBody').querySelectorAll('[data-pro]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.pro; curMed = null; curExtra = null; curSpiced = null; switchTab('theory'); }));
@@ -919,7 +1008,7 @@ function renderTheory() {
   refreshExtra();
   if (curMed !== null && curMed >= MED.length) { curMed = null; }  // открытый MED-урок стал недоступен — сброс
   if (curExtra !== null && curExtra >= EXTRA.length) { curExtra = null; } // открытый урок стал невидим — сброс
-  if (curExtra === null) curXb = 0;
+  // curXb не сбрасываем — помним, где человек остановился в доп-курсе
   if (curSpiced !== null && curSpiced >= SPICED.length) { curSpiced = null; } // открытый SPICED-урок стал недоступен — сброс
   if (curPro !== null && curPro >= PRO.length) { curPro = null; } // открытый ProActive-урок стал недоступен — сброс
   // последовательность: если открытый урок больше недоступен по цепочке — откатываем на первый доступный непройденный
@@ -969,9 +1058,13 @@ function renderTheory() {
   } else if (mode === 'extra') {
     if (xMode) {
       const shr = (h) => esc(String(h).replace(/^Модуль\s*\d+\s*·\s*Урок\s*\d+\.\s*/i, ''));
-      railItems = `<div class="lesson-group-label"><span>Дополнительно</span>УРОКИ КУРСА</div>` + l.blocks.map((bl, bi2) => {
-        const dd = xIsDone(l.id, bi2);
-        return `<button class="lesson-item ${bi2 === xb ? 'active' : ''} ${dd ? 'done' : ''}" data-xb="${bi2}" title="Урок ${bi2 + 1}"><span>${bi2 + 1}</span><div><strong>${shr(bl.h)}</strong><small>${bi2 + 1} из ${l.blocks.length}</small></div>${dd ? '<b>✓</b>' : ''}</button>`;
+      const xmods = xMods(l);
+      railItems = xmods.map((m) => {
+        const head = `<div class="lesson-group-label"><span>Курс ${m.num}</span>${esc(m.name).toUpperCase()}</div>`;
+        return head + m.items.map((it) => {
+          const dd = xIsDone(l.id, it.bi);
+          return `<button class="lesson-item ${it.bi === xb ? 'active' : ''} ${dd ? 'done' : ''}" data-xb="${it.bi}" title="Урок ${it.bi + 1}"><span>${it.lesson}</span><div><strong>${shr(it.title)}</strong><small>${it.lesson} из ${l.blocks.length}</small></div>${dd ? '<b>✓</b>' : ''}</button>`;
+        }).join('');
       }).join('');
     } else {
       railItems = `<div class="lesson-group-label"><span>Extra</span>ДОПОЛНИТЕЛЬНО</div>` + EXTRA.map((ll, ei) => {
@@ -1901,9 +1994,14 @@ function renderProgress() {
     if (x4i >= 0) {
       const x4c = EXTRA[x4i];
       const pr = xProgress(x4c);
+      const x4mods = xMods(x4c);
       cards.push(`<article class="course-progress-card ${pr.full ? 'completed' : ''}" style="cursor:pointer" data-xgo="${x4i}" title="Дополнительный курс — открыть">
         <div class="course-progress-head"><strong>Дополнительно · ${esc(String(x4c.title).split(':')[0])}</strong><span>${pr.done} из ${pr.total} ${pr.full ? '✓' : ''}</span></div>
         <div class="skill-track"><i style="width:${pr.pct}%"></i></div>
+        ${x4mods.length > 1 ? `<div style="margin-top:10px;display:grid;gap:6px">${x4mods.map((m) => {
+          const mp = xModProgress(x4c, m);
+          return `<div class="x4-mod-row" data-xmod="${x4i}:${x4mods.indexOf(m)}" style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Курс ${m.num} · ${esc(m.name)}</span><b style="color:${mp.full ? 'var(--green)' : 'var(--ink)'};font-size:12.5px">${mp.done}/${mp.total}${mp.full ? ' ✓' : ''}</b></div>`;
+        }).join('')}</div>` : ''}
       </article>`);
     }
     return cards.join('');
@@ -1974,7 +2072,8 @@ function renderProgress() {
   $('progressBody').querySelectorAll('[data-medgo]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.medgo; curSpiced = null; curPro = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-spicedgo]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spicedgo; curMed = null; curPro = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-progo]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.progo; curMed = null; curSpiced = null; switchTab('theory'); }));
-  $('progressBody').querySelectorAll('[data-xgo]').forEach((b) => b.addEventListener('click', () => { const xi = +b.dataset.xgo; curExtra = xi; curXb = xResume(xi); curMed = null; curSpiced = null; curPro = null; save(); switchTab('theory'); window.scrollTo({ top: 0 }); }));
+  $('progressBody').querySelectorAll('[data-xgo]').forEach((b) => b.addEventListener('click', () => { const xi = +b.dataset.xgo; curExtra = xi; curXb = xEntry(EXTRA[xi]); curMed = null; curSpiced = null; curPro = null; save(); switchTab('theory'); window.scrollTo({ top: 0 }); }));
+  $('progressBody').querySelectorAll('[data-xmod]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); openXMod(b.dataset.xmod); }));
   // «✍️ практика „Проверь себя“» в карточке курса — открывает урок с практикой и прокручивает к ней
   $('progressBody').querySelectorAll('[data-ptogo]').forEach((b) => b.addEventListener('click', () => {
     const [m, i] = b.dataset.ptogo.split(':');
