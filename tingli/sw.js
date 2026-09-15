@@ -1,7 +1,7 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.23.1 (2026-09-15: заголовки листов — 小山 только у 听力 и 商务, остальные свои) + font-build: simsun-subset-STSong-1426 — маркер прекэша
+// data-build: v2.23.2 (2026-09-15: шрифты — xiaoshan-title.woff2 для шапок + simsun-сабсет с полным покрытием) + font-build: simsun-subset-STSong-1459 — маркер прекэша
 const CACHE = 'tingli-cache-v1';
 
 const ASSETS = [
@@ -68,9 +68,9 @@ const ASSETS = [
   './fonts/rubik-cyr-600.woff2',
   './fonts/rubik-cyr-700.woff2',
   './fonts/rubik-cyr-800.woff2',
-  './fonts/simsun-subset.woff2',
+  './fonts/simsun-subset.woff2?v=2.23.2',
   './fonts/xiaoshan-mashan.woff2',
-  './fonts/xiaoshan-zhimang.woff2',
+  './fonts/xiaoshan-title.woff2?v=2.23.2',
   './fonts/xiaoshan-longcang.woff2',
   './fonts/xiaoshan-klee.woff2'
 ];
