@@ -189,12 +189,10 @@ async function handleRest(req) {
     const pending = await qAll();
     const mine = pending.filter((p) => p.table === table);
     let resp = null;
-    if (self.navigator.onLine) {
-      try {
-        resp = await fetch(req);
-        if (resp && resp.ok) await cachePut(key, resp.clone());
-      } catch (e) { resp = null; }
-    }
+    try {
+      resp = await fetch(req);
+      if (resp && resp.ok) await cachePut(key, resp.clone());
+    } catch (e) { resp = null; }
     if (!resp || !resp.ok) {
       let hit = await cacheGet(key);
       let rows = null;
@@ -237,13 +235,11 @@ async function handleRest(req) {
   const preferRepr = /return=representation/i.test(req.headers.get('prefer') || '');
   const item = { table: table, method: method, url: req.url, body: body, headers: hdrs, ts: Date.now(), tempId: null };
 
-  // онлайн — просто прокидываем запрос в базу, ошибок не создаём
-  if (self.navigator.onLine) {
-    try {
-      const r = await fetch(reqForNet);
-      if (r.status < 500) return r;
-    } catch (e) {}
-  }
+  // сначала пробуем сеть (без опоры на navigator.onLine — в iOS-воркере его может не быть)
+  try {
+    const r = await fetch(reqForNet);
+    if (r.status < 500) return r;
+  } catch (e) {}
 
   // офлайн (или сеть не ответила) — в очередь + оптимистичный ответ
   if (method === 'POST' && preferRepr) {
@@ -277,7 +273,7 @@ function mapBody(str, map) {
   return out;
 }
 async function flushQueue() {
-  if (flushing || !self.navigator.onLine) return { ok: 0, left: await qCount() };
+  if (flushing) return { ok: 0, left: await qCount() };
   flushing = true;
   let sent = 0, failed = 0, left = 0;
   try {
@@ -371,7 +367,7 @@ self.addEventListener('message', (e) => {
   const port = e.ports && e.ports[0];
   const reply = (m) => { try { if (port) port.postMessage(m); } catch (_) {} };
   if (d.type === 'queue-info') {
-    qCount().then((n) => reply({ type: 'queue-info', n: n, online: self.navigator.onLine })).catch(() => reply({ type: 'queue-info', n: 0 }));
+    qCount().then((n) => reply({ type: 'queue-info', n: n, online: navigator.onLine !== false })).catch(() => reply({ type: 'queue-info', n: 0 }));
     return;
   }
   if (d.type === 'flush') {
