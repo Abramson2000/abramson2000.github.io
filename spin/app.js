@@ -507,8 +507,10 @@ function bindLogin() {
   if (xpPill) xpPill.addEventListener('click', () => switchTab('progress'));
   const pill = $('offlinePill');
   if (pill) pill.addEventListener('click', openModal);
-  const dl = $('offlineDl');
-  if (dl) dl.addEventListener('click', offlineDownload);
+  document.addEventListener('click', (e) => {
+    const b = e.target && e.target.closest ? e.target.closest('#offCardBtn, #offlineDl') : null;
+    if (b) offlineDownload();
+  });
 }
 // ===== офлайн: скачивание приложения на устройство + статус =====
 function swPost(msg, onProgress) {
@@ -531,12 +533,43 @@ function swPost(msg, onProgress) {
       .catch(() => send(navigator.serviceWorker.controller));
   });
 }
+function offlineCardHtml() {
+  return `
+  <article class="quick-extra qe-offline" id="offCard">
+    <span class="qe-ic">✈️</span>
+    <div class="qe-copy">
+      <p class="qe-kicker">ОФЛАЙН-РЕЖИМ · БЕЗ ИНТЕРНЕТА</p>
+      <strong id="offCardTitle">Скачать приложение на устройство</strong>
+      <div class="qe-bar"><i id="offCardBar" style="width:0%"></i></div>
+    </div>
+    <span class="qe-meta" id="offCardMeta">проверяю…</span>
+    <button class="qe-btn" id="offCardBtn" type="button">Скачать</button>
+  </article>`;
+}
 async function offlineRefreshStatus() {
   const el = $('offlineDlStatus');
   const btn = $('offlineDl');
   const r = await swPost({ type: 'status' });
   const pill = $('offlinePill');
   if (pill) pill.classList.toggle('ready', !!(r && r.ready));
+  const ct = $('offCardTitle'), cm = $('offCardMeta'), cb = $('offCardBar'), cbtn = $('offCardBtn');
+  if (ct) {
+    if (!r) {
+      ct.textContent = 'Проверить не удалось — нужен интернет';
+      if (cm) cm.textContent = '';
+      if (cbtn) { cbtn.textContent = 'Проверить'; cbtn.classList.remove('ok'); cbtn.disabled = false; }
+    } else if (r.ready) {
+      ct.textContent = 'Скачано — работает без интернета';
+      if (cm) cm.textContent = r.total + ' из ' + r.total;
+      if (cb) cb.style.width = '100%';
+      if (cbtn) { cbtn.textContent = 'Обновить'; cbtn.classList.add('ok'); cbtn.disabled = false; }
+    } else {
+      ct.textContent = 'Скачать приложение на устройство';
+      if (cm) cm.textContent = r.have + ' из ' + r.total;
+      if (cb) cb.style.width = Math.round((r.have / r.total) * 100) + '%';
+      if (cbtn) { cbtn.textContent = 'Скачать'; cbtn.classList.remove('ok'); cbtn.disabled = false; }
+    }
+  }
   if (!el) return;
   if (!r) { el.textContent = 'Проверить не удалось — откройте приложение с интернетом и обновите страницу.'; return; }
   if (r.ready) {
@@ -563,6 +596,7 @@ async function offlineDownload() {
   if (bad) {
     if (el) el.textContent = 'Скачано ' + r.ok + ' из ' + r.total + '. Не дались: ' + bad + ' файл(ов) — попробуйте ещё раз при хорошей связи.';
     if (btn) { btn.disabled = false; btn.textContent = 'Докачать'; }
+    offlineRefreshStatus();
   } else {
     if (el) el.textContent = 'Всё загружено: ' + r.total + ' из ' + r.total + ' файлов. Можно в полёт.';
     if (btn) { btn.disabled = false; btn.textContent = 'Уже скачано'; }
@@ -829,6 +863,7 @@ function renderProgram() {
   </article>
 
   ${x4QuickHtml}
+  ${offlineCardHtml()}
 
   <div class="section-title-row">
     <div><h2>Маршрут обучения</h2><p><span id="completedCount">${doneN + spicedN + medN + proN}</span> из ${totalAll} уроков пройдено</p></div>
@@ -876,6 +911,7 @@ function renderProgram() {
   $('programBody').querySelectorAll('.method-card.locked:not([data-seq-locked])').forEach((b) => b.addEventListener('click', () => toast('Курс скоро появится — книга в работе')));
   $('programBody').querySelectorAll('[data-seq-locked]').forEach((b) => b.addEventListener('click', () => toast('Сначала пройдите предыдущий урок — этот откроется после него')));
   startHeroRotation();
+  offlineRefreshStatus();
 }
 
 // ============ ТЕОРИЯ (уроки) ============
