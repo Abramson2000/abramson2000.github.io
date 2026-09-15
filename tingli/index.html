@@ -231,7 +231,9 @@
   .tab .ic-img-on { display: none; }
   .tab.active .ic-img-on { display: block; }
   .tab.active .ic-img-off { display: none; }
-  .tab-label { font-size: 22px; font-weight: 700; color: #6e6e76; white-space: nowrap; letter-spacing: .3px; font-family: "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; }
+  .tab-label { display: flex; flex-direction: column; align-items: flex-start; font-size: 22px; font-weight: 700; color: #6e6e76; white-space: nowrap; letter-spacing: .3px; font-family: "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; line-height: 1.12; }
+  .tab-ru { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif; font-weight: 300; font-size: 13.5px; letter-spacing: .2px; color: #a2a2aa; margin-top: 3px; }
+  .tab.active .tab-ru { color: var(--red-deep); opacity: .72; }
   .tab.active { background: var(--red-soft); }
   .tab.active .tab-label { color: var(--red-deep); }
   .sb-ver { margin-top: auto; padding: 18px 12px calc(6px + env(safe-area-inset-bottom)); font-size: 12px; color: #a6a6ae; letter-spacing: .3px; text-align: left; font-weight: 500; }
@@ -245,6 +247,7 @@
   @media (min-width: 900px) {
     .tab .ic, .tab .ic-img { width: 64px; height: 64px; }
     .tab-label { font-size: 24px; }
+    .tab-ru { font-size: 15px; }
     .sb-brand img { width: 70px; height: 70px; }
   }
   /* Кнопка ☰ — только для узких окон с мышью (на телефоне её нет, там свайп) */
@@ -353,19 +356,19 @@
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力</span></button>
-  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法</span></button>
-  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语</span></button>
-  <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队</span></button>
-  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=1922" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=1922" alt=""></span><span class="tab-label">商务</span></button>
-  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png" alt=""></span><span class="tab-label">句子</span></button>
-  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典</span></button>
+  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
+  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
+  <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队<span class="tab-ru">группа</span></span></button>
+  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=1922" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=1922" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
+  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.20.10"></script>
-<script src="data/extra.js?v=2.20.10"></script>
-<script src="data/idv.js?v=2.20.10"></script>
-<script src="data/biz.js?v=2.20.10"></script>
+<script src="data/units.js?v=2.20.11"></script>
+<script src="data/extra.js?v=2.20.11"></script>
+<script src="data/idv.js?v=2.20.11"></script>
+<script src="data/biz.js?v=2.20.11"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -385,7 +388,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.20.10';
+const APP_VER = '2.20.11';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
