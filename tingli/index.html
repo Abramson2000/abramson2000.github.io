@@ -361,15 +361,15 @@
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
   <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队<span class="tab-ru">группа</span></span></button>
-  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=1922" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=1922" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=2.21.1" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=2.21.1" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.21.0"></script>
-<script src="data/extra.js?v=2.21.0"></script>
-<script src="data/idv.js?v=2.21.0"></script>
-<script src="data/biz.js?v=2.21.0"></script>
+<script src="data/units.js?v=2.21.1"></script>
+<script src="data/extra.js?v=2.21.1"></script>
+<script src="data/idv.js?v=2.21.1"></script>
+<script src="data/biz.js?v=2.21.1"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -389,7 +389,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.21.0';
+const APP_VER = '2.21.1';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
