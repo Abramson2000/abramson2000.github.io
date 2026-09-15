@@ -16,9 +16,9 @@
     --text: #1d1d21;
     --muted: #8f8f97;
     --faint: #b9b9c0;
-    --red: #c23a2b;
-    --red-deep: #a52e21;
-    --red-soft: #fbece9;
+    --red: #c63717;
+    --red-deep: #c63717;
+    --red-soft: #fbeae5;
     --ok: #1f9d55; --ok-soft: #e8f6ee;
     --bad: #d64545; --bad-soft: #fdeeee;
     --yellow: #ffd93d;
@@ -66,7 +66,7 @@
   .unit-dl { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--text); color: #fff; cursor: pointer; margin-right: 4px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(29,29,33,.22); transition: transform .12s ease, background .12s ease; -webkit-appearance: none; appearance: none; }
   .unit-dl svg { width: 15px; height: 15px; display: block; }
   .unit-dl:active { transform: scale(.92); }
-  .unit-dl.done { background: linear-gradient(135deg, var(--red-deep), var(--red)); box-shadow: 0 3px 10px rgba(194,58,43,.32); }
+  .unit-dl.done { background: linear-gradient(135deg, var(--red-deep), var(--red)); box-shadow: 0 3px 10px rgba(198,55,23,.32); }
   .unit-dl.part { background: var(--red-soft); color: var(--red); box-shadow: inset 0 0 0 1.5px var(--red); }
   .unit-dl:disabled { opacity: .55; }
 
@@ -77,7 +77,7 @@
   .part { background: var(--card); border-radius: 18px; margin-bottom: 11px; overflow: hidden; box-shadow: var(--shadow-card); cursor: pointer; transition: transform .12s ease; }
   .part:active { transform: scale(.985); }
   .part-head { display: flex; align-items: center; gap: 13px; padding: 14px 15px; }
-  .part-num { width: 31px; height: 31px; border-radius: 11px; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; background: var(--red); box-shadow: 0 2px 6px rgba(194,58,43,.28); }
+  .part-num { width: 31px; height: 31px; border-radius: 11px; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; background: var(--red); box-shadow: 0 2px 6px rgba(198,55,23,.28); }
   .part-title { font-weight: 650; font-size: 15.5px; flex: 1; letter-spacing: -.2px; }
   .part-zh { font-family: "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .2px; }
   .part-arrow { color: #c9c9cf; font-size: 22px; font-weight: 600; }
@@ -147,7 +147,7 @@
   .hw-item { margin: 12px 16px; }
   .hw-q { font-size: 16.5px; font-weight: 650; color: #16161a; line-height: 1.5; margin-bottom: 7px; }
   .hw-ans { width: 100%; box-sizing: border-box; min-height: 56px; border: 1.5px solid #e4e3df; border-radius: 15px; padding: 11px 13px; font-size: 15.5px; line-height: 1.5; font-family: inherit; resize: vertical; background: #fff; color: #16161a; outline: none; }
-  .hw-ans:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(194,58,43,.12); }
+  .hw-ans:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(198,55,23,.12); }
   .hw-tools { display: flex; align-items: flex-start; gap: 10px; margin-top: 9px; }
   .hw-chk { flex-shrink: 0; background: #fff; border: 1.5px solid #e4e3df; border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--text); }
   .hw-chk:disabled { opacity: .5; }
@@ -187,7 +187,7 @@
   .word .ru { color: var(--text); font-size: 14px; text-align: left; }
   .word .w-add { color: #c9c9cf; font-size: 18px; text-align: right; padding-left: 6px; line-height: 1; }
   .word.indict .w-add { color: var(--ok); }
-  .word.sel { background: #fdeeea; box-shadow: inset 0 0 0 1.5px var(--red); padding-left: 10px; padding-right: 10px; border-radius: 14px; }
+  .word.sel { background: #fbeae5; box-shadow: inset 0 0 0 1.5px var(--red); padding-left: 10px; padding-right: 10px; border-radius: 14px; }
   .dict-send-bar { position: sticky; bottom: 0; padding: 12px 16px 18px; background: linear-gradient(transparent, var(--bg) 30%); }
   .dict-item { display: flex; align-items: center; gap: 13px; background: var(--card); border-radius: 18px; padding: 12px 15px; margin: 9px 16px; box-shadow: var(--shadow-card); }
   .dict-zh { font-size: 19.5px; font-weight: 600; min-width: 92px; font-family: "SimSun", "Songti SC", "STSong", serif; }
@@ -293,6 +293,7 @@
   .splash-logo { width: 128px; height: 128px; display: flex; align-items: center; justify-content: center; }
   .splash-logo img { width: 100%; height: 100%; object-fit: contain; }
   .splash-title { width: 264px; height: auto; }
+  .splash-title-text { font-family: "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; font-size: 46px; font-weight: 800; color: var(--red); letter-spacing: 4px; line-height: 1.1; }
   .splash-sub { font-size: 13px; color: #8f8f97; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; }
 
 
@@ -322,7 +323,7 @@
 <body>
 <div id="splash"><div class="splash-in">
   <div class="splash-logo"><img src="logo.png" alt=""></div>
-  <img class="splash-title" src="title.png" alt="初级听力">
+  <div class="splash-title-text">小山听力</div>
 </div></div>
 <div class="app" id="app"></div>
 <button class="menu-btn" id="menuBtn" onclick="sbOpen()" aria-label="Меню">☰</button>
@@ -365,10 +366,10 @@
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.20.12"></script>
-<script src="data/extra.js?v=2.20.12"></script>
-<script src="data/idv.js?v=2.20.12"></script>
-<script src="data/biz.js?v=2.20.12"></script>
+<script src="data/units.js?v=2.21.0"></script>
+<script src="data/extra.js?v=2.21.0"></script>
+<script src="data/idv.js?v=2.21.0"></script>
+<script src="data/biz.js?v=2.21.0"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -388,7 +389,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.20.12';
+const APP_VER = '2.21.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
