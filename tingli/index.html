@@ -319,6 +319,19 @@
 .match-end { text-align: center; padding: 18px 16px 30px; }
 .match-end .big { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
 .match-end .sub { color: var(--muted); margin-bottom: 16px; }
+  /* ===== ручные галочки «пройдено» ===== */
+  .uc-check { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #d9d9df; background: #fff; color: transparent; font-size: 16px; font-weight: 700; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform .12s ease, background .12s ease, border-color .12s ease; -webkit-appearance: none; appearance: none; padding: 0; margin-right: 2px; }
+  .uc-check.on { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .uc-check:active { transform: scale(.9); }
+  .unit-card.unit-done { background: linear-gradient(180deg, var(--ok-soft), var(--card) 62%); }
+  .unit-bar { display: flex; align-items: center; gap: 10px; margin: 2px 2px 12px; }
+  .unit-done-btn { flex: 1; border: none; border-radius: 14px; padding: 12px 14px; font-size: 14.5px; font-weight: 600; font-family: inherit; cursor: pointer; background: #fff; color: var(--text); box-shadow: inset 0 0 0 1.5px #e3e3e9; -webkit-appearance: none; appearance: none; transition: transform .12s ease, background .12s ease, color .12s ease; }
+  .unit-done-btn.on { background: var(--ok); color: #fff; box-shadow: none; }
+  .unit-done-btn:active { transform: scale(.985); }
+  .unit-bar-info { font-size: 13px; color: #9a9aa2; font-variant-numeric: tabular-nums; }
+  .part-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #dcdce2; background: #fff; color: transparent; font-size: 13px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 11px; cursor: pointer; transition: background .12s ease, border-color .12s ease, transform .12s ease; }
+  .part-check.on { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .part-check:active { transform: scale(.9); }
 </style>
 </head>
 <body>
@@ -367,10 +380,10 @@
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.21.6"></script>
-<script src="data/extra.js?v=2.21.6"></script>
-<script src="data/idv.js?v=2.21.6"></script>
-<script src="data/biz.js?v=2.21.6"></script>
+<script src="data/units.js?v=2.22.0"></script>
+<script src="data/extra.js?v=2.22.0"></script>
+<script src="data/idv.js?v=2.22.0"></script>
+<script src="data/biz.js?v=2.22.0"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -379,6 +392,38 @@ const load = () => { try { return JSON.parse(localStorage.getItem(LS) || '{}'); 
 const save = p => saveLocal(LS, JSON.stringify(p));
 const loadFavs = () => { try { return JSON.parse(localStorage.getItem(LS_FAV) || '[]'); } catch { return []; } };
 const saveFavs = f => saveLocal(LS_FAV, JSON.stringify(f));
+/* ===== Ручные отметки «пройдено» (галочки) =====
+   man = { "<unit>": { u:1, p:{ "<partId>":1 } } }  — u: урок пройден, p: части */
+const LS_MAN = 'tingli-manual-v1';
+const loadMan = () => { try { return JSON.parse(localStorage.getItem(LS_MAN) || '{}'); } catch { return {}; } };
+let man = loadMan();
+const manUnit = u => !!(man[u.unit] && man[u.unit].u);
+const manPart = (u, part) => !!(man[u.unit] && man[u.unit].p && man[u.unit].p[part.id]);
+function manSave() { saveLocal(LS_MAN, JSON.stringify(man)); }
+function manToggleUnit(n, ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  const k = String(n); man[k] = man[k] || {};
+  if (man[k].u) delete man[k].u; else man[k].u = 1;
+  if (!man[k].u && !(man[k].p && Object.keys(man[k].p).length)) delete man[k];
+  manSave(); refreshAfterMan();
+}
+function manTogglePart(n, pid, ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  const k = String(n); man[k] = man[k] || {}; man[k].p = man[k].p || {};
+  const p = String(pid);
+  if (man[k].p[p]) delete man[k].p[p]; else man[k].p[p] = 1;
+  if (!man[k].u && !Object.keys(man[k].p).length) delete man[k];
+  manSave(); refreshAfterMan();
+}
+function refreshAfterMan() {
+  if (curUnit) openUnit(curUnit.unit);
+  else if (tab === 'mine') renderMine();
+  else if (tab === 'idv') renderIdv();
+  else if (tab === 'team') renderTeam();
+  else if (tab === 'biz') renderBiz();
+  else if (tab === 'favs') renderFavs();
+  else renderUnits();
+}
 const POS_KEY = 'tingli-pos-v1';
 const posSave = () => { if (!curUnit || !curPart) return; try { const m = JSON.parse(localStorage.getItem(POS_KEY) || '{}'); m[curUnit.unit + ':' + curPart.id] = Math.round(window.scrollY); saveLocal(POS_KEY, JSON.stringify(m)); } catch (e) {} };
 const posRestore = () => { if (!curUnit || !curPart) return; let y = 0; try { const m = JSON.parse(localStorage.getItem(POS_KEY) || '{}'); y = m[curUnit.unit + ':' + curPart.id] || 0; } catch (e) {} window.scrollTo(0, y || 0); };
@@ -390,7 +435,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.21.6';
+const APP_VER = '2.22.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -625,6 +670,19 @@ function mergeProgress(a, b) {
   }
   return out;
 }
+function mergeMan(a, b) {
+  const out = {};
+  for (const u of new Set([...Object.keys(a || {}), ...Object.keys(b || {})])) {
+    const A = (a && a[u]) || {}, B = (b && b[u]) || {};
+    const o = {};
+    if (A.u || B.u) o.u = 1;
+    const p = {}, ks = new Set([...Object.keys(A.p || {}), ...Object.keys(B.p || {})]);
+    for (const k of ks) if ((A.p && A.p[k]) || (B.p && B.p[k])) p[k] = 1;
+    if (Object.keys(p).length) o.p = p;
+    if (o.u || Object.keys(p).length) out[u] = o;
+  }
+  return out;
+}
 function syncToast(msg) {
   const t = document.createElement('div');
   t.textContent = msg;
@@ -640,13 +698,14 @@ async function tryRestore() {
     if (!cloud || !cloud[LS]) return; // облако пустое — локальное уйдёт туда само (sendBackup)
     let changed = false;
     // прогресс, избранное, словарь — объединяем (union, ничего не теряем)
-    for (const k of ['tingli-progress-v1', 'tingli-favs-v1', 'tingli-dict-v1']) {
+    for (const k of ['tingli-progress-v1', 'tingli-favs-v1', 'tingli-dict-v1', 'tingli-manual-v1']) {
       if (!cloud[k]) continue;
       let cv, lv;
       try { cv = JSON.parse(cloud[k]); } catch (e) { continue; }
-      try { lv = JSON.parse(localStorage.getItem(k) || (k === 'tingli-progress-v1' ? '{}' : '[]')); } catch (e) { lv = null; }
+      try { lv = JSON.parse(localStorage.getItem(k) || ((k === 'tingli-progress-v1' || k === 'tingli-manual-v1') ? '{}' : '[]')); } catch (e) { lv = null; }
       let nv = null;
       if (k === 'tingli-progress-v1') nv = mergeProgress(lv || {}, cv);
+      else if (k === 'tingli-manual-v1') nv = mergeMan(lv || {}, cv);
       else if (k === 'tingli-favs-v1') nv = Array.from(new Set([...(lv || []), ...(cv || [])]));
       else if (k === 'tingli-dict-v1') { const seen = new Set((lv || []).map(w => w.zh)); nv = (lv || []).concat((cv || []).filter(w => !seen.has(w.zh))); }
       const ns = JSON.stringify(nv);
@@ -658,7 +717,7 @@ async function tryRestore() {
       if (localStorage.getItem(k) === null) { try { localStorage.setItem(k, cloud[k]); } catch (e) {} changed = true; }
     }
     if (!changed) return;
-    prog = load();
+    prog = load(); man = loadMan();
     syncToast('☁️ Прогресс синхронизирован');
     sendBackup(); // облако = объединение
     const cur = typeof tab !== 'undefined' ? tab : 'lessons';
@@ -738,17 +797,19 @@ function renderMine() {
 }
 function unitCard(u) {
   const s = unitStats(u);
-  return `<div class="unit-card" data-u="${u.unit}" onclick="openUnit(${u.unit})">
+  const mdone = manUnit(u);
+  return `<div class="unit-card ${mdone ? 'unit-done' : ''}" data-u="${u.unit}" onclick="openUnit(${u.unit})">
     <div class="unit-emoji" style="background:${TINTS[u.unit] || '#f7f7f9'}">${u.emoji || EMOJI[u.unit] || '🎧'}</div>
     <div style="flex:1">
       <div class="unit-zh">${esc(unitName(u))}</div>
       <div class="unit-zh-sub">${esc(u.zh)}</div>
       <div class="unit-meta">
-        <div class="pbar"><i style="width:${s.pct}%"></i></div>
+        <div class="pbar"><i style="width:${mdone ? 100 : s.pct}%"></i></div>
         <span class="unit-progress">${s.done}/${s.total}</span>
-        ${s.pct === 100 ? '<span class="done-badge">готово</span>' : ''}
+        ${(mdone || s.pct === 100) ? '<span class="done-badge">готово</span>' : ''}
       </div>
     </div>
+    <button class="uc-check ${mdone ? 'on' : ''}" onclick="manToggleUnit(${u.unit}, event)" title="${mdone ? 'Снять отметку «пройдено»' : 'Отметить пройденным'}" aria-label="пройдено">✓</button>
     ${u.parts.some(p => p.audio) ? `<button class="unit-dl" onclick="offlineUnit(${u.unit}, event)" title="Скачать аудио урока — будет работать без интернета">${dlSvg('dl')}</button>` : ''}
     <div class="unit-arrow">›</div>
   </div>`;
@@ -833,14 +894,21 @@ function openUnit(n) {
   if (fromList) originTab = tab || 'lessons';
   showTabbar(false);
   if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u); else showPlayer(!!partAudioKey);
+  const uStat = unitStats(u), uMan = manUnit(u);
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div><div class="u-title">${esc(unitName(u))}</div><div class="u-sub">${esc(u.zh)}</div></div></div>
+    <div class="unit-bar">
+      <button class="unit-done-btn ${uMan ? 'on' : ''}" onclick="manToggleUnit(${u.unit}, event)">${uMan ? '✓ Пройдено' : 'Отметить пройденным'}</button>
+      <span class="unit-bar-info">${uStat.done}/${uStat.total}</span>
+    </div>
     ${u.parts.map((part, i) => {
       const num = part.kind === 'text' ? '📖' : (partNum(part) || (i + 1 - u.parts.filter((p, j) => j < i && p.kind === 'text').length));
+      const pMark = partDone(u, part) || manPart(u, part);
       return `
       <div class="part" onclick="openPart(${u.unit},${part.id})">
         <div class="part-head">
+          <div class="part-check ${pMark ? 'on' : ''}" onclick="manTogglePart(${u.unit},${part.id},event)" title="${pMark ? 'Снять отметку части' : 'Отметить часть пройденной'}">✓</div>
           <div class="part-num">${num}</div>
           <div style="flex:1">
             <div class="part-title">${esc(part.title)}</div>
