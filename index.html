@@ -302,6 +302,24 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
 }
 .toast.hidden { display: none; }
 
+/* Офлайн-плашка: нет сети / есть неотправленные правки */
+.off-chip {
+  position: fixed; right: 14px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 55;
+  display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 28px);
+  padding: 9px 12px; border-radius: 14px; background: #fff7e6; border: 1px solid #f0c88a;
+  color: #7a4a05; box-shadow: var(--shadow-lg); font-size: 13px; font-weight: 600; line-height: 1.25;
+}
+.off-chip.hidden { display: none !important; }
+.off-chip .off-dot { width: 9px; height: 9px; border-radius: 50%; background: #e0a43c; flex: none; }
+.off-chip.offline { background: #fdeceb; border-color: #efb3ac; color: #8c2f22; }
+.off-chip.offline .off-dot { background: #c0392b; }
+.off-chip button {
+  flex: none; border: none; background: var(--brand); color: #fff; border-radius: 10px;
+  padding: 7px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+}
+.off-chip button[disabled] { opacity: .5; cursor: default; }
+body.logged-out .off-chip { display: none !important; }
+
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .chip {
   display: flex; align-items: center; gap: 6px; background: var(--card);
@@ -814,6 +832,7 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
     </div>
   </div>
 
+  <div id="offChip" class="off-chip hidden"><span class="off-dot"></span><span id="offText"></span><button id="offSync">Синхронизировать</button></div>
   <div id="toast" class="toast hidden"></div>
 
   <div id="hoverCard" class="hover-card hidden"></div>
@@ -1179,7 +1198,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.8.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.9.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1325,12 +1344,24 @@ async function bootstrap() {
     const { data: { user: u } } = await sb.auth.getUser();
     user = u;
   } catch (_) {}
+  if (!user) {
+    // офлайн: getUser ходит в сеть и падает — берём пользователя из локальной сессии
+    try {
+      const { data } = await sb.auth.getSession();
+      if (data && data.session && data.session.user) user = data.session.user;
+    } catch (_) {}
+  }
   if (window.__d) window.__d.m.push('user ' + (Date.now() - window.__d.t) + 'ms');
   if (!user) { showLogin(); return; }  // нет валидной сессии — показываем экран входа
   try {
     const { data: am } = await sb.from('user_managers').select('*').eq('email', user.email).maybeSingle();
-    if (am) CURRENT_ROLE = am.role;
-  } catch (_) {}
+    if (am) { CURRENT_ROLE = am.role; try { localStorage.setItem('crm-role', am.role); } catch (e) {} }
+    else { const c = localStorage.getItem('crm-role'); if (c) CURRENT_ROLE = c; }
+  } catch (_) {
+    // офлайн: роль берём из последнего успешного входа
+    try { const c = localStorage.getItem('crm-role'); if (c) CURRENT_ROLE = c; } catch (e) {}
+  }
+  try { localStorage.setItem('crm-offline-user', JSON.stringify({ email: (user.email || '').toLowerCase(), role: CURRENT_ROLE, at: Date.now() })); } catch (e) {}
   CURRENT_EMAIL = user.email || null;
   Object.keys(WORKLISTS).forEach(k => {
     const can = WORKLISTS[k].emails.includes(CURRENT_EMAIL);
@@ -3458,6 +3489,72 @@ document.getElementById('view').addEventListener('click', async e => {
     toast('Удалено'); render();
   }
 });
+
+// ---------- офлайн: очередь правок и синхронизация ----------
+const OFF = { n: 0, busy: false };
+function swAsk(msg) {
+  return new Promise((res) => {
+    if (!('serviceWorker' in navigator)) return res(null);
+    navigator.serviceWorker.ready.then((reg) => {
+      const sw = reg.active || navigator.serviceWorker.controller;
+      if (!sw) return res(null);
+      const ch = new MessageChannel();
+      ch.port1.onmessage = (e) => res(e.data);
+      try { sw.postMessage(msg, [ch.port2]); } catch (e) { return res(null); }
+      setTimeout(() => res(null), 25000);
+    }).catch(() => res(null));
+  });
+}
+function offWord(n) { const m = n % 100, d = n % 10; if (m > 10 && m < 20) return 'правок'; if (d === 1) return 'правка'; if (d > 1 && d < 5) return 'правки'; return 'правок'; }
+function offRender() {
+  const chip = document.getElementById('offChip');
+  if (!chip) return;
+  const txt = document.getElementById('offText');
+  const btn = document.getElementById('offSync');
+  const offline = !navigator.onLine;
+  if (!OFF.n && !offline) { chip.classList.add('hidden'); return; }
+  chip.classList.remove('hidden');
+  chip.classList.toggle('offline', offline);
+  if (offline) {
+    txt.textContent = OFF.n ? ('Нет сети · не отправлено: ' + OFF.n + ' ' + offWord(OFF.n)) : 'Нет сети · работаем по сохранённым данным';
+    btn.textContent = 'Ждём сеть';
+    btn.disabled = true;
+  } else {
+    txt.textContent = 'Не отправлено: ' + OFF.n + ' ' + offWord(OFF.n);
+    btn.textContent = OFF.busy ? 'Отправляю…' : 'Отправить';
+    btn.disabled = !!OFF.busy;
+  }
+}
+async function offInfo() {
+  const r = await swAsk({ type: 'queue-info' });
+  if (r) { OFF.n = r.n || 0; offRender(); }
+}
+async function offReloadData() { try { await render(); await refreshCounts(); } catch (e) {} }
+async function offFlush() {
+  if (!navigator.onLine || OFF.busy) return;
+  OFF.busy = true; offRender();
+  const r = await swAsk({ type: 'flush' });
+  OFF.busy = false;
+  if (r) {
+    if (r.left != null) OFF.n = r.left;
+    offRender();
+    if (r.ok) toast('Отправлено правок: ' + r.ok + (r.failed ? ' · отклонено базой: ' + r.failed : ''));
+  }
+  if (!OFF.n) await offReloadData();
+}
+window.addEventListener('online', () => { offRender(); offFlush(); });
+window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js?v=' + APP_VER).catch(() => {});
+  navigator.serviceWorker.addEventListener('message', (e) => {
+    const d = e.data || {};
+    if (d.type === 'queue-changed') { OFF.n = d.n || 0; offRender(); if (d.flushed) offReloadData(); }
+  });
+}
+const offSyncBtn = document.getElementById('offSync');
+if (offSyncBtn) offSyncBtn.addEventListener('click', () => offFlush());
+setTimeout(offInfo, 1500);
+window.addEventListener('load', () => setTimeout(offInfo, 800));
 
 // ---------- init ----------
 init();
