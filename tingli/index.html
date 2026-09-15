@@ -385,10 +385,10 @@
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.23.0"></script>
-<script src="data/extra.js?v=2.23.0"></script>
-<script src="data/idv.js?v=2.23.0"></script>
-<script src="data/biz.js?v=2.23.0"></script>
+<script src="data/units.js?v=2.23.1"></script>
+<script src="data/extra.js?v=2.23.1"></script>
+<script src="data/idv.js?v=2.23.1"></script>
+<script src="data/biz.js?v=2.23.1"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -440,7 +440,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.23.0';
+const APP_VER = '2.23.1';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -754,7 +754,7 @@ function renderIdv() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <div class="top-title">小山口语</div><div class="sub">口语课</div>
+      <div class="top-title">口语</div><div class="sub">口语课</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
@@ -781,7 +781,7 @@ function renderTeam() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <div class="top-title">小山团队</div><div class="sub">Для команды · урок 9 сен</div>
+      <div class="top-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
@@ -794,7 +794,7 @@ function renderMine() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <div class="top-title">小山语法</div><div class="sub">李老师课</div>
+      <div class="top-title">语法</div><div class="sub">李老师课</div>
     </div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
 `;
@@ -829,7 +829,7 @@ function renderDict() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <div class="top-title">小山词典</div><div class="sub">我的词典 · ${d.length}</div>
+      <div class="top-title">词典</div><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
     ${d.length ? d.map((w, i) => `
@@ -1237,7 +1237,7 @@ function renderFavs() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <div class="top-title">小山句子</div><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
+      <div class="top-title">句子</div><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
     </div>
     ${items.length ? items.map(it => {
       const isWords = it.ti === null;
