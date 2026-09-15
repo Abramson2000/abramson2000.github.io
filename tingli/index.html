@@ -40,6 +40,8 @@
   .logo { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .logo img { width: 100%; height: 100%; object-fit: contain; }
   .title-img { height: 56px; width: auto; display: block; flex-shrink: 0; }
+  /* заголовок страницы — рукописный шрифт, как на сплэше (без растягивания) */
+  .top-title { font-family: "XSHand", "Zhi Mang Xing", serif; color: var(--red); font-size: 36px; font-weight: 400; letter-spacing: 6px; line-height: 1.1; flex-shrink: 0; padding-left: 2px; }
   .team-title { font-size: 30px; font-weight: 900; color: var(--red-deep); letter-spacing: 3px; font-family: "SimSun","Songti SC","STSong",serif; line-height: 1.05; flex-shrink: 0; }
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; line-height: 1.3; }
   .topbar .dict-clear { margin-left: auto; }
@@ -53,17 +55,20 @@
   .section-title::before { content: ''; width: 4px; height: 19px; border-radius: 3px; background: var(--red); flex-shrink: 0; }
 
   /* Карточка урока */
-  .unit-card { background: var(--card); border-radius: 20px; padding: 15px 16px; margin-bottom: 11px; cursor: pointer; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-card); transition: transform .12s ease, box-shadow .12s ease; }
+  .unit-card { background: var(--card); border-radius: 20px; padding: 15px 14px 15px 16px; margin-bottom: 11px; cursor: pointer; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); transition: transform .12s ease, box-shadow .12s ease; }
   .unit-card:active { transform: scale(.98); box-shadow: 0 1px 3px rgba(29,29,33,.06); }
   .unit-emoji { width: 52px; height: 52px; border-radius: 17px; display: flex; align-items: center; justify-content: center; font-size: 25px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(29,29,33,.04); }
-  .unit-zh { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -.2px; line-height: 1.35; }
-  .unit-zh-sub { font-family: "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13.5px; color: #77777f; margin-top: 2px; letter-spacing: .3px; }
-  .unit-arrow { color: #c9c9cf; font-size: 24px; font-weight: 600; flex-shrink: 0; line-height: 1; margin-left: 2px; font-family: -apple-system, sans-serif; }
-  .unit-meta { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
-  .pbar { width: 92px; height: 5px; border-radius: 99px; background: #e9e8e4; overflow: hidden; }
+  .unit-zh { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  .unit-zh-sub { font-family: "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13px; color: #77777f; margin-top: 2px; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .unit-arrow { color: #c9c9cf; font-size: 22px; font-weight: 600; flex-shrink: 0; line-height: 1; width: 12px; text-align: right; font-family: -apple-system, sans-serif; }
+  .unit-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; min-width: 0; flex-wrap: nowrap; }
+  .pbar { flex: 0 1 92px; min-width: 34px; height: 5px; border-radius: 99px; background: #e9e8e4; overflow: hidden; }
   .pbar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--red-deep), var(--red)); transition: width .4s ease; }
   .unit-progress { font-size: 12px; color: var(--muted); white-space: nowrap; font-weight: 600; }
-  .done-badge { font-size: 11px; font-weight: 700; color: var(--done); background: var(--done-soft); border-radius: 99px; padding: 3px 10px; }
+  .done-badge { font-size: 11px; font-weight: 700; color: var(--done); background: var(--done-soft); border-radius: 99px; padding: 3px 10px; white-space: nowrap; flex-shrink: 0; }
+  .unit-dl-ph { width: 32px; height: 32px; flex-shrink: 0; }
+  .unit-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+  .unit-arrow { color: #c9c9cf; font-size: 22px; font-weight: 600; flex-shrink: 0; line-height: 1; width: 12px; text-align: right; font-family: -apple-system, sans-serif; }
   .unit-dl { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--text); color: #fff; cursor: pointer; margin-right: 4px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(29,29,33,.22); transition: transform .12s ease, background .12s ease; -webkit-appearance: none; appearance: none; }
   .unit-dl svg { width: 15px; height: 15px; display: block; }
   .unit-dl:active { transform: scale(.92); }
@@ -380,10 +385,10 @@
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.22.1"></script>
-<script src="data/extra.js?v=2.22.1"></script>
-<script src="data/idv.js?v=2.22.1"></script>
-<script src="data/biz.js?v=2.22.1"></script>
+<script src="data/units.js?v=2.23.0"></script>
+<script src="data/extra.js?v=2.23.0"></script>
+<script src="data/idv.js?v=2.23.0"></script>
+<script src="data/biz.js?v=2.23.0"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -435,7 +440,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.22.1';
+const APP_VER = '2.23.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -733,7 +738,7 @@ function renderUnits() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <img class="title-img" src="title.png" alt="初级听力"><div class="sub">发展汉语<br>初级听力 II</div>
+      <div class="top-title">小山听力</div><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
     ${UNITS.map(unitCard).join('')}
 `;
@@ -749,7 +754,7 @@ function renderIdv() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <img class="title-img" src="idv.png" alt="口语"><div class="sub">口语课</div>
+      <div class="top-title">小山口语</div><div class="sub">口语课</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
@@ -762,7 +767,7 @@ function renderBiz() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <div class="team-title">商务汉语</div><div class="sub">经贸初级汉语口语</div>
+      <div class="top-title">小山商务</div><div class="sub">经贸初级汉语口语</div>
     </div>
     ${BIZ.length ? BIZ.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
@@ -776,7 +781,7 @@ function renderTeam() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <div class="team-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
+      <div class="top-title">小山团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
 `;
@@ -789,7 +794,7 @@ function renderMine() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <img class="title-img" src="grammar.png" alt="语法"><div class="sub">李老师课</div>
+      <div class="top-title">小山语法</div><div class="sub">李老师课</div>
     </div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
 `;
@@ -800,7 +805,7 @@ function unitCard(u) {
   const mdone = manUnit(u);
   return `<div class="unit-card ${mdone ? 'unit-done' : ''}" data-u="${u.unit}" onclick="openUnit(${u.unit})">
     <div class="unit-emoji" style="background:${TINTS[u.unit] || '#f7f7f9'}">${u.emoji || EMOJI[u.unit] || '🎧'}</div>
-    <div style="flex:1">
+    <div style="flex:1;min-width:0">
       <div class="unit-zh">${esc(unitName(u))}</div>
       <div class="unit-zh-sub">${esc(u.zh)}</div>
       <div class="unit-meta">
@@ -809,9 +814,11 @@ function unitCard(u) {
         ${(mdone || s.pct === 100) ? '<span class="done-badge">готово</span>' : ''}
       </div>
     </div>
-    <button class="uc-check ${mdone ? 'on' : ''}" onclick="manToggleUnit(${u.unit}, event)" title="${mdone ? 'Снять отметку «пройдено»' : 'Отметить пройденным'}" aria-label="пройдено">✓</button>
-    ${u.parts.some(p => p.audio) ? `<button class="unit-dl" onclick="offlineUnit(${u.unit}, event)" title="Скачать аудио урока — будет работать без интернета">${dlSvg('dl')}</button>` : ''}
-    <div class="unit-arrow">›</div>
+    <div class="unit-right">
+      <button class="uc-check ${mdone ? 'on' : ''}" onclick="manToggleUnit(${u.unit}, event)" title="${mdone ? 'Снять отметку «пройдено»' : 'Отметить пройденным'}" aria-label="пройдено">✓</button>
+      ${u.parts.some(p => p.audio) ? `<button class="unit-dl" onclick="offlineUnit(${u.unit}, event)" title="Скачать аудио урока — будет работать без интернета">${dlSvg('dl')}</button>` : '<span class="unit-dl-ph"></span>'}
+      <div class="unit-arrow">›</div>
+    </div>
   </div>`;
 }
 
@@ -822,7 +829,7 @@ function renderDict() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <img class="title-img" src="dict.png" alt="词典"><div class="sub">我的词典 · ${d.length}</div>
+      <div class="top-title">小山词典</div><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
     ${d.length ? d.map((w, i) => `
@@ -1230,7 +1237,7 @@ function renderFavs() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png" alt="听"></div>
-      <img class="title-img" src="favs.png" alt="句子"><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
+      <div class="top-title">小山句子</div><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
     </div>
     ${items.length ? items.map(it => {
       const isWords = it.ti === null;
