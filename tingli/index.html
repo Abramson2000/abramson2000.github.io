@@ -9,8 +9,10 @@
 <link rel="apple-touch-icon" href="tingli-icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=2.23.2') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.23.2') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=2.23.3') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.23.3') format('woff2'); }
+  /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.23.3') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -29,8 +31,8 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html { scrollbar-gutter: stable; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; letter-spacing: 0; }
-  .zh, .zh-opt, .fill, .script, .word .zh { font-family: "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; }
+  body { font-family: "TLCJK", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; letter-spacing: 0; }
+  .zh, .zh-opt, .fill, .script, .word .zh { font-family: "TLCJK", "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; }
   .app { max-width: 720px; margin: 0 auto; padding: 16px 16px 130px; }
   body.has-player .app { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 
@@ -41,8 +43,8 @@
   .logo img { width: 100%; height: 100%; object-fit: contain; }
   .title-img { height: 56px; width: auto; display: block; flex-shrink: 0; }
   /* заголовок страницы — рукописный шрифт, как на сплэше (без растягивания) */
-  .top-title { font-family: "XSHand", "Zhi Mang Xing", serif; color: var(--red); font-size: 36px; font-weight: 400; letter-spacing: 6px; line-height: 1.1; flex-shrink: 0; padding-left: 2px; }
-  .team-title { font-size: 30px; font-weight: 900; color: var(--red-deep); letter-spacing: 3px; font-family: "SimSun","Songti SC","STSong",serif; line-height: 1.05; flex-shrink: 0; }
+  .top-title { font-family: "XSHand", "TLCJK", "Zhi Mang Xing", serif; color: var(--red); font-size: 36px; font-weight: 400; letter-spacing: 6px; line-height: 1.1; flex-shrink: 0; padding-left: 2px; }
+  .team-title { font-size: 30px; font-weight: 900; color: var(--red-deep); letter-spacing: 3px; font-family: "TLCJK", "SimSun","Songti SC","STSong",serif; line-height: 1.05; flex-shrink: 0; }
   .topbar .sub { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .2px; line-height: 1.3; }
   .topbar .dict-clear { margin-left: auto; }
   .ver-line { padding: 20px 18px 30px; font-size: 12.5px; color: #8e8e96; letter-spacing: .4px; text-align: center; font-weight: 500; }
@@ -58,9 +60,9 @@
   .unit-card { background: var(--card); border-radius: 20px; padding: 15px 14px 15px 16px; margin-bottom: 11px; cursor: pointer; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); transition: transform .12s ease, box-shadow .12s ease; }
   .unit-card:active { transform: scale(.98); box-shadow: 0 1px 3px rgba(29,29,33,.06); }
   .unit-emoji { width: 52px; height: 52px; border-radius: 17px; display: flex; align-items: center; justify-content: center; font-size: 25px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(29,29,33,.04); }
-  .unit-zh { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
-  .unit-zh-sub { font-family: "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13px; color: #77777f; margin-top: 2px; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .unit-arrow { color: #c9c9cf; font-size: 22px; font-weight: 600; flex-shrink: 0; line-height: 1; width: 12px; text-align: right; font-family: -apple-system, sans-serif; }
+  .unit-zh { font-family: "TLCJK", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  .unit-zh-sub { font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13px; color: #77777f; margin-top: 2px; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .unit-arrow { color: #c9c9cf; font-size: 22px; font-weight: 600; flex-shrink: 0; line-height: 1; width: 12px; text-align: right; font-family: "TLCJK", -apple-system, sans-serif; }
   .unit-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; min-width: 0; flex-wrap: nowrap; }
   .pbar { flex: 0 1 92px; min-width: 34px; height: 5px; border-radius: 99px; background: #e9e8e4; overflow: hidden; }
   .pbar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--red-deep), var(--red)); transition: width .4s ease; }
@@ -68,7 +70,7 @@
   .done-badge { font-size: 11px; font-weight: 700; color: var(--done); background: var(--done-soft); border-radius: 99px; padding: 3px 10px; white-space: nowrap; flex-shrink: 0; }
   .unit-dl-ph { width: 32px; height: 32px; flex-shrink: 0; }
   .unit-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
-  .unit-arrow { color: #c9c9cf; font-size: 22px; font-weight: 600; flex-shrink: 0; line-height: 1; width: 12px; text-align: right; font-family: -apple-system, sans-serif; }
+  .unit-arrow { color: #c9c9cf; font-size: 22px; font-weight: 600; flex-shrink: 0; line-height: 1; width: 12px; text-align: right; font-family: "TLCJK", -apple-system, sans-serif; }
   .unit-dl { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--text); color: #fff; cursor: pointer; margin-right: 4px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(29,29,33,.22); transition: transform .12s ease, background .12s ease; -webkit-appearance: none; appearance: none; }
   .unit-dl svg { width: 15px; height: 15px; display: block; }
   .unit-dl:active { transform: scale(.92); }
@@ -77,7 +79,7 @@
   .unit-dl:disabled { opacity: .55; }
 
   .u-title { font-size: 21px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 2px; }
-  .u-sub { font-family: "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13.5px; color: var(--muted); margin-bottom: 14px; letter-spacing: .3px; }
+  .u-sub { font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13.5px; color: var(--muted); margin-bottom: 14px; letter-spacing: .3px; }
 
   /* Список частей */
   .part { background: var(--card); border-radius: 18px; margin-bottom: 11px; overflow: hidden; box-shadow: var(--shadow-card); cursor: pointer; transition: transform .12s ease; }
@@ -85,7 +87,7 @@
   .part-head { display: flex; align-items: center; gap: 13px; padding: 14px 15px; }
   .part-num { width: 31px; height: 31px; border-radius: 11px; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; background: var(--red); box-shadow: 0 2px 6px rgba(198,55,23,.28); }
   .part-title { font-weight: 650; font-size: 15.5px; flex: 1; letter-spacing: -.2px; }
-  .part-zh { font-family: "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .2px; }
+  .part-zh { font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .2px; }
   .part-arrow { color: #c9c9cf; font-size: 22px; font-weight: 600; }
   .lesson-img { width: 100%; border-radius: 16px; box-shadow: 0 6px 20px rgba(29,29,33,.14); margin: 2px 0 14px; display: block; }
   .lesson-text { background: var(--card); border-radius: 22px; padding: 24px 22px; box-shadow: var(--shadow-card); }
@@ -116,7 +118,7 @@
   .tdot.bad { background: var(--red); }
   .task-card { background: var(--card); border-radius: 24px; padding: 22px 18px; box-shadow: var(--shadow-card); }
   .task-q-ru { font-size: 18.5px; font-weight: 650; margin-bottom: 5px; line-height: 1.45; letter-spacing: -.2px; }
-  .task-q-zh { font-size: 15.5px; color: #6d6d75; margin-bottom: 15px; line-height: 1.55; font-family: "SimSun", "Songti SC", "STSong", serif; }
+  .task-q-zh { font-size: 15.5px; color: #6d6d75; margin-bottom: 15px; line-height: 1.55; font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; }
   .task-q { font-size: 17.5px; margin-bottom: 13px; line-height: 1.55; font-weight: 600; letter-spacing: -.1px; }
   .task-q .hl { background: var(--yellow); font-weight: 700; border-radius: 5px; padding: 0 4px; }
   .task-qru { font-size: 13px; color: var(--muted); margin: -6px 0 13px; line-height: 1.55; font-weight: 400; }
@@ -196,7 +198,7 @@
   .word.sel { background: #fbeae5; box-shadow: inset 0 0 0 1.5px var(--red); padding-left: 10px; padding-right: 10px; border-radius: 14px; }
   .dict-send-bar { position: sticky; bottom: 0; padding: 12px 16px 18px; background: linear-gradient(transparent, var(--bg) 30%); }
   .dict-item { display: flex; align-items: center; gap: 13px; background: var(--card); border-radius: 18px; padding: 12px 15px; margin: 9px 16px; box-shadow: var(--shadow-card); }
-  .dict-zh { font-size: 19.5px; font-weight: 600; min-width: 92px; font-family: "SimSun", "Songti SC", "STSong", serif; }
+  .dict-zh { font-size: 19.5px; font-weight: 600; min-width: 92px; font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; }
   .dict-body { flex: 1; min-width: 0; }
   .dict-py { color: var(--muted); font-size: 13px; }
   .dict-ru { font-size: 14px; color: var(--text); text-align: left; }
@@ -228,7 +230,7 @@
   .tabbar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sbw); max-width: 82vw; box-shadow: 0 0 44px rgba(29,29,33,.22); background: rgba(255,255,255,.93); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-right: 1px solid rgba(29,29,33,.07); display: none; flex-direction: column; align-items: stretch; gap: 2px; padding: calc(12px + env(safe-area-inset-top)) 10px 14px; z-index: 60; overflow-y: auto; }
   .sb-brand { display: flex; align-items: center; gap: 16px; padding: 4px 8px 22px; }
   .sb-brand img { width: 61px; height: 61px; object-fit: contain; flex-shrink: 0; }
-  .sb-name { font-size: 22px; font-weight: 800; line-height: 1.15; font-family: "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; }
+  .sb-name { font-size: 22px; font-weight: 800; line-height: 1.15; font-family: "TLCJK", "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; }
   .sb-sub { font-size: 15px; color: var(--muted); font-weight: 700; letter-spacing: .2px; }
   .tab { display: flex; flex-direction: row; align-items: center; gap: 16px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 14px 12px; border-radius: 19px; width: 100%; text-align: left; transition: background .15s ease; }
   .tab:hover { background: rgba(29,29,33,.04); }
@@ -237,13 +239,13 @@
   .tab .ic-img-on { display: none; }
   .tab.active .ic-img-on { display: block; }
   .tab.active .ic-img-off { display: none; }
-  .tab-label { display: flex; flex-direction: column; align-items: flex-start; font-size: 22px; font-weight: 700; color: #6e6e76; white-space: nowrap; letter-spacing: .3px; font-family: "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; line-height: 1.12; }
-  .tab-ru { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif; font-weight: 300; font-size: 13.5px; letter-spacing: .2px; color: #a2a2aa; margin-top: 3px; }
+  .tab-label { display: flex; flex-direction: column; align-items: flex-start; font-size: 22px; font-weight: 700; color: #6e6e76; white-space: nowrap; letter-spacing: .3px; font-family: "TLCJK", "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; line-height: 1.12; }
+  .tab-ru { font-family: "TLCJK", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif; font-weight: 300; font-size: 13.5px; letter-spacing: .2px; color: #a2a2aa; margin-top: 3px; }
   .tab.active .tab-ru { color: var(--red-deep); opacity: .72; }
   .tab.active { background: var(--red-soft); }
   .tab.active .tab-label { color: var(--red-deep); }
   .sb-ver { margin-top: auto; padding: 18px 12px calc(6px + env(safe-area-inset-bottom)); font-size: 12px; color: #a6a6ae; letter-spacing: .3px; text-align: left; font-weight: 500; }
-  .ic-tuan { background: var(--red); color: #fff; font-size: 27px; font-weight: 800; font-family: "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
+  .ic-tuan { background: var(--red); color: #fff; font-size: 27px; font-weight: 800; font-family: "TLCJK", "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
   /* меню — оверлей поверх контента; контент справа полупрозрачный, пока меню открыто */
   .app, .player { transition: opacity .3s ease; }
   body.sb-open .app, body.sb-open .player { opacity: .45; }
@@ -299,7 +301,7 @@
   .splash-logo { width: 128px; height: 128px; display: flex; align-items: center; justify-content: center; }
   .splash-logo img { width: 100%; height: 100%; object-fit: contain; }
   .splash-title { width: 264px; height: auto; }
-  .splash-title-text { font-family: "XSHand", "SimSun", "Songti SC", "STSong", serif; font-size: 58px; font-weight: 400; color: var(--red); letter-spacing: 8px; padding-left: 8px; line-height: 1.25; transform: scaleY(1.4); transform-origin: center center; }
+  .splash-title-text { font-family: "XSHand", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-size: 58px; font-weight: 400; color: var(--red); letter-spacing: 8px; padding-left: 8px; line-height: 1.25; transform: scaleY(1.4); transform-origin: center center; }
   .splash-sub { font-size: 13px; color: #8f8f97; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; }
 
 
@@ -385,10 +387,10 @@
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.23.2"></script>
-<script src="data/extra.js?v=2.23.2"></script>
-<script src="data/idv.js?v=2.23.2"></script>
-<script src="data/biz.js?v=2.23.2"></script>
+<script src="data/units.js?v=2.23.3"></script>
+<script src="data/extra.js?v=2.23.3"></script>
+<script src="data/idv.js?v=2.23.3"></script>
+<script src="data/biz.js?v=2.23.3"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -440,7 +442,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.23.2';
+const APP_VER = '2.23.3';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
