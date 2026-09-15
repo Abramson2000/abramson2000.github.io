@@ -1,17 +1,17 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.23.4 (2026-09-15: уроки 听力 4/5/6 по новой методике — разбор, говорим сами, ДЗ) + font-build: simsun-subset-STSong-1459 — маркер прекэша
+// data-build: v2.24.0 (2026-09-15: офлайн-скачивание приложения — кнопка «Скачать для полёта», статус, надёжный прекэш) + font-build: simsun-subset-STSong-1459 — маркер прекэша
 const CACHE = 'tingli-cache-v1';
 
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './data/units.js',
-  './data/extra.js',
-  './data/idv.js',
-  './data/biz.js',
+  './data/units.js?v=2.24.0',
+  './data/extra.js?v=2.24.0',
+  './data/idv.js?v=2.24.0',
+  './data/biz.js?v=2.24.0',
   './apple-touch-icon-v2.png',
   './apple-touch-icon.png',
   './bg.jpg',
@@ -75,16 +75,59 @@ const ASSETS = [
   './fonts/xiaoshan-klee.woff2'
 ];
 
+// скачать все файлы приложения в кэш (по одному — сбой одного файла не ломает остальные)
+async function precache(onProgress) {
+  const c = await caches.open(CACHE);
+  let done = 0;
+  const failed = [];
+  for (const u of ASSETS) {
+    try {
+      const r = await fetch(u, { cache: 'reload' });
+      if (!r || !r.ok) throw new Error(String(r && r.status));
+      await c.put(u, r.clone());
+    } catch (e) {
+      failed.push(u);
+    }
+    done++;
+    if (onProgress) onProgress(done, ASSETS.length, failed.length);
+  }
+  return { total: ASSETS.length, ok: ASSETS.length - failed.length, failed: failed };
+}
+
+// что уже лежит в кэше (без учёта query — версии меняются)
+async function cacheStatus() {
+  const c = await caches.open(CACHE);
+  let have = 0;
+  const missing = [];
+  for (const u of ASSETS) {
+    let hit = null;
+    try { hit = await c.match(u); } catch (e) {}
+    if (!hit) { try { hit = await c.match(u, { ignoreSearch: true }); } catch (e2) {} }
+    if (hit) have++; else missing.push(u);
+  }
+  return { total: ASSETS.length, have: have, missing: missing, ready: have === ASSETS.length };
+}
+
+self.addEventListener('message', (e) => {
+  const data = e.data || {};
+  const port = e.ports && e.ports[0];
+  const reply = (msg) => { try { if (port) port.postMessage(msg); } catch (_) {} };
+  if (data.type === 'status') {
+    cacheStatus().then((s) => reply(Object.assign({ type: 'status' }, s))).catch(() => reply({ type: 'status', total: ASSETS.length, have: 0, ready: false }));
+    return;
+  }
+  if (data.type === 'precache') {
+    precache((done, total, failed) => { try { if (port) port.postMessage({ type: 'progress', done: done, total: total, failed: failed }); } catch (_) {} })
+      .then((r) => reply(Object.assign({ type: 'precache-done' }, r)))
+      .catch(() => reply({ type: 'precache-done', total: ASSETS.length, ok: 0, failed: ASSETS }));
+    return;
+  }
+});
+
 self.addEventListener('install', (e) => {
   // cache:'reload' — тянем свежие файлы в обход HTTP-кеша (иначе после деплоя
   // можно закешировать старые data/*.js и «потерять» новый урок)
-  e.waitUntil(
-    caches.open(CACHE)
-      .then((c) => Promise.all(ASSETS.map((u) =>
-        fetch(u, { cache: 'reload' }).then((r) => { if (r && r.ok) return c.put(u, r); }).catch(() => null)
-      )))
-      .then(() => self.skipWaiting())
-  );
+  e.waitUntil(precache().then(() => self.skipWaiting()).catch(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -126,6 +169,6 @@ self.addEventListener('fetch', (e) => {
         caches.open(CACHE).then((c) => c.put(req, cp));
       }
       return r;
-    }).catch(() => hit))
+    }).catch(() => caches.match(req, { ignoreSearch: true }).then((loose) => loose || hit)))
   );
 });

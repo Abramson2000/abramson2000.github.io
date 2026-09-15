@@ -405,3 +405,7 @@ button { color: inherit; }
 .offline-step small { display: block; margin-top: 2px; color: var(--muted); font-size: 12.5px; line-height: 1.4; }
 .offline-note { margin: 0 0 20px !important; padding: 12px 14px; border-radius: 12px; background: var(--lime-soft); color: var(--ink) !important; font-size: 13px !important; }
 .modal-ok { width: 100%; padding: 13px; font-size: 15px; }
+.offline-dl { display: grid; gap: 8px; margin: 0 0 14px; }
+.offline-dl .secondary-button { width: 100%; }
+.offline-dl-status { margin: 0; color: var(--muted); font-size: 12.5px; text-align: center; }
+.offline-pill.ready { border-color: var(--green); background: var(--mint); color: var(--green); }

@@ -433,6 +433,7 @@ function boot(user) {
   const ma = $('mobileAvatar');
   if (ma) ma.textContent = USER.name.slice(0, 1).toUpperCase();
   syncChrome();
+  initOffline();
   switchTab(S.tab);
   cloudLoad().then(() => { syncChrome(); switchTab(S.tab); });
 }
@@ -460,7 +461,7 @@ async function initAuth() {
 }
 function bindLogin() {
   // модалка «Работает в полёте» (офлайн-режим)
-  const openModal = () => { const m = $('offlineModal'); if (m) m.classList.remove('hidden'); };
+  const openModal = () => { const m = $('offlineModal'); if (m) m.classList.remove('hidden'); offlineRefreshStatus(); };
   const closeModal = () => { const m = $('offlineModal'); if (m) m.classList.add('hidden'); };
   const hint = $('offlineHintBtn');
   if (hint) hint.addEventListener('click', openModal);
@@ -506,6 +507,71 @@ function bindLogin() {
   if (xpPill) xpPill.addEventListener('click', () => switchTab('progress'));
   const pill = $('offlinePill');
   if (pill) pill.addEventListener('click', openModal);
+  const dl = $('offlineDl');
+  if (dl) dl.addEventListener('click', offlineDownload);
+}
+// ===== офлайн: скачивание приложения на устройство + статус =====
+function swPost(msg, onProgress) {
+  return new Promise((resolve) => {
+    if (!('serviceWorker' in navigator)) return resolve(null);
+    const send = (sw) => {
+      if (!sw) return resolve(null);
+      let ch;
+      try { ch = new MessageChannel(); } catch (e) { return resolve(null); }
+      ch.port1.onmessage = (e) => {
+        const d = e.data || {};
+        if (d.type === 'progress') { if (onProgress) onProgress(d); return; }
+        resolve(d);
+      };
+      try { sw.postMessage(msg, [ch.port2]); } catch (e) { return resolve(null); }
+      setTimeout(() => resolve(null), 30000);
+    };
+    navigator.serviceWorker.ready
+      .then((reg) => send(reg.active || navigator.serviceWorker.controller))
+      .catch(() => send(navigator.serviceWorker.controller));
+  });
+}
+async function offlineRefreshStatus() {
+  const el = $('offlineDlStatus');
+  const btn = $('offlineDl');
+  const r = await swPost({ type: 'status' });
+  const pill = $('offlinePill');
+  if (pill) pill.classList.toggle('ready', !!(r && r.ready));
+  if (!el) return;
+  if (!r) { el.textContent = 'Проверить не удалось — откройте приложение с интернетом и обновите страницу.'; return; }
+  if (r.ready) {
+    el.textContent = 'Всё загружено: ' + r.total + ' из ' + r.total + ' файлов. Можно в полёт.';
+    if (btn) { btn.textContent = 'Уже скачано'; btn.disabled = false; }
+  } else {
+    el.textContent = 'Загружено ' + r.have + ' из ' + r.total + ' файлов.';
+    if (btn) { btn.textContent = 'Скачать для офлайна (' + (r.total - r.have) + ')'; btn.disabled = false; }
+  }
+}
+async function offlineDownload() {
+  const el = $('offlineDlStatus');
+  const btn = $('offlineDl');
+  if (btn) { btn.disabled = true; btn.textContent = 'Скачиваю…'; }
+  const r = await swPost({ type: 'precache' }, (d) => {
+    if (el) el.textContent = 'Скачиваю… ' + d.done + ' из ' + d.total + (d.failed ? ' · ошибок: ' + d.failed : '');
+  });
+  if (!r) {
+    if (el) el.textContent = 'Не получилось: нет доступа к сервис-воркеру. Обновите страницу при интернете.';
+    if (btn) { btn.disabled = false; btn.textContent = 'Скачать для офлайна'; }
+    return;
+  }
+  const bad = (r.failed && r.failed.length) || 0;
+  if (bad) {
+    if (el) el.textContent = 'Скачано ' + r.ok + ' из ' + r.total + '. Не дались: ' + bad + ' файл(ов) — попробуйте ещё раз при хорошей связи.';
+    if (btn) { btn.disabled = false; btn.textContent = 'Докачать'; }
+  } else {
+    if (el) el.textContent = 'Всё загружено: ' + r.total + ' из ' + r.total + ' файлов. Можно в полёт.';
+    if (btn) { btn.disabled = false; btn.textContent = 'Уже скачано'; }
+    offlineRefreshStatus();
+  }
+}
+function initOffline() {
+  window.addEventListener('offline', () => toast('Нет сети — работаем офлайн'));
+  window.addEventListener('online', () => { toast('Сеть вернулась — синхронизирую прогресс'); if (_cloudReady && USER) cloudLoad(); });
 }
 const $ = (id) => document.getElementById(id);
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
