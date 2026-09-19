@@ -10,9 +10,9 @@
 <link rel="manifest" href="manifest.json">
 <style>
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=2.23.3') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.29.1') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.30.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.29.1') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.30.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -398,10 +398,10 @@
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.29.1"></script>
-<script src="data/extra.js?v=2.29.1"></script>
-<script src="data/idv.js?v=2.29.1"></script>
-<script src="data/biz.js?v=2.29.1"></script>
+<script src="data/units.js?v=2.30.0"></script>
+<script src="data/extra.js?v=2.30.0"></script>
+<script src="data/idv.js?v=2.30.0"></script>
+<script src="data/biz.js?v=2.30.0"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -453,7 +453,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.29.1';
+const APP_VER = '2.30.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -902,16 +902,28 @@ function dictClear() {
   renderDict();
 }
 
+// Единые значки частей во всех уроках (иероглифы в красном чипе):
+// 句 фразы · 词 слова · 业 ДЗ · 文 текст/разбор · 话 диалог · 听 аудирование без скрипта · 检 проверка
+const ICO_FRAZ = '句', ICO_WORD = '词', ICO_HW = '业', ICO_TEXT = '文', ICO_DLG = '话', ICO_LISTEN = '听', ICO_CHECK = '检';
+function hasTxt(part) { return !!(part && part.text && String(part.text).trim()); }
+function isDlg(part) {
+  const t = (part.title || ''), tz = (part.titleZh || '');
+  return /^\s*диалог/i.test(t) || /对话/.test(tz) || /对话/.test(t);
+}
+function isChk(part) {
+  const t = (part.title || '') + ' ' + (part.titleZh || '');
+  return /проверь себя|проверк|练习|соедини|连线|итоговое упражн/i.test(t);
+}
 function partNum(part) {
-  // Единые значки частей во всех уроках: фразы — 💬, слова — 📕 (см. partIco)
-  if (part.kind === 'words') return partIco(part);
   if (part.kind === 'hw') return ICO_HW;
-  if (part.kind === 'text') return ICO_TEXT;
-  // номер части = номер аудио: '2-5-1.mp3' → '5-1'
+  if (part.kind === 'words') return partIco(part);
+  if (!hasTxt(part) && part.audio) return ICO_LISTEN;   // слушать без скрипта / задание на прослушивание
+  if (isDlg(part)) return ICO_DLG;
+  if (isChk(part)) return ICO_CHECK;
+  if (hasTxt(part)) return ICO_TEXT;
+  // остаток: номер части = номер аудио: '2-5-1.mp3' → '5-1'
   return (part.audio || '').replace(/^\d+-/, '').replace(/\.mp3$/, '');
 }
-// Один и тот же значок для «Фраз» и один и тот же для «Слов» — во ВСЕХ уроках
-const ICO_FRAZ = '句', ICO_WORD = '词', ICO_HW = '业', ICO_TEXT = '文';
 function partIco(part) {
   const t = (part.title || ''), tz = (part.titleZh || '');
   if (/фраз/i.test(t) || /短语/.test(tz) || /短语/.test(t)) return ICO_FRAZ;
