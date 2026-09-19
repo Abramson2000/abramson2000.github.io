@@ -180,6 +180,7 @@ const S = {
   spicedDone: [],        // изученные уроки SPICED — курс 1а (локально, не в облаке)
   proDone: [],           // изученные уроки ProActive — курс 5 (локально, не в облаке)
   xDone: {},             // доп-курсы (x4): пройденные уроки { id: [индексы уроков] } (локально + облако)
+  scStat: {},            // практики «Проверь себя»: { id: { a: [отвеченные вопросы], r: [верные] } } (локально + облако)
   // тренажёр
   tMode: null, tIdx: 0, tPick: null, tScore: 0, tOrder: [],
   // кейс
@@ -193,6 +194,7 @@ function loadState() {
     S.spPracticed = r.spPracticed || []; S.medPracticed = r.medPracticed || []; S.proPracticed = r.proPracticed || [];
     S.xp = r.xp || 0; S.correct = r.correct || 0; S.attempts = r.attempts || 0;
     S.cDone = r.cDone || [];
+    if (r.scs && typeof r.scs === 'object') S.scStat = r.scs;
     if (r.xd && typeof r.xd === 'object') S.xDone = r.xd;
     if (['program', 'theory', 'practice', 'cheat', 'progress'].includes(r.tab)) S.tab = r.tab;
     // вернуться на то же место в теории: открытый доп-курс и его урок
@@ -207,7 +209,7 @@ S.syncAt = null;       // время последней успешной син�
 S.dirty = false;       // есть несохранённые изменения
 
 function syncPayload() {
-  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xd: S.xDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
+  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xd: S.xDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, scs: S.scStat, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
 }
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
@@ -356,8 +358,30 @@ function pendSet(on) { try { if (on) localStorage.setItem(pendKey(), String(Date
 function hasPending() { try { return !!localStorage.getItem(pendKey()); } catch (e) { return false; } }
 function sigOf(o) { // «отпечаток» прогресса: по нему понимаем, разошлись ли устройство и сервер
   o = o || {};
-  return JSON.stringify([o.lesson || 0, o.done || [], o.practiced || [], o.spPracticed || [], o.medPracticed || [], o.proPracticed || [], o.spicedDone || [], o.medDone || [], o.proDone || [], o.xp || 0]);
+  return JSON.stringify([o.lesson || 0, o.done || [], o.practiced || [], o.spPracticed || [], o.medPracticed || [], o.proPracticed || [], o.spicedDone || [], o.medDone || [], o.proDone || [], o.xp || 0, o.cDone || [], canonMap(o.xd), canonScs(o.scs)]);
 }
+function canonMap(m) { // стабильный порядок ключей и значений — иначе сравнение врёт
+  const out = {};
+  Object.keys(m || {}).sort().forEach((k) => { out[k] = (Array.isArray(m[k]) ? m[k].slice() : []).map(Number).sort((a, b) => a - b); });
+  return out;
+}
+function canonScs(m) {
+  const out = {};
+  Object.keys(m || {}).sort().forEach((k) => {
+    const v = m[k] || {};
+    out[k] = { a: (v.a || []).map(Number).sort((a, b) => a - b), r: (v.r || []).map(Number).sort((a, b) => a - b) };
+  });
+  return out;
+}
+function mergeScs(x, y) { // ответы на практики объединяем по курсам
+  const out = {};
+  Object.keys(Object.assign({}, x || {}, y || {})).forEach((id) => {
+    const A = (x || {})[id] || {}, B = (y || {})[id] || {};
+    out[id] = { a: uniArr(A.a, B.a), r: uniArr(A.r, B.r) };
+  });
+  return canonScs(out);
+}
+function scStatOf(id) { const v = (S.scStat || {})[id] || {}; return { a: v.a || [], r: v.r || [] }; }
 function uniArr(a, b) { return Array.from(new Set([].concat(a || [], b || []).map(Number))).sort((x, y) => x - y); }
 function updateSyncUI() {
   const el = document.getElementById('syncStatus');
@@ -473,6 +497,8 @@ async function cloudLoad() {
         if (typeof cloud.extra === 'number' && cloud.extra >= 0) curExtra = cloud.extra;
         if (typeof cloud.xb === 'number' && cloud.xb >= 0) curXb = cloud.xb;
         curMed = null; curSpiced = null; curPro = null;
+        S.cDone = uniArr(local.cDone, cloud.cDone);
+        S.scStat = mergeScs(local.scs, cloud.scs);
         try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
         syncChrome();
         toast('Прогресс подтянут с сервера: ' + cx + ' XP' + (lx && lx !== cx ? ' (было ' + lx + ')' : ''));
@@ -1640,6 +1666,21 @@ function shuffle(a) { const r = [...a]; for (let i = r.length - 1; i > 0; i--) {
 
 // ============ РАЗБОРЫ (кейсы) ============
 const gradeMeta = { good: { t: 'Хороший ход', pts: 2 }, ok: { t: 'Приемлемо', pts: 1 }, bad: { t: 'Ошибка', pts: 0 } };
+// уровень кейса берём из данных (easy / medium / hard)
+const CASE_LVL_RU = { easy: 'НАЧАЛЬНЫЙ', medium: 'СРЕДНИЙ', hard: 'ПРОДВИНУТЫЙ' };
+const CASE_LVL_RANK = { easy: 0, medium: 1, hard: 2 };
+function caseOrder() { // показываем от простого к сложному, внутри уровня — по порядку
+  return cases.map((c, i) => i).sort((a, b) => (CASE_LVL_RANK[cases[a].level] ?? 1) - (CASE_LVL_RANK[cases[b].level] ?? 1) || a - b);
+}
+function casesSummary() {
+  const n = { easy: 0, medium: 0, hard: 0 };
+  cases.forEach((c) => { n[c.level] = (n[c.level] || 0) + 1; });
+  const p = [];
+  if (n.easy) p.push(n.easy + ' ' + pluralN(n.easy, ['начальный', 'начальных', 'начальных']));
+  if (n.medium) p.push(n.medium + ' ' + pluralN(n.medium, ['средний', 'средних', 'средних']));
+  if (n.hard) p.push(n.hard + ' ' + pluralN(n.hard, ['продвинутый', 'продвинутых', 'продвинутых']));
+  return cases.length + ' ' + pluralN(cases.length, ['разбор', 'разбора', 'разборов']) + ': ' + p.join(', ') + '. Идём от простого к сложному.';
+}
 function renderCases() {
   const b = $('practiceContent');
   if (S.cIdx === null) {
@@ -1647,14 +1688,16 @@ function renderCases() {
       <div class="page-heading">
         <p class="eyebrow">КЕЙСЫ · СИМУЛЯЦИИ ВСТРЕЧ</p>
         <h1 id="cases-title">Симуляции встреч</h1>
-        <p>Живой диалог с клиентом: реплика за репликой, разбор каждого хода. Хороший ход — 2, приемлемый — 1, ошибка — 0.</p>
+        <p>Живой диалог с клиентом: реплика за репликой, разбор каждого хода. Хороший ход — 2, приемлемый — 1, ошибка — 0. ${casesSummary()}</p>
       </div>
       <div class="cases-grid">
-        ${cases.map((c, i) => {
+        ${caseOrder().map((i, pos) => {
+        const c = cases[i];
         const cd = S.cDone.includes(i);
+        const lv = CASE_LVL_RU[c.level] || CASE_LVL_RU.medium;
         return `
-        <article class="case-card ${cd ? 'completed' : ''} ${i === 0 ? 'featured' : ''}">
-          <div class="case-card-top"><span>${String(i + 1).padStart(2, '0')}</span><span class="difficulty ${i === 0 ? 'medium' : 'hard'}">${i === 0 ? 'СРЕДНИЙ' : 'ПРОДВИНУТЫЙ'}</span></div>
+        <article class="case-card ${cd ? 'completed' : ''}">
+          <div class="case-card-top"><span>${String(pos + 1).padStart(2, '0')}</span><span class="difficulty ${c.level || 'medium'}">${lv}</span></div>
           <h2>${esc(c.title)}</h2>
           <p>${esc(c.setup.slice(0, 110))}…</p>
           <div class="case-tags"><span>${esc(c.clientName)}</span><span>${c.scenes.length} шагов</span>${cd ? '<span class="case-done">✓ ПРОЙДЕН</span>' : ''}</div>
@@ -1758,6 +1801,14 @@ function selfCheckCatalog() {
     x4.blocks.map((b, i) => ({ num: i + 1, title: b.h, qs: b.practice || [] })), true);
   return cat;
 }
+function scMark(id, qi, ok) { // отмечаем ответ на вопрос практики: answered + (если верно) correct
+  if (!S.scStat) S.scStat = {};
+  const st = S.scStat[id] || (S.scStat[id] = { a: [], r: [] });
+  if (!st.a) st.a = [];
+  if (!st.r) st.r = [];
+  if (!st.a.includes(qi)) st.a.push(qi);
+  if (ok && !st.r.includes(qi)) st.r.push(qi);
+}
 function renderSelfCheck() {
   const b = $('practiceContent');
   if (!S.sc) {
@@ -1769,14 +1820,26 @@ function renderSelfCheck() {
         <p>Вопросы после каждого урока — отвечайте и сверяйтесь с разбором. Прошли урок — его практика открыта здесь для повторения. +5 XP за верный ответ.</p>
       </div>
       <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-        ${cat.map((c) => `
-        <article class="module-card ${c.open ? 'current' : 'locked'}" ${c.open ? `data-sc="${c.id}"` : ''} tabindex="0" role="button" ${c.open ? '' : 'title="Пройдите хотя бы один урок курса — и практика откроется"'}>
+        ${cat.map((c) => {
+        const st = scStatOf(c.id);
+        const total = c.qs.length;
+        const ansN = st.a.length, rightN = st.r.length;
+        const full = ansN >= total;
+        const cls = c.open ? ('current' + (full ? ' practiced' : ansN > 0 ? ' answered' : '')) : 'locked';
+        const foot = !c.open ? '🔒 После первого урока курса'
+          : full ? '✓ Практика пройдена — ' + rightN + ' из ' + total
+          : ansN > 0 ? 'Отвечено ' + ansN + ' из ' + total + ' · ещё ' + (total - ansN)
+          : 'Начать →';
+        return `
+        <article class="module-card ${cls}" ${c.open ? `data-sc="${c.id}"` : ''} tabindex="0" role="button" ${c.open ? '' : 'title="Пройдите хотя бы один урок курса — и практика откроется"'}>
           <div class="module-icon">${c.icon}</div>
-          <span class="status-label">${c.qs.length} ${pluralN(c.qs.length, ['ВОПРОС', 'ВОПРОСА', 'ВОПРОСОВ'])}</span>
+          <span class="status-label">${total} ${pluralN(total, ['ВОПРОС', 'ВОПРОСА', 'ВОПРОСОВ'])}${ansN ? ' · ✓ ' + rightN : ''}</span>
           <h3>${esc(c.name)}</h3>
           <p>${esc(c.sub)}</p>
-          <div class="module-footer"><span>${c.open ? 'Начать →' : '🔒 После первого урока курса'}</span></div>
-        </article>`).join('')}
+          ${c.open && ansN ? `<div class="sc-track"><i class="sc-fill ${full ? 'ok' : ''}" style="width:${Math.round((ansN / total) * 100)}%"></i></div>` : ''}
+          <div class="module-footer"><span class="${full ? 'sc-done-txt' : ''}">${foot}</span></div>
+        </article>`;
+      }).join('')}
       </div>`;
     b.querySelectorAll('[data-sc]').forEach((x) => x.addEventListener('click', () => { S.sc = { id: x.dataset.sc, i: 0, pick: null, score: 0 }; renderSelfCheck(); }));
     return;
@@ -1826,6 +1889,7 @@ function renderSelfCheck() {
     const o = k.options[oi];
     S.sc.pick = oi;
     S.attempts++;
+    scMark(c.id, S.sc.i, !!o.good);
     if (o.good) { S.correct++; S.sc.score++; addXp(5); toast('Верно · +5 XP'); }
     save();
     btn.classList.add(o.good ? 'correct' : 'wrong');
