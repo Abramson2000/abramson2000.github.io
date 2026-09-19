@@ -132,9 +132,10 @@ button { color: inherit; }
 .module-card.current { border: 2px solid var(--green); cursor: pointer; box-shadow: 0 12px 35px rgba(25,94,63,.1); }
 .module-card.current:hover { transform: translateY(-3px); }
 .module-card.completed { background: var(--mint); }
-.module-card.answered { border: 2px solid #b9d9c4; background: linear-gradient(180deg, #ffffff, var(--mint)); }
-.module-card.practiced { background: var(--mint); }
-.module-card.practiced .status-label { color: var(--green); }
+.module-card.answered { border: 1px solid #b9d9c4; border-left: 5px solid var(--green); background: linear-gradient(180deg, #ffffff, var(--mint)); }
+.module-card.practiced { border: 1px solid #b9d9c4; border-left: 5px solid var(--green); background: var(--mint); }
+.module-card.answered .status-label, .module-card.practiced .status-label { color: var(--green); }
+.sc-badge { padding: 3px 9px; border-radius: 999px; background: var(--green); color: #fff; font-size: 9px; font-weight: 900; letter-spacing: .06em; }
 .sc-track { height: 6px; margin-top: 16px; border-radius: 999px; background: #e4ece5; overflow: hidden; }
 .sc-fill { display: block; height: 100%; border-radius: 999px; background: #b9d9c4; }
 .sc-fill.ok { background: var(--green); }

@@ -548,6 +548,7 @@ function boot(user) {
   loadSpiced();
   loadPro();
   loadXDone();
+  scBackfill();
   $('loginScreen').classList.add('hidden');
   $('appShell').style.display = '';
   $('profileName').textContent = USER.name;
@@ -557,7 +558,7 @@ function boot(user) {
   syncChrome();
   initOffline();
   switchTab(S.tab);
-  cloudLoad().then(() => { syncChrome(); switchTab(S.tab); });
+  cloudLoad().then(() => { scBackfill(); syncChrome(); switchTab(S.tab); });
 }
 async function initAuth() {
   SB = (window.supabase && window.supabase.createClient)
@@ -1809,8 +1810,35 @@ function scMark(id, qi, ok) { // отмечаем ответ на вопрос �
   if (!st.a.includes(qi)) st.a.push(qi);
   if (ok && !st.r.includes(qi)) st.r.push(qi);
 }
+// Переносим в отметки «Проверь себя» то, что уже отработано в уроках (объединением, никогда не стираем).
+function scBackfill() {
+  if (!S.scStat) S.scStat = {};
+  const mark = (id, from, to) => {
+    if (!S.scStat[id]) S.scStat[id] = { a: [], r: [] };
+    const st = S.scStat[id];
+    if (!st.a) st.a = [];
+    if (!st.r) st.r = [];
+    for (let q = from; q < to; q++) if (!st.a.includes(q)) st.a.push(q);
+  };
+  const span = (id, counts, doneArr) => {
+    (doneArr || []).forEach((li) => {
+      if (li < 0 || li >= counts.length) return;
+      let from = 0;
+      for (let k = 0; k < li; k++) from += counts[k];
+      mark(id, from, from + counts[li]);
+    });
+  };
+  try {
+    span('spiced', SPICED.map((l) => (l.practice || []).length), S.spPracticed);
+    span('med', MED.map((l) => (l.practice || []).length), S.medPracticed);
+    span('pro', PRO.map((l) => (l.practice || []).length), S.proPracticed);
+    const x4 = EXTRA_ALL.find((e) => e.id === 'x4');
+    if (x4) span('x4', x4.blocks.map((b) => (b.practice || []).length), (S.xDone && S.xDone['x4']) || []);
+  } catch (e) {}
+}
 function renderSelfCheck() {
   const b = $('practiceContent');
+  scBackfill();
   if (!S.sc) {
     const cat = selfCheckCatalog();
     b.innerHTML = `
@@ -1827,17 +1855,18 @@ function renderSelfCheck() {
         const full = ansN >= total;
         const cls = c.open ? ('current' + (full ? ' practiced' : ansN > 0 ? ' answered' : '')) : 'locked';
         const foot = !c.open ? '🔒 После первого урока курса'
-          : full ? '✓ Практика пройдена — ' + rightN + ' из ' + total
+          : full && rightN ? '✓ Практика пройдена — ' + rightN + ' из ' + total
+          : full ? 'Вопросы разобраны в уроках — пройдите заново'
           : ansN > 0 ? 'Отвечено ' + ansN + ' из ' + total + ' · ещё ' + (total - ansN)
           : 'Начать →';
         return `
         <article class="module-card ${cls}" ${c.open ? `data-sc="${c.id}"` : ''} tabindex="0" role="button" ${c.open ? '' : 'title="Пройдите хотя бы один урок курса — и практика откроется"'}>
           <div class="module-icon">${c.icon}</div>
-          <span class="status-label">${total} ${pluralN(total, ['ВОПРОС', 'ВОПРОСА', 'ВОПРОСОВ'])}${ansN ? ' · ✓ ' + rightN : ''}</span>
+          <span class="status-label">${total} ${pluralN(total, ['ВОПРОС', 'ВОПРОСА', 'ВОПРОСОВ'])}${rightN ? ' · ✓ ' + rightN : ''}</span>
           <h3>${esc(c.name)}</h3>
           <p>${esc(c.sub)}</p>
           ${c.open && ansN ? `<div class="sc-track"><i class="sc-fill ${full ? 'ok' : ''}" style="width:${Math.round((ansN / total) * 100)}%"></i></div>` : ''}
-          <div class="module-footer"><span class="${full ? 'sc-done-txt' : ''}">${foot}</span></div>
+          <div class="module-footer"><span class="${full && rightN ? 'sc-done-txt' : ''}">${foot}</span>${ansN ? `<span class="sc-badge">${full ? 'ПРОЙДЕНО' : 'ОТВЕЧЕНО'}</span>` : ''}</div>
         </article>`;
       }).join('')}
       </div>`;
