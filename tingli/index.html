@@ -10,9 +10,9 @@
 <link rel="manifest" href="manifest.json">
 <style>
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=2.23.3') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.28.2') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.28.3') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.28.2') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.28.3') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -85,7 +85,7 @@
   .part { background: var(--card); border-radius: 18px; margin-bottom: 11px; overflow: hidden; box-shadow: var(--shadow-card); cursor: pointer; transition: transform .12s ease; }
   .part:active { transform: scale(.985); }
   .part-head { display: flex; align-items: center; gap: 13px; padding: 14px 15px; }
-  .part-num { width: 31px; height: 31px; border-radius: 11px; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; background: var(--red); box-shadow: 0 2px 6px rgba(198,55,23,.28); }
+  .part-num { width: 31px; height: 31px; border-radius: 11px; font-weight: 700; font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-size: 16.5px; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; background: var(--red); box-shadow: 0 2px 6px rgba(198,55,23,.28); }
   .part-title { font-weight: 650; font-size: 15.5px; flex: 1; letter-spacing: -.2px; }
   .part-zh { font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .2px; }
   .part-arrow { color: #c9c9cf; font-size: 22px; font-weight: 600; }
@@ -398,10 +398,10 @@
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.28.2"></script>
-<script src="data/extra.js?v=2.28.2"></script>
-<script src="data/idv.js?v=2.28.2"></script>
-<script src="data/biz.js?v=2.28.2"></script>
+<script src="data/units.js?v=2.28.3"></script>
+<script src="data/extra.js?v=2.28.3"></script>
+<script src="data/idv.js?v=2.28.3"></script>
+<script src="data/biz.js?v=2.28.3"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -453,7 +453,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.28.2';
+const APP_VER = '2.28.3';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -906,11 +906,12 @@ function partNum(part) {
   // Единые значки частей во всех уроках: фразы — 💬, слова — 📕 (см. partIco)
   if (part.kind === 'words') return partIco(part);
   if (part.kind === 'hw') return ICO_HW;
+  if (part.kind === 'text') return ICO_TEXT;
   // номер части = номер аудио: '2-5-1.mp3' → '5-1'
   return (part.audio || '').replace(/^\d+-/, '').replace(/\.mp3$/, '');
 }
 // Один и тот же значок для «Фраз» и один и тот же для «Слов» — во ВСЕХ уроках
-const ICO_FRAZ = '💬', ICO_WORD = '📘', ICO_HW = '📝';
+const ICO_FRAZ = '句', ICO_WORD = '词', ICO_HW = '业', ICO_TEXT = '文';
 function partIco(part) {
   const t = (part.title || ''), tz = (part.titleZh || '');
   if (/фраз/i.test(t) || /短语/.test(tz) || /短语/.test(t)) return ICO_FRAZ;
@@ -933,7 +934,7 @@ function openUnit(n) {
       <span class="unit-bar-info">${uStat.done}/${uStat.total}</span>
     </div>
     ${u.parts.map((part, i) => {
-      const num = part.kind === 'text' ? '📖' : (partNum(part) || (i + 1 - u.parts.filter((p, j) => j < i && p.kind === 'text').length));
+      const num = partNum(part) || (i + 1 - u.parts.filter((p, j) => j < i && p.kind === 'text').length);
       const pMark = partDone(u, part) || manPart(u, part);
       return `
       <div class="part" onclick="openPart(${u.unit},${part.id})">
