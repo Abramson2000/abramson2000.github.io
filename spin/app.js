@@ -182,7 +182,8 @@ const S = {
   xDone: {},             // доп-курсы (x4): пройденные уроки { id: [индексы уроков] } (локально + облако)
   scStat: {},            // практики «Проверь себя»: { id: { a: [отвеченные вопросы], r: [верные] } } (локально + облако)
   // тренажёр
-  tMode: null, tIdx: 0, tPick: null, tScore: 0, tOrder: [],
+  tMode: null, tIdx: 0, tPick: null, tScore: 0, tOrder: [], tOrderIdx: [], tRev: false,
+  trn: {},               // прогресс тренажёра по режимам: { mode: { ord:[индексы], i, sc, done, wrong:[] } } (локально + облако)
   // кейс
   cIdx: null, cScene: 0, cPick: null, cPicks: [],
   cDone: [],            // пройденные кейсы (разбор доведён до конца) — локально
@@ -195,6 +196,7 @@ function loadState() {
     S.xp = r.xp || 0; S.correct = r.correct || 0; S.attempts = r.attempts || 0;
     S.cDone = r.cDone || [];
     if (r.scs && typeof r.scs === 'object') S.scStat = r.scs;
+    if (r.trn && typeof r.trn === 'object') S.trn = r.trn;
     if (r.xd && typeof r.xd === 'object') S.xDone = r.xd;
     if (['program', 'theory', 'practice', 'cheat', 'progress'].includes(r.tab)) S.tab = r.tab;
     // вернуться на то же место в теории: открытый доп-курс и его урок
@@ -209,7 +211,7 @@ S.syncAt = null;       // время последней успешной син�
 S.dirty = false;       // есть несохранённые изменения
 
 function syncPayload() {
-  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xd: S.xDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, scs: S.scStat, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
+  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xd: S.xDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, scs: S.scStat, trn: S.trn, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
 }
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
@@ -358,11 +360,19 @@ function pendSet(on) { try { if (on) localStorage.setItem(pendKey(), String(Date
 function hasPending() { try { return !!localStorage.getItem(pendKey()); } catch (e) { return false; } }
 function sigOf(o) { // «отпечаток» прогресса: по нему понимаем, разошлись ли устройство и сервер
   o = o || {};
-  return JSON.stringify([o.lesson || 0, o.done || [], o.practiced || [], o.spPracticed || [], o.medPracticed || [], o.proPracticed || [], o.spicedDone || [], o.medDone || [], o.proDone || [], o.xp || 0, o.cDone || [], canonMap(o.xd), canonScs(o.scs)]);
+  return JSON.stringify([o.lesson || 0, o.done || [], o.practiced || [], o.spPracticed || [], o.medPracticed || [], o.proPracticed || [], o.spicedDone || [], o.medDone || [], o.proDone || [], o.xp || 0, o.cDone || [], canonMap(o.xd), canonScs(o.scs), canonTrn(o.trn)]);
 }
 function canonMap(m) { // стабильный порядок ключей и значений — иначе сравнение врёт
   const out = {};
   Object.keys(m || {}).sort().forEach((k) => { out[k] = (Array.isArray(m[k]) ? m[k].slice() : []).map(Number).sort((a, b) => a - b); });
+  return out;
+}
+function canonTrn(t) {
+  const out = {};
+  Object.keys(t || {}).sort().forEach((k) => {
+    const v = t[k] || {};
+    out[k] = { ord: (v.ord || []).map(Number), i: +(v.i || 0), sc: +(v.sc || 0), done: !!v.done, wrong: (v.wrong || []).map(Number).sort((a, b) => a - b) };
+  });
   return out;
 }
 function canonScs(m) {
@@ -382,6 +392,23 @@ function mergeScs(x, y) { // ответы на практики объединя
   return canonScs(out);
 }
 function scStatOf(id) { const v = (S.scStat || {})[id] || {}; return { a: v.a || [], r: v.r || [] }; }
+function mergeTrn(x, y) { // прогресс тренажёра: берём более продвинутый прогон, ошибочные вопросы складываем
+  const out = {};
+  Object.keys(Object.assign({}, x || {}, y || {})).forEach((m) => {
+    const A = (x || {})[m] || {}, B = (y || {})[m] || {};
+    const aw = Array.isArray(A.wrong) ? A.wrong : [], bw = Array.isArray(B.wrong) ? B.wrong : [];
+    const Ai = Number(A.i) || 0, Bi = Number(B.i) || 0;
+    const ahead = Bi > Ai ? B : A; // у кого дальше пройдено — с того и продолжаем
+    out[m] = {
+      ord: (ahead.ord && ahead.ord.length ? ahead.ord : (A.ord || B.ord || [])).map(Number),
+      i: Math.max(Ai, Bi),
+      sc: Math.max(Number(A.sc) || 0, Number(B.sc) || 0),
+      done: !!(A.done || B.done),
+      wrong: uniArr(aw, bw)
+    };
+  });
+  return canonTrn(out);
+}
 function uniArr(a, b) { return Array.from(new Set([].concat(a || [], b || []).map(Number))).sort((x, y) => x - y); }
 function updateSyncUI() {
   const el = document.getElementById('syncStatus');
@@ -499,6 +526,7 @@ async function cloudLoad() {
         curMed = null; curSpiced = null; curPro = null;
         S.cDone = uniArr(local.cDone, cloud.cDone);
         S.scStat = mergeScs(local.scs, cloud.scs);
+        S.trn = mergeTrn(local.trn, cloud.trn);
         try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
         syncChrome();
         toast('Прогресс подтянут с сервера: ' + cx + ' XP' + (lx && lx !== cx ? ' (было ' + lx + ')' : ''));
@@ -513,6 +541,9 @@ async function cloudLoad() {
     // доп-курс x4: отметки уроков — объединяем локальные и облачные (не теряем ни те, ни другие)
     const xdm = mergeXDone(local.xd, cloud && cloud.xd);
     if (JSON.stringify(xdm) !== JSON.stringify(S.xDone || {})) { S.xDone = xdm; saveXDone(); S.dirty = true; }
+    // прогресс тренажёра — тоже объединяем (берём более продвинутый прогон, ошибки складываем)
+    const trm = mergeTrn(local.trn, cloud && cloud.trn);
+    if (JSON.stringify(canonTrn(trm)) !== JSON.stringify(canonTrn(S.trn || {}))) { S.trn = trm; S.dirty = true; }
     // равные или оба пустые — ничего не делаем
     updateSyncUI();
   } catch (e) { loadErr = (e && e.status) || -1; } finally {
@@ -1472,6 +1503,59 @@ function renderCheatPage() {
 }
 
 // ============ ТРЕНАЖЁР ============
+// Банк вопросов режима (индексы — стабильные, по ним и храним прогресс)
+function trainerBank(mode) { return mode === 'proact' ? PRO_TRAINER : mode === 'remote' ? x4Situations() : (BANK_BY_MODE[mode] || quiz); }
+function trnOf(mode) { return (S.trn || {})[mode] || null; }
+function trnSave(mode) { // сохраняем текущее положение прогона
+  if (!USER || !mode) return;
+  if (!S.trn) S.trn = {};
+  const st = S.trn[mode] || (S.trn[mode] = { ord: [], i: 0, sc: 0, done: false, wrong: [] });
+  const rec = { ord: (S.tOrderIdx || []).slice(), i: S.tIdx, sc: S.tScore, done: S.tOrderIdx.length > 0 && S.tIdx >= S.tOrderIdx.length };
+  if (S.tRev) st.rv = rec; // прогон по ошибкам — не затирает основной прогресс
+  else { st.ord = rec.ord; st.i = rec.i; st.sc = rec.sc; st.done = rec.done; }
+  save();
+}
+function trnNote(mode, idx, ok) { // фиксируем ошибку / убираем её, если ответил верно
+  if (!S.trn) S.trn = {};
+  const st = S.trn[mode] || (S.trn[mode] = { ord: [], i: 0, sc: 0, done: false, wrong: [] });
+  if (!Array.isArray(st.wrong)) st.wrong = [];
+  if (ok) st.wrong = st.wrong.filter((k) => k !== idx);
+  else if (!st.wrong.includes(idx)) st.wrong.push(idx);
+}
+function trnPos(mode) { // сколько пройдено в режиме
+  const st = trnOf(mode); const tot = trainerBank(mode).length || 1;
+  const ansN = st ? Math.min(Number(st.i) || 0, tot) : 0;
+  return { st: st, tot: tot, ansN: ansN, wr: st && Array.isArray(st.wrong) ? st.wrong.length : 0, done: !!(st && st.done) };
+}
+function trnClass(mode) { const p = trnPos(mode); return p.ansN > 0 ? (' ' + (p.done ? 'practiced' : 'answered')) : ''; }
+function trnFoot(mode, def) {
+  const p = trnPos(mode);
+  if (!p.ansN) return def;
+  return p.done ? `<span class="sc-done-txt">Пройдено ${p.ansN} из ${p.tot} · ✓ ${p.st.sc || 0}</span><strong>Ещё раз ↻</strong>`
+                : `<span>Остановился на ${p.ansN} из ${p.tot} · ✓ ${p.st.sc || 0}</span><strong>Продолжить →</strong>`;
+}
+function trnWrongBtn(mode) { const p = trnPos(mode); return p.wr ? `<button class="sc-badge retry" data-retry="1">ОШИБКИ: ${p.wr} · ПОВТОРИТЬ</button>` : ''; }
+function trnStart(mode, opts) {
+  opts = opts || {};
+  const bank = trainerBank(mode);
+  if (!bank.length) return;
+  S.tMode = mode; S.tPick = null;
+  if (opts.rev) { // прогон только по ошибкам
+    const st = trnOf(mode) || {};
+    let w = ((st.wrong) || []).filter((k) => k >= 0 && k < bank.length);
+    if (!w.length) w = bank.map((z, i) => i);
+    S.tOrderIdx = w.slice(); S.tIdx = 0; S.tScore = 0; S.tRev = true;
+  } else if (opts.resume) { // продолжаем с места остановки
+    const st = trnOf(mode) || {};
+    let ord = ((st.ord) || []).filter((k) => k >= 0 && k < bank.length);
+    const seen = new Set(ord); bank.forEach((z, i) => { if (!seen.has(i)) ord.push(i); });
+    S.tOrderIdx = ord; S.tIdx = Math.min(Number(st.i) || 0, ord.length); S.tScore = Number(st.sc) || 0; S.tRev = false;
+  } else { // с начала
+    S.tOrderIdx = shuffle(bank.map((z, i) => i)); S.tIdx = 0; S.tScore = 0; S.tRev = false;
+  }
+  S.tOrder = S.tOrderIdx.map((i) => bank[i]);
+  renderTrainer();
+}
 function renderTrainer() {
   const b = $('practiceContent');
   // выбор режима
@@ -1502,12 +1586,15 @@ function renderTrainer() {
         <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
           ${ms.map((m) => {
             const k = modeCard[m];
-            return `<article class="module-card current" data-mode="${m}">
+            const p = trnPos(m);
+            return `<article class="module-card current${trnClass(m)}" data-mode="${m}">
               <div class="module-icon">${k.icon}</div>
-              <span class="status-label">${k.l}</span>
+              <span class="status-label">${k.l}${p.st && p.st.sc ? ' · ✓ ' + p.st.sc : ''}</span>
               <h3>${k.n}</h3>
               <p>${k.d}</p>
-              <div class="module-footer"><span>~5 мин</span><strong>→</strong></div>
+              ${p.ansN ? `<div class="sc-track"><i class="sc-fill ${p.done ? 'ok' : ''}" style="width:${Math.round((p.ansN / p.tot) * 100)}%"></i></div>` : ''}
+              <div class="module-footer">${trnFoot(m, '<span>~5 мин</span><strong>→</strong>')}</div>
+              ${trnWrongBtn(m)}
             </article>`;
           }).join('')}
         </div>`;
@@ -1517,12 +1604,13 @@ function renderTrainer() {
         <div><h2>Курс 5 · Проактивные продажи</h2><p>готовые ситуации из мастер-курса · выберите правильное действие</p></div>
       </div>
       <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
-        <article class="module-card current" data-mode="proact">
+        <article class="module-card current${trnClass('proact')}" data-mode="proact">
           <div class="module-icon">P</div>
-          <span class="status-label">${PRO_TRAINER.length} СИТУАЦИЙ</span>
+          <span class="status-label">${PRO_TRAINER.length} СИТУАЦИЙ${trnPos('proact').st && trnPos('proact').st.sc ? ' · ✓ ' + trnPos('proact').st.sc : ''}</span>
           <h3>Ситуации ProActive</h3>
           <p>Врач просит «информацию», заведующий хочет «в следующем году», клиент «подумает» — ваше действие?</p>
-          <div class="module-footer"><span>~8 мин</span><strong>→</strong></div>
+          <div class="module-footer">${trnFoot('proact', '<span>~8 мин</span><strong>→</strong>')}</div>
+          ${trnWrongBtn('proact')}
         </article>
       </div>` : ''}
       ${EXTRA.some((e) => e.id === 'x4') && x4Situations().length ? `
@@ -1530,15 +1618,22 @@ function renderTrainer() {
         <div><h2>Дополнительно · Удалённые продажи</h2><p>готовые ситуации из курса: звонок, переписка, стенд · выберите правильное действие</p></div>
       </div>
       <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
-        <article class="module-card current" data-mode="remote">
+        <article class="module-card current${trnClass('remote')}" data-mode="remote">
           <div class="module-icon">У</div>
-          <span class="status-label">${x4Situations().length} СИТУАЦИЙ</span>
+          <span class="status-label">${x4Situations().length} СИТУАЦИЙ${trnPos('remote').st && trnPos('remote').st.sc ? ' · ✓ ' + trnPos('remote').st.sc : ''}</span>
           <h3>Ситуации удалённых продаж</h3>
           <p>Секретарь «не даёт номера», врач говорит «дорого», партнёр тянет с ответом — ваше действие?</p>
-          <div class="module-footer"><span>~8 мин</span><strong>→</strong></div>
+          <div class="module-footer">${trnFoot('remote', '<span>~8 мин</span><strong>→</strong>')}</div>
+          ${trnWrongBtn('remote')}
         </article>
       </div>` : ''}`;
-    b.querySelectorAll('[data-mode]').forEach((x) => x.addEventListener('click', () => { S.tMode = x.dataset.mode; S.tOrder = shuffle(x.dataset.mode === 'proact' ? PRO_TRAINER : x.dataset.mode === 'remote' ? x4Situations() : (BANK_BY_MODE[x.dataset.mode] || quiz)); S.tIdx = 0; S.tScore = 0; S.tPick = null; renderTrainer(); }));
+    b.querySelectorAll('[data-mode]').forEach((x) => x.addEventListener('click', (e) => {
+      const m = x.dataset.mode;
+      if (e.target.closest('[data-retry]')) { trnStart(m, { rev: true }); toast('Повторяем только ошибки'); return; }
+      const st = trnOf(m);
+      if (st && st.i > 0 && !st.done) { trnStart(m, { resume: true }); toast('Продолжаем с места остановки'); }
+      else trnStart(m);
+    }));
     return;
   }
   // режимы «Ситуации» (ProActive / Удалённые продажи): задания с вариантами, +5 XP за верный
@@ -1550,16 +1645,23 @@ function renderTrainer() {
   if ((S.tMode === 'proact' && PRO_TRAINER.length) || (S.tMode === 'remote' && SIT_BANK.length)) {
     const sm = SIT_META[S.tMode];
     if (S.tIdx >= S.tOrder.length) {
+      trnSave(S.tMode);
       const pct = Math.round((S.tScore / S.tOrder.length) * 100);
       const verdict = pct >= 85 ? sm.ok : pct >= 60 ? sm.mid : sm.low;
+      const st = trnOf(S.tMode) || {};
+      const wr = (st.wrong || []).length;
       b.innerHTML = `
-        <div class="page-heading"><p class="eyebrow">${sm.eyebrow} · ИТОГ</p><h1>${S.tScore} из ${S.tOrder.length}</h1><p>${pct}% верных · ${verdict}</p></div>
+        <div class="page-heading"><p class="eyebrow">${sm.eyebrow}${S.tRev ? ' · РАБОТА НАД ОШИБКАМИ' : ''} · ИТОГ</p><h1>${S.tScore} из ${S.tOrder.length}</h1><p>${pct}% верных · ${verdict}</p></div>
+        <p class="answer-prompt" style="margin:0 0 12px">${wr ? 'Осталось ошибок: ' + wr : 'Ошибок нет — идём дальше.'}</p>
         <div class="feedback-actions">
-          <button class="primary-button" id="tAgain">Ещё раз</button>
+          ${wr ? `<button class="primary-button" id="tWrong">Повторить ошибки (${wr})</button>` : ''}
+          <button class="${wr ? 'secondary-button' : 'primary-button'}" id="tAgain">Пройти заново</button>
           <button class="secondary-button" id="tMode">Другой режим</button>
         </div>`;
-      $('tAgain').addEventListener('click', () => { S.tOrder = shuffle(SIT_BANK); S.tIdx = 0; S.tScore = 0; S.tPick = null; renderTrainer(); });
-      $('tMode').addEventListener('click', () => { S.tMode = null; renderTrainer(); });
+      const tw = $('tWrong');
+      if (tw) tw.addEventListener('click', () => trnStart(S.tMode, { rev: true }));
+      $('tAgain').addEventListener('click', () => trnStart(S.tMode));
+      $('tMode').addEventListener('click', () => { S.tRev = false; S.tMode = null; renderTrainer(); });
       return;
     }
     const q = S.tOrder[S.tIdx];
@@ -1592,15 +1694,16 @@ function renderTrainer() {
       const o = q.options[S.tPick];
       const ok = !!o.good;
       if (ok) { S.correct++; S.tScore++; addXp(5); toast('Верно · +5 XP'); } else { save(); syncChrome(); }
+      trnNote(S.tMode, S.tOrderIdx[S.tIdx], ok);
       btn.classList.add(ok ? 'correct' : 'wrong');
       q.options.forEach((x, xi) => { if (x.good) b.querySelectorAll('[data-oi]')[xi].classList.add('correct'); });
       const fa = $('feedbackArea');
       fa.classList.remove('hidden');
       fa.innerHTML = `<div class="feedback-icon">${ok ? '✓' : '✗'}</div><h2>${ok ? 'Верно' : 'Неверно'}</h2><p>${esc(o.fb)}</p><div class="feedback-actions"><button class="primary-button" id="tNext">${S.tIdx + 1 >= S.tOrder.length ? 'Итог' : 'Дальше →'}</button></div>`;
-      $('tNext').addEventListener('click', () => { S.tIdx++; S.tPick = null; renderTrainer(); });
+      $('tNext').addEventListener('click', () => { S.tIdx++; trnSave(S.tMode); S.tPick = null; renderTrainer(); });
     }));
-    const ts = $('tSwitch');
-    if (ts) ts.addEventListener('click', () => { S.tMode = null; S.tIdx = 0; S.tPick = null; renderTrainer(); });
+    const ts0 = $('tSwitch');
+    if (ts0) ts0.addEventListener('click', () => { trnSave(S.tMode); S.tRev = false; S.tMode = null; S.tPick = null; renderTrainer(); });
     return;
   }
   const bank = BANK_BY_MODE[S.tMode] || quiz;
@@ -1608,16 +1711,23 @@ function renderTrainer() {
   const tmeta = META_BY_MODE[S.tMode] || TYPE_META;
   if (S.tIdx >= S.tOrder.length) {
     // итог
+    trnSave(S.tMode);
     const pct = Math.round((S.tScore / S.tOrder.length) * 100);
     const verdict = pct >= 85 ? 'Отличная реакция. Идите в кейсы!' : pct >= 60 ? 'Неплохо. Повторите теорию и попробуйте ещё раз.' : 'Пока рано. Вернитесь к урокам.';
+    const st = trnOf(S.tMode) || {};
+    const wr = (st.wrong || []).length;
     b.innerHTML = `
-      <div class="page-heading"><p class="eyebrow">ТРЕНАЖЁР · ИТОГ</p><h1>${S.tScore} из ${S.tOrder.length}</h1><p>${pct}% верных · ${verdict}</p></div>
+      <div class="page-heading"><p class="eyebrow">ТРЕНАЖЁР${S.tRev ? ' · РАБОТА НАД ОШИБКАМИ' : ''} · ИТОГ</p><h1>${S.tScore} из ${S.tOrder.length}</h1><p>${pct}% верных · ${verdict}</p></div>
+      <p class="answer-prompt" style="margin:0 0 12px">${wr ? 'Осталось ошибок: ' + wr : 'Ошибок нет — идём дальше.'}</p>
       <div class="feedback-actions">
-        <button class="primary-button" id="tAgain">Ещё раз</button>
+        ${wr ? `<button class="primary-button" id="tWrong">Повторить ошибки (${wr})</button>` : ''}
+        <button class="${wr ? 'secondary-button' : 'primary-button'}" id="tAgain">Пройти заново</button>
         <button class="secondary-button" id="tMode">Другой режим</button>
       </div>`;
-    $('tAgain').addEventListener('click', () => { S.tOrder = shuffle(bank); S.tIdx = 0; S.tScore = 0; S.tPick = null; renderTrainer(); });
-    $('tMode').addEventListener('click', () => { S.tMode = null; renderTrainer(); });
+    const tw = $('tWrong');
+    if (tw) tw.addEventListener('click', () => trnStart(S.tMode, { rev: true }));
+    $('tAgain').addEventListener('click', () => trnStart(S.tMode));
+    $('tMode').addEventListener('click', () => { S.tRev = false; S.tMode = null; renderTrainer(); });
     return;
   }
   const q = S.tOrder[S.tIdx];
@@ -1651,16 +1761,17 @@ function renderTrainer() {
     S.attempts++;
     const ok = S.tPick === q.type;
     if (ok) { S.correct++; S.tScore++; }
+    trnNote(S.tMode, S.tOrderIdx[S.tIdx], ok);
     save(); syncChrome();
     btn.classList.add(ok ? 'correct' : 'wrong');
     b.querySelectorAll('[data-t]').forEach((x) => { if (x.dataset.t === q.type) x.classList.add('correct'); if (x.dataset.t !== S.tPick && x.dataset.t !== q.type) x.classList.add('dim'); });
     const fa = $('feedbackArea');
     fa.classList.remove('hidden');
     fa.innerHTML = `<div class="feedback-icon">${ok ? '✓' : '✗'}</div><h2>${ok ? 'Верно' : 'Это ' + tmeta[q.type].n.toLowerCase()}</h2><p>${esc(q.why)}</p><div class="feedback-actions"><button class="primary-button" id="tNext">${S.tIdx + 1 >= S.tOrder.length ? 'Итог' : 'Дальше →'}</button></div>`;
-    $('tNext').addEventListener('click', () => { S.tIdx++; S.tPick = null; renderTrainer(); });
+    $('tNext').addEventListener('click', () => { S.tIdx++; trnSave(S.tMode); S.tPick = null; renderTrainer(); });
   }));
   const ts = $('tSwitch');
-  if (ts) ts.addEventListener('click', () => { S.tMode = null; S.tIdx = 0; S.tPick = null; renderTrainer(); });
+  if (ts) ts.addEventListener('click', () => { trnSave(S.tMode); S.tRev = false; S.tMode = null; S.tPick = null; renderTrainer(); });
 }
 
 function shuffle(a) { const r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; }

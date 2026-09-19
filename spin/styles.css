@@ -424,3 +424,5 @@ button { color: inherit; }
 .offline-dl .secondary-button { width: 100%; }
 .offline-dl-status { margin: 0; color: var(--muted); font-size: 12.5px; text-align: center; }
 .offline-pill.ready { border-color: var(--green); background: var(--mint); color: var(--green); }
+
+.sc-badge.retry { border-left: 0; background: #fff1c9; color: #8b6510; cursor: pointer; font-family: inherit; margin-top: 12px; }
