@@ -350,12 +350,22 @@ function setSync(st) {
   if (st === 'saved') S.syncAt = new Date();
   updateSyncUI();
 }
+// «не отправлено» — отметка на устройстве: если сохранение не ушло, пробуем снова при каждом запуске/возврате в сеть
+function pendKey() { return 'spin-pending-v1:' + (USER ? USER.id : 'anon'); }
+function pendSet(on) { try { if (on) localStorage.setItem(pendKey(), String(Date.now())); else localStorage.removeItem(pendKey()); } catch (e) {} }
+function hasPending() { try { return !!localStorage.getItem(pendKey()); } catch (e) { return false; } }
+function sigOf(o) { // «отпечаток» прогресса: по нему понимаем, разошлись ли устройство и сервер
+  o = o || {};
+  return JSON.stringify([o.lesson || 0, o.done || [], o.practiced || [], o.spPracticed || [], o.medPracticed || [], o.proPracticed || [], o.spicedDone || [], o.medDone || [], o.proDone || [], o.xp || 0]);
+}
+function uniArr(a, b) { return Array.from(new Set([].concat(a || [], b || []).map(Number))).sort((x, y) => x - y); }
 function updateSyncUI() {
   const el = document.getElementById('syncStatus');
   if (!el) return;
   if (S.sync === 'saving') { el.textContent = 'сохранение…'; el.className = 'sync-chip saving'; }
   else if (S.sync === 'saved') { el.textContent = 'сохранено на сервере' + (S.syncAt ? ' в ' + S.syncAt.toTimeString().slice(0, 5) : ''); el.className = 'sync-chip saved'; }
-  else if (S.sync === 'error') { el.textContent = 'нет связи — прогресс в этом устройстве'; el.className = 'sync-chip error'; }
+  else if (S.sync === 'error') { el.textContent = hasPending() ? 'не отправлено — отправим, как появится связь' : 'нет связи — прогресс в этом устройстве'; el.className = 'sync-chip error'; }
+  else if (S.sync === 'noauth') { el.textContent = 'вход истёк — войдите заново, чтобы синхронизировать'; el.className = 'sync-chip error'; }
   else { el.textContent = 'сохранение выключено'; el.className = 'sync-chip off'; }
 }
 function flushSave() {
@@ -383,6 +393,7 @@ async function spinApi(body) {
       const r = await fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (r.ok) return r;
       last = new Error('HTTP ' + r.status);
+      last.status = r.status;
       if (r.status === 404 || r.status === 405) _spinApiRemote = true;
     } catch (e) { last = e; }
   }
@@ -393,13 +404,16 @@ async function cloudSave() {
   try {
     const { data: s } = await SB.auth.getSession();
     const token = s && s.session && s.session.access_token;
-    if (!token) { setSync('off'); return; }
+    if (!token) { setSync('noauth'); return; }
     const r = await spinApi({ action: 'save', token, data: syncPayload() });
     const j = await r.json().catch(() => null);
-    if (r.ok && j && j.ok) { S.dirty = false; setSync('saved'); }
-    else { setSync('error'); S.dirty = true; setTimeout(() => { if (S.dirty) cloudSave(); }, 4000); }
+    if (r.ok && j && j.ok) { S.dirty = false; pendSet(false); setSync('saved'); }
+    else if (r.status === 401 || r.status === 403) { setSync('noauth'); S.dirty = true; pendSet(true); }
+    else { setSync('error'); S.dirty = true; pendSet(true); setTimeout(() => { if (S.dirty) cloudSave(); }, 4000); }
   } catch (e) {
-    setSync('error'); S.dirty = true;
+    if (e && (e.status === 401 || e.status === 403)) setSync('noauth');
+    else setSync('error');
+    S.dirty = true; pendSet(true);
     setTimeout(() => { if (S.dirty) cloudSave(); }, 4000);
   }
 }
@@ -431,38 +445,58 @@ function xpBackfill() { // одноразовая компенсация XP за
 }
 async function cloudLoad() {
   if (!USER || !SB) return;
+  let loadErr = 0;
   try {
     const { data: s } = await SB.auth.getSession();
     const token = s && s.session && s.session.access_token;
-    if (!token) { _cloudReady = true; setSync('off'); return; }
+    if (!token) { _cloudReady = true; setSync('noauth'); return; }
     const r = await spinApi({ action: 'get', token });
     const j = await r.json().catch(() => null);
     const local = syncPayload();
     const cloud = j && j.data;
-    if (cloud && cloud.xp > local.xp) {
-      // облако строго новее — берём его
-      S.lesson = cloud.lesson || 0; S.done = cloud.done || []; S.practiced = cloud.practiced || [];
-      S.spPracticed = cloud.spPracticed || []; S.medPracticed = cloud.medPracticed || []; S.proPracticed = cloud.proPracticed || [];
-      S.spicedDone = cloud.spicedDone || []; S.medDone = cloud.medDone || []; S.proDone = cloud.proDone || [];
-      S.xp = cloud.xp || 0; S.correct = cloud.correct || 0; S.attempts = cloud.attempts || 0;
-      curExtra = (typeof cloud.extra === 'number' && cloud.extra >= 0) ? cloud.extra : null;
-      curXb = (typeof cloud.xb === 'number' && cloud.xb >= 0) ? cloud.xb : 0;
-      try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
-      if (local.xp > 0) toast('Прогресс загружен с сервера: ' + cloud.xp + ' XP');
-    } else if (local.xp > 0 && (!cloud || cloud.xp < local.xp)) {
-      // локальный прогресс новее облачного (облако пустое или старое) — поднимем на сервер
-      S.dirty = true;
-      toast('Прогресс этого устройства отправлен на сервер');
+    if (cloud) {
+      const cx = Number(cloud.xp) || 0, lx = Number(local.xp) || 0;
+      if (cx > lx) {
+        // на сервере свежее (например, учился с телефона) — забираем И объединяем с тем, что есть здесь
+        S.lesson = Math.max(Number(local.lesson) || 0, Number(cloud.lesson) || 0);
+        S.done = uniArr(local.done, cloud.done);
+        S.practiced = uniArr(local.practiced, cloud.practiced);
+        S.spPracticed = uniArr(local.spPracticed, cloud.spPracticed);
+        S.medPracticed = uniArr(local.medPracticed, cloud.medPracticed);
+        S.proPracticed = uniArr(local.proPracticed, cloud.proPracticed);
+        S.spicedDone = uniArr(local.spicedDone, cloud.spicedDone);
+        S.medDone = uniArr(local.medDone, cloud.medDone);
+        S.proDone = uniArr(local.proDone, cloud.proDone);
+        S.xp = cx;
+        S.correct = Math.max(Number(local.correct) || 0, Number(cloud.correct) || 0);
+        S.attempts = Math.max(Number(local.attempts) || 0, Number(cloud.attempts) || 0);
+        if (typeof cloud.extra === 'number' && cloud.extra >= 0) curExtra = cloud.extra;
+        if (typeof cloud.xb === 'number' && cloud.xb >= 0) curXb = cloud.xb;
+        curMed = null; curSpiced = null; curPro = null;
+        try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
+        syncChrome();
+        toast('Прогресс подтянут с сервера: ' + cx + ' XP' + (lx && lx !== cx ? ' (было ' + lx + ')' : ''));
+        // если объединение богаче сервера — вернём обратно, чтобы ничего не потерялось
+        if (sigOf(syncPayload()) !== sigOf(cloud)) S.dirty = true;
+      } else if (lx > cx) {
+        // на этом устройстве больше — отправляем наверх
+        S.dirty = true;
+        toast('Прогресс этого устройства отправлен на сервер');
+      }
     }
     // доп-курс x4: отметки уроков — объединяем локальные и облачные (не теряем ни те, ни другие)
     const xdm = mergeXDone(local.xd, cloud && cloud.xd);
     if (JSON.stringify(xdm) !== JSON.stringify(S.xDone || {})) { S.xDone = xdm; saveXDone(); S.dirty = true; }
     // равные или оба пустые — ничего не делаем
     updateSyncUI();
-  } catch (e) {} finally {
+  } catch (e) { loadErr = (e && e.status) || -1; } finally {
     _cloudReady = true;
     xpBackfill();
-    if (S.dirty) cloudSave(); else setSync('saved');
+    if (hasPending()) S.dirty = true;
+    if (S.dirty) cloudSave();
+    else if (loadErr === 401 || loadErr === 403) setSync('noauth');
+    else if (loadErr) setSync('error');
+    else setSync('saved');
   }
 }
 // русские фамилии для логинов CRM (если в профиле supabase имя не заполнено)
@@ -736,7 +770,11 @@ function renderTab(tab) {
   else if (tab === 'theory') renderTheory();
   else if (tab === 'practice') renderPractice();
   else if (tab === 'cheat') renderCheatPage();
-  else if (tab === 'progress') renderProgress();
+  else if (tab === 'progress') {
+    renderProgress();
+    // зашли в «Прогресс» — раз в полминуты сверяемся с сервером (если тут нет неотправленного)
+    if (USER && _cloudReady && !S.dirty && Date.now() - ((S.syncAt && S.syncAt.getTime()) || 0) > 30000) cloudLoad().then(() => renderProgress());
+  }
 }
 document.querySelectorAll('.nav-item, .mobile-nav button').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 document.addEventListener('keydown', (e) => {
@@ -2036,12 +2074,13 @@ function renderProgress() {
           <span class="avatar large" id="accAvatar">${USER ? esc(USER.name.slice(0, 1).toUpperCase()) : '?'}</span>
           <div class="account-info">
             <strong id="accEmail">${USER ? esc(USER.email) : 'не вошли'}</strong>
-            <span class="sync-chip off" id="syncStatus">…</span>
+            <span class="sync-chip off" id="syncStatus" role="button" tabindex="0" title="Нажмите, чтобы сверить прогресс с сервером" style="cursor:pointer">…</span>
           </div>
         </div>
         <p class="account-hint">Прогресс привязан к аккаунту и хранится на сервере: откройте курс с любого устройства под тем же логином — всё на месте. Гостевой режим прогресс не сохраняет.</p>
         <div class="feedback-actions">
           <button class="primary-button" id="accSwitch">Сменить аккаунт <span>↗</span></button>
+          <button class="secondary-button" id="accRefresh">Обновить с сервера</button>
           <button class="secondary-button" id="accLogout">Выйти</button>
         </div>
       </article>
@@ -2096,6 +2135,24 @@ function renderProgress() {
   };
   const accSwitch = $('accSwitch');
   const accLogout = $('accLogout');
+  const accRefresh = $('accRefresh');
+  const chipSync = $('syncStatus');
+  const doSync = async () => {
+    if (!USER) { toast('Сначала войдите'); return; }
+    try { if (S.dirty) await cloudSave(); await cloudLoad(); } catch (e) {}
+    if ($('progress')) renderProgress();
+  };
+  if (chipSync) chipSync.addEventListener('click', doSync);
+  if (accRefresh) accRefresh.addEventListener('click', async () => {
+    if (!USER) { toast('Сначала войдите'); return; }
+    accRefresh.disabled = true;
+    const was = accRefresh.textContent;
+    accRefresh.textContent = 'Сверяю…';
+    try { if (S.dirty) await cloudSave(); await cloudLoad(); } catch (e) {}
+    accRefresh.disabled = false;
+    accRefresh.textContent = was;
+    renderProgress();
+  });
   if (accSwitch) accSwitch.addEventListener('click', doLogout);
   if (accLogout) accLogout.addEventListener('click', doLogout);
   if (boss) {
