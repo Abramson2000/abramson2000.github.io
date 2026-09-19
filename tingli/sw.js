@@ -1,17 +1,17 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.27.2 (2026-09-19: раздел «团队» — урок 面试困难 (unit 212); аудио переименовано в 212-* (короткий код части в чипе)) + font-build: simsun-subset-STSong-1488 — маркер прекэша
+// data-build: v2.28.0 (2026-09-19: единые значки частей — 💬 «Фразы», 📕 «Слова» во всех уроках) + font-build: simsun-subset-STSong-1488 — маркер прекэша
 const CACHE = 'tingli-cache-v1';
 
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './data/units.js?v=2.27.2',
-  './data/extra.js?v=2.27.2',
-  './data/idv.js?v=2.27.2',
-  './data/biz.js?v=2.27.2',
+  './data/units.js?v=2.28.0',
+  './data/extra.js?v=2.28.0',
+  './data/idv.js?v=2.28.0',
+  './data/biz.js?v=2.28.0',
   './apple-touch-icon-v2.png',
   './apple-touch-icon.png',
   './bg.jpg',
@@ -68,7 +68,7 @@ const ASSETS = [
   './fonts/rubik-cyr-600.woff2',
   './fonts/rubik-cyr-700.woff2',
   './fonts/rubik-cyr-800.woff2',
-  './fonts/simsun-subset.woff2?v=2.27.2',
+  './fonts/simsun-subset.woff2?v=2.28.0',
   './fonts/xiaoshan-mashan.woff2',
   './fonts/xiaoshan-title.woff2?v=2.23.3',
   './fonts/xiaoshan-longcang.woff2',
