@@ -1531,8 +1531,9 @@ function trnClass(mode) { const p = trnPos(mode); return p.ansN > 0 ? (' ' + (p.
 function trnFoot(mode, def) {
   const p = trnPos(mode);
   if (!p.ansN) return def;
-  return p.done ? `<span class="sc-done-txt">Пройдено ${p.ansN} из ${p.tot} · ✓ ${p.st.sc || 0}</span><strong>Ещё раз ↻</strong>`
-                : `<span>Остановился на ${p.ansN} из ${p.tot} · ✓ ${p.st.sc || 0}</span><strong>Продолжить →</strong>`;
+  const tail = p.wr ? '' : ' · ошибок нет';
+  return p.done ? `<span class="sc-done-txt">Пройдено ${p.ansN} из ${p.tot} · ✓ ${p.st.sc || 0}${tail}</span><strong>Ещё раз ↻</strong>`
+                : `<span>Остановился на ${p.ansN} из ${p.tot} · ✓ ${p.st.sc || 0}${tail}</span><strong>Продолжить →</strong>`;
 }
 function trnWrongBtn(mode) { const p = trnPos(mode); return p.wr ? `<button class="sc-badge retry" data-retry="1">ОШИБКИ: ${p.wr} · ПОВТОРИТЬ</button>` : ''; }
 function trnStart(mode, opts) {
@@ -1575,6 +1576,7 @@ function renderTrainer() {
         <p class="eyebrow">ТРЕНАЖЁР</p>
         <h1 id="trainer-title">Тренируйте реакцию</h1>
         <p>Тренажёр привязан к курсам программы: каждый режим отрабатывает навыки из уроков. Начните с курса 1 — СПИН.</p>
+        <p style="margin-top:6px"><strong>Прогресс каждого режима сохраняется</strong> — можно закрыть приложение и вернуться к тому же вопросу. Неверные ответы копятся отдельно: на карточке появится жёлтая кнопка <strong>«ОШИБКИ · ПОВТОРИТЬ»</strong> — прогон только по ним.</p>
       </div>
       ${COURSES.map((c, ci) => {
         const ms = modeKeys.filter((m) => modeCourse[m] === ci);
@@ -1593,7 +1595,7 @@ function renderTrainer() {
               <h3>${k.n}</h3>
               <p>${k.d}</p>
               ${p.ansN ? `<div class="sc-track"><i class="sc-fill ${p.done ? 'ok' : ''}" style="width:${Math.round((p.ansN / p.tot) * 100)}%"></i></div>` : ''}
-              <div class="module-footer">${trnFoot(m, '<span>~5 мин</span><strong>→</strong>')}</div>
+              <div class="module-footer">${trnFoot(m, '<span>не начат · ошибок нет</span><strong>Начать →</strong>')}</div>
               ${trnWrongBtn(m)}
             </article>`;
           }).join('')}
@@ -1609,7 +1611,7 @@ function renderTrainer() {
           <span class="status-label">${PRO_TRAINER.length} СИТУАЦИЙ${trnPos('proact').st && trnPos('proact').st.sc ? ' · ✓ ' + trnPos('proact').st.sc : ''}</span>
           <h3>Ситуации ProActive</h3>
           <p>Врач просит «информацию», заведующий хочет «в следующем году», клиент «подумает» — ваше действие?</p>
-          <div class="module-footer">${trnFoot('proact', '<span>~8 мин</span><strong>→</strong>')}</div>
+          <div class="module-footer">${trnFoot('proact', '<span>не начат · ошибок нет</span><strong>Начать →</strong>')}</div>
           ${trnWrongBtn('proact')}
         </article>
       </div>` : ''}
@@ -1623,7 +1625,7 @@ function renderTrainer() {
           <span class="status-label">${x4Situations().length} СИТУАЦИЙ${trnPos('remote').st && trnPos('remote').st.sc ? ' · ✓ ' + trnPos('remote').st.sc : ''}</span>
           <h3>Ситуации удалённых продаж</h3>
           <p>Секретарь «не даёт номера», врач говорит «дорого», партнёр тянет с ответом — ваше действие?</p>
-          <div class="module-footer">${trnFoot('remote', '<span>~8 мин</span><strong>→</strong>')}</div>
+          <div class="module-footer">${trnFoot('remote', '<span>не начат · ошибок нет</span><strong>Начать →</strong>')}</div>
           ${trnWrongBtn('remote')}
         </article>
       </div>` : ''}`;
