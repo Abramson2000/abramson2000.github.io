@@ -10,9 +10,9 @@
 <link rel="manifest" href="manifest.json">
 <style>
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=2.23.3') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.28.1') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.28.2') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.28.1') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=2.28.2') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -398,10 +398,10 @@
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="data/units.js?v=2.28.1"></script>
-<script src="data/extra.js?v=2.28.1"></script>
-<script src="data/idv.js?v=2.28.1"></script>
-<script src="data/biz.js?v=2.28.1"></script>
+<script src="data/units.js?v=2.28.2"></script>
+<script src="data/extra.js?v=2.28.2"></script>
+<script src="data/idv.js?v=2.28.2"></script>
+<script src="data/biz.js?v=2.28.2"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -453,7 +453,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.28.1';
+const APP_VER = '2.28.2';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -905,11 +905,12 @@ function dictClear() {
 function partNum(part) {
   // Единые значки частей во всех уроках: фразы — 💬, слова — 📕 (см. partIco)
   if (part.kind === 'words') return partIco(part);
+  if (part.kind === 'hw') return ICO_HW;
   // номер части = номер аудио: '2-5-1.mp3' → '5-1'
   return (part.audio || '').replace(/^\d+-/, '').replace(/\.mp3$/, '');
 }
 // Один и тот же значок для «Фраз» и один и тот же для «Слов» — во ВСЕХ уроках
-const ICO_FRAZ = '💬', ICO_WORD = '📘';
+const ICO_FRAZ = '💬', ICO_WORD = '📘', ICO_HW = '📝';
 function partIco(part) {
   const t = (part.title || ''), tz = (part.titleZh || '');
   if (/фраз/i.test(t) || /短语/.test(tz) || /短语/.test(t)) return ICO_FRAZ;
