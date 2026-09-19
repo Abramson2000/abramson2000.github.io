@@ -412,12 +412,30 @@ function mergeTrn(x, y) { // прогресс тренажёра: берём б�
 function uniArr(a, b) { return Array.from(new Set([].concat(a || [], b || []).map(Number))).sort((x, y) => x - y); }
 function updateSyncUI() {
   const el = document.getElementById('syncStatus');
-  if (!el) return;
-  if (S.sync === 'saving') { el.textContent = 'сохранение…'; el.className = 'sync-chip saving'; }
-  else if (S.sync === 'saved') { el.textContent = 'сохранено на сервере' + (S.syncAt ? ' в ' + S.syncAt.toTimeString().slice(0, 5) : ''); el.className = 'sync-chip saved'; }
-  else if (S.sync === 'error') { el.textContent = hasPending() ? 'не отправлено — отправим, как появится связь' : 'нет связи — прогресс в этом устройстве'; el.className = 'sync-chip error'; }
-  else if (S.sync === 'noauth') { el.textContent = 'вход истёк — войдите заново, чтобы синхронизировать'; el.className = 'sync-chip error'; }
-  else { el.textContent = 'сохранение выключено'; el.className = 'sync-chip off'; }
+  if (el) {
+    if (S.sync === 'saving') { el.textContent = 'сохранение…'; el.className = 'sync-chip saving'; }
+    else if (S.sync === 'saved') { el.textContent = 'сохранено на сервере' + (S.syncAt ? ' в ' + S.syncAt.toTimeString().slice(0, 5) : ''); el.className = 'sync-chip saved'; }
+    else if (S.sync === 'error') { el.textContent = hasPending() ? 'не отправлено — отправим, как появится связь' : 'нет связи — прогресс в этом устройстве'; el.className = 'sync-chip error'; }
+    else if (S.sync === 'noauth') { el.textContent = 'вход истёк — войдите заново, чтобы синхронизировать'; el.className = 'sync-chip error'; }
+    else { el.textContent = 'сохранение выключено'; el.className = 'sync-chip off'; }
+  }
+  // красная плашка: синхронизация отвалилась — говорим об этом громко, а не молчим
+  const al = document.getElementById('syncAlert');
+  if (al) {
+    const bad = !!USER && (S.sync === 'noauth' || S.sync === 'error');
+    al.classList.toggle('hidden', !bad);
+    if (bad) {
+      if (S.sync === 'noauth') {
+        al.innerHTML = '<span><b>Синхронизация не работает: вход истёк.</b> Прогресс пока пишется только в это устройство. Войдите заново — и всё сольётся с облаком.</span><button class="sync-alert-btn" id="syncFix">Войти заново</button>';
+      } else {
+        al.innerHTML = '<span><b>Нет связи с сервером.</b> Прогресс пишется в это устройство и уйдёт на сервер, как только связь появится. XP — из облака подтянем после синхронизации.</span><button class="sync-alert-btn" id="syncRetry">Повторить</button>';
+      }
+      const f = document.getElementById('syncFix');
+      if (f) f.addEventListener('click', () => { const l = document.getElementById('accLogout'); if (l) l.click(); else location.reload(); });
+      const r = document.getElementById('syncRetry');
+      if (r) r.addEventListener('click', () => { S.dirty = true; pendSet(true); cloudSave(); });
+    }
+  }
 }
 function flushSave() {
   // немедленная отправка при уходе со страницы/сворачивании
@@ -429,6 +447,10 @@ if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') flushSave();
     else if (document.visibilityState === 'visible' && _cloudReady && USER) cloudLoad(); // вернулись — подтянуть свежее с сервера
+  });
+  window.addEventListener('focus', () => { // вернулись в окно: если синк отвалился — сами пробуем ещё раз
+    if (!USER || !_cloudReady) return;
+    if (S.sync === 'noauth' || S.sync === 'error') cloudLoad();
   });
   window.addEventListener('pagehide', flushSave);
 }

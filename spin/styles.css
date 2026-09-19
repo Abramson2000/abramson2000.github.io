@@ -426,3 +426,7 @@ button { color: inherit; }
 .offline-pill.ready { border-color: var(--green); background: var(--mint); color: var(--green); }
 
 .sc-badge.retry { border-left: 0; background: #fff1c9; color: #8b6510; cursor: pointer; font-family: inherit; margin-top: 12px; }
+.sync-alert { display: flex; align-items: center; gap: 14px; justify-content: space-between; margin: 0 0 18px; padding: 12px 16px; border-radius: 12px; background: #fff2f0; border: 1px solid #f3c9c2; border-left: 5px solid #c63717; color: #7a2a1c; font-size: 13.5px; line-height: 1.45; }
+.sync-alert b { color: #a32b13; }
+.sync-alert-btn { flex: 0 0 auto; border: 0; border-radius: 999px; padding: 8px 16px; background: #c63717; color: #fff; font-weight: 800; font-size: 12px; letter-spacing: .04em; cursor: pointer; font-family: inherit; }
+@media (max-width: 760px) { .sync-alert { flex-direction: column; align-items: stretch; } }
