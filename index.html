@@ -895,10 +895,7 @@ function fromClinic(r) {
     id: r.id, name: r.name, type: r.type, region: r.region, city: r.city,
     manager: r.manager, linkedClinicId: r.linked_clinic_id, kind: r.kind || 'hospital',
     situation: r.situation, tags: r.tags || [], updatedAt: r.updated_at,
-    markedDel: r.marked_del || false,
-    sales2021: r.sales_2021, sales2022: r.sales_2022, sales2023: r.sales_2023,
-    sales2024: r.sales_2024, sales2025: r.sales_2025, sales2026: r.sales_2026,
-    hugemed2025: r.hugemed_2025, hugemed2026: r.hugemed_2026
+    markedDel: r.marked_del || false
   };
 }
 function toClinic(row) {
@@ -908,14 +905,6 @@ function toClinic(row) {
     situation: row.situation, tags: row.tags || []
   };
   if (row.kind === 'distributor') r.kind = 'distributor';
-  r.sales_2021 = row.sales2021 ?? null;
-  r.sales_2022 = row.sales2022 ?? null;
-  r.sales_2023 = row.sales2023 ?? null;
-  r.sales_2024 = row.sales2024 ?? null;
-  r.sales_2025 = row.sales2025 ?? null;
-  r.sales_2026 = row.sales2026 ?? null;
-  r.hugemed_2025 = row.hugemed2025 ?? null;
-  r.hugemed_2026 = row.hugemed2026 ?? null;
   return r;
 }
 function fromPerson(r) {
@@ -976,14 +965,48 @@ async function fetchAllRows(table, orderCol, tieCol) {
   }
   return out;
 }
+// ---------- ЗАКРЫТАЯ ЧАСТЬ КАРТОЧКИ (v3.11.1) ----------
+// Деньги, следующий контакт и рабочая заметка лежат в отдельной таблице
+// clinic_private. Сервер отдаёт их только руководителю и ответственному
+// менеджеру — поэтому она либо пустая, либо без нужных строк.
+const MONEY_COLS = ['sales_2021', 'sales_2022', 'sales_2023', 'sales_2024', 'sales_2025', 'sales_2026', 'hugemed_2025', 'hugemed_2026'];
+
+async function mergeClinicPrivate(list) {
+  let data = [];
+  try {
+    const res = await sb.from('clinic_private').select('*');
+    data = res.data || [];
+  } catch (_) { data = []; }
+  const map = {};
+  data.forEach(p => { map[p.clinic_id] = p; });
+  list.forEach(c => {
+    const p = map[c.id];
+    // если строки нет — значит сервер её не отдал: значит прав нет
+    MONEY_COLS.forEach(k => { c[k] = p ? p[k] : null; });
+    c.nextContact = p ? p.next_contact : null;
+    c.privateNote = p ? p.note : null;
+    c.hasPrivate = !!p;
+  });
+  return list;
+}
+
+// запись денег/заметки в закрытую часть (только когда есть право)
+async function saveClinicPrivate(clinicId, manager, fields) {
+  const row = Object.assign({ clinic_id: clinicId, manager: manager || null, updated_at: new Date().toISOString() }, fields || {});
+  const { error } = await sb.from('clinic_private').upsert(row, { onConflict: 'clinic_id' });
+  if (error) throw error;
+}
+
 async function listClinics() {
   const rows = await fetchAllRows('clinics', 'name', 'id');
-  return rows.map(fromClinic);
+  return mergeClinicPrivate(rows.map(fromClinic));
 }
 async function getClinic(id) {
   const { data, error } = await sb.from('clinics').select('*').eq('id', id).maybeSingle();
   if (error) throw error;
-  return data ? fromClinic(data) : null;
+  if (!data) return null;
+  const list = await mergeClinicPrivate([fromClinic(data)]);
+  return list[0];
 }
 async function addClinic(row) {
   const { data, error } = await sb.from('clinics').insert(toClinic(row)).select().single();
@@ -1076,11 +1099,10 @@ async function setSituation(table, id, text) {
   if (error) throw error;
 }
 
-// точечное обновление суммы продаж за год (вкладка «Деньги»)
-async function setSalesYear(id, year, value) {
+// точечное обновление суммы продаж за год (вкладка «Деньги») — в закрытую часть
+async function setSalesYear(id, year, value, manager) {
   const col = 'sales_' + year;
-  const { error } = await sb.from('clinics').update({ [col]: value }).eq('id', id);
-  if (error) throw error;
+  await saveClinicPrivate(id, manager, { [col]: value });
 }
 
 // ---------- auth ----------
@@ -1210,7 +1232,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.11.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.11.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3211,10 +3233,16 @@ async function saveClinic(id) {
   await addDictValues('manager', [manager]);
 
   const row = { name, region, city, manager, situation, tags, linkedClinicId, kind };
-  MONEY_YEARS.forEach((y, i) => { row['sales' + y] = sales[i]; });
-  HUGEMED_YEARS.forEach((y, i) => { row['hugemed' + y] = hms[i]; });
+  const moneyFields = {};
+  MONEY_YEARS.forEach((y, i) => { moneyFields['sales_' + y] = sales[i]; });
+  HUGEMED_YEARS.forEach((y, i) => { moneyFields['hugemed_' + y] = hms[i]; });
   if (id) await updateClinic(id, row);
-  else await addClinic(row);
+  else id = (await addClinic(row)).id;
+
+  // деньги — только в закрытую часть, и только если на неё есть право
+  const isBossNow = CURRENT_ROLE === 'admin';
+  const canMoney = isBossNow || (!!myManager() && myManager() === manager);
+  if (canMoney) { try { await saveClinicPrivate(id, manager, moneyFields); } catch (e) { toast('Клиника сохранена, деньги — нет: ' + (e.message || e)); } }
 
   closeModal(); toast('Сохранено'); render(); updateFiltersUI(); refreshCounts();
 }
