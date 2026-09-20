@@ -134,6 +134,9 @@ body {
 .list-row-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .list-row-name { font-size: 15px; font-weight: 650; }
 .list-row-sub { font-size: 12.5px; color: var(--muted); }
+.subtabs { display: flex; gap: 6px; margin: 0 0 8px; }
+.subtab { border: 1px solid rgba(0,0,0,.12); background: transparent; color: var(--muted); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.subtab.active { background: var(--brand); border-color: var(--brand); color: #fff; }
 .money-cnt { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .list-row-money { font-size: 13.5px; font-weight: 700; color: var(--brand); white-space: nowrap; flex: none; }
 .list-row-money.money-up {
@@ -747,6 +750,7 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
   <div id="filters" class="filters hidden">
     <select id="f_region"><option value="">Регионы</option></select>
     <select id="f_city"><option value="">Города</option></select>
+    <select id="f_type"><option value="">Тип клиники</option><option value="state">Государственная</option><option value="private">Частная</option></select>
     <select id="f_year" class="hidden"><option value="">Годы</option></select>
     <select id="f_manager"><option value="">Менеджеры</option></select>
     <select id="f_tag" class="hidden"><option value="">Метки</option></select>
@@ -1198,7 +1202,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.9.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.10.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1282,9 +1286,27 @@ window.addEventListener('unhandledrejection', e => {
   try { toast('⚠️ ' + m); } catch(_){}
 });
 
+// v3.10.1: «Тип клиники» — отдельный атрибут карточки (хранится меткой гос/частная)
+const OWN_TAGS = ['государственная', 'частная'];
+function ownershipOf(c) {
+  const t = ((c && c.tags) || []).map(x => String(x).toLowerCase());
+  if (t.includes('частная')) return 'private';
+  if (t.includes('государственная')) return 'state';
+  return '';
+}
+function ownershipLabel(o) { return o === 'private' ? 'Частная' : (o === 'state' ? 'Государственная' : ''); }
+function myManager() {
+  if (window.CURRENT_MANAGER) return window.CURRENT_MANAGER;
+  const e = (CURRENT_EMAIL || '').toLowerCase();
+  if (e.indexOf('osechkina') === 0) return 'Осечкина';
+  if (e.indexOf('skokova') === 0) return 'Скокова';
+  if (e.indexOf('abramson') === 0) return 'Абрамов';
+  return '';
+}
 function tagsHtml(tags) {
-  if (!tags || !tags.length) return '';
-  return '<div class="row">' + tags.map(t => `<span class="tag">${esc(t)}</span>`).join('') + '</div>';
+  const list = (tags || []).filter(t => !OWN_TAGS.includes(String(t).toLowerCase()));
+  if (!list.length) return '';
+  return '<div class="row">' + list.map(t => `<span class="tag">${esc(t)}</span>`).join('') + '</div>';
 }
 
 function openModal(title, bodyHtml) {
@@ -1355,7 +1377,7 @@ async function bootstrap() {
   if (!user) { showLogin(); return; }  // нет валидной сессии — показываем экран входа
   try {
     const { data: am } = await sb.from('user_managers').select('*').eq('email', user.email).maybeSingle();
-    if (am) { CURRENT_ROLE = am.role; try { localStorage.setItem('crm-role', am.role); } catch (e) {} }
+    if (am) { CURRENT_ROLE = am.role; window.CURRENT_MANAGER = am.manager || null; try { localStorage.setItem('crm-role', am.role); } catch (e) {} }
     else { const c = localStorage.getItem('crm-role'); if (c) CURRENT_ROLE = c; }
   } catch (_) {
     // офлайн: роль берём из последнего успешного входа
@@ -1622,7 +1644,9 @@ function syncTagMenu() {
   });
 }
 function fillTagSelect(rows) {
-  const tags = [...new Set((rows || []).flatMap(r => refTags(r.tags)))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'ru'));
+  const tags = [...new Set((rows || []).flatMap(r => refTags(r.tags)))]
+    .filter(t => t && !OWN_TAGS.includes(String(t).toLowerCase()))
+    .sort((a, b) => a.localeCompare(b, 'ru'));
   tagAllTags = tags;
   state.filters.tags = (state.filters.tags || []).filter(t => tags.includes(t));
   if (state.filters.tag) { if (tags.includes(state.filters.tag) && !state.filters.tags.includes(state.filters.tag)) state.filters.tags.push(state.filters.tag); state.filters.tag = ''; }
@@ -1718,7 +1742,7 @@ function fillSelect(id, values, emptyLabel) {
   sel.value = cur;
 }
 
-['f_manager', 'f_year'].forEach(id => {
+['f_manager', 'f_year', 'f_type'].forEach(id => {
   document.getElementById(id).addEventListener('change', e => {
     if (id === 'f_year') { state.moneyYear = e.target.value; render(); return; }
     state.filters[id.replace('f_', '')] = e.target.value;
@@ -2304,19 +2328,24 @@ async function renderOrgList(kind) {
   clinics = clinics.filter(c => (c.kind || 'hospital') === kind);
   const s = state.search;
   const f = state.filters;
+  const mineOnly = kind === 'hospital' && !!state.mineOnly;
+  const mym = myManager();
   clinics = clinics.filter(c =>
     (!s ||
       (c.name || '').toLowerCase().includes(s) ||
       (c.city || '').toLowerCase().includes(s) ||
       (c.region || '').toLowerCase().includes(s) ||
       (c.manager || '').toLowerCase().includes(s) ||
+      (c.situation || '').toLowerCase().includes(s) ||
       (c.tags || []).some(t => t.toLowerCase().includes(s))) &&
     (!f.region || c.region === f.region) &&
     (!f.city || c.city === f.city) &&
+    (!f.type || ownershipOf(c) === f.type) &&
     (tagHit(f, c.tags)) &&
-    (!f.manager || c.manager === f.manager)
+    (!f.manager || c.manager === f.manager) &&
+    (!mineOnly || (c.manager || '').trim() === mym)
   );
-  const active = s || f.type || f.region || f.city || f.manager;
+  const active = s || f.type || f.region || f.city || f.manager || mineOnly;
   if (!clinics.length) {
     view.innerHTML = `<div class="empty">${active ? 'Ничего не найдено' : emptyWord + ' пока нет. Нажми ＋'}</div>`;
     return;
@@ -2334,7 +2363,12 @@ async function renderOrgList(kind) {
     ));
     qs.forEach(res => { (res.data || []).forEach(r => { if (r.linked_clinic_id) myWlIds.add(Number(r.linked_clinic_id)); }); });
   }
-  view.innerHTML = '<div class="list">' + clinics.map(c => {
+  const subTabs = kind !== 'hospital' ? '' :
+    '<div class="subtabs">' +
+      '<button type="button" class="subtab' + (mineOnly ? '' : ' active') + '" data-sub="all">Все клиники</button>' +
+      '<button type="button" class="subtab' + (mineOnly ? ' active' : '') + '" data-sub="mine">Мои клиники' + (mym ? ' · ' + esc(mym) : '') + '</button>' +
+    '</div>';
+  view.innerHTML = subTabs + '<div class="list">' + clinics.map(c => {
     const loc = [c.region, c.city].filter(Boolean).join(' / ');
     const m = (c.manager || '').trim();
     const showTr = canTransfer && (myEmail === 'abramson@crm.ru' ||
@@ -2353,6 +2387,10 @@ async function renderOrgList(kind) {
       <div class="list-row-sub">${loc ? esc(loc) : '—'}</div>
     </div>`;
   }).join('') + '</div>';
+  view.querySelectorAll('.subtab').forEach(b => b.addEventListener('click', () => {
+    state.mineOnly = (b.dataset.sub === 'mine');
+    render();
+  }));
   view.querySelectorAll('.list-row').forEach(row => {
     row.addEventListener('mouseenter', () => showHoverCard(row));
     row.addEventListener('mouseleave', hideHover);
@@ -3227,7 +3265,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
   if (isRef) {
     return `
       ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-      ${[['Регион', c.region], ['Город', c.city]]
+      ${[['Регион', c.region], ['Город', c.city], ['Тип клиники', ownershipLabel(ownershipOf(c))]]
         .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
       ${siteBlock(c.situation)}
       ${linked ? `<div class="detail-block"><div class="k">Связь</div><div class="v"><span class="org-link" data-clinic="${linked.id}">${esc(linked.name)}</span></div></div>` : ''}
@@ -3240,7 +3278,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
   // v3.7.1: в Клиниках порядок — Регион, Город, Сайт, Менеджер, Связь, Продажи, Комментарий, Люди (метки внизу)
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-    ${[['Регион', c.region], ['Город', c.city]]
+    ${[['Регион', c.region], ['Город', c.city], ['Тип клиники', ownershipLabel(ownershipOf(c))]]
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
     ${siteBlock(c.situation)}
     ${[['Менеджер', c.manager], ['Связь', linked ? linked.name : null]]
