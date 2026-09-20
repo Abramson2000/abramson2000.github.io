@@ -454,17 +454,29 @@ if (typeof document !== 'undefined') {
   });
   window.addEventListener('pagehide', flushSave);
 }
-// облачный прогресс: на crmuro.ru (GitHub Pages) нет /api/* — ходим на CF Pages напрямую
-let _spinApiRemote = false; // после первого 404 (GitHub Pages) сразу используем pages.dev
+// облачный прогресс: на crmuro.ru (GitHub Pages) нет /api/* — ходим на внешний API
+// ВАЖНО: у части провайдеров/роутеров не резолвится *.pages.dev, поэтому основной адрес —
+// поддомен своего домена (api.crmuro.ru), а pages.dev оставлен как запасной.
+let _spinApiRemote = false;
+const SPIN_API_HOSTS = [
+  'https://api.crmuro.ru/api/spin-progress',
+  'https://abramson-crm.pages.dev/api/spin-progress'
+];
+let _spinApiGood = null;
+function spinApiRemember(u) {
+  _spinApiGood = u;
+  try { localStorage.setItem('spin-api-good', u); } catch (e) {}
+}
+try { _spinApiGood = localStorage.getItem('spin-api-good') || null; } catch (e) {}
 async function spinApi(body) {
-  const tries = _spinApiRemote
-    ? ['https://abramson-crm.pages.dev/api/spin-progress']
-    : ['/api/spin-progress', 'https://abramson-crm.pages.dev/api/spin-progress'];
+  const local = '/api/spin-progress';
+  const rest = SPIN_API_HOSTS.filter((h) => h !== _spinApiGood);
+  const tries = (_spinApiGood ? [_spinApiGood] : [local]).concat(rest);
   let last;
   for (const u of tries) {
     try {
       const r = await fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (r.ok) return r;
+      if (r.ok) { if (u !== _spinApiGood) spinApiRemember(u); return r; }
       last = new Error('HTTP ' + r.status);
       last.status = r.status;
       if (r.status === 404 || r.status === 405) _spinApiRemote = true;
@@ -481,7 +493,7 @@ async function cloudSave() {
     const r = await spinApi({ action: 'save', token, data: syncPayload() });
     const j = await r.json().catch(() => null);
     if (r.ok && j && j.ok) { S.dirty = false; pendSet(false); setSync('saved'); }
-    else if (r.status === 401 || r.status === 403) { setSync('noauth'); S.dirty = true; pendSet(true); }
+    else if (r.status === 401 || r.status === 403) { setSync('noauth'); S.dirty = true; pendSet(true); setTimeout(() => { if (S.dirty && USER) cloudLoad(); }, 15000); }
     else { setSync('error'); S.dirty = true; pendSet(true); setTimeout(() => { if (S.dirty) cloudSave(); }, 4000); }
   } catch (e) {
     if (e && (e.status === 401 || e.status === 403)) setSync('noauth');
@@ -529,36 +541,31 @@ async function cloudLoad() {
     const cloud = j && j.data;
     if (cloud) {
       const cx = Number(cloud.xp) || 0, lx = Number(local.xp) || 0;
-      if (cx > lx) {
-        // на сервере свежее (например, учился с телефона) — забираем И объединяем с тем, что есть здесь
-        S.lesson = Math.max(Number(local.lesson) || 0, Number(cloud.lesson) || 0);
-        S.done = uniArr(local.done, cloud.done);
-        S.practiced = uniArr(local.practiced, cloud.practiced);
-        S.spPracticed = uniArr(local.spPracticed, cloud.spPracticed);
-        S.medPracticed = uniArr(local.medPracticed, cloud.medPracticed);
-        S.proPracticed = uniArr(local.proPracticed, cloud.proPracticed);
-        S.spicedDone = uniArr(local.spicedDone, cloud.spicedDone);
-        S.medDone = uniArr(local.medDone, cloud.medDone);
-        S.proDone = uniArr(local.proDone, cloud.proDone);
-        S.xp = cx;
-        S.correct = Math.max(Number(local.correct) || 0, Number(cloud.correct) || 0);
-        S.attempts = Math.max(Number(local.attempts) || 0, Number(cloud.attempts) || 0);
-        if (typeof cloud.extra === 'number' && cloud.extra >= 0) curExtra = cloud.extra;
-        if (typeof cloud.xb === 'number' && cloud.xb >= 0) curXb = cloud.xb;
-        curMed = null; curSpiced = null; curPro = null;
-        S.cDone = uniArr(local.cDone, cloud.cDone);
-        S.scStat = mergeScs(local.scs, cloud.scs);
-        S.trn = mergeTrn(local.trn, cloud.trn);
-        try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
-        syncChrome();
-        toast('Прогресс подтянут с сервера: ' + cx + ' XP' + (lx && lx !== cx ? ' (было ' + lx + ')' : ''));
-        // если объединение богаче сервера — вернём обратно, чтобы ничего не потерялось
-        if (sigOf(syncPayload()) !== sigOf(cloud)) S.dirty = true;
-      } else if (lx > cx) {
-        // на этом устройстве больше — отправляем наверх
-        S.dirty = true;
-        toast('Прогресс этого устройства отправлен на сервер');
-      }
+      // ВСЕГДА объединяем оба источника — ничего не теряем ни здесь, ни на сервере
+      S.lesson = Math.max(Number(local.lesson) || 0, Number(cloud.lesson) || 0);
+      S.done = uniArr(local.done, cloud.done);
+      S.practiced = uniArr(local.practiced, cloud.practiced);
+      S.spPracticed = uniArr(local.spPracticed, cloud.spPracticed);
+      S.medPracticed = uniArr(local.medPracticed, cloud.medPracticed);
+      S.proPracticed = uniArr(local.proPracticed, cloud.proPracticed);
+      S.spicedDone = uniArr(local.spicedDone, cloud.spicedDone);
+      S.medDone = uniArr(local.medDone, cloud.medDone);
+      S.proDone = uniArr(local.proDone, cloud.proDone);
+      S.cDone = uniArr(local.cDone, cloud.cDone);
+      S.xp = Math.max(cx, lx);
+      S.correct = Math.max(Number(local.correct) || 0, Number(cloud.correct) || 0);
+      S.attempts = Math.max(Number(local.attempts) || 0, Number(cloud.attempts) || 0);
+      if (curExtra == null && typeof cloud.extra === 'number' && cloud.extra >= 0) curExtra = cloud.extra;
+      if (typeof cloud.xb === 'number' && cloud.xb >= 0) curXb = Math.max(curXb || 0, cloud.xb);
+      curMed = null; curSpiced = null; curPro = null;
+      S.scStat = mergeScs(local.scs, cloud.scs);
+      S.trn = mergeTrn(local.trn, cloud.trn);
+      try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
+      syncChrome();
+      if (cx > lx) toast('Прогресс подтянут с сервера: ' + cx + ' XP' + (lx && lx !== cx ? ' (было ' + lx + ')' : ''));
+      else if (lx > cx) toast('Прогресс этого устройства (' + lx + ' XP) отправлен на сервер');
+      // если объединение богаче сервера — вернём обратно, чтобы ничего не потерялось
+      if (sigOf(syncPayload()) !== sigOf(cloud)) S.dirty = true;
     }
     // доп-курс x4: отметки уроков — объединяем локальные и облачные (не теряем ни те, ни другие)
     const xdm = mergeXDone(local.xd, cloud && cloud.xd);
