@@ -1229,6 +1229,12 @@ function renderTheory() {
   const kicker = mode === 'spiced' ? 'КУРС 1А · SPICED · УРОК ' + (i + 1) + ' ИЗ ' + SPICED.length : mode === 'med' ? 'КУРС MEDDPICC · УРОК ' + (i + 1) + ' ИЗ ' + MED.length : mode === 'extra' ? (xMode ? 'ДОПОЛНИТЕЛЬНО · УЧЕБНЫЙ КУРС · УРОК ' + (xb + 1) + ' ИЗ ' + l.blocks.length : (EXTRA[i].course ? 'ДОПОЛНИТЕЛЬНО · УЧЕБНЫЙ КУРС' : 'ДОПОЛНИТЕЛЬНО · ВЫЖИМКА ИЗ КНИГИ')) : mode === 'pro' ? 'КУРС 5 · ПРОАКТИВНЫЕ ПРОДАЖИ · УРОК ' + (i + 1) + ' ИЗ ' + PRO.length : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num + ' ИЗ ' + co.len;
   const railTitle = mode === 'spiced' ? 'Расширение СПИН' : mode === 'med' ? 'Квалификация сделки' : mode === 'extra' ? 'Дополнительные уроки' : mode === 'pro' ? 'Проактивные продажи' : 'Уроки курсов';
   const railEyebrow = mode === 'spiced' ? 'SPICED · КУРС 1А' : mode === 'med' ? 'MEDDPICC' : mode === 'extra' ? 'ДОПОЛНИТЕЛЬНО' : mode === 'pro' ? 'PROACTIVE · КУРС 5' : 'ПРОГРАММА';
+  // галочка «Урок изучен» — ставится после блока «Запомнить» и ПЕРЕД «Проверь себя»
+  const chkState = (mode === 'extra') ? (xMode ? xIsDone(l.id, xb) : S.extraDone.includes(i)) : done;
+  const chkLabel = (mode === 'extra' && !xMode) ? (chkState ? 'Изучено ✓' : 'Отметить изученным')
+    : (mode === 'main' ? (chkState ? 'Урок пройден ✓' : 'Урок изучен')
+    : (chkState ? 'Урок изучен ✓' : 'Урок изучен'));
+  const chkHtml = `<label class="complete-check lesson-complete-early"><input type="checkbox" id="lessonComplete" ${chkState ? 'checked' : ''} /><span></span>${chkLabel}</label>`;
   $('theoryBody').innerHTML = `
     <aside class="lesson-rail">
       <button class="back-link" data-jump="program">← К программе</button>
@@ -1259,36 +1265,31 @@ function renderTheory() {
       <div class="question-levels">
         ${l.remember.map((r, ri) => `<div class="level-card"><span>!</span><div><p>${esc(r)}</p></div></div>`).join('')}
       </div>`}
+      ${chkHtml}
       ${practiceHtml(l, i, done)}
       <div class="lesson-footer">
         ${mode === 'spiced'
-          ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок изучен ✓' : 'Урок изучен'}</label>
-             ${i + 1 < SPICED.length
+          ? `${i + 1 < SPICED.length
                ? `<button class="primary-button" id="nextBtn" data-spicednext="${i + 1}" ${done ? '' : 'disabled'}>Следующий урок <span>→</span></button>`
                : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}
              ${i + 1 < SPICED.length && !done ? '<p class="next-hint">Сначала отметьте этот урок изученным — и откроется следующий.</p>' : ''}`
           : mode === 'med'
-          ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок изучен ✓' : 'Урок изучен'}</label>
-             ${i + 1 < MED.length
+          ? `${i + 1 < MED.length
                ? `<button class="primary-button" id="nextBtn" data-mednext="${i + 1}" ${done ? '' : 'disabled'}>Следующий урок <span>→</span></button>`
                : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}
              ${i + 1 < MED.length && !done ? '<p class="next-hint">Сначала отметьте этот урок изученным — и откроется следующий.</p>' : ''}`
           : mode === 'pro'
-          ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок изучен ✓' : 'Урок изучен'}</label>
-             ${i + 1 < PRO.length
+          ? `${i + 1 < PRO.length
                ? `<button class="primary-button" id="nextBtn" data-pronext="${i + 1}" ${done ? '' : 'disabled'}>Следующий урок <span>→</span></button>`
                : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}
              ${i + 1 < PRO.length && !done ? '<p class="next-hint">Сначала отметьте этот урок изученным — и откроется следующий.</p>' : ''}`
           : mode === 'extra'
           ? (xMode
-             ? `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${xIsDone(l.id, xb) ? 'checked' : ''} /><span></span>${xIsDone(l.id, xb) ? 'Урок изучен ✓' : 'Урок изучен'}</label>
-                ${xb + 1 < l.blocks.length
+             ? `${xb + 1 < l.blocks.length
                 ? `<button class="primary-button" id="nextBtn" data-xbnext="1">Следующий урок <span>→</span></button>`
                 : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`}`
-             : `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${S.extraDone.includes(i) ? 'checked' : ''} /><span></span>${S.extraDone.includes(i) ? 'Изучено ✓' : 'Отметить изученным'}</label>
-             <button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`)
-          : `<label class="complete-check"><input type="checkbox" id="lessonComplete" ${done ? 'checked' : ''} /><span></span>${done ? 'Урок пройден ✓' : 'Урок изучен'}</label>
-             ${i + 1 < L.length
+             : `<button class="primary-button" id="nextBtn" data-jump="program">К программе <span>→</span></button>`)
+          : `${i + 1 < L.length
                ? `<button class="primary-button" id="nextBtn" data-next="${i + 1}" ${hasP ? '' : 'disabled'}>Следующий урок <span>→</span></button>`
                : `<button class="primary-button" id="nextBtn" data-jump="progress" ${hasP ? '' : 'disabled'}>К прогрессу <span>→</span></button>`}`}
       </div>
