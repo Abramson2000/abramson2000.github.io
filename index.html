@@ -534,6 +534,13 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
   }
   body.detail-mode.card-open #view, body.detail-mode.card-open #filters, body.detail-mode.card-open #fab { display: none; }
   .detail-back { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+  .detail-back-fixed { display: none; }
+  body.card-open .detail-back-fixed {
+    display: flex; position: fixed; left: 12px; top: 10px; z-index: 70;
+    align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); font-weight: 600;
+  }
+  body.card-open .hover-card { padding-top: 58px; }
 }
 /* v1.160: Клиники/Партнёры на десктопе — карточка закреплена справа, список занимает оставшееся место */
 @media (min-width: 900px) {
@@ -869,6 +876,7 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
   <div id="toast" class="toast hidden"></div>
 
   <div id="hoverCard" class="hover-card hidden"></div>
+  <button id="detailBack" class="detail-back-fixed">← Назад к списку</button>
 
   <script>if(window.__d)window.__d.m.push('sdk-start '+(Date.now()-window.__d.t)+'ms');</script>
   <script src="supabase.v139.min.js?v=139"></script>
@@ -1256,7 +1264,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.11.4';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.11.5';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3513,6 +3521,8 @@ async function showHoverCard(row, immediate) {
 
 {
   const panel = document.getElementById('hoverCard');
+  const backBtn = document.getElementById('detailBack');
+  if (backBtn) backBtn.addEventListener('click', () => { state.selId = null; clearDetailPanel(); });
   panel.addEventListener('mouseenter', () => { hoverPinned = true; clearTimeout(hoverTimer); });
   panel.addEventListener('mouseleave', () => {
     if (document.body.classList.contains('detail-mode')) return;
