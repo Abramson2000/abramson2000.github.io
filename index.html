@@ -589,6 +589,9 @@ details.detail-block[open] > summary { margin-bottom: 6px; }
     max-height: calc(100vh - 24px); overflow-y: auto;
   }
   body:not(.detail-mode) .work .hover-card { display: none; }
+  /* базовая ширина: сдвиг задаём ЗДЕСЬ (правило идёт после базовых .searchbar/.view) */
+  .work, .searchbar { margin-left: 260px; }
+  .work > #view { margin: 0; max-width: none; }
 }
 .badge a.tel { color: inherit; }
 .detail-block a.tel, .contact-row a.tel { color: var(--brand); }
@@ -1689,7 +1692,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     if (v === 'nastya' && !WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) v = 'clinics';
     if (v === 'galya' && !WORKLISTS.galya.emails.includes(CURRENT_EMAIL)) v = 'clinics';
     if (v === 'sasha' && !WORKLISTS.sasha.emails.includes(CURRENT_EMAIL)) v = 'clinics';
-    state.view = v;
+    setView(v);   // v3.15.0: у каждого раздела свои фильтры — сохраняем/восстанавливаем состояние
     setActiveTab(state.view);
     closeDrawer();  // v1.146: закрываем бургер-меню после выбора
     updateFiltersUI();
@@ -1786,7 +1789,8 @@ function setView(v) {
   loadViewState(v);
 }
 
-// карта связей регион<->город (строится из клиник) + полные словари для сбросаlet locAll = { regions: [], cities: [] };
+// карта связей регион<->город (строится из клиник) + полные словари для сброса
+let locAll = { regions: [], cities: [] };
 let locMap = { regionCities: {}, cityRegions: {} };
 const ruCmp = (a, b) => a.localeCompare(b, 'ru');
 
