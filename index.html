@@ -18,9 +18,9 @@
   --card: #ffffff;
   --ink: #161616;
   --muted: #737373;
-  --brand: #111111;
-  --brand-dark: #000000;
-  --accent: #404040;
+  --brand: #0f8a8a;
+  --brand-dark: #0b6f6f;
+  --accent: #0f8a8a;
   --line: #e5e5e5;
   --danger: #dc2626;
   --shadow: 0 1px 2px rgba(0, 0, 0, .05);
@@ -544,19 +544,20 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 }
 /* v1.160: Клиники/Партнёры на десктопе — карточка закреплена справа, список занимает оставшееся место */
 @media (min-width: 900px) {
-  body.detail-mode #view { max-width: none; margin-right: 424px; }
+  /* v3.12.0: список ~45% / карточка ~55% от рабочей области (окно минус меню 260px) */
+  body.detail-mode #view { max-width: none; margin-right: calc(55vw - 119px); }
   body.detail-mode .hover-card {
-    position: fixed; top: 16px; right: 16px; left: auto; bottom: 16px;
-    width: 400px; max-height: none;
+    position: fixed; top: 12px; right: 12px; left: auto; bottom: 12px;
+    width: calc(55vw - 143px); max-height: none;
   }
 }
 @media (min-width: 1250px) {
-  body.detail-mode #view { margin-right: 624px; }
-  body.detail-mode .hover-card { width: 600px; }
+  body.detail-mode #view { margin-right: calc(55vw - 119px); }
+  body.detail-mode .hover-card { width: calc(55vw - 143px); }
 }
 @media (min-width: 1400px) {
-  body.detail-mode #view { margin-right: 724px; }
-  body.detail-mode .hover-card { width: 700px; }
+  body.detail-mode #view { margin-right: calc(55vw - 119px); }
+  body.detail-mode .hover-card { width: calc(55vw - 143px); }
 }
 .badge a.tel { color: inherit; }
 .detail-block a.tel, .contact-row a.tel { color: var(--brand); }
@@ -624,6 +625,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
     <div class="d-head"><img src="logo.jpg" class="d-logo" alt="" /><div><div class="d-title">Абрамовская база</div><div class="d-sub" id="drawerUser"></div></div></div>
     <nav>
       <div class="d-sec">Основное</div>
+      <button class="tab d-item" data-view="myday">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span>Мой день</span>
+      </button>
       <button class="tab d-item active" data-view="clinics">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16"/><path d="M5 21V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12"/><path d="M9 21v-4h6v4"/><path d="M12 8v5M9.5 10.5h5"/></svg>
         <span>Клиники</span><em class="cnt" data-cnt="clinics"></em>
@@ -651,7 +656,15 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <div class="d-sec">Продукты</div>
       <button class="tab d-item" data-view="cns">
         <img src="cns.png" class="cns-drawer-ico" alt="" />
-        <span>Цистонефроскопы</span><em class="cnt" data-cnt="cns"></em>
+        <span>Цисто</span><em class="cnt" data-cnt="cns"></em>
+      </button>
+      <button class="tab d-item" data-view="air">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        <span>АиР</span>
+      </button>
+      <button class="tab d-item" data-view="endo">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 7h8M8 12h8M8 17h8"/></svg>
+        <span>Эндо</span>
       </button>
       <div class="d-sec">Команда</div>
       <button class="tab d-item nastya-tab" data-view="nastya">
@@ -669,11 +682,11 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <div class="d-sec">Справочники</div>
       <button class="tab d-item" data-view="refgos">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M10 21v-4h4v4"/><path d="M10 11h4"/></svg>
-        <span>Гос ЛПУ</span><em class="cnt" data-cnt="refgos"></em>
+        <span>Государственные</span><em class="cnt" data-cnt="refgos"></em>
       </button>
       <button class="tab d-item" data-view="refpriv">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
-        <span>Частные клиники</span><em class="cnt" data-cnt="refpriv"></em>
+        <span>Частные</span><em class="cnt" data-cnt="refpriv"></em>
       </button>
       <button class="tab d-item" data-view="refdoc">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11h4M19 9v4"/></svg>
@@ -686,10 +699,6 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <button class="tab d-item" data-view="refcontact">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         <span>Контакты</span><em class="cnt" data-cnt="refcontact"></em>
-      </button>
-      <button class="tab d-item" data-view="myday">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-        <span>Мой день</span>
       </button>
       <div class="d-sec">Система</div>
       <button class="tab d-item" data-view="settings">
@@ -707,6 +716,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
     </div>
     <nav class="sidebar-nav">
       <div class="d-sec">Основное</div>
+      <button class="tab" data-view="myday">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span>Мой день</span>
+      </button>
       <button class="tab active" data-view="clinics">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16"/><path d="M5 21V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12"/><path d="M9 21v-4h6v4"/><path d="M12 8v5M9.5 10.5h5"/></svg>
         <span>Клиники <em class="cnt" data-cnt="clinics"></em></span>
@@ -734,7 +747,15 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <div class="d-sec">Продукты</div>
       <button class="tab" data-view="cns">
         <img src="cns.png" class="cns-nav-ico" alt="" />
-        <span>Цистонефроскопы <em class="cnt" data-cnt="cns"></em></span>
+        <span>Цисто <em class="cnt" data-cnt="cns"></em></span>
+      </button>
+      <button class="tab" data-view="air">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        <span>АиР</span>
+      </button>
+      <button class="tab" data-view="endo">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 7h8M8 12h8M8 17h8"/></svg>
+        <span>Эндо</span>
       </button>
       <div class="d-sec">Команда</div>
       <button class="tab nastya-tab" data-view="nastya">
@@ -752,11 +773,11 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <div class="d-sec">Справочники</div>
       <button class="tab" data-view="refgos">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M10 21v-4h4v4"/><path d="M10 11h4"/></svg>
-        <span>Гос ЛПУ <em class="cnt" data-cnt="refgos"></em></span>
+        <span>Государственные <em class="cnt" data-cnt="refgos"></em></span>
       </button>
       <button class="tab" data-view="refpriv">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
-        <span>Частные клиники <em class="cnt" data-cnt="refpriv"></em></span>
+        <span>Частные <em class="cnt" data-cnt="refpriv"></em></span>
       </button>
       <button class="tab" data-view="refdoc">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11h4M19 9v4"/></svg>
@@ -769,10 +790,6 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <button class="tab" data-view="refcontact">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         <span>Контакты <em class="cnt" data-cnt="refcontact"></em></span>
-      </button>
-      <button class="tab" data-view="myday">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-        <span>Мой день</span>
       </button>
       <div class="d-sec">Система</div>
       <button class="tab" data-view="settings">
@@ -1244,6 +1261,7 @@ const state = { view: 'clinics', search: '', filters: { region: '', city: '', ma
 
 // ---------- цвет выделения ----------
 const ACCENT_OPTIONS = [
+  { key: 'teal',   label: 'Бирюзовый',  color: '#0f8a8a', dark: '#0b6f6f' },
   { key: 'black',  label: 'Чёрный',     color: '#111111', dark: '#000000' },
   { key: 'blue',   label: 'Синий',      color: '#2563eb', dark: '#1d4ed8' },
   { key: 'red',    label: 'Красный',    color: '#dc2626', dark: '#b91c1c' },
@@ -1253,7 +1271,7 @@ const ACCENT_OPTIONS = [
 ];
 
 function getAccent() {
-  return localStorage.getItem('accent') || 'black';
+  return localStorage.getItem('accent') || 'teal';
 }
 function applyAccent() {
   const opt = ACCENT_OPTIONS.find(o => o.key === getAccent()) || ACCENT_OPTIONS[0];
@@ -1264,7 +1282,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.11.5';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.12.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1623,7 +1641,7 @@ let filterCtx = '';
 async function updateFiltersUI() {
   const bar = document.getElementById('filters');
   const fab = document.getElementById('fab');
-  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday'];
+  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
   fab.classList.toggle('hidden', menuViews.includes(state.view));
   // мобильная нижняя плашка: у Саши свой 3-й стол (Саша/Настя/Галя), у остальных 2-й стол анализа
   const inAnalysis = ['analysis', 'money', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(state.view);
@@ -1890,6 +1908,8 @@ async function render() {
     else if (state.view === 'reffirm') await renderRefFirms();
     else if (state.view === 'refcontact') await renderContacts();
     else if (state.view === 'myday') await renderMyDay();
+    else if (state.view === 'air') await renderStub('АиР');
+    else if (state.view === 'endo') await renderStub('Эндо');
     else if (state.view === 'visits') renderVisits();
     else if (state.view === 'nastya' && WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) await renderNastya();
     else if (state.view === 'galya' && WORKLISTS.galya.emails.includes(CURRENT_EMAIL)) await renderGalya();
@@ -1915,7 +1935,7 @@ async function renderCns() {
     (c.region || '').toLowerCase().includes(s) ||
     (c.manager || '').toLowerCase().includes(s));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
-  const cnsHead = `<div class="cns-head"><span>Цистонефроскопы · <b>${clinics.length}</b> ${clinics.length === 1 ? 'клиника' : clinics.length < 5 ? 'клиники' : 'клиник'} в отборе</span><button class="cns-add" id="cnsAddBtn">＋ Добавить</button></div>`;
+  const cnsHead = `<div class="cns-head"><span>Цисто · <b>${clinics.length}</b> ${clinics.length === 1 ? 'клиника' : clinics.length < 5 ? 'клиники' : 'клиник'} в отборе</span><button class="cns-add" id="cnsAddBtn">＋ Добавить</button></div>`;
   if (!clinics.length) {
     view.innerHTML = cnsHead + `<div class="empty">${s ? 'Ничего не найдено' : 'Отбор пуст — добавляй клиники кнопкой «＋ Добавить»'}</div>`;
     bindCnsAdd(view);
@@ -2384,6 +2404,12 @@ function renderWorklistDetail(key, c, people) {
 
 // ---------- Справочники: «Контакты» (v3.11.0) ----------
 // Один список всех, у кого есть контакт: клиники, врачи, контактные лица компаний.
+async function renderStub(title) {
+  const view = document.getElementById('view');
+  view.innerHTML = `<div class="cns-head"><span>${esc(title)}</span></div>` +
+    '<div class="empty">Раздел-заготовка. Содержимое появится отдельным заданием.</div>';
+}
+
 async function renderMyDay() {
   const view = document.getElementById('view');
   view.innerHTML = '<div class="cns-head"><span>Мой день</span></div>' +
@@ -2901,7 +2927,7 @@ async function renderDicts() {
 }
 
 // ---------- справочники: Гос ЛПУ / Частные клиники / Врачи ----------
-const REF_KIND_LABEL = { ref_gos: 'Гос ЛПУ', ref_priv: 'Частные клиники', ref_firm: 'Компании' };
+const REF_KIND_LABEL = { ref_gos: 'Государственные', ref_priv: 'Частные', ref_firm: 'Компании' };
 const REFDOC_TAG = 'refdoc';
 const FIRM_TAG = 'firmcontact'; // контакт компании: карточка человека есть, но в списки людей он не попадает
 const isRefKind = k => k === 'ref_gos' || k === 'ref_priv' || k === 'ref_firm';
@@ -3135,9 +3161,9 @@ async function openClinicForm(id, presetKind) {
   ]);
   const linkOptions = await clinicSelectOptions(c.linkedClinicId);
 
-  const KIND_OPTS = [['hospital', 'Больница'], ['distributor', 'Партнеры'], ['ref_gos', 'Гос ЛПУ'], ['ref_priv', 'Частные клиники'], ['ref_firm', 'Компании']];
+  const KIND_OPTS = [['hospital', 'Больница'], ['distributor', 'Партнеры'], ['ref_gos', 'Государственные'], ['ref_priv', 'Частные'], ['ref_firm', 'Компании']];
   const kindOptsHtml = KIND_OPTS.map(([v, l]) => `<option value="${v}"${kind === v ? ' selected' : ''}>${l}</option>`).join('');
-  const titleMap = { distributor: 'Новый дистрибьютор', ref_gos: 'Новое Гос ЛПУ', ref_priv: 'Новая частная клиника', ref_firm: 'Новая компания' };
+  const titleMap = { distributor: 'Новый дистрибьютор', ref_gos: 'Новое учреждение', ref_priv: 'Новая частная клиника', ref_firm: 'Новая компания' };
 
   openModal(id ? 'Редактировать организацию' : (titleMap[kind] || 'Новая клиника'), `
     <div class="field"><label>Вид *</label>
@@ -3504,10 +3530,10 @@ async function showHoverCard(row, immediate) {
     }
     const r = row.getBoundingClientRect();
     if (document.body.classList.contains('detail-mode')) {
-      // закреплённая правая панель (ширина зависит от экрана)
-      const pw = window.innerWidth >= 1400 ? 700 : window.innerWidth >= 1250 ? 600 : 400;
-      panel.style.top = '16px';
-      panel.style.left = (window.innerWidth - pw - 16) + 'px';
+      // закреплённая правая панель: ~55% рабочей области (окно минус меню)
+      const pw = Math.round(window.innerWidth * 0.55) - 143;
+      panel.style.top = '12px';
+      panel.style.left = (window.innerWidth - pw - 12) + 'px';
     } else {
       const pw = 380;
       let left = r.right + 12;
