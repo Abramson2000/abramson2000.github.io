@@ -651,11 +651,11 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
     <div class="d-head"><img src="logo.jpg" class="d-logo" alt="" /><div><div class="d-title">Абрамовская база</div><div class="d-sub" id="drawerUser"></div></div></div>
     <nav>
       <div class="d-sec">Основное</div>
-      <button class="tab d-item" data-view="myday">
+      <button class="tab d-item active" data-view="myday">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
         <span>Мой день</span>
       </button>
-      <button class="tab d-item active" data-view="clinics">
+      <button class="tab d-item" data-view="clinics">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16"/><path d="M5 21V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12"/><path d="M9 21v-4h6v4"/><path d="M12 8v5M9.5 10.5h5"/></svg>
         <span>Клиники</span><em class="cnt" data-cnt="clinics"></em>
       </button>
@@ -742,11 +742,11 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
     </div>
     <nav class="sidebar-nav">
       <div class="d-sec">Основное</div>
-      <button class="tab" data-view="myday">
+      <button class="tab active" data-view="myday">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
         <span>Мой день</span>
       </button>
-      <button class="tab active" data-view="clinics">
+      <button class="tab" data-view="clinics">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16"/><path d="M5 21V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12"/><path d="M9 21v-4h6v4"/><path d="M12 8v5M9.5 10.5h5"/></svg>
         <span>Клиники <em class="cnt" data-cnt="clinics"></em></span>
       </button>
@@ -1283,7 +1283,7 @@ const DICT_LABELS = {
   sub: 'Суб / партнёр'
 };
 
-const state = { view: 'clinics', search: '', filters: { region: '', city: '', manager: '', tag: '', tags: [] }, moneySort: 'desc', moneySource: 'both', moneyYear: '', moneyFilter: 'all', nastyaId: null, fromCalls: false };
+const state = { view: 'myday', search: '', filters: { region: '', city: '', manager: '', tag: '', tags: [] }, moneySort: 'desc', moneySource: 'both', moneyYear: '', moneyFilter: 'all', nastyaId: null, fromCalls: false };
 
 // ---------- цвет выделения ----------
 const ACCENT_OPTIONS = [
@@ -1308,7 +1308,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.12.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.13.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1906,7 +1906,7 @@ document.getElementById('globalSearch').addEventListener('input', e => {
 // ---------- render ----------
 async function render() {
   if (isRefEdit() && REFEDIT_DENIED.includes(state.view)) { state.view = 'clinics'; }
-  document.body.classList.toggle('detail-mode', state.view === 'clinics' || state.view === 'distributors');
+  document.body.classList.toggle('detail-mode', state.view === 'clinics' || state.view === 'distributors' || state.view === 'myday');
   hideHover();
   setActiveTab(state.view);
   // гейт рабочих листов — применяется при каждом рендере (кеш не обманет)
@@ -2438,8 +2438,31 @@ async function renderStub(title) {
 
 async function renderMyDay() {
   const view = document.getElementById('view');
-  view.innerHTML = '<div class="cns-head"><span>Мой день</span></div>' +
-    '<div class="empty">Раздел готов к наполнению: задачи и показатели появятся в следующем задании.</div>';
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const clinics = (await listClinics()).filter(c => !c.markedDel);
+  const days = c => Math.round((new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00') - today) / 86400000);
+  const withDate = clinics.filter(c => c.nextContact);
+  const over = withDate.filter(c => days(c) < 0).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
+  const tod  = withDate.filter(c => days(c) === 0);
+  const week = withDate.filter(c => days(c) > 0 && days(c) <= 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
+  const later = withDate.filter(c => days(c) > 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
+  const row = (c, badge) => `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
+      <div class="list-row-top">
+        <span class="list-row-name">${esc(c.name)}</span>
+        <span class="row-next">${badge}</span>
+      </div>
+      <div class="list-row-sub">${esc([c.city, c.region].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}</div>
+    </div>`;
+  const block = (title, list, badgeFn) => list.length
+    ? `<div class="cns-head" style="margin-top:14px"><span>${title} · <b>${list.length}</b></span></div><div class="list">${list.map(c => row(c, badgeFn(c))).join('')}</div>`
+    : '';
+  const dstr = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
+  view.innerHTML = `<div class="cns-head"><span>Мой день · ${esc(dstr)}</span>${over.length ? `<span class="row-next">просрочено: ${over.length}</span>` : ''}</div>`
+    + block('Просрочено', over, c => 'просрочено ' + fmtDate(c.nextContact))
+    + block('Сегодня', tod, () => 'сегодня')
+    + block('Ближайшая неделя', week, c => fmtDate(c.nextContact))
+    + block('Позже', later.slice(0, 20), c => fmtDate(c.nextContact))
+    + (!withDate.length ? `<div class="empty">Запланированных контактов нет. Клиник в базе: ${clinics.length}.</div>` : '');
 }
 
 async function renderContacts() {
