@@ -459,6 +459,7 @@ if (typeof document !== 'undefined') {
 // поддомен своего домена (api.crmuro.ru), а pages.dev оставлен как запасной.
 let _spinApiRemote = false;
 const SPIN_API_HOSTS = [
+  'https://sync.crmuro.ru/api/spin-progress',
   'https://api.crmuro.ru/api/spin-progress',
   'https://abramson-crm.pages.dev/api/spin-progress'
 ];
