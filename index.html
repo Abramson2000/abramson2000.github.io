@@ -1308,7 +1308,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.13.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.13.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2064,67 +2064,38 @@ function renderAnalysis() {
 }
 
 async function renderCalls() {
+  // v3.13.1: Звонки берут данные ИЗ ТОЙ ЖЕ базы, что и «Мой день»
+  // (раньше читались старые списки-копии → контакт не совпадал с карточкой).
   const view = document.getElementById('view');
-  const myEmail = CURRENT_EMAIL;
-  let key = null;
-  if (myEmail === 'abramson@crm.ru') key = 'sasha';
-  else if (myEmail === 'osechkina@crm.ru') key = 'nastya';
-  else if (myEmail === 'skokova@crm.ru') key = 'galya';
-  else key = Object.keys(WORKLISTS).find(k => WORKLISTS[k].emails.includes(myEmail)) || null;
-  if (!key) {
-    view.innerHTML = '<div class="empty">Звонков пока нет</div>';
-    return;
-  }
-  const W = WORKLISTS[key];
   let rows = [];
   try {
-    const { data, error } = await withTimeout(sb.from(W.cl).select('*'), 10000, 'calls-load');
-    if (error) throw error;
-    rows = data || [];
+    rows = (await listClinics()).filter(c => !c.markedDel && c.nextContact);
   } catch (e) {
-    view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки звонков: ' + esc(e && e.message ? e.message : e) +
+    view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки: ' + esc(e && e.message ? e.message : e) +
       '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
     return;
   }
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  // только клиники с назначенной датой созвона
-  rows = rows.filter(c => c.next_contact);
   rows.sort((a, b) => {
-    const da = String(a.next_contact).slice(0, 10);
-    const db = String(b.next_contact).slice(0, 10);
+    const da = String(a.nextContact).slice(0, 10), db = String(b.nextContact).slice(0, 10);
     if (da !== db) return da < db ? -1 : 1;
     return (a.name || '').localeCompare(b.name || '', 'ru');
   });
   if (!rows.length) {
-    view.innerHTML = '<div class="empty">Звонков пока нет — назначь дату в карточке клиники</div>';
+    view.innerHTML = '<div class="cns-head"><span>Звонки</span></div><div class="empty">Запланированных контактов нет — назначь дату в карточке клиники</div>';
     return;
   }
-  view.innerHTML = `<div class="money-total-line"><b>ЗВОНКИ</b></div>
-    <div class="list">` + rows.map(c => {
-    const d = fmtDate(c.next_contact);
-    const nd = new Date(String(c.next_contact).slice(0, 10) + 'T00:00:00');
+  view.innerHTML = `<div class="cns-head"><span>Звонки · <b>${rows.length}</b></span></div><div class="list">` + rows.map(c => {
+    const nd = new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00');
     const cls = nd < today ? 'nd-over' : (nd.getTime() === today.getTime() ? 'nd-today' : 'nd-future');
-    const sit = (c.situation || '').trim();
-    return `<div class="card call-row" data-kind="nastya" data-id="${c.id}" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
-      <div style="flex:none;width:104px">
-        <span class="nd ${cls}">${d}</span>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px">09:00</div>
+    return `<div class="card list-row" data-kind="clinic" data-id="${c.id}">
+      <div class="list-row-top">
+        <span class="list-row-name">${esc(c.name)}</span>
+        <span class="nd ${cls}">${fmtDate(c.nextContact)}</span>
       </div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.name)}</div>
-        <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sit ? esc(sit) : ''}</div>
-      </div>
-      <span style="flex:none;font-size:14px;color:var(--muted)">→</span>
+      <div class="list-row-sub">${esc([c.city, c.region].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}${c.privateNote ? ' · ' + esc(String(c.privateNote).slice(0, 60)) : ''}</div>
     </div>`;
   }).join('') + '</div>';
-  view.querySelectorAll('.call-row').forEach(row => {
-    row.addEventListener('click', () => {
-      state.fromCalls = true;
-      state.nastyaId = row.dataset.id;
-      state.view = key;
-      render();
-    });
-  });
 }
 
 function renderVisits() {
@@ -3556,20 +3527,26 @@ function hydrateCard(cid) { if (cid) fillNotesBlock(cid); }
 document.addEventListener('click', async (ev) => {
   const save = ev.target.closest('#cpSave');
   if (save) {
+    if (save.disabled) return;                     // защита от двойного нажатия
+    save.disabled = true;
     const cid = Number(save.dataset.cid);
     const nd = document.getElementById('cpNext'), nt = document.getElementById('cpNote');
     try {
       await saveClinicPrivate(cid, save.dataset.mgr || null, { next_contact: (nd && nd.value) || null, note: (nt && nt.value) || null });
       toast('✓ Работа и продажи сохранены');
-    } catch (e) { toast('Не удалось сохранить'); }
+    } catch (e) {
+      toast('⚠️ Не сохранилось: ' + (e && e.message ? e.message : e) + ' — текст оставлен в поле');
+    } finally { save.disabled = false; }
     return;
   }
   const add = ev.target.closest('#noteAdd');
   if (add) {
+    if (add.disabled) return;                      // защита от двойного нажатия
     const cid = Number(add.dataset.cid);
     const ta = document.getElementById('noteText');
     const txt = ((ta && ta.value) || '').trim();
     if (!txt) { if (ta) ta.focus(); return; }
+    add.disabled = true;
     try {
       const u = await currentUser();
       const { error } = await sb.from('notes').insert({ clinic_id: cid, text: txt, author_email: (u && u.email) || null, author_name: myManagerName() || (u && u.email) || null });
@@ -3577,7 +3554,9 @@ document.addEventListener('click', async (ev) => {
       if (ta) ta.value = '';
       await fillNotesBlock(cid);
       toast('✓ Запись добавлена');
-    } catch (e) { toast('Не удалось добавить запись'); }
+    } catch (e) {
+      toast('⚠️ Запись не добавлена: ' + (e && e.message ? e.message : e) + ' — текст оставлен в поле');
+    } finally { add.disabled = false; }
     return;
   }
 });
