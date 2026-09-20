@@ -1308,7 +1308,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.13.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.13.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2069,7 +2069,7 @@ async function renderCalls() {
   const view = document.getElementById('view');
   let rows = [];
   try {
-    rows = (await listClinics()).filter(c => !c.markedDel && c.nextContact);
+    rows = (await listClinics()).filter(c => !c.markedDel && c.nextContact && (c.kind || 'hospital') === 'hospital');
   } catch (e) {
     view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки: ' + esc(e && e.message ? e.message : e) +
       '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
@@ -2410,7 +2410,7 @@ async function renderStub(title) {
 async function renderMyDay() {
   const view = document.getElementById('view');
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const clinics = (await listClinics()).filter(c => !c.markedDel);
+  const clinics = (await listClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital');
   const days = c => Math.round((new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00') - today) / 86400000);
   const withDate = clinics.filter(c => c.nextContact);
   const over = withDate.filter(c => days(c) < 0).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
