@@ -1059,6 +1059,7 @@ async function mergeClinicPrivate(list) {
     [2021, 2022, 2023, 2024, 2025, 2026].forEach(y => { c['sales' + y] = c['sales_' + y]; });
     [2025, 2026].forEach(y => { c['hugemed' + y] = c['hugemed_' + y]; });
     c.nextContact = p ? p.next_contact : null;
+    c.actionType = p ? (p.action_type || null) : null;   // v3.14.0: call | visit | other | null(Контакт)
     c.privateNote = p ? p.note : null;
     c.hasPrivate = !!p;
   });
@@ -1068,8 +1069,17 @@ async function mergeClinicPrivate(list) {
 // запись денег/заметки в закрытую часть (только когда есть право)
 async function saveClinicPrivate(clinicId, manager, fields) {
   const row = Object.assign({ clinic_id: clinicId, manager: manager || null, updated_at: new Date().toISOString() }, fields || {});
-  const { error } = await sb.from('clinic_private').upsert(row, { onConflict: 'clinic_id' });
-  if (error) throw error;
+  let res = await sb.from('clinic_private').upsert(row, { onConflict: 'clinic_id' });
+  // если колонки action_type ещё нет в базе — сохраняем остальное, тип сообщаем отдельно
+  if (res.error && /action_type/.test(String(res.error.message || ''))) {
+    delete row.action_type;
+    const again = await sb.from('clinic_private').upsert(row, { onConflict: 'clinic_id' });
+    if (again.error) throw again.error;
+    const e2 = new Error('Тип действия сохранён не был: в базе нет колонки action_type (нужен SQL из crm-lite/sql/2026-09-20-v3.14.0-action-type.sql)');
+    e2.partial = true;
+    throw e2;
+  }
+  if (res.error) throw res.error;
 }
 
 async function listClinics() {
@@ -1308,7 +1318,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.13.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.14.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1440,9 +1450,9 @@ let CURRENT_EMAIL = null;
 const MANAGER_BY_EMAIL = { 'osechkina@crm.ru': 'Осечкина', 'skokova@crm.ru': 'Скокова' };
 function myManagerName() { return MANAGER_BY_EMAIL[(CURRENT_EMAIL || '').toLowerCase()] || null; }
 const WORKLISTS = {
-  nastya: { label: 'Настя', emails: ['abramson@crm.ru', 'mazaeva@crm.ru', 'osechkina@crm.ru', 'skokova@crm.ru'], cabinet: 'osechkina@crm.ru', cl: 'nastya_clinics', pp: 'nastya_people', manager: 'Настя' },
-  galya: { label: 'Галя', emails: ['abramson@crm.ru', 'mazaeva@crm.ru', 'skokova@crm.ru', 'osechkina@crm.ru'], cabinet: 'skokova@crm.ru', cl: 'galya_clinics', pp: 'galya_people', manager: 'Галя' },
-  sasha: { label: 'Саша', emails: ['abramson@crm.ru', 'osechkina@crm.ru', 'skokova@crm.ru'], cabinet: 'abramson@crm.ru', cl: 'abramson_clinics', pp: 'abramson_people', manager: 'Саша' }
+  nastya: { label: 'Настя', owner: 'Осечкина', emails: ['abramson@crm.ru', 'mazaeva@crm.ru', 'osechkina@crm.ru', 'skokova@crm.ru'], cabinet: 'osechkina@crm.ru', cl: 'nastya_clinics', pp: 'nastya_people', manager: 'Настя' },
+  galya: { label: 'Галя', owner: 'Скокова', emails: ['abramson@crm.ru', 'mazaeva@crm.ru', 'skokova@crm.ru', 'osechkina@crm.ru'], cabinet: 'skokova@crm.ru', cl: 'galya_clinics', pp: 'galya_people', manager: 'Галя' },
+  sasha: { label: 'Саша', owner: 'Абрамов', emails: ['abramson@crm.ru', 'osechkina@crm.ru', 'skokova@crm.ru'], cabinet: 'abramson@crm.ru', cl: 'abramson_clinics', pp: 'abramson_people', manager: 'Саша' }
 };
 
 function showLogin() {
@@ -1906,7 +1916,9 @@ document.getElementById('globalSearch').addEventListener('input', e => {
 // ---------- render ----------
 async function render() {
   if (isRefEdit() && REFEDIT_DENIED.includes(state.view)) { state.view = 'clinics'; }
-  document.body.classList.toggle('detail-mode', state.view === 'clinics' || state.view === 'distributors' || state.view === 'myday');
+  document.body.classList.toggle('detail-mode', state.view === 'clinics' || state.view === 'distributors' || state.view === 'myday' || state.view === 'nastya' || state.view === 'galya' || state.view === 'sasha');
+  // v3.14.0: тип действия подставляется только при работе из «Звонков»/«Визитов»
+  if (state.view !== 'calls' && state.view !== 'visits') state.defaultAction = null;
   hideHover();
   setActiveTab(state.view);
   // гейт рабочих листов — применяется при каждом рендере (кеш не обманет)
@@ -2064,42 +2076,44 @@ function renderAnalysis() {
 }
 
 async function renderCalls() {
-  // v3.13.1: Звонки берут данные ИЗ ТОЙ ЖЕ базы, что и «Мой день»
-  // (раньше читались старые списки-копии → контакт не совпадал с карточкой).
+  // v3.13.1/v3.14.0 — «Звонки» берут данные ИЗ ТОЙ ЖЕ базы, что «Мой день» и «Визиты».
+  // Старые контакты без типа («Контакт») сюда не попадают — они видны в «Моём дне».
+  renderActionList('call', 'Звонки');
+}
+
+function renderVisits() {
+  // v3.14.0: «Визиты» — те же данные, что «Мой день» и «Звонки», только тип = «Визит»
+  renderActionList('visit', 'Визиты');
+}
+
+// общий список запланированных действий из того же источника данных
+async function renderActionList(type, title) {
   const view = document.getElementById('view');
+  state.defaultAction = type;
   let rows = [];
   try {
-    rows = (await listClinics()).filter(c => !c.markedDel && c.nextContact && (c.kind || 'hospital') === 'hospital');
+    rows = (await listClinics()).filter(c => !c.markedDel && c.nextContact && (c.kind || 'hospital') === 'hospital' && c.actionType === type);
   } catch (e) {
-    view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки: ' + esc(e && e.message ? e.message : e) +
-      '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+    view.innerHTML = '<div class="empty-state">\u26a0\ufe0f Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
     return;
   }
-  const today = new Date(); today.setHours(0, 0, 0, 0);
   rows.sort((a, b) => {
     const da = String(a.nextContact).slice(0, 10), db = String(b.nextContact).slice(0, 10);
     if (da !== db) return da < db ? -1 : 1;
     return (a.name || '').localeCompare(b.name || '', 'ru');
   });
-  if (!rows.length) {
-    view.innerHTML = '<div class="cns-head"><span>Звонки</span></div><div class="empty">Запланированных контактов нет — назначь дату в карточке клиники</div>';
-    return;
-  }
-  view.innerHTML = `<div class="cns-head"><span>Звонки · <b>${rows.length}</b></span></div><div class="list">` + rows.map(c => {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const cards = rows.map(c => {
     const nd = new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00');
     const cls = nd < today ? 'nd-over' : (nd.getTime() === today.getTime() ? 'nd-today' : 'nd-future');
-    return `<div class="card list-row" data-kind="clinic" data-id="${c.id}">
-      <div class="list-row-top">
-        <span class="list-row-name">${esc(c.name)}</span>
-        <span class="nd ${cls}">${fmtDate(c.nextContact)}</span>
-      </div>
-      <div class="list-row-sub">${esc([c.city, c.region].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}${c.privateNote ? ' · ' + esc(String(c.privateNote).slice(0, 60)) : ''}</div>
+    return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
+      <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span><span class="nd ${cls}">${fmtDate(c.nextContact)}</span></div>
+      <div class="list-row-sub">${esc([c.city, c.region].filter(Boolean).join(', ') || '\u2014')}${c.manager ? ' \u00b7 ' + esc(c.manager) : ''}</div>
     </div>`;
-  }).join('') + '</div>';
-}
-
-function renderVisits() {
-  document.getElementById('view').innerHTML = '<div class="empty">Визитов пока нет</div>';
+  }).join('');
+  view.innerHTML = `<div class="cns-head"><span>${esc(title)} \u00b7 <b>${rows.length}</b></span></div>` +
+    (rows.length ? '<div class="list">' + cards + '</div>'
+      : `<div class="empty">${type === 'visit' ? 'Запланированных визитов нет' : 'Запланированных звонков нет'} \u2014 поставь тип «${type === 'visit' ? 'Визит' : 'Звонок'}» в карточке клиники</div>`);
 }
 
 // ---------- Настя: изолированные карточки ----------
@@ -2111,68 +2125,88 @@ function fmtDate(iso) {
 async function renderNastya() { return renderWorklist('nastya'); }
 async function renderGalya() { return renderWorklist('galya'); }
 async function renderWorklist(key) {
+  // v3.14.0 — список команды = СВЯЗИ с едиными карточками.
+  // Из старой таблицы читается только состав списка (id + linked_clinic_id), все данные карточки
+  // берутся из общей базы. Копий больше нет, поэтому правка карточки видна во всех разделах.
   const W = WORKLISTS[key];
   const view = document.getElementById('view');
-  // фоновая синхронизация с общей базой: долить новые контакты, перенести изменения
-  syncWorklistFromBase(key, W).then(changed => { if (changed) renderWorklist(key); }).catch(() => {});
-  let data;
+  let members = [];
   try {
-    data = await getWorklist(W);
+    const { data, error } = await withTimeout(sb.from(W.cl).select('id,linked_clinic_id,name').not('linked_clinic_id', 'is', null), 15000, 'wl-members');
+    if (error) throw error;
+    members = data || [];
   } catch (e) {
-    view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки вкладки ' + esc(W.label) + ': ' + esc(e && e.message ? e.message : e) +
+    view.innerHTML = '<div class="empty-state">\u26a0\ufe0f Ошибка загрузки вкладки ' + esc(W.label) + ': ' + esc(e && e.message ? e.message : e) +
       '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
     return;
   }
-  if (state.nastyaId) {
-    const c = data.clinics.find(x => x.id === Number(state.nastyaId));
-    if (c) { renderWorklistDetail(key, c, (data.people || []).filter(p => p.clinic_id === c.id)); return; }
-    state.nastyaId = null;
-  }
-  const byClinic = {};
-  (data.people || []).forEach(p => { (byClinic[p.clinic_id] = byClinic[p.clinic_id] || []).push(p); });
+  let all = [];
+  try { all = (await listClinics()).filter(c => !c.markedDel); } catch (_) {}
+  const byId = {}; all.forEach(c => { byId[c.id] = c; });
+  const linked = members.map(m => byId[m.linked_clinic_id]).filter(Boolean);
+  const unlinked = members.filter(m => !byId[m.linked_clinic_id]);
+  // роль руководителя: только ему показываем конфликты назначений и записи без связи
+  const isBoss = CURRENT_ROLE === 'admin' || CURRENT_EMAIL === 'abramson@crm.ru' || CURRENT_EMAIL === 'bot@crm.ru';
+  const canManage = isBoss;
+  // принадлежность списку НЕ назначает ответственного: расхождения показываем, но сами не правим
+  const conflicts = linked.filter(c => (c.manager || '').trim() && (c.manager || '').trim() !== W.owner);
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const isOwner = CURRENT_EMAIL === W.cabinet || CURRENT_EMAIL === 'abramson@crm.ru' || CURRENT_EMAIL === 'bot@crm.ru';
-  const canManage = isOwner && CURRENT_ROLE !== 'viewer';
-  const sorted = [...data.clinics].sort((a, b) => {
-    const da = a.next_contact ? String(a.next_contact).slice(0, 10) : '9999-99-99';
-    const db = b.next_contact ? String(b.next_contact).slice(0, 10) : '9999-99-99';
+  const sorted = [...linked].sort((a, b) => {
+    const da = a.nextContact ? String(a.nextContact).slice(0, 10) : '9999-99-99';
+    const db = b.nextContact ? String(b.nextContact).slice(0, 10) : '9999-99-99';
     if (da !== db) return da < db ? -1 : 1;
     return (a.name || '').localeCompare(b.name || '', 'ru');
   });
   const cards = sorted.map(c => {
     const loc = [c.region, c.city].filter(Boolean).join(' / ');
     let ndBadge = '';
-    if (c.next_contact) {
-      const nd = new Date(String(c.next_contact).slice(0, 10) + 'T00:00:00');
+    if (c.nextContact) {
+      const nd = new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00');
       const cls = nd < today ? 'nd-over' : (nd.getTime() === today.getTime() ? 'nd-today' : 'nd-future');
-      ndBadge = `<span class="nd ${cls}">${fmtDate(c.next_contact)}</span>`;
+      ndBadge = `<span class="nd ${cls}">${fmtDate(c.nextContact)}</span>`;
     }
-    return `<div class="card list-row" data-id="${c.id}" data-kind="nastya">
+    const mgr = c.manager ? ' \u00b7 ' + esc(c.manager) : '';
+    return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
           <span class="list-row-name">${esc(c.name)}</span>
           ${ndBadge}
         </div>
-        <div class="list-row-sub">${loc ? esc(loc) : '—'}</div>
+        <div class="list-row-sub">${loc ? esc(loc) : '\u2014'}${mgr}</div>
       </div>`;
   }).join('');
-  view.innerHTML = `<div class="money-total-line">${esc(W.label)}: <b>${data.clinics.length}</b> клиник
+  let confBlock = '';
+  if (isBoss && conflicts.length) {
+    confBlock = `<div class="cns-head" style="margin-top:12px"><span>Расхождения по ответственному \u00b7 <b>${conflicts.length}</b></span></div>
+      <div class="list">${conflicts.map(c => `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
+        <div class="list-row-sub">${esc(c.name)} \u2014 в карточке ответственный <b>${esc((c.manager || '').trim() || '\u2014')}</b>, список ${esc(W.label)} (${esc(W.owner)})</div></div>`).join('')}</div>`;
+  }
+  let unBlock = '';
+  if (isBoss && unlinked.length) {
+    unBlock = `<div class="cns-head" style="margin-top:12px"><span>Записи без связи с карточкой \u00b7 <b>${unlinked.length}</b></span></div>
+      <div class="list">${unlinked.map(m => `<div class="card list-row"><div class="list-row-name">${esc(m.name || '\u2014')}</div>
+        <div class="list-row-sub">нет связанной карточки \u2014 нужно решение руководителя</div></div>`).join('')}</div>`;
+  }
+  view.innerHTML = `<div class="money-total-line">${esc(W.label)}: <b>${linked.length}</b> клиник \u00b7 связи с общей базой
       ${canManage ? '<button class="sort-toggle" id="wl-add" title="Добавить клинику">+</button>' : ''}
     </div>
-    ${data.clinics.length ? '<div class="list">' + cards + '</div>' : '<div class="empty">Пусто — добавь клинику</div>'}`;
+    ${linked.length ? '<div class="list">' + cards + '</div>' : '<div class="empty">Пусто \u2014 добавь клинику</div>'}
+    ${confBlock}${unBlock}`;
   view.querySelectorAll('.list-row[data-id]').forEach(row => {
-    row.addEventListener('click', () => {
-      state.nastyaId = row.dataset.id;
-      renderWorklist(key);
-    });
+    row.addEventListener('click', () => { state.selId = Number(row.dataset.id) || null; });
   });
   const addBtn = document.getElementById('wl-add');
   if (addBtn) addBtn.addEventListener('click', async () => {
-    const name = prompt('Название клиники:');
+    const name = prompt('Название клиники (должна быть в разделе «Клиники»):');
     if (!name || !name.trim()) return;
+    const q = name.trim().toLowerCase();
+    const hit = all.filter(c => (c.name || '').trim().toLowerCase() === q);
+    if (hit.length !== 1) { toast(hit.length ? '\u26a0\ufe0f Найдено несколько \u2014 переноси из раздела «Клиники»' : '\u26a0\ufe0f Клиника не найдена \u2014 сначала добавь её в «Клиники»'); return; }
     try {
-      await addWorklistClinic(W, name.trim());
+      const { error } = await withTimeout(sb.from(W.cl).insert({ name: hit[0].name, linked_clinic_id: hit[0].id }), 10000, 'wl-link');
+      if (error) throw error;
+      toast('\u2713 Связь добавлена');
       await renderWorklist(key);
-    } catch (e) { toast('⚠️ ' + e.message); }
+    } catch (e) { toast('\u26a0\ufe0f ' + e.message); }
   });
 }
 
@@ -2417,23 +2451,35 @@ async function renderMyDay() {
   const tod  = withDate.filter(c => days(c) === 0);
   const week = withDate.filter(c => days(c) > 0 && days(c) <= 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
   const later = withDate.filter(c => days(c) > 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
-  const row = (c, badge) => `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
+  // v3.14.0: тип действия; старые записи без типа показываем как «Контакт»
+  const row = (c, badge) => `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
         <span class="list-row-name">${esc(c.name)}</span>
         <span class="row-next">${badge}</span>
       </div>
-      <div class="list-row-sub">${esc([c.city, c.region].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}</div>
+      <div class="list-row-sub">${esc(actionLabel(c.actionType))} · ${esc([c.city, c.region].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}</div>
     </div>`;
   const block = (title, list, badgeFn) => list.length
     ? `<div class="cns-head" style="margin-top:14px"><span>${title} · <b>${list.length}</b></span></div><div class="list">${list.map(c => row(c, badgeFn(c))).join('')}</div>`
     : '';
+  // «Требуют внимания»: снижение по двум продуктам HugeMed, сравнение год к году
+  const att = clinics.filter(c => c.hugemed_2025 > 0 && c.hugemed_2026 > 0 && c.hugemed_2026 < c.hugemed_2025)
+    .sort((a, b) => (a.hugemed_2026 / a.hugemed_2025) - (b.hugemed_2026 / b.hugemed_2025));
+  const pct = (cur, prev) => Math.round((cur - prev) / prev * 100);
+  const attBlock = att.length ? `<div class="cns-head" style="margin-top:14px"><span>Требуют внимания · HugeMed 2026 <b>${att.length}</b></span></div>
+      <div class="list">${att.slice(0, 20).map(c => `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
+        <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span><span class="nd nd-over">${pct(c.hugemed_2026, c.hugemed_2025)}%</span></div>
+        <div class="list-row-sub">2025: ${fmtMoney(c.hugemed_2025)} ₽ · 2026: ${fmtMoney(c.hugemed_2026)} ₽${c.manager ? ' · ' + esc(c.manager) : ''}</div>
+      </div>`).join('')}</div>
+      <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение «HugeMed 2025» и «HugeMed 2026» — годовые итоги. Помесячных данных в базе нет, поэтому помесячное сравнение невозможно.</div>` : '';
   const dstr = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
   view.innerHTML = `<div class="cns-head"><span>Мой день · ${esc(dstr)}</span>${over.length ? `<span class="row-next">просрочено: ${over.length}</span>` : ''}</div>`
     + block('Просрочено', over, c => 'просрочено ' + fmtDate(c.nextContact))
     + block('Сегодня', tod, () => 'сегодня')
     + block('Ближайшая неделя', week, c => fmtDate(c.nextContact))
     + block('Позже', later.slice(0, 20), c => fmtDate(c.nextContact))
-    + (!withDate.length ? `<div class="empty">Запланированных контактов нет. Клиник в базе: ${clinics.length}.</div>` : '');
+    + (!withDate.length ? `<div class="empty">Запланированных контактов нет. Клиник в базе: ${clinics.length}.</div>` : '')
+    + attBlock;
 }
 
 async function renderContacts() {
@@ -2640,29 +2686,18 @@ async function transferToWorklist(c) {
   await doTransfer(key, c);
 }
 async function doTransfer(key, c) {
+  // v3.14.0: перенос = только СВЯЗЬ со списком. Контакты и продажи больше не копируются,
+  // данные читаются из общей карточки — расхождений между разделами больше не будет.
   const W = WORKLISTS[key];
   try {
     const { data: dup, error: derr } = await withTimeout(sb.from(W.cl).select('id').eq('linked_clinic_id', c.id).maybeSingle(), 10000, 'wl-dup');
     if (derr) throw derr;
     if (dup) { toast('Уже в списке ' + W.label); return; }
-    const { data: ins, error: ierr } = await withTimeout(sb.from(W.cl).insert({
-      name: c.name, region: c.region || null, city: c.city || null,
-      manager: W.manager, situation: c.situation || '',
-      linked_clinic_id: c.id
-    }).select(), 10000, 'wl-transfer');
+    const { error: ierr } = await withTimeout(sb.from(W.cl).insert({
+      name: c.name, linked_clinic_id: c.id
+    }), 10000, 'wl-transfer');
     if (ierr) throw ierr;
-    const gid = ins[0].id;
-    const { data: people, error: perr } = await withTimeout(sb.from('people').select('full_name,position,phone,email,situation').eq('clinic_id', c.id), 10000, 'wl-people-src');
-    if (perr) throw perr;
-    for (const p of (people || [])) {
-      if (!(p.full_name || '').trim()) continue;
-      const { error: e2 } = await withTimeout(sb.from(W.pp).insert({
-        clinic_id: gid, full_name: p.full_name.trim(), position: p.position || '',
-        phone: p.phone || '', email: p.email || '', situation: p.situation || ''
-      }), 10000, 'wl-person-copy');
-      if (e2) throw e2;
-    }
-    toast('✓ Перенесена в «' + W.label + '»');
+    toast('✓ Связь с «' + W.label + '» создана (карточка общая)');
   } catch (e) { toast('⚠️ ' + e.message); }
 }
 
@@ -3487,12 +3522,19 @@ function canSeePrivate(c) {
   if (CURRENT_ROLE === 'guest' || CURRENT_ROLE === 'viewer') return false;
   return !!c.hasPrivate || (!!window.CURRENT_MANAGER && c.manager === window.CURRENT_MANAGER);
 }
+function actionLabel(t) {
+  return t === 'call' ? 'Звонок' : t === 'visit' ? 'Визит' : t === 'other' ? 'Другое' : 'Контакт';
+}
 function privBlock(c, canEditNow) {
   if (!canSeePrivate(c)) return '';
   const d = c.nextContact ? String(c.nextContact).slice(0, 10) : '';
+  // при создании из «Звонков»/«Визитов» тип подставляется автоматически
+  const t = c.actionType || state.defaultAction || '';
+  const opt = (v, lbl) => `<option value="${v}"${t === v ? ' selected' : ''}>${lbl}</option>`;
   return `<div class="detail-block priv-block" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">
       <div class="k">Работа и продажи · Вам и руководителю</div>
       <div class="priv-row"><span class="lbl">Следующий контакт</span><input type="date" id="cpNext" value="${esc(d)}" ${canEditNow ? '' : 'disabled'} /></div>
+      <div class="priv-row"><span class="lbl">Тип действия</span><select id="cpType" ${canEditNow ? '' : 'disabled'}>${opt('', 'Контакт')}${opt('call', 'Звонок')}${opt('visit', 'Визит')}${opt('other', 'Другое')}</select></div>
       <div class="k" style="font-size:12.5px;margin-top:2px">Текущая ситуация</div>
       <textarea class="priv-note" id="cpNote" placeholder="Договорённости, следующий шаг…" ${canEditNow ? '' : 'readonly'}>${esc(c.privateNote || '')}</textarea>
       ${canEditNow ? `<div style="margin-top:8px"><button class="btn-primary-sm" id="cpSave" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">Сохранить</button></div>` : ''}
@@ -3532,7 +3574,7 @@ document.addEventListener('click', async (ev) => {
     const cid = Number(save.dataset.cid);
     const nd = document.getElementById('cpNext'), nt = document.getElementById('cpNote');
     try {
-      await saveClinicPrivate(cid, save.dataset.mgr || null, { next_contact: (nd && nd.value) || null, note: (nt && nt.value) || null });
+      await saveClinicPrivate(cid, save.dataset.mgr || null, { next_contact: (nd && nd.value) || null, note: (nt && nt.value) || null, action_type: (document.getElementById('cpType') || {}).value || null });
       toast('✓ Работа и продажи сохранены');
     } catch (e) {
       toast('⚠️ Не сохранилось: ' + (e && e.message ? e.message : e) + ' — текст оставлен в поле');
