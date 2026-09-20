@@ -481,13 +481,22 @@ body.logged-out .toast { display: none !important; }
   width: 260px; background: var(--card);
   border-right: 1px solid var(--line); z-index: 35;
   padding: 20px 14px;
+  overflow: hidden;
 }
 .sidebar-brand {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 8px; flex: none;
   padding: 0 6px 16px; border-bottom: 1px solid var(--line); margin-bottom: 12px;
 }
 .sidebar-brand .brand-logo { height: 28px; width: 28px; }
-.sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
+.sidebar-nav {
+  display: flex; flex-direction: column; gap: 4px;
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding-right: 4px; scrollbar-width: thin; scrollbar-color: #dcdcdc transparent;
+}
+.sidebar-nav::-webkit-scrollbar { width: 8px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: #dcdcdc; border-radius: 8px; }
+.sidebar-nav::-webkit-scrollbar-thumb:hover { background: #c4c4c4; }
 .sidebar-nav .tab {
   display: flex; align-items: center; gap: 12px; white-space: nowrap;
   padding: 11px 12px; border: none; border-radius: 10px;
@@ -576,9 +585,13 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 
 /* номер версии внизу слева (в сайдбаре, десктоп) */
 .footer-version {
-  margin-top: auto;
+  margin-top: auto; flex: none;
   font-size: 10.5px; color: var(--muted); opacity: .55;
   padding: 14px 6px 0;
+}
+.sidebar-brand .brand-ver-chip {
+  margin-left: auto; font-size: 10.5px; font-weight: 600; color: var(--muted);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px;
 }
 
 .nastya-notes { width:100%; min-height:280px; box-sizing:border-box; padding:10px; border:1px solid #e2e2e2; border-radius:8px; font:inherit; line-height:1.45; resize:vertical; background:#fff; }
@@ -713,6 +726,7 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
     <div class="sidebar-brand">
       <img src="logo.jpg" class="brand-logo" alt="" />
       <span class="brand-name">Абрамовская база</span>
+      <span id="brandVersionSide" class="brand-ver-chip">v3.12.1</span>
     </div>
     <nav class="sidebar-nav">
       <div class="d-sec">Основное</div>
@@ -1282,7 +1296,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.12.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.12.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1493,6 +1507,8 @@ async function bootstrap() {
   const verLine = 'v' + APP_VER + ' · © Abramson';
   document.getElementById('brandVersion').textContent = verLine;
   document.getElementById('footerVersion').textContent = verLine;
+  const bvs = document.getElementById('brandVersionSide');
+  if (bvs) bvs.textContent = 'v' + APP_VER;
   updateFiltersUI();
   render();
   refreshCounts();
