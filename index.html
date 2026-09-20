@@ -983,6 +983,9 @@ async function mergeClinicPrivate(list) {
     const p = map[c.id];
     // если строки нет — значит сервер её не отдал: значит прав нет
     MONEY_COLS.forEach(k => { c[k] = p ? p[k] : null; });
+    // вкладка «Деньги» читает те же суммы в «camelCase» (c.sales2026, c.hugemed2026)
+    [2021, 2022, 2023, 2024, 2025, 2026].forEach(y => { c['sales' + y] = c['sales_' + y]; });
+    [2025, 2026].forEach(y => { c['hugemed' + y] = c['hugemed_' + y]; });
     c.nextContact = p ? p.next_contact : null;
     c.privateNote = p ? p.note : null;
     c.hasPrivate = !!p;
