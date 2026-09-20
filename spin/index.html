@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#173e2d" />
   <meta name="description" content="Учебная лаборатория навыков продаж: теория, практика, разборы и контроль прогресса." />
   <title>Навыки продаж — учебная лаборатория</title>
-  <link rel="stylesheet" href="./styles.css?v=crs100" />
+  <link rel="stylesheet" href="./styles.css?v=crs101" />
   <link rel="icon" type="image/png" sizes="512x512" href="./emblem-np-solid.png?v=2" />
   <link rel="apple-touch-icon" href="./emblem-np-solid.png?v=2" />
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -54,7 +54,7 @@
           <span>учебная лаборатория</span>
         </div>
       </div>
-      <div class="sidebar-copy">v.2.14.4 · © Abramson</div>
+      <div class="sidebar-copy">v.2.14.5 · © Abramson</div>
 
       <nav class="nav-list">
         <button class="nav-item active" data-tab="program">
@@ -84,7 +84,7 @@
 
     <main class="main">
       <header class="topbar">
-        <div class="mobile-brand"><img class="brand-mark" src="./emblem-np.png" width="34" height="34" alt="" /><div class="mb-text"><strong>Навыки продаж</strong><small>v.2.14.4 · © Abramson</small></div></div>
+        <div class="mobile-brand"><img class="brand-mark" src="./emblem-np.png" width="34" height="34" alt="" /><div class="mb-text"><strong>Навыки продаж</strong><small>v.2.14.5 · © Abramson</small></div></div>
         <div class="topbar-right">
           <div class="xp-pill"><span>⚡</span><strong id="xpValue">0</strong><span>XP</span></div>
           <button class="offline-pill" id="offlinePill" title="Работает в полёте — как установить" aria-label="Работает в полёте">✈️</button>
@@ -131,19 +131,37 @@
   <div class="toast hidden" id="toast" role="status">Прогресс сохранён</div>
   <script>
     // PWA: регистрация service worker — офлайн-режим (авиарежим)
+    var SW_VER = 'crs101'; // ⚠️ при каждом деплое менять вместе с ?v= в тегах ниже
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js?v=crs100').catch(function () {});
+        navigator.serviceWorker.register('./sw.js?v=' + SW_VER).catch(function () {});
+        // авто-обновление: если на сервере сборка новее — сами перезагружаем страницу (один раз за сессию)
+        (function () {
+          function check() {
+            fetch('./sw.js?probe=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+              var m = t.match(/spin-cache-v(\d+)/);
+              if (!m) return;
+              var srv = 'crs' + m[1];
+              if (srv === SW_VER) return;
+              var k = 'spin-autoupd-' + srv;
+              try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, '1'); } catch (e) {}
+              location.replace(location.pathname + '?v=' + m[1]);
+            }).catch(function () {});
+          }
+          setTimeout(check, 5000);
+          setInterval(check, 900000);
+          document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') check(); });
+        })();
       });
     }
   </script>
   <script defer src="./supabase.min.js"></script>
-  <script defer src="./data.js?v=crs100"></script>
-  <script defer src="./meddicc-data.js?v=crs100"></script>
-  <script defer src="./spiced-data.js?v=crs100"></script>
-  <script defer src="./proactive-data.js?v=crs100"></script>
-  <script defer src="./boss-gate.js?v=crs100"></script>
-  <script defer src="./remote-sales-data.js?v=crs100"></script>
-  <script defer src="./app.js?v=crs100"></script>
+  <script defer src="./data.js?v=crs101"></script>
+  <script defer src="./meddicc-data.js?v=crs101"></script>
+  <script defer src="./spiced-data.js?v=crs101"></script>
+  <script defer src="./proactive-data.js?v=crs101"></script>
+  <script defer src="./boss-gate.js?v=crs101"></script>
+  <script defer src="./remote-sales-data.js?v=crs101"></script>
+  <script defer src="./app.js?v=crs101"></script>
 </body>
 </html>
