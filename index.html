@@ -519,7 +519,7 @@ body.logged-out .toast { display: none !important; }
   .sidebar { display: flex; }
   .topbar { display: none; }
   .tabbar { display: none; }
-  .view, .filters { margin-left: 260px; }
+  .view, .filters, .searchbar, .work { margin-left: 260px; }
   .bottom-bar { left: 260px; }
 }
 
@@ -528,13 +528,42 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 
 /* Hover-превью (десктоп): данные клиники справа от строки */
 .hover-card {
-  position: fixed; z-index: 30; width: 380px; max-height: 80vh; overflow-y: auto;
+  position: relative; z-index: 5; width: 100%; overflow-y: auto;
   background: var(--card); border: 1px solid var(--line); border-radius: 16px;
   box-shadow: var(--shadow-lg); padding: 16px;
 }
 .hover-card.hidden { display: none; }
-.hover-card h3 { margin: 0 0 8px; font-size: 16px; }
-@media (max-width: 899px) { .hover-card { display: none !important; }
+.hover-card h3 { margin: 0 0 4px; font-size: 17px; }
+/* v3.15.0: список и карточка — соседние колонки; карточка НЕ накрывает поиск и фильтры */
+.work { display: flex; align-items: flex-start; gap: 16px; }
+.work > #view { flex: 1 1 auto; min-width: 0; }
+.searchbar { margin: 0 16px 10px; }
+.searchbar input { width: 100%; box-sizing: border-box; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); font: inherit; }
+.searchbar input:focus { outline: 2px solid var(--brand); border-color: transparent; }
+.panel-hint { color: var(--muted); font-size: 14px; padding: 28px 8px; text-align: center; }
+.card-top { color: var(--muted); font-size: 13px; margin: 0 0 4px; }
+.card-mgr { font-size: 13.5px; font-weight: 600; margin: 0 0 10px; }
+.card-quick { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 2px 0 12px; }
+.pane-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 10px; }
+.pane-btn { padding: 6px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-weight: 600; font-size: 13px; cursor: pointer; }
+.pane-btn:hover { background: var(--bg); }
+.pane-btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.pane-btn.danger { color: var(--danger); border-color: #f3c9c9; }
+.md-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0 10px; }
+.md-tools .sp { flex: 1 1 auto; }
+.md-day { font-weight: 700; font-size: 13.5px; }
+.md-act { display: inline-flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+.md-act .pane-btn { padding: 5px 10px; font-size: 12.5px; }
+.md-done { opacity: .55; }
+.md-done .list-row-name { text-decoration: line-through; }
+.row-sub-done { color: var(--muted); }
+.md-tools select { padding: 6px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); font: inherit; font-size: 13px; }
+details.detail-block > summary { cursor: pointer; font-weight: 600; font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .02em; }
+details.detail-block[open] > summary { margin-bottom: 6px; }
+@media (max-width: 899px) {
+  .hover-card { display: none !important; }
+  .work { display: block; }
+  .searchbar { position: sticky; top: 0; z-index: 40; background: var(--bg); margin: 0 12px 8px; padding: 8px 0 0; }
   /* v3.11.4: на телефоне карточка — отдельный экран с кнопкой возврата */
   body.detail-mode.card-open .hover-card {
     display: block !important; position: fixed; left: 0; right: 0; top: 0; bottom: 0;
@@ -554,19 +583,12 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 /* v1.160: Клиники/Партнёры на десктопе — карточка закреплена справа, список занимает оставшееся место */
 @media (min-width: 900px) {
   /* v3.12.0: список ~45% / карточка ~55% от рабочей области (окно минус меню 260px) */
-  body.detail-mode #view { max-width: none; margin-right: calc(55vw - 119px); }
-  body.detail-mode .hover-card {
-    position: fixed; top: 12px; right: 12px; left: auto; bottom: 12px;
-    width: calc(55vw - 143px); max-height: none;
+  /* v3.15.0: карточка — вторая колонка внутри .work; col ширины фиксированы, не прыгают */
+  .work .hover-card {
+    flex: 0 0 calc(55% - 8px); position: sticky; top: 8px;
+    max-height: calc(100vh - 24px); overflow-y: auto;
   }
-}
-@media (min-width: 1250px) {
-  body.detail-mode #view { margin-right: calc(55vw - 119px); }
-  body.detail-mode .hover-card { width: calc(55vw - 143px); }
-}
-@media (min-width: 1400px) {
-  body.detail-mode #view { margin-right: calc(55vw - 119px); }
-  body.detail-mode .hover-card { width: calc(55vw - 143px); }
+  body:not(.detail-mode) .work .hover-card { display: none; }
 }
 .badge a.tel { color: inherit; }
 .detail-block a.tel, .contact-row a.tel { color: var(--brand); }
@@ -839,11 +861,17 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
     </details>
   </div>
 
-  <main id="view" class="view"></main>
+  <div class="searchbar">
+    <input id="globalSearch" type="search" placeholder="Поиск: имя, организация, город…" />
+  </div>
+
+  <div class="work">
+    <main id="view" class="view"></main>
+    <aside id="hoverCard" class="hover-card hidden"></aside>
+  </div>
 
   <div class="bottom-bar">
     <div class="search-row">
-      <input id="globalSearch" type="search" placeholder="Поиск: имя, организация, город…" />
       <button id="fab" class="fab" aria-label="Добавить">＋</button>
     </div>
     <nav class="tabbar" id="tabbar-main">
@@ -918,7 +946,6 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
   <div id="offChip" class="off-chip hidden"><span class="off-dot"></span><span id="offText"></span><button id="offSync">Синхронизировать</button></div>
   <div id="toast" class="toast hidden"></div>
 
-  <div id="hoverCard" class="hover-card hidden"></div>
   <button id="detailBack" class="detail-back-fixed">← Назад к списку</button>
 
   <script>if(window.__d)window.__d.m.push('sdk-start '+(Date.now()-window.__d.t)+'ms');</script>
@@ -1293,7 +1320,7 @@ const DICT_LABELS = {
   sub: 'Суб / партнёр'
 };
 
-const state = { view: 'myday', search: '', filters: { region: '', city: '', manager: '', tag: '', tags: [] }, moneySort: 'desc', moneySource: 'both', moneyYear: '', moneyFilter: 'all', nastyaId: null, fromCalls: false };
+const state = { view: 'myday', search: '', selId: null, selKind: null, filters: { region: '', city: '', manager: '', type: '', tag: '', tags: [] }, moneySort: 'desc', moneySource: 'both', moneyYear: '', moneyFilter: 'all', nastyaId: null, fromCalls: false, mydayOffset: 0, mydayMgr: '' };
 
 // ---------- цвет выделения ----------
 const ACCENT_OPTIONS = [
@@ -1318,7 +1345,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.14.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.15.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1665,15 +1692,29 @@ document.querySelectorAll('.tab').forEach(btn => {
     state.view = v;
     setActiveTab(state.view);
     closeDrawer();  // v1.146: закрываем бургер-меню после выбора
-    state.search = '';
-    document.getElementById('globalSearch').value = '';
     updateFiltersUI();
     render();
   });
 });
 
 // ---------- фильтры ----------
+// v3.15.0: у каждого раздела — СВОИ применимые фильтры. Неприменимые не влияют на результаты
+// (пример: «Тип клиники» в «Клиниках» больше не глушит «Партнёров» и справочники).
 let filterCtx = '';
+const VIEW_FILTER_KEYS = {
+  clinics: ['region', 'city', 'manager', 'type'],
+  distributors: ['region', 'city', 'manager'],
+  money: ['region', 'city', 'manager'],
+  cns: ['region', 'city'],
+  refgos: ['region', 'city', 'tags'],
+  refpriv: ['region', 'city', 'tags'],
+  refdoc: ['region', 'city', 'tags'],
+  reffirm: ['region', 'city', 'tags'],
+  refcontact: ['region', 'city'],
+};
+const EMPTY_FILTERS = { region: '', city: '', manager: '', type: '', tag: '', tags: [] };
+const viewFilters = {};
+const viewSearch = {};
 async function updateFiltersUI() {
   const bar = document.getElementById('filters');
   const fab = document.getElementById('fab');
@@ -1690,12 +1731,12 @@ async function updateFiltersUI() {
   if (anBar) anBar.classList.toggle('hidden', !inAnalysis || managersZone);
   if (mgBar) mgBar.classList.toggle('hidden', !managersZone);
   const isRef = ['refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'].includes(state.view);
-  const fctx = isRef ? 'ref' : 'main';
-  if (fctx !== filterCtx) { filterCtx = fctx; state.filters.region = ''; state.filters.city = ''; state.filters.tag = ''; state.filters.tags = []; }
   if (state.view === 'clinics' || state.view === 'distributors' || state.view === 'money') {
     bar.classList.remove('hidden');
     await populateFilters();
     document.getElementById('f_year').classList.toggle('hidden', state.view !== 'money');
+    // v3.15.0: «Тип клиники» применим ТОЛЬКО к Клиникам
+    document.getElementById('f_type').classList.toggle('hidden', state.view !== 'clinics');
     // у Насти/Гали фильтр «Менеджер» в «Деньгах» бесполезен — там и так только их клиники
     if (myManagerName()) {
       document.getElementById('f_manager').classList.add('hidden');
@@ -1713,8 +1754,39 @@ async function updateFiltersUI() {
   }
 }
 
-// карта связей регион<->город (строится из клиник) + полные словари для сброса
-let locAll = { regions: [], cities: [] };
+// v3.15.0: состояние раздела (фильтры + поиск + прокрутка) восстанавливается при возврате
+const viewScroll = {};
+function saveViewState(v) {
+  if (!v) return;
+  viewFilters[v] = JSON.parse(JSON.stringify(state.filters || {}));
+  viewSearch[v] = state.search || '';
+  viewScroll[v] = window.scrollY || 0;
+}
+function loadViewState(v) {
+  const keys = VIEW_FILTER_KEYS[v] || [];
+  const saved = viewFilters[v] || {};
+  const f = JSON.parse(JSON.stringify(EMPTY_FILTERS));
+  keys.forEach(k => {
+    const val = saved[k];
+    if (val === undefined || val === null || val === '') return;
+    if (Array.isArray(val) && !val.length) return;
+    f[k] = val;
+  });
+  state.filters = f;
+  state.search = viewSearch[v] || '';
+  const si = document.getElementById('globalSearch');
+  if (si) si.value = state.search;
+}
+function setView(v) {
+  if (v === state.view) return;
+  saveViewState(state.view);
+  state.view = v;
+  state.selId = null;
+  state.selKind = null;
+  loadViewState(v);
+}
+
+// карта связей регион<->город (строится из клиник) + полные словари для сбросаlet locAll = { regions: [], cities: [] };
 let locMap = { regionCities: {}, cityRegions: {} };
 const ruCmp = (a, b) => a.localeCompare(b, 'ru');
 
@@ -1916,7 +1988,10 @@ document.getElementById('globalSearch').addEventListener('input', e => {
 // ---------- render ----------
 async function render() {
   if (isRefEdit() && REFEDIT_DENIED.includes(state.view)) { state.view = 'clinics'; }
-  document.body.classList.toggle('detail-mode', state.view === 'clinics' || state.view === 'distributors' || state.view === 'myday' || state.view === 'nastya' || state.view === 'galya' || state.view === 'sasha');
+  const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
+  document.body.classList.toggle('detail-mode', PANEL_VIEWS.includes(state.view));
+  // v3.15.0: до выбора — короткая подсказка в правой панели
+  if (document.body.classList.contains('detail-mode') && !state.selId) showPanelHint();
   // v3.14.0: тип действия подставляется только при работе из «Звонков»/«Визитов»
   if (state.view !== 'calls' && state.view !== 'visits') state.defaultAction = null;
   hideHover();
@@ -2441,24 +2516,104 @@ async function renderStub(title) {
     '<div class="empty">Раздел-заготовка. Содержимое появится отдельным заданием.</div>';
 }
 
+// ---------- «Мой день»: завершение и перенос ----------
+// v3.15.0: «Выполнено» пишет запись в историю и закрывает контакт (отменяемо);
+// «Перенести» меняет дату у той же записи (без дублей).
+let mdUndo = null;
+async function mdComplete(id, date) {
+  const c = await getClinic(id);
+  if (!c) return;
+  const cid = Number(id);
+  const d = String(date || c.nextContact || '').slice(0, 10);
+  const text = '✔ Выполнено: ' + actionLabel(c.actionType) + (d ? ' (' + fmtDate(d) + ')' : '');
+  let noteId = null;
+  try {
+    const { data, error } = await sb.from('notes').insert({
+      clinic_id: cid, text,
+      author_email: CURRENT_EMAIL || null,
+      author_name: myManagerName() || window.CURRENT_MANAGER || null,
+      source: 'myday'
+    }).select('id');
+    if (error) throw error;
+    noteId = (data && data[0] && data[0].id) || null;
+  } catch (e) { toast('⚠️ История не записана: ' + (e && e.message ? e.message : e)); return; }
+  // закрываем контакт ТОЛЬКО если он тот же, что и у завершённой задачи (новый запланированный не трогаем)
+  const cur = String(c.nextContact || '').slice(0, 10);
+  let cleared = false;
+  if (cur && d && cur === d) {
+    try { await sb.from('clinic_private').update({ next_contact: null }).eq('clinic_id', cid); cleared = true; }
+    catch (e) { toast('⚠️ Запись в историю есть, но дату снять не удалось'); }
+  }
+  mdUndo = { clinicId: cid, name: c.name, prevDate: cur, noteId, cleared };
+  toast(cleared ? '✓ Выполнено, контакт закрыт' : '✓ Выполнено, записано в историю');
+  await render();
+}
+async function mdUndoLast() {
+  if (!mdUndo) return;
+  const u = mdUndo; mdUndo = null;
+  try {
+    if (u.noteId) await sb.from('notes').delete().eq('id', u.noteId);
+    if (u.cleared) await sb.from('clinic_private').update({ next_contact: u.prevDate || null }).eq('clinic_id', u.clinicId);
+    toast('↩ Отметка отменена');
+  } catch (e) { toast('⚠️ Отмена не удалась: ' + (e && e.message ? e.message : e)); }
+  await render();
+}
+async function mdReschedule(id, date) {
+  const c = await getClinic(id);
+  if (!c) return;
+  const cur = String(date || c.nextContact || '').slice(0, 10);
+  openModal('Перенести контакт', `
+    <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c.name)}</div></div>
+    <div class="field"><label>Новая дата следующего контакта</label><input type="date" id="mdNewDate" value="${esc(cur)}" /></div>
+    <div class="field"><label>Результат общения (в историю, необязательно)</label><textarea id="mdNewNote" placeholder="Что обсудили, договорённости…"></textarea></div>
+    <div class="btn-row"><button class="btn" id="mdMoveSave">Перенести</button><button class="btn ghost" id="mdMoveCancel">Отмена</button></div>
+  `);
+  document.getElementById('mdMoveCancel').addEventListener('click', closeModal);
+  document.getElementById('mdMoveSave').addEventListener('click', async () => {
+    const btn = document.getElementById('mdMoveSave');
+    btn.disabled = true;
+    try {
+      const nd = document.getElementById('mdNewDate').value || null;
+      const note = (document.getElementById('mdNewNote').value || '').trim();
+      await saveClinicPrivate(c.id, c.manager, { next_contact: nd });
+      if (note) {
+        await sb.from('notes').insert({ clinic_id: c.id, text: note, author_email: CURRENT_EMAIL || null, author_name: myManagerName() || window.CURRENT_MANAGER || null, source: 'myday' });
+      }
+      closeModal();
+      toast(nd ? '✓ Перенесено на ' + fmtDate(nd) : '✓ Дата снята');
+      await render();
+    } catch (e) { btn.disabled = false; toast('⚠️ Не сохранено: ' + (e && e.message ? e.message : e)); }
+  });
+}
+
 async function renderMyDay() {
   const view = document.getElementById('view');
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const clinics = (await listClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital');
-  const days = c => Math.round((new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00') - today) / 86400000);
+  const off = state.mydayOffset || 0;
+  const base = new Date(); base.setHours(0, 0, 0, 0); base.setDate(base.getDate() + off);
+  const isBoss = CURRENT_ROLE === 'admin' || String(CURRENT_EMAIL || '').toLowerCase() === 'abramson@crm.ru' || window.CURRENT_MANAGER === 'Абрамов';
+  let clinics = (await listClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital');
+  const mgrs = [...new Set(clinics.map(c => c.manager).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'ru'));
+  if (state.mydayMgr) clinics = clinics.filter(c => (c.manager || '') === state.mydayMgr);
+  const days = c => Math.round((new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00') - base) / 86400000);
   const withDate = clinics.filter(c => c.nextContact);
   const over = withDate.filter(c => days(c) < 0).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
   const tod  = withDate.filter(c => days(c) === 0);
   const week = withDate.filter(c => days(c) > 0 && days(c) <= 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
   const later = withDate.filter(c => days(c) > 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
-  // v3.14.0: тип действия; старые записи без типа показываем как «Контакт»
-  const row = (c, badge) => `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
+  const row = (c, badge) => {
+    const d = String(c.nextContact || '').slice(0, 10);
+    return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
         <span class="list-row-name">${esc(c.name)}</span>
         <span class="row-next">${badge}</span>
       </div>
       <div class="list-row-sub">${esc(actionLabel(c.actionType))} · ${esc([c.city, c.region].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}</div>
+      <div class="md-act">
+        <button class="pane-btn" data-md-done="${c.id}" data-md-date="${d}">✓ Выполнено</button>
+        <button class="pane-btn" data-md-move="${c.id}" data-md-date="${d}">↷ Перенести</button>
+      </div>
     </div>`;
+  };
   const block = (title, list, badgeFn) => list.length
     ? `<div class="cns-head" style="margin-top:14px"><span>${title} · <b>${list.length}</b></span></div><div class="list">${list.map(c => row(c, badgeFn(c))).join('')}</div>`
     : '';
@@ -2472,14 +2627,33 @@ async function renderMyDay() {
         <div class="list-row-sub">2025: ${fmtMoney(c.hugemed_2025)} ₽ · 2026: ${fmtMoney(c.hugemed_2026)} ₽${c.manager ? ' · ' + esc(c.manager) : ''}</div>
       </div>`).join('')}</div>
       <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение «HugeMed 2025» и «HugeMed 2026» — годовые итоги. Помесячных данных в базе нет, поэтому помесячное сравнение невозможно.</div>` : '';
-  const dstr = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
-  view.innerHTML = `<div class="cns-head"><span>Мой день · ${esc(dstr)}</span>${over.length ? `<span class="row-next">просрочено: ${over.length}</span>` : ''}</div>`
-    + block('Просрочено', over, c => 'просрочено ' + fmtDate(c.nextContact))
-    + block('Сегодня', tod, () => 'сегодня')
+  const dlbl = base.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
+  const mgrSel = isBoss ? `<select id="mdMgr"><option value="">Все менеджеры</option>${mgrs.map(m => `<option value="${esc(m)}"${state.mydayMgr === m ? ' selected' : ''}>${esc(m)}</option>`).join('')}</select>` : '';
+  const undoStrip = mdUndo ? `<div class="md-tools"><span class="row-sub-done">Завершено: «${esc(mdUndo.name || '')}»</span><button class="pane-btn" id="mdUndo">↩ Отменить</button></div>` : '';
+  view.innerHTML = `<div class="cns-head"><span>Мой день · ${esc(dlbl)}</span>${over.length ? `<span class="row-next">просрочено: ${over.length}</span>` : ''}</div>`
+    + `<div class="md-tools">
+        <button class="pane-btn" id="mdPrev" title="Предыдущий день">‹</button>
+        <button class="pane-btn" id="mdToday">Сегодня</button>
+        <button class="pane-btn" id="mdNext" title="Следующий день">›</button>
+        <span class="sp"></span>${mgrSel}
+      </div>`
+    + (off === 0 ? '' : `<div class="list-row-sub" style="color:var(--muted)">Показан день: ${esc(dlbl)}</div>`)
+    + undoStrip
+    + block(off === 0 ? 'Просрочено' : 'Просрочено до этой даты', over, c => 'просрочено ' + fmtDate(c.nextContact))
+    + block(off === 0 ? 'Сегодня' : 'На этот день', tod, c => fmtDate(c.nextContact))
     + block('Ближайшая неделя', week, c => fmtDate(c.nextContact))
     + block('Позже', later.slice(0, 20), c => fmtDate(c.nextContact))
     + (!withDate.length ? `<div class="empty">Запланированных контактов нет. Клиник в базе: ${clinics.length}.</div>` : '')
     + attBlock;
+  const prev = document.getElementById('mdPrev'), nxt = document.getElementById('mdNext'), tdy = document.getElementById('mdToday');
+  if (prev) prev.addEventListener('click', async () => { state.mydayOffset = off - 1; state.selId = null; await render(); });
+  if (nxt) nxt.addEventListener('click', async () => { state.mydayOffset = off + 1; state.selId = null; await render(); });
+  if (tdy) tdy.addEventListener('click', async () => { state.mydayOffset = 0; state.selId = null; await render(); });
+  const ms = document.getElementById('mdMgr');
+  if (ms) ms.addEventListener('change', async () => { state.mydayMgr = ms.value; state.selId = null; await render(); });
+  const un = document.getElementById('mdUndo');
+  if (un) un.addEventListener('click', mdUndoLast);
+  restorePanelSelection();
 }
 
 async function renderContacts() {
@@ -2534,10 +2708,7 @@ async function renderContacts() {
       <div class="list-row-sub">${esc(sub || '—')}</div>
     </div>`;
   }).join('') + '</div>';
-  view.querySelectorAll('.list-row').forEach(row => {
-    row.addEventListener('mouseenter', () => showHoverCard(row));
-    row.addEventListener('mouseleave', hideHover);
-  });
+  restorePanelSelection();
 }
 
 async function renderOrgList(kind) {
@@ -2559,8 +2730,8 @@ async function renderOrgList(kind) {
       (c.tags || []).some(t => t.toLowerCase().includes(s))) &&
     (!f.region || c.region === f.region) &&
     (!f.city || c.city === f.city) &&
-    (!f.type || ownershipOf(c) === f.type) &&
-    (tagHit(f, c.tags)) &&
+    (!f.type || kind !== 'hospital' || ownershipOf(c) === f.type) &&
+    (kind !== 'hospital' || tagHit(f, c.tags)) &&
     (!f.manager || c.manager === f.manager) &&
     (!mineOnly || (c.manager || '').trim() === mym)
   );
@@ -2622,7 +2793,7 @@ async function renderOrgList(kind) {
   // v3.11.2: карточка справа открывается только по клику; наведения нет
   if (document.body.classList.contains('detail-mode')) {
     const selRow = state.selId ? view.querySelector(`.list-row[data-id="${state.selId}"]`) : null;
-    if (selRow) showHoverCard(selRow, true);
+    if (selRow) { state.selKind = 'clinic'; showHoverCard(selRow, true); }
     else if (state.selId) clearDetailPanel();   // выбранная клиника отфильтрована — убираем карточку
   }
   view.querySelectorAll('.transfer-btn').forEach(b => b.addEventListener('click', async e => {
@@ -2911,10 +3082,7 @@ async function renderPeople() {
     </div>`;
   }
   view.innerHTML = html + '</div>';
-  view.querySelectorAll('.list-row').forEach(row => {
-    row.addEventListener('mouseenter', () => showHoverCard(row));
-    row.addEventListener('mouseleave', hideHover);
-  });
+  restorePanelSelection();
 }
 
 async function renderDicts() {
@@ -3042,6 +3210,7 @@ async function renderRefOrgs(kind) {
     : refEmpty(s));
   const b = document.getElementById('refAddBtn');
   if (b) b.addEventListener('click', () => openClinicForm(null, kind));
+  restorePanelSelection();
 }
 
 async function renderRefDoctors() {
@@ -3075,14 +3244,18 @@ async function renderRefDoctors() {
     : refEmpty(s));
   const b = document.getElementById('refAddBtn');
   if (b) b.addEventListener('click', () => openPersonForm(null, null, { refdoc: true }));
+  restorePanelSelection();
 }
 
 // ---------- Компании (ref_firm) ----------
 async function renderRefFirms() {
   const view = document.getElementById('view');
+  // v3.15.0: «Компании» = полный справочник (реальные компании + партнёры),
+  // но служебные агрегаты («ЧК ДИСТРИБЬЮТОРЫ» и т.п.) реальными компаниями НЕ становятся.
+  const isServiceFirm = c => c.kind === 'distributor' && /^\s*ЧК\s+(ДИСТРИБЬЮТОРЫ|Частное лицо)/i.test(c.name || '');
   const s = state.search;
   const [clinics, people] = await Promise.all([listClinics(), listPeople()]);
-  let firms = clinics.filter(c => c.kind === 'ref_firm');
+  let firms = clinics.filter(c => c.kind === 'ref_firm' || (c.kind === 'distributor' && !isServiceFirm(c)));
   if (s) firms = firms.filter(c =>
     (c.name || '').toLowerCase().includes(s) ||
     (c.city || '').toLowerCase().includes(s) ||
@@ -3099,7 +3272,7 @@ async function renderRefFirms() {
     ? '<div class="list">' + firms.map(c => {
         const ppl = (byClinic[c.id] || []).slice().sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
         return `<div class="card list-row" data-id="${c.id}" data-kind="refclinic">
-          <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span></div>
+          <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span><span class="row-actions"><span class="tag">${c.kind === 'distributor' ? 'Партнёр' : 'Компания'}</span></span></div>
           <div class="list-row-sub">${refLoc(c) ? esc(refLoc(c)) : '—'}</div>
           ${ppl.length ? `<div class="row firm-people">${ppl.map(p => `<span class="firm-person" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' · ' + esc(shortPos(p.position)) : ''}</span>`).join('')}</div>` : ''}
           ${c.situation ? `<div class="list-row-sub firm-note">${esc(c.situation)}</div>` : ''}
@@ -3109,6 +3282,7 @@ async function renderRefFirms() {
     : refEmpty(s));
   const b = document.getElementById('refAddBtn');
   if (b) b.addEventListener('click', () => openClinicForm(null, 'ref_firm'));
+  restorePanelSelection();
 }
 
 async function refClinicOptions(selectedId) {
@@ -3461,7 +3635,7 @@ function readComment(field) {
   return String(t || '').replace(/\u00A0/g, ' ').replace(/\r\n?/g, '\n').trim();
 }
 
-function clinicDetailBody(c, linked, contacts, canEditCard) {
+function clinicDetailBody(c, linked, contacts, canEditCard, related) {
   const isRef = isRefKind(c.kind);
   const canEditNow = canEditCard === undefined
     ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit())
@@ -3479,38 +3653,35 @@ function clinicDetailBody(c, linked, contacts, canEditCard) {
   }).join('');
   const sortedContacts = [...contacts].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
   const peopleBlock = `<div class="detail-block">
-      <div class="k">Люди (${contacts.length})</div>
+      <div class="k">Люди и контакты (${contacts.length})</div>
       ${sortedContacts.length ? sortedContacts.map(p => `<div class="v contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' — <span title="' + esc(p.position) + '">' + esc(shortPos(p.position)) + '</span>' : ''}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}${p.phone ? phoneLines(p.phone) : ''}</div>`).join('') : '<div class="v" style="color:var(--muted)">нет</div>'}
     </div>`;
-  const urBlock = isRef && !isFirmKind(c.kind) && urRows ? `<div class="detail-block"><div class="k">Продажи Уро (₽)</div>${urRows}</div>` : '';
-  // v3.5.3: в Справочниках порядок — Название, Регион, Город, Люди, Продажи Уро, далее комментарии/метки
-  if (isRef) {
-    return `
-      ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-      ${[['Регион', c.region], ['Город', c.city], ['Тип клиники', ownershipLabel(ownershipOf(c))]]
-        .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
+  // v3.15.0: связанные партнёры/справочная карточка — одной строкой-ссылкой
+  const rel = [];
+  if (linked) rel.push({ id: linked.id, name: linked.name, kind: linked.kind });
+  (related || []).forEach(r => { if (r && r.id && !rel.some(x => x.id === r.id)) rel.push(r); });
+  const relLabel = k => k === 'ref_firm' ? 'компания' : (k === 'distributor' ? 'партнёр' : (isRefKind(k) ? 'справочная карточка' : 'клиника'));
+  const relBlock = rel.length
+    ? `<div class="detail-block"><div class="k">Связанные партнёры (${rel.length})</div>${rel.map(r => `<div class="v"><span class="org-link" data-clinic="${r.id}">${esc(r.name)}</span> <span class="row-sub-done">· ${esc(relLabel(r.kind))}</span></div>`).join('')}</div>`
+    : '';
+  const salesBlock = `<details class="detail-block"><summary>Продажи (₽) — Boston / HugeMed</summary>${moneyRows}${isRef && !isFirmKind(c.kind) && urRows ? urRows : ''}</details>`;
+  const refDetails = `
+    <details class="detail-block">
+      <summary>Справочные сведения и метки</summary>
+      ${[['Регион', c.region], ['Город', c.city], ['Тип', ownershipLabel(ownershipOf(c))], ['Ответственный', c.manager]]
+        .filter(([k, v]) => v).map(([k, v]) => `<div class="v"><span class="row-sub-done">${k}:</span> ${esc(v)}</div>`).join('')}
       ${siteBlock(c.situation)}
-      ${linked ? `<div class="detail-block"><div class="k">Связь</div><div class="v"><span class="org-link" data-clinic="${linked.id}">${esc(linked.name)}</span></div></div>` : ''}
-      ${peopleBlock}
       ${commentField('clinics', c.id, c.situation, canEditNow)}
-      ${urBlock}
       ${tagsHtml(c.tags)}
-    `;
-  }
-  // v3.7.1: в Клиниках порядок — Регион, Город, Сайт, Менеджер, Связь, Продажи, Комментарий, Люди (метки внизу)
+    </details>`;
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-    ${[['Регион', c.region], ['Город', c.city], ['Тип клиники', ownershipLabel(ownershipOf(c))]]
-      .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
-    ${siteBlock(c.situation)}
-    ${[['Менеджер', c.manager], ['Связь', linked ? linked.name : null]]
-      .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
-    <div class="detail-block"><div class="k">Продажи (₽) — Boston / HugeMed</div>${moneyRows}</div>
+    ${peopleBlock}
+    ${relBlock}
     ${privBlock(c, canEditNow)}
     ${notesBlock(c, canEditNow)}
-    ${commentField('clinics', c.id, c.situation, canEditNow)}
-    ${peopleBlock}
-    ${tagsHtml(c.tags)}
+    ${salesBlock}
+    ${refDetails}
   `;
 }
 
@@ -3634,13 +3805,25 @@ function clearDetailPanel() {
   p.innerHTML = '';
 }
 
-function hideHover() {
-  if (document.body.classList.contains('detail-mode')) return; // в Клиниках/Партнёрах карточка закреплена
-  clearTimeout(hoverTimer);
-  hoverTimer = setTimeout(() => {
-    if (hoverPinned) return;
-    document.getElementById('hoverCard').classList.add('hidden');
-  }, 160);
+// v3.15.0: наведение НИЧЕГО не открывает и не закрывает — карточка меняется только по клику
+function hideHover() { /* no-op */ }
+
+function showPanelHint() {
+  const p = document.getElementById('hoverCard');
+  if (!p) return;
+  p.innerHTML = '<div class="panel-hint">Выберите клинику</div>';
+  p.classList.remove('hidden');
+}
+
+// после перерисовки списка возвращаем карточку выбранной строки (не сбрасываем выбор)
+async function restorePanelSelection() {
+  if (!document.body.classList.contains('detail-mode')) return;
+  if (!state.selId) { showPanelHint(); return; }
+  const kind = state.selKind || 'clinic';
+  const row = document.querySelector(`.list-row[data-id="${state.selId}"][data-kind="${kind}"]`)
+    || document.querySelector(`.list-row[data-id="${state.selId}"]`);
+  if (row) { row.classList.add('selected'); await showHoverCard(row, true); }
+  else { state.selId = null; state.selKind = null; showPanelHint(); }
 }
 
 async function showHoverCard(row, immediate) {
@@ -3649,47 +3832,51 @@ async function showHoverCard(row, immediate) {
   const kind = row.dataset.kind || 'clinic';
   const seq = ++hoverSeq;
   clearTimeout(hoverTimer);
-  hoverTimer = setTimeout(async () => {
-    const panel = document.getElementById('hoverCard');
-    let inner;
-    if (kind === 'person' || kind === 'refdoc') {
-      const p = await getPerson(id);
-      if (!p || seq !== hoverSeq) return;
-      const clinics = await personAllClinics(p);
-      if (seq !== hoverSeq) return;
-      inner = `<h3>${esc(p.fullName)}</h3>` + personDetailBody(p, clinics);
-    } else {
-      const c = await getClinic(id);
-      if (!c || seq !== hoverSeq) return;
-      const linked = c.linkedClinicId ? await getClinic(c.linkedClinicId) : null;
-      const contacts = await peopleByClinic(id);
-      if (seq !== hoverSeq) return;
-      inner = `<h3>${esc(c.name)}</h3>` + clinicDetailBody(c, linked, contacts);
-    }
-    panel.innerHTML = inner;
-    hydrateCard(document.querySelector('#notesList[data-cid]') ? Number(document.querySelector('#notesList[data-cid]').dataset.cid) : 0);
-    if (document.body.classList.contains('detail-mode')) {
-      const back = document.createElement('button');
-      back.className = 'btn ghost detail-back';
-      back.textContent = '← Назад к списку';
-      back.addEventListener('click', (ev) => { ev.stopPropagation(); state.selId = null; clearDetailPanel(); });
-      panel.insertBefore(back, panel.firstChild);
-    }
-    const r = row.getBoundingClientRect();
-    if (document.body.classList.contains('detail-mode')) {
-      // закреплённая правая панель: ~55% рабочей области (окно минус меню)
-      const pw = Math.round(window.innerWidth * 0.55) - 143;
-      panel.style.top = '12px';
-      panel.style.left = (window.innerWidth - pw - 12) + 'px';
-    } else {
-      const pw = 380;
-      let left = r.right + 12;
-      if (left + pw > window.innerWidth - 12) left = Math.max(12, r.left - pw - 12);
-      panel.style.top = Math.max(12, r.top) + 'px';
-      panel.style.left = left + 'px';
-    }
-    panel.classList.remove('hidden');
-  }, 200);
+  const panel = document.getElementById('hoverCard');
+  if (!panel) return;
+  panel.classList.remove('hidden');
+  let inner;
+  if (kind === 'person' || kind === 'refdoc') {
+    state.selKind = kind;
+    const p = await getPerson(id);
+    if (!p || seq !== hoverSeq) return;
+    const clinics = await personAllClinics(p);
+    if (seq !== hoverSeq) return;
+    const canEditP = canEditMain() || (isRefEdit() && (isRefDoc(p) || (clinics || []).some(c => c && isRefKind(c.kind))));
+    inner = `<h3>${esc(p.fullName)}</h3>` + personDetailBody(p, clinics)
+      + `<div class="pane-actions">${canEditP ? `<button class="pane-btn primary" id="panePersonEdit" data-id="${p.id}">Редактировать</button>` : ''}</div>`;
+  } else {
+    state.selKind = 'clinic';
+    const c = await getClinic(id);
+    if (!c || seq !== hoverSeq) return;
+    const linked = c.linkedClinicId ? await getClinic(c.linkedClinicId) : null;
+    const contacts = await peopleByClinic(id);
+    // v3.15.0: связанные партнёры/справочная карточка — обратная ссылка
+    let related = [];
+    try {
+      const { data } = await sb.from('clinics').select('id,name,kind,linked_clinic_id').eq('linked_clinic_id', id);
+      related = (data || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
+    } catch (_) {}
+    if (seq !== hoverSeq) return;
+    const canEditC = canEditMain() || (isRefEdit() && isRefKind(c.kind));
+    const ctype = isFirmKind(c.kind) ? 'Компания' : (isRefKind(c.kind) ? 'Справочник' : (c.kind === 'distributor' ? 'Партнёр' : 'Клиника'));
+    const locLine = [c.city, c.region, ownershipLabel(ownershipOf(c))].filter(Boolean).join(' · ');
+    const showMgr = c.manager && !isFirmKind(c.kind);
+    const head = `<h3>${esc(c.name)}</h3>
+      <div class="card-top">${esc([ctype, locLine].filter(Boolean).join(' · ') || '—')}</div>
+      ${showMgr ? `<div class="card-mgr">Ответственный: ${esc(c.manager)}</div>` : ''}`;
+    const actions = `<div class="pane-actions">${canEditC ? `<button class="pane-btn primary" id="paneClinicEdit" data-id="${c.id}">Редактировать</button>` : ''}${canEditC ? `<button class="pane-btn" id="paneAddPerson" data-id="${c.id}">＋ Человек</button>` : ''}</div>`;
+    inner = head + actions + clinicDetailBody(c, linked, contacts, undefined, related);
+  }
+  panel.innerHTML = inner;
+  hydrateCard(document.querySelector('#notesList[data-cid]') ? Number(document.querySelector('#notesList[data-cid]').dataset.cid) : 0);
+  if (document.body.classList.contains('detail-mode')) {
+    const back = document.createElement('button');
+    back.className = 'btn ghost detail-back';
+    back.textContent = '← Назад к списку';
+    back.addEventListener('click', (ev) => { ev.stopPropagation(); state.selId = null; state.selKind = null; clearDetailPanel(); showPanelHint(); });
+    panel.insertBefore(back, panel.firstChild);
+  }
 }
 
 {
@@ -3702,6 +3889,31 @@ async function showHoverCard(row, immediate) {
     hoverPinned = false; const f = panel.querySelector('.comment-field:focus'); if (f) f.blur(); panel.classList.add('hidden');
   });
 }
+
+// v3.15.0: кнопки и ссылки внутри правой панели (одна общая карточка для всех разделов)
+document.addEventListener('click', async (ev) => {
+  const panel = document.getElementById('hoverCard');
+  if (!panel || !panel.contains(ev.target)) return;
+  const ed = ev.target.closest('#paneClinicEdit');
+  if (ed) { ev.preventDefault(); ev.stopPropagation(); openClinicForm(Number(ed.dataset.id)); return; }
+  const ap = ev.target.closest('#paneAddPerson');
+  if (ap) { ev.preventDefault(); ev.stopPropagation(); openPersonForm(null, Number(ap.dataset.id)); return; }
+  const pe = ev.target.closest('#panePersonEdit');
+  if (pe) { ev.preventDefault(); ev.stopPropagation(); openPersonForm(Number(pe.dataset.id)); return; }
+  const ol = ev.target.closest('.org-link[data-clinic]');
+  if (ol) {
+    ev.preventDefault(); ev.stopPropagation();
+    const cid = Number(ol.dataset.clinic);
+    if (!cid) return;
+    state.selId = cid; state.selKind = 'clinic';
+    document.body.classList.add('card-open');
+    document.querySelectorAll('.list-row.selected').forEach(el => el.classList.remove('selected'));
+    const r = document.querySelector(`.list-row[data-kind="clinic"][data-id="${cid}"]`);
+    if (r) r.classList.add('selected');
+    await showHoverCard({ dataset: { id: String(cid), kind: 'clinic' } }, true);
+    return;
+  }
+});
 
 // инлайн-редактирование комментариев: контент-редактируемое поле, сохранение по blur
 document.addEventListener('focusin', e => {
@@ -3833,6 +4045,19 @@ document.getElementById('view').addEventListener('click', async e => {
     try { syncTagMenu(); } catch (_) {}
     await render();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  // v3.15.0: действия «Выполнено»/«Перенести» из «Моего дня»
+  const mdDone = e.target.closest('[data-md-done]');
+  if (mdDone) {
+    e.preventDefault(); e.stopPropagation();
+    await mdComplete(Number(mdDone.dataset.mdDone), mdDone.dataset.mdDate);
+    return;
+  }
+  const mdMove = e.target.closest('[data-md-move]');
+  if (mdMove) {
+    e.preventDefault(); e.stopPropagation();
+    await mdReschedule(Number(mdMove.dataset.mdMove), mdMove.dataset.mdDate);
     return;
   }
   const card = e.target.closest('.card');
