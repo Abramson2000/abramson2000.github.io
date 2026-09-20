@@ -663,6 +663,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M14 9h4a2 2 0 0 1 2 2v10"/><path d="M7 7h2M7 11h2M7 15h2M17 13h1M17 17h1"/></svg>
         <span>Компании</span><em class="cnt" data-cnt="reffirm"></em>
       </button>
+      <button class="tab d-item" data-view="refcontact">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span>Контакты</span><em class="cnt" data-cnt="refcontact"></em>
+      </button>
       <div class="d-sec">Система</div>
       <button class="tab d-item" data-view="settings">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -737,6 +741,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
       <button class="tab" data-view="reffirm">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M14 9h4a2 2 0 0 1 2 2v10"/><path d="M7 7h2M7 11h2M7 15h2M17 13h1M17 17h1"/></svg>
         <span>Компании <em class="cnt" data-cnt="reffirm"></em></span>
+      </button>
+      <button class="tab" data-view="refcontact">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span>Контакты <em class="cnt" data-cnt="refcontact"></em></span>
       </button>
       <div class="d-sec">Система</div>
       <button class="tab" data-view="settings">
@@ -1202,7 +1210,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.10.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.11.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1251,7 +1259,8 @@ async function refreshCounts() {
       refgos: clinics.filter(c => c.kind === 'ref_gos').length,
       refpriv: clinics.filter(c => c.kind === 'ref_priv').length,
       refdoc: people.filter(p => isRefDoc(p)).length,
-      reffirm: clinics.filter(c => c.kind === 'ref_firm').length
+      reffirm: clinics.filter(c => c.kind === 'ref_firm').length,
+      refcontact: people.filter(p => !p.markedDel && (p.phone || p.email)).length
     };
     paintCounts();
   } catch (_) {}
@@ -1297,11 +1306,7 @@ function ownershipOf(c) {
 function ownershipLabel(o) { return o === 'private' ? 'Частная' : (o === 'state' ? 'Государственная' : ''); }
 function myManager() {
   if (window.CURRENT_MANAGER) return window.CURRENT_MANAGER;
-  const e = (CURRENT_EMAIL || '').toLowerCase();
-  if (e.indexOf('osechkina') === 0) return 'Осечкина';
-  if (e.indexOf('skokova') === 0) return 'Скокова';
-  if (e.indexOf('abramson') === 0) return 'Абрамов';
-  return '';
+  return myManagerName();   // MANAGER_BY_EMAIL: Осечкина / Скокова / Абрамов
 }
 function tagsHtml(tags) {
   const list = (tags || []).filter(t => !OWN_TAGS.includes(String(t).toLowerCase()));
@@ -1564,7 +1569,7 @@ let filterCtx = '';
 async function updateFiltersUI() {
   const bar = document.getElementById('filters');
   const fab = document.getElementById('fab');
-  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm'];
+  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
   fab.classList.toggle('hidden', menuViews.includes(state.view));
   // мобильная нижняя плашка: у Саши свой 3-й стол (Саша/Настя/Галя), у остальных 2-й стол анализа
   const inAnalysis = ['analysis', 'money', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(state.view);
@@ -1576,7 +1581,7 @@ async function updateFiltersUI() {
   if (mainBar) mainBar.classList.toggle('hidden', inAnalysis);
   if (anBar) anBar.classList.toggle('hidden', !inAnalysis || managersZone);
   if (mgBar) mgBar.classList.toggle('hidden', !managersZone);
-  const isRef = ['refgos', 'refpriv', 'refdoc', 'reffirm'].includes(state.view);
+  const isRef = ['refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'].includes(state.view);
   const fctx = isRef ? 'ref' : 'main';
   if (fctx !== filterCtx) { filterCtx = fctx; state.filters.region = ''; state.filters.city = ''; state.filters.tag = ''; state.filters.tags = []; }
   if (state.view === 'clinics' || state.view === 'distributors' || state.view === 'money') {
@@ -1829,6 +1834,7 @@ async function render() {
     else if (state.view === 'refpriv') await renderRefOrgs('ref_priv');
     else if (state.view === 'refdoc') await renderRefDoctors();
     else if (state.view === 'reffirm') await renderRefFirms();
+    else if (state.view === 'refcontact') await renderContacts();
     else if (state.view === 'visits') renderVisits();
     else if (state.view === 'nastya' && WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) await renderNastya();
     else if (state.view === 'galya' && WORKLISTS.galya.emails.includes(CURRENT_EMAIL)) await renderGalya();
@@ -2319,6 +2325,66 @@ function renderWorklistDetail(key, c, people) {
       }, 700);
     });
   }
+}
+
+// ---------- Справочники: «Контакты» (v3.11.0) ----------
+// Один список всех, у кого есть контакт: клиники, врачи, контактные лица компаний.
+async function renderContacts() {
+  const view = document.getElementById('view');
+  const s = state.search;
+  const f = state.filters;
+  const people = await listPeople();
+  const clinics = await listClinics();
+  const clinicMap = {};
+  clinics.forEach(c => clinicMap[c.id] = c);
+  let links = [];
+  try { const { data } = await sb.from('clinic_people').select('*'); links = data || []; } catch (_) {}
+  const extra = {};
+  links.forEach(l => { (extra[l.person_id] = extra[l.person_id] || []).push(l.clinic_id); });
+  const orgIds = (p) => {
+    const ids = [];
+    if (p.clinicId) ids.push(p.clinicId);
+    (extra[p.id] || []).forEach(id => { if (!ids.includes(id)) ids.push(id); });
+    return ids;
+  };
+  const orgName = (p) => orgIds(p).map(id => clinicMap[id] && clinicMap[id].name).filter(Boolean).join(', ');
+  const loc = (p) => {
+    const c = clinicMap[p.clinicId];
+    return { region: (c && c.region) || p.region || '', city: (c && c.city) || p.city || '' };
+  };
+  const kindOf = (p) => (isFirmContact(p) ? 'Компания' : (isRefDoc(p) ? 'Врач' : 'Клиника'));
+  let rows = people.filter(p => !p.markedDel && (p.phone || p.email));
+  rows = rows.filter(p => {
+    const org = orgName(p);
+    const l = loc(p);
+    return (!s ||
+      (p.fullName || '').toLowerCase().includes(s) ||
+      (p.position || '').toLowerCase().includes(s) ||
+      (p.phone || '').toLowerCase().includes(s) ||
+      (p.email || '').toLowerCase().includes(s) ||
+      org.toLowerCase().includes(s) ||
+      (l.city || '').toLowerCase().includes(s) ||
+      (l.region || '').toLowerCase().includes(s)) &&
+      (!f.region || l.region === f.region) &&
+      (!f.city || l.city === f.city);
+  });
+  rows.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
+  const head = `<div class="cns-head"><span>Контакты · <b>${rows.length}</b></span></div>`;
+  if (!rows.length) {
+    view.innerHTML = head + `<div class="empty">${s ? 'Ничего не найдено' : 'Контактов пока нет'}</div>`;
+    return;
+  }
+  view.innerHTML = head + '<div class="list">' + rows.map(p => {
+    const sub = [orgName(p), shortPos(p.position), p.phone, p.email].filter(Boolean).join(' / ');
+    return `<div class="card list-row" data-id="${p.id}" data-kind="person">
+      <div class="list-row-top"><span class="list-row-name">${esc(p.fullName)}</span><span class="row-actions"><span class="tag">${esc(kindOf(p))}</span></span></div>
+      <div class="list-row-sub">${esc(sub || '—')}</div>
+    </div>`;
+  }).join('') + '</div>';
+  view.querySelectorAll('.list-row').forEach(row => {
+    row.addEventListener('mouseenter', () => showHoverCard(row));
+    row.addEventListener('mouseleave', hideHover);
+  });
 }
 
 async function renderOrgList(kind) {
