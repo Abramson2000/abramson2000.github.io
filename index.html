@@ -563,7 +563,7 @@ details.detail-block[open] > summary { margin-bottom: 6px; }
 @media (max-width: 899px) {
   .hover-card { display: none !important; }
   .work { display: block; }
-  .searchbar { position: sticky; top: 0; z-index: 40; background: var(--bg); margin: 0 12px 8px; padding: 8px 0 0; }
+  .searchbar { display: none; }   /* v3.15.1: на телефоне поиск живёт в нижней плашке, рядом с ＋ */
   /* v3.11.4: на телефоне карточка — отдельный экран с кнопкой возврата */
   body.detail-mode.card-open .hover-card {
     display: block !important; position: fixed; left: 0; right: 0; top: 0; bottom: 0;
@@ -864,9 +864,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
     </details>
   </div>
 
-  <div class="searchbar">
-    <input id="globalSearch" type="search" placeholder="Поиск: имя, организация, город…" />
-  </div>
+  <div class="searchbar" id="searchTop"></div>
 
   <div class="work">
     <main id="view" class="view"></main>
@@ -875,6 +873,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 
   <div class="bottom-bar">
     <div class="search-row">
+      <input id="globalSearch" type="search" placeholder="Поиск…" />
       <button id="fab" class="fab" aria-label="Добавить">＋</button>
     </div>
     <nav class="tabbar" id="tabbar-main">
@@ -1348,7 +1347,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.15.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.15.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2060,7 +2059,7 @@ async function renderCns() {
   }
   view.innerHTML = cnsHead
     + '<div class="list">' + clinics.map(c => {
-      const loc = [c.region, c.city].filter(Boolean).join(' / ');
+      const loc = c.city || '';
       const m = (c.manager || '').trim();
       return `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
@@ -2187,7 +2186,7 @@ async function renderActionList(type, title) {
     const cls = nd < today ? 'nd-over' : (nd.getTime() === today.getTime() ? 'nd-today' : 'nd-future');
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span><span class="nd ${cls}">${fmtDate(c.nextContact)}</span></div>
-      <div class="list-row-sub">${esc([c.city, c.region].filter(Boolean).join(', ') || '\u2014')}${c.manager ? ' \u00b7 ' + esc(c.manager) : ''}</div>
+      <div class="list-row-sub">${esc([c.city].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}</div>
     </div>`;
   }).join('');
   view.innerHTML = `<div class="cns-head"><span>${esc(title)} \u00b7 <b>${rows.length}</b></span></div>` +
@@ -2237,7 +2236,7 @@ async function renderWorklist(key) {
     return (a.name || '').localeCompare(b.name || '', 'ru');
   });
   const cards = sorted.map(c => {
-    const loc = [c.region, c.city].filter(Boolean).join(' / ');
+    const loc = c.city || '';
     let ndBadge = '';
     if (c.nextContact) {
       const nd = new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00');
@@ -2319,7 +2318,7 @@ function moneyBlockHtml(mc) {
 function renderWorklistDetail(key, c, people) {
   const W = WORKLISTS[key];
   const view = document.getElementById('view');
-  const loc = [c.region, c.city].filter(Boolean).join(' / ');
+  const loc = c.city || '';
   const isOwner = CURRENT_EMAIL === W.cabinet || CURRENT_EMAIL === 'abramson@crm.ru' || CURRENT_EMAIL === 'bot@crm.ru';
   const readOnly = CURRENT_ROLE === 'viewer';
   const canManage = isOwner && CURRENT_ROLE !== 'viewer';
@@ -2611,7 +2610,7 @@ async function renderMyDay() {
         <span class="list-row-name">${esc(c.name)}</span>
         <span class="row-next">${badge}</span>
       </div>
-      <div class="list-row-sub">${esc(actionLabel(c.actionType))} · ${esc([c.city, c.region].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}</div>
+      <div class="list-row-sub">${esc(actionLabel(c.actionType))} · ${esc([c.city].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}</div>
       <div class="md-act">
         <button class="pane-btn" data-md-done="${c.id}" data-md-date="${d}">✓ Выполнено</button>
         <button class="pane-btn" data-md-move="${c.id}" data-md-date="${d}">↷ Перенести</button>
@@ -2764,7 +2763,7 @@ async function renderOrgList(kind) {
       '<button type="button" class="subtab' + (mineOnly ? ' active' : '') + '" data-sub="mine">Мои клиники' + (mym ? ' · ' + esc(mym) : '') + '</button>' +
     '</div>';
   view.innerHTML = subTabs + '<div class="list">' + clinics.map(c => {
-    const loc = [c.region, c.city].filter(Boolean).join(' / ');
+    const loc = c.city || '';
     const m = (c.manager || '').trim();
     const showTr = canTransfer && (myEmail === 'abramson@crm.ru' ||
       (myEmail === 'osechkina@crm.ru' && m === 'Осечкина') ||
@@ -2962,7 +2961,7 @@ async function renderMoney() {
     </div>`
     + (clinics.length
       ? '<div class="list">' + clinics.map(c => {
-      const loc = [c.region, c.city].filter(Boolean).join(' / ');
+      const loc = c.city || '';
       const money = fmtMoney(moneyVal(c, year));
       const hm = curYearHM(c, year);
       const split = (src === 'both' && hm != null && hm !== 0) ? ` · ХМ ${fmtMoney(hm)}` : '';
@@ -3181,7 +3180,7 @@ function hideEmptySections() {
   });
 }
 
-function refLoc(c) { return [c.region, c.city].filter(Boolean).join(' / '); }
+function refLoc(c) { return c.city || ''; }
 function refTagRow(t) {
   const tg = refTags(t);
   return tg.length ? `<div class="row">${tg.map(x => `<span class="tag tag-click" data-tag="${esc(x)}" title="Показать всё с меткой «${esc(x)}»">${esc(x)}</span>`).join('')}</div>` : '';
@@ -3672,7 +3671,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related) {
   const refDetails = `
     <details class="detail-block">
       <summary>Справочные сведения и метки</summary>
-      ${[['Регион', c.region], ['Город', c.city], ['Тип', ownershipLabel(ownershipOf(c))], ['Ответственный', c.manager]]
+      ${[['Город', c.city], ['Тип', ownershipLabel(ownershipOf(c))], ['Ответственный', c.manager]]
         .filter(([k, v]) => v).map(([k, v]) => `<div class="v"><span class="row-sub-done">${k}:</span> ${esc(v)}</div>`).join('')}
       ${siteBlock(c.situation)}
       ${commentField('clinics', c.id, c.situation, canEditNow)}
@@ -3864,7 +3863,7 @@ async function showHoverCard(row, immediate) {
     if (seq !== hoverSeq) return;
     const canEditC = canEditMain() || (isRefEdit() && isRefKind(c.kind));
     const ctype = isFirmKind(c.kind) ? 'Компания' : (isRefKind(c.kind) ? 'Справочник' : (c.kind === 'distributor' ? 'Партнёр' : 'Клиника'));
-    const locLine = [c.city, c.region, ownershipLabel(ownershipOf(c))].filter(Boolean).join(' · ');
+    const locLine = [c.city, ownershipLabel(ownershipOf(c))].filter(Boolean).join(' · ');
     const showMgr = c.manager && !isFirmKind(c.kind);
     const head = `<h3>${esc(c.name)}</h3>
       <div class="card-top">${esc([ctype, locLine].filter(Boolean).join(' · ') || '—')}</div>
@@ -4168,7 +4167,25 @@ if (offSyncBtn) offSyncBtn.addEventListener('click', () => offFlush());
 setTimeout(offInfo, 1500);
 window.addEventListener('load', () => setTimeout(offInfo, 800));
 
+// v3.15.1: поиск — на десктопе сверху (над списком), на телефоне — внизу, слева от ＋
+function placeSearch() {
+  const inp = document.getElementById('globalSearch');
+  const top = document.getElementById('searchTop');
+  const row = document.querySelector('.bottom-bar .search-row');
+  if (!inp || !top || !row) return;
+  const desktop = window.innerWidth >= 900;
+  if (desktop) {
+    if (inp.parentElement !== top) top.appendChild(inp);
+    top.classList.remove('hidden');
+  } else {
+    if (inp.parentElement !== row) row.insertBefore(inp, row.firstChild);
+    top.classList.add('hidden');
+  }
+}
+window.addEventListener('resize', placeSearch);
+
 // ---------- init ----------
+placeSearch();
 init();
 
 </script>
