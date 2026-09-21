@@ -542,9 +542,8 @@ body.logged-out .toast { display: none !important; }
      кнопка «← Назад» — только на телефоне (в правой панели она не нужна) */
   body.detail-mode:not(.card-open) .work .hover-card { display: none; }
   .detail-back { display: none !important; }
-  /* v3.27.1: колонка списка на компьютере — та же ширина, что и строка поиска (45% рабочей области);
-     список не растягивается на весь экран, при открытии карточки ширина не меняется */
-  .work > #view { max-width: calc((100vw - 260px) * .45 - 8px); padding: 8px 16px 12px; }
+  /* v3.27.1: колонка списка на компьютере — уже полной ширины; v3.27.3: сужена примерно на треть от полной */
+  .work > #view { max-width: calc((100vw - 260px) * 2 / 3); padding: 8px 16px 12px; }
   /* фильтр менеджера в «Моём дне» — в строке заголовка справа, с отступом от края */
   .cns-head .md-mgr { margin-right: 8px; }
 }
@@ -1636,7 +1635,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.27.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.27.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1864,6 +1863,8 @@ async function bootstrap() {
   updateFiltersUI();
   render();
   refreshCounts();
+  // v3.27.3: в фоне прогреваем кэш людей и связок — тогда карточка клиники открывается мгновенно
+  setTimeout(() => { listPeople().catch(() => {}); listClinicLinks().catch(() => {}); }, 1200);
 }
 
 async function init() {
