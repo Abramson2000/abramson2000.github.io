@@ -1527,7 +1527,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.22.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.22.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4042,13 +4042,9 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related) {
   const relBlock = rel.length
     ? `<div class="detail-block"><div class="k">Связанные партнёры</div>${rel.map(r => `<div class="v"><span class="org-link" data-clinic="${r.id}">${esc(r.name)}</span></div>`).join('')}</div>`
     : '';
-  // v3.16.0: справочное — под компактной кнопкой «Подробнее»; технических меток нет
-  const refDetails = `<details class="detail-block">
-      <summary>Подробнее</summary>
-      ${[['Город', c.city], ['Тип', ownershipLabel(ownershipOf(c))], ['Ответственный', c.manager]]
-        .filter(([k, v]) => v).map(([k, v]) => `<div class="v"><span class="row-sub-done">${k}:</span> ${esc(v)}</div>`).join('')}
-      ${tagsHtml(c.tags)}
-    </details>`;
+  // v3.22.1: блок «Подробнее» убран из карточки клиники (город/тип/ответственный дублируют шапку);
+  // метки оставлены отдельной компактной плашкой — они нигде больше в карточке не показываются
+  const tagsBlock = tagsHtml(c.tags);
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
     ${salesBlock}
@@ -4057,7 +4053,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related) {
     ${peopleBlock}
     ${siteBlockFull(c.situation, 'clinics', c.id, canEditNow)}
     ${relBlock}
-    ${refDetails}
+    ${tagsBlock}
   `;
 }
 
