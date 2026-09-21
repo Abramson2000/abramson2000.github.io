@@ -1521,7 +1521,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.20.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.20.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2891,7 +2891,7 @@ async function renderMyDay() {
   };
   const att = clinics.map(c => ({ c, a: sumY(c, '2025'), b: sumY(c, '2026') }))
     .filter(x => x.a != null && x.b != null && x.a > 0 && x.b < x.a)
-    .sort((p, q) => (p.b / p.a) - (q.b / q.a));
+    .sort((p, q) => q.a - p.a); // v3.20.2: по убыванию общей суммы прошлого года (2025)
   // v3.17.3: блок «Требуют внимания» показываем всегда; если снижений нет — пишем, сколько клиник
   // вообще имеет заполненный 2025 / 2026 (иначе блок «исчезал» и выглядел как нереализованный)
   const attD25 = clinics.filter(c => sumY(c, '2025') != null).length;
