@@ -553,7 +553,7 @@ async function onRequest2(context) {
 }
 __name(onRequest2, "onRequest");
 
-// ../.wrangler/tmp/pages-I0p1ZJ/functionsRoutes-0.3536747136445533.mjs
+// ../.wrangler/tmp/pages-gOJ2FO/functionsRoutes-0.667732619584007.mjs
 var routes = [
   {
     routePath: "/api/spin-progress",

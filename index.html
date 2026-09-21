@@ -582,6 +582,29 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .mny-gran { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); margin: 2px 0 6px; }
 .mny-g { font: inherit; font-size: 11.5px; line-height: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; }
 .mny-g.on { color: var(--brand); border-color: var(--brand); }
+/* v3.25.0: «Продажи» в карточке — ОДНОЙ строкой; всё остальное — на отдельной странице */
+.sales-line { display: flex; align-items: center; gap: 8px; padding: 8px 11px; margin-bottom: 8px; cursor: pointer; }
+.sales-line .sl-k { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
+.sales-line .sl-v { margin-left: auto; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sales-line .sl-v b { font-weight: 700; }
+.sales-line .sl-tr { font-size: 12.5px; }
+.sales-line .sl-tr.up { color: var(--brand); }
+.sales-line .sl-tr.down { color: var(--danger); }
+.sales-line .sl-base { color: var(--muted); font-size: 12px; }
+.sales-line .sl-arrow { color: var(--muted); font-size: 16px; line-height: 1; flex: 0 0 auto; }
+#salesPage { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 70; background: var(--bg); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: calc(8px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom)); }
+#salesPage.hidden { display: none; }
+#salesPage h3 { margin: 2px 0 10px; font-size: 17px; }
+.sales-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; }
+.sales-bar .mny-gran { margin: 0; }
+.sales-sep { flex: 1 1 auto; }
+.mny-s { font: inherit; font-size: 11.5px; line-height: 1; padding: 4px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; }
+.mny-s.on { color: var(--brand); border-color: var(--brand); }
+.sales-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); }
+.sales-sub { color: var(--muted); font-size: 12.5px; margin: 0 0 8px; }
+body.swipe-drag #salesPage, body.card-sliding #salesPage { will-change: transform; }
+@media (min-width: 900px) { #salesPage { left: 260px; padding: 18px 22px; } #salesPage h3 { font-size: 19px; } }
 .priv-row.compact { display: flex; align-items: center; gap: 8px; margin: 0; }
 .priv-row.compact .lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; min-width: 0; }
 .priv-row.compact input[type=date] { flex: 0 0 auto; width: 148px; height: 30px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); font: inherit; font-size: 13px; }
@@ -1028,6 +1051,8 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
       <div id="modalBody" class="modal-body"></div>
     </div>
   </div>
+
+  <div id="salesPage" class="hidden"></div>
 
   <div id="offChip" class="off-chip hidden"><span class="off-dot"></span><span id="offText"></span><button id="offSync">Синхронизировать</button></div>
   <div id="toast" class="toast hidden"></div>
@@ -1534,7 +1559,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.24.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.25.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1863,6 +1888,7 @@ document.addEventListener('touchstart', e => {
   swipeTrack = true; swipeStage = null; swipeDX = 0; swipeLocked = false;
   swipePrevDX = 0; swipePrevT = performance.now(); swipeVel = 0;
   if (touchX > 44 && !(drawerMenu && drawerMenu.classList.contains('open') && touchX < 300)) return;
+  if (document.body.classList.contains('sales-open')) { if (touchX <= 44) swipeStage = 'sales'; return; }
   const modal = document.getElementById('modal');
   if (modal && !modal.classList.contains('hidden')) { if (touchX <= 44) swipeStage = 'modal'; return; }
   if (document.body.classList.contains('card-open')) { if (touchX <= 44) swipeStage = 'card'; return; }
@@ -1887,6 +1913,20 @@ document.addEventListener('touchmove', e => {
     swipeDX = Math.min(0, dx);
     drawerMenu.style.transform = 'translateX(' + swipeDX + 'px)';
     const ov = swipeOverlay(); if (ov) ov.style.opacity = String(Math.max(0, 1 + swipeDX / 290));
+    return;
+  }
+  // 1a) анимация «назад» для страницы продаж
+  if (swipeStage === 'sales') {
+    if (!swipeLocked) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx)) { swipeTrack = false; return; }
+      swipeLocked = true;
+      document.body.classList.add('swipe-drag');
+      const sp0 = document.getElementById('salesPage'); if (sp0) sp0.style.transition = 'none';
+    }
+    swipeDX = Math.max(0, dx);
+    const sp = document.getElementById('salesPage');
+    if (sp) sp.style.transform = 'translateX(' + swipeDX + 'px)';
     return;
   }
   // 1) анимация «назад» для формы и карточки
@@ -1932,7 +1972,7 @@ document.addEventListener('touchend', () => {
     }, 270);
     return;
   }
-  const el = stage === 'modal' ? (swipeModal() || swipeCard()) : swipeCard();
+  const el = stage === 'modal' ? (swipeModal() || swipeCard()) : (stage === 'sales' ? document.getElementById('salesPage') : swipeCard());
   const modal = document.getElementById('modal');
   document.body.classList.add('card-sliding');
   if (el) { el.style.transition = SWIPE_EASE; el.style.transform = go ? 'translateX(100%)' : 'translateX(0px)'; }
@@ -1941,7 +1981,7 @@ document.addEventListener('touchend', () => {
     if (el) { el.style.transition = ''; el.style.transform = ''; }
     if (modal) { modal.style.transition = ''; modal.style.opacity = ''; }
     document.body.classList.remove('card-sliding', 'swipe-drag');
-    if (go) { if (stage === 'modal') closeModal(); else closeCardToList(); }
+    if (go) { if (stage === 'modal') closeModal(); else if (stage === 'sales') closeSalesPage(); else closeCardToList(); }
   }, go ? 265 : 265);
 }, { passive: true });
 
@@ -4024,9 +4064,145 @@ function mnyRows(y, rows) {
   return list.slice().sort((a, b) => Number(a.month) - Number(b.month)).map(r => ({ label: MONTH_RU[Number(r.month)] || r.month, sale: r.sale }));
 }
 function mnyTbodyHtml(y, rows) {
-  return mnyRows(y, rows).map(r => `<tr class="mny-m"><td>${r.label}</td><td>${r.sale != null ? fmtMoney(r.sale) : '—'}</td><td>—</td><td>${r.sale != null ? fmtMoney(r.sale) : '—'}</td></tr>`).join('');
+  const single = MNY_SRC !== 'both';      // v3.25.0: под фильтром Boston/HugeMed — две колонки
+  return mnyRows(y, rows).map(r => {
+    const v = r.sale != null ? fmtMoney(r.sale) : '—';
+    return single
+      ? `<tr class="mny-m"><td>${r.label}</td><td>${v}</td></tr>`
+      : `<tr class="mny-m"><td>${r.label}</td><td>${v}</td><td>—</td><td>${v}</td></tr>`;
+  }).join('');
 }
 // v3.24.1: разворот денег работает и в правой карточке, и в модалке («Деньги», «Мой день», справочники)
+// v3.25.0: ДЕНЬГИ — одна строка в карточке (последнее сравнение) + отдельная страница «Продажи»
+let MNY_SRC = ['boston', 'hugemed', 'both'].indexOf(localStorage.getItem('mnySrc')) >= 0 ? localStorage.getItem('mnySrc') : 'both';
+const SRC_RU = { both: 'Все', boston: 'Boston', hugemed: 'HugeMed' };
+function mnySum(c, y, src) {
+  src = src || MNY_SRC;
+  const s = c['sales_' + y], h = c['hugemed_' + y];
+  if (src === 'boston') return s != null ? Number(s) : null;
+  if (src === 'hugemed') return h != null ? Number(h) : null;
+  return (s != null || h != null) ? Number(s || 0) + Number(h || 0) : null;
+}
+function mnyYearsWith(c, src) {
+  return MONEY_YEARS.filter(y => mnySum(c, y, src) != null).sort((a, b) => Number(b) - Number(a));
+}
+// «последнее сравнение»: последний год с данными против предыдущего
+function mnyCompare(c, src) {
+  const ys = mnyYearsWith(c, src);
+  if (!ys.length) return '';
+  const y = ys[0], cur = mnySum(c, y, src);
+  let html = `<b>${y}</b> · ${fmtMoney(cur)} ₽`;
+  if (ys.length > 1 && cur != null) {
+    const py = ys[1], prev = mnySum(c, py, src);
+    if (prev) {
+      const pct = Math.round((cur - prev) / prev * 100);
+      html += ` <span class="sl-tr ${pct > 0 ? 'up' : (pct < 0 ? 'down' : '')}">${pct > 0 ? '↑' : (pct < 0 ? '↓' : '')}${Math.abs(pct)}%</span><span class="sl-base"> к ${py}</span>`;
+    }
+  }
+  return html;
+}
+function salesLineHtml(c) {
+  return `<div class="detail-block sales-line" id="salesLine" data-clinic="${c.id}" title="Все продажи">
+      <span class="sl-k">Продажи, ₽</span>
+      <span class="sl-v">${mnyCompare(c) || 'данных нет'}</span>
+      <span class="sl-arrow">›</span>
+    </div>`;
+}
+function mnyHasMonths(c) {
+  return (MNY_ROWS[c.id] || []).some(r => r.sale != null || r.buy != null);
+}
+// таблица продаж (для страницы): колонки зависят от фильтра Все/Boston/HugeMed
+function mnyTableHtml(c) {
+  const rows = MNY_ROWS[c.id] || [];
+  const src = MNY_SRC;
+  const showMon = src !== 'hugemed' && mnyHasMonths(c);
+  const CUR_Y = Number(MONEY_YEARS[MONEY_YEARS.length - 1]);
+  const mainYears = [CUR_Y, CUR_Y - 1, CUR_Y - 2].map(String).filter(y => MONEY_YEARS.includes(y));
+  const oldYears = MONEY_YEARS.filter(y => !mainYears.includes(y));
+  const sub = y => showMon && (rows.filter(r => String(r.year) === String(y)).length)
+    ? `<tbody id="mnyY${y}" class="hidden">${mnyTbodyHtml(y, rows)}</tbody>` : '';
+  const block = (y, hidden) => {
+    const has = showMon && rows.some(r => String(r.year) === String(y));
+    const v = mnySum(c, y, src);
+    const cells = src === 'both'
+      ? `<td>${c['sales_' + y] != null ? fmtMoney(c['sales_' + y]) : '—'}</td><td>${c['hugemed_' + y] != null ? fmtMoney(c['hugemed_' + y]) : '—'}</td><td>${v != null ? fmtMoney(v) : '—'}</td>`
+      : `<td>${v != null ? fmtMoney(v) : '—'}</td>`;
+    return `<tbody${hidden ? ' class="hidden" data-old="1"' : ''}><tr${has ? ` class="mny-yr" data-y="${y}"` : ''}><td>${y}${has ? ' <span class="mm-caret">▾</span>' : ''}</td>${cells}</tr></tbody>` + sub(y);
+  };
+  const head = src === 'both' ? '<th>Год</th><th>Boston</th><th>HugeMed</th><th>Сумма</th>'
+    : `<th>Год</th><th>${SRC_RU[src]}</th>`;
+  const mains = mainYears.filter(y => mnySum(c, y, src) != null);
+  const olds = oldYears.filter(y => mnySum(c, y, src) != null);
+  if (!mains.length && !olds.length) return '<div class="sales-sub">данных нет</div>';
+  return `<table class="money-tbl"><thead><tr>${head}</tr></thead>${mains.map(y => block(y, false)).join('')}${olds.map(y => block(y, true)).join('')}</table>`
+    + (olds.length ? `<button class="money-more" id="mnyMore" type="button">${oldYears[0]}–${oldYears[oldYears.length - 1]} <span class="mm-caret">▾</span></button>` : '');
+}
+function salesPageHtml(c) {
+  return `<button class="detail-back" id="salesBack" type="button">← Назад</button>
+    <h3>${esc(c.name)} — продажи</h3>
+    <div class="mny-block" data-clinic="${c.id}">
+      <div class="sales-bar">
+        <div class="mny-gran">Показать: <button class="mny-g${MNY_G === 'm' ? ' on' : ''}" data-g="m" type="button">Месяцы</button><button class="mny-g${MNY_G === 'q' ? ' on' : ''}" data-g="q" type="button">Кварталы</button></div>
+        <span class="sales-sep"></span>
+        ${['both', 'boston', 'hugemed'].map(s => `<button class="mny-s${MNY_SRC === s ? ' on' : ''}" data-s="${s}" type="button">${SRC_RU[s]}</button>`).join('')}
+      </div>
+      <div class="sales-card">
+        <div class="sales-sub">Последнее сравнение: ${mnyCompare(c, MNY_SRC) || 'данных нет'}</div>
+        ${mnyTableHtml(c)}
+      </div>
+    </div>`;
+}
+async function openSalesPage(id) {
+  const c = await getClinic(id);
+  if (!c) return;
+  if (!MNY_ROWS[id]) { try { MNY_ROWS[id] = await listMonthly(id); } catch (_) { MNY_ROWS[id] = []; } }
+  const pg = document.getElementById('salesPage');
+  if (!pg) return;
+  pg.innerHTML = salesPageHtml(c);
+  pg.classList.remove('hidden');
+  pg.scrollTop = 0;
+  document.body.classList.add('sales-open');
+}
+function closeSalesPage() {
+  const pg = document.getElementById('salesPage');
+  if (pg) { pg.classList.add('hidden'); pg.style.transform = ''; }
+  document.body.classList.remove('sales-open', 'swipe-drag', 'card-sliding');
+  refreshSalesLines();     // выбранные фильтры остаются на плашке «Продажи» в карточке
+}
+// перерисовка страницы при смене фильтра (сохраняем раскрытые годы и позицию)
+function rerenderSalesPage() {
+  const pg = document.getElementById('salesPage');
+  if (!pg || pg.classList.contains('hidden')) return;
+  const openYs = [...pg.querySelectorAll('.mny-yr')]
+    .filter(r => { const tb = pg.querySelector(`tbody[id="mnyY${r.dataset.y}"]`); return tb && !tb.classList.contains('hidden'); })
+    .map(r => r.dataset.y);
+  const firstOld = pg.querySelector('tbody[data-old="1"]');
+  const oldOpen = firstOld ? !firstOld.classList.contains('hidden') : false;
+  const sc = pg.scrollTop;
+  const cid = Number(pg.querySelector('.mny-block').dataset.clinic);
+  getClinic(cid).then(c => {
+    if (!c || pg.classList.contains('hidden')) return;
+    pg.innerHTML = salesPageHtml(c);
+    openYs.forEach(y => {
+      const tb = pg.querySelector(`tbody[id="mnyY${y}"]`);
+      if (tb) tb.classList.remove('hidden');
+      const car = pg.querySelector(`.mny-yr[data-y="${y}"] .mm-caret`);
+      if (car) car.style.transform = 'rotate(180deg)';
+    });
+    if (oldOpen) {
+      pg.querySelectorAll('tbody[data-old="1"]').forEach(t => t.classList.remove('hidden'));
+      const b = document.getElementById('mnyMore'); if (b) b.classList.add('open');
+    }
+    pg.scrollTop = sc;
+  });
+}
+async function refreshSalesLines() {
+  const lines = [...document.querySelectorAll('#salesLine')];
+  for (const el of lines) {
+    const c = await getClinic(Number(el.dataset.clinic));
+    if (c) el.outerHTML = salesLineHtml(c);
+  }
+}
 function moneyClick(ev) {
   if (ev.__mnyDone) return true;          // защита от двойного вызова (делегат панели + document)
   const blk = ev.target.closest('.mny-block');
@@ -4054,6 +4230,16 @@ function moneyClick(ev) {
     });
     return true;
   }
+  const sCh = ev.target.closest('.mny-s');           // v3.25.0: фильтр Все/Boston/HugeMed
+  if (sCh) {
+    ev.preventDefault(); ev.stopPropagation();
+    const v = ['both', 'boston', 'hugemed'].indexOf(sCh.dataset.s) >= 0 ? sCh.dataset.s : 'both';
+    if (v === MNY_SRC) return true;
+    MNY_SRC = v;
+    try { localStorage.setItem('mnySrc', v); } catch (_) {}
+    rerenderSalesPage();
+    return true;
+  }
   const more = ev.target.closest('#mnyMore');
   if (more) {
     ev.preventDefault(); ev.stopPropagation();
@@ -4077,52 +4263,25 @@ function moneyClick(ev) {
   return false;
 }
 document.addEventListener('click', moneyClick);
+// v3.25.0: открытие страницы продаж из строки карточки и возврат назад
+document.addEventListener('click', async ev => {
+  const back = ev.target.closest('#salesBack');
+  if (back) { ev.preventDefault(); ev.stopPropagation(); closeSalesPage(); return; }
+  const line = ev.target.closest('#salesLine');
+  if (line) {
+    ev.preventDefault(); ev.stopPropagation();
+    await openSalesPage(Number(line.dataset.clinic));
+  }
+});
 
 function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
   MNY_ROWS[c.id] = (monthly || []).slice();
-  const mm = {};
-  (monthly || []).forEach(r => { (mm[r.year] = mm[r.year] || []).push(r); });
   const canEditNow = canEditCard === undefined
     ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit())
     : !!canEditCard;
   const canPriv = canSeePrivate(c);
-  // v3.22.0: ПРОДАЖИ — Год | Boston | HugeMed | Сумма (в году); видны текущий и два прошлых года, старые — под стрелкой
-  const CUR_Y = Number(MONEY_YEARS[MONEY_YEARS.length - 1]);
-  const mainYears = [CUR_Y, CUR_Y - 1, CUR_Y - 2].map(String).filter(y => MONEY_YEARS.includes(y));
-  const oldYears = MONEY_YEARS.filter(y => !mainYears.includes(y));
-  const hasYear = y => c['sales_' + y] != null || c['hugemed_' + y] != null;
-  const moneyRow = y => {
-    const s = c['sales_' + y], h = c['hugemed_' + y];
-    const sum = (s != null || h != null) ? (Number(s || 0) + Number(h || 0)) : null;
-    return `<tr><td>${y}</td><td>${s != null ? fmtMoney(s) : '—'}</td><td>${h != null ? fmtMoney(h) : '—'}</td><td>${sum != null ? fmtMoney(sum) : '—'}</td></tr>`;
-  };
-  void moneyRow;
-  const mainRows = mainYears.filter(hasYear);
-  const oldRows = oldYears.filter(hasYear);
-  // v3.23.0: месяцa — вложенными строками под годом (только там, где они есть в базе)
-  const monthTbody = y => {
-    const inner = mnyTbodyHtml(y, MNY_ROWS[c.id]);
-    if (!inner) return '';
-    return `<tbody id="mnyY${y}" class="hidden">` + inner + `</tbody>`;
-  };
-  const yearTbody = (rows, hidden) => rows.map(y => {
-    const has = (mm[y] || []).length > 0;
-    return `<tbody${hidden ? ` class="hidden" data-old="1"` : ''}>`
-      + `<tr${has ? ` class="mny-yr" data-y="${y}"` : ''}><td>${y}${has ? ' <span class="mm-caret">▾</span>' : ''}</td><td>${c['sales_' + y] != null ? fmtMoney(c['sales_' + y]) : '—'}</td><td>${c['hugemed_' + y] != null ? fmtMoney(c['hugemed_' + y]) : '—'}</td><td>${(() => { const s = c['sales_' + y], h = c['hugemed_' + y]; return (s != null || h != null) ? fmtMoney(Number(s || 0) + Number(h || 0)) : '—'; })()}</td></tr>`
-      + `</tbody>` + monthTbody(y);
-  }).join('');
-  const hasMon = Object.keys(mm).length > 0;
-  const granSwitch = `<div class="mny-gran">Показать: <button class="mny-g${MNY_G === 'm' ? ' on' : ''}" data-g="m" type="button">Месяцы</button><button class="mny-g${MNY_G === 'q' ? ' on' : ''}" data-g="q" type="button">Кварталы</button></div>`;
-  const salesBlock = canPriv ? `<details class="detail-block mny-block" data-clinic="${c.id}" open>
-      <summary>Продажи, ₽</summary>
-      ${hasMon ? granSwitch : ''}
-      ${(mainRows.length || oldRows.length) ? `<table class="money-tbl">
-        <thead><tr><th>Год</th><th>Boston</th><th>HugeMed</th><th>Сумма</th></tr></thead>
-        ${yearTbody(mainRows, false)}
-        ${oldRows.length ? yearTbody(oldRows, true) : ''}
-      </table>
-      ${oldRows.length ? `<button class="money-more" id="mnyMore" type="button">${oldYears[0]}–${oldYears[oldYears.length - 1]} <span class="mm-caret">▾</span></button>` : ''}` : `<div class="v" style="color:var(--muted)">данных нет</div>`}
-    </details>` : '';
+  // v3.25.0: ПРОДАЖИ в карточке — ОДНОЙ СТРОКОЙ (последнее сравнение). Все данные — на отдельной странице
+  const salesBlock = canPriv ? salesLineHtml(c) : '';
   // v3.16.0: ЛЮДИ — компактный список (имя, должность, телефон), без счётчика и слова «нет»
   const sortedContacts = [...contacts].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
   const addPersonBtn = `<button class="pane-btn" id="paneAddPerson" data-id="${c.id}">＋ Добавить человека</button>`;
