@@ -531,7 +531,13 @@ body.logged-out .toast { display: none !important; }
   .topbar { display: none; }
   .tabbar { display: none; }
   .view, .filters, .searchbar, .work { margin-left: 260px; }
-  .bottom-bar { left: 260px; }
+  /* v3.26.2: поиск — залипающая строка сверху, ширина = колонка списка (45%);
+     нижняя плашка на десктопе не нужна (кнопка «＋» переехала в строку поиска) */
+  .searchbar { position: sticky; top: 0; z-index: 16; background: var(--bg); margin: 0; padding: 10px 16px 4px; }
+  .search-col { width: calc((100vw - 260px) * .45 - 8px); flex: 0 0 auto; }
+  .search-box { width: calc((100vw - 260px) * .45 - 8px - 32px); }
+  .bottom-bar { display: none; }
+  body { padding-bottom: 24px; }
 }
 
 /* телефон — ссылка для звонка */
@@ -555,6 +561,43 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .searchbar { margin: 0 16px 10px; }
 .searchbar input { width: 100%; box-sizing: border-box; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); font: inherit; }
 .searchbar input:focus { outline: 2px solid var(--brand); border-color: transparent; }
+
+/* v3.26.2: поиск на десктопе — нормальная строка поиска (иконка, очистка, подсказка ⌘K, счётчик) */
+.searchbar-inner { display: flex; align-items: flex-start; gap: 8px; }
+.search-col { min-width: 0; }
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 0 12px; transition: border-color .14s ease, box-shadow .14s ease;
+}
+.search-box:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(15,138,138,.13); }
+.search-ico { width: 18px; height: 18px; flex: none; color: var(--muted); }
+.search-slot { flex: 1 1 auto; min-width: 0; display: flex; }
+.searchbox input, .search-box input {
+  flex: 1 1 auto; min-width: 0; width: 100%;
+  border: 0 !important; background: transparent !important;
+  padding: 11px 0 !important; margin: 0; border-radius: 0;
+  font: inherit; font-size: 15px; color: var(--ink);
+}
+.search-box input:focus { outline: none !important; }
+.search-box input::placeholder { color: var(--muted); }
+input[type=search]::-webkit-search-cancel-button { display: none; }
+.search-clear {
+  flex: none; width: 20px; height: 20px; border-radius: 50%; border: 0;
+  background: var(--bg); color: var(--muted); font-size: 14px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.search-clear:hover { background: var(--line); color: var(--ink); }
+.search-kbd { flex: none; font-size: 11px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+.search-count { font-size: 12px; color: var(--muted); padding: 6px 2px 0; min-height: 16px; }
+.search-count.bad { color: var(--danger); }
+.add-btn {
+  flex: none; width: 42px; height: 42px; border-radius: 12px;
+  background: var(--brand); color: #fff; border: none; font-size: 22px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.add-btn:hover { background: var(--brand-dark); }
 .panel-hint { color: var(--muted); font-size: 14px; padding: 28px 8px; text-align: center; }
 .card-top { color: var(--muted); font-size: 12.5px; margin: 0; }
 .card-mgr { font-size: 13px; color: var(--muted); margin: 0 0 6px; }
@@ -967,7 +1010,20 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
     </details>
   </div>
 
-  <div class="searchbar" id="searchTop"></div>
+  <div class="searchbar" id="searchTop">
+    <div class="searchbar-inner">
+      <div class="search-col">
+        <div class="search-box" id="searchBox">
+          <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <span class="search-slot" id="searchSlot"></span>
+          <button type="button" class="search-clear hidden" id="searchClear" aria-label="Очистить поиск">✕</button>
+          <kbd class="search-kbd">⌘K</kbd>
+        </div>
+        <div class="search-count" id="searchCount"></div>
+      </div>
+      <button type="button" class="add-btn hidden" id="addBtn" aria-label="Добавить">＋</button>
+    </div>
+  </div>
 
   <div class="work">
     <main id="view" class="view"></main>
@@ -976,7 +1032,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 
   <div class="bottom-bar">
     <div class="search-row">
-      <input id="globalSearch" type="search" placeholder="Поиск…" />
+      <input id="globalSearch" type="search" placeholder="Поиск: клиника, город, человек…" />
       <button id="fab" class="fab" aria-label="Добавить">＋</button>
     </div>
     <nav class="tabbar" id="tabbar-main">
@@ -1555,7 +1611,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.26.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.26.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2296,8 +2352,48 @@ document.getElementById('modal').addEventListener('click', e => { if (e.target.i
 
 document.getElementById('globalSearch').addEventListener('input', e => {
   state.search = e.target.value.trim().toLowerCase();
+  searchUITick();
   render();
 });
+
+// v3.26.2: поиск на десктопе — иконка, очистка, ⌘K, счётчик найденного, кнопка «＋» в строке поиска
+function searchUITick() {
+  const inp = document.getElementById('globalSearch');
+  const clr = document.getElementById('searchClear');
+  if (inp && clr) clr.classList.toggle('hidden', !(inp.value || ''));
+}
+(function initSearchUI() {
+  const inp = document.getElementById('globalSearch');
+  const clr = document.getElementById('searchClear');
+  const cnt = document.getElementById('searchCount');
+  const viewEl = document.getElementById('view');
+  const fab = document.getElementById('fab');
+  const addBtn = document.getElementById('addBtn');
+  if (clr && inp) clr.addEventListener('click', () => { inp.value = ''; state.search = ''; searchUITick(); render(); inp.focus(); });
+  if (addBtn && fab) {
+    addBtn.addEventListener('click', () => fab.click());
+    const syncAdd = () => addBtn.classList.toggle('hidden', fab.classList.contains('hidden'));
+    new MutationObserver(syncAdd).observe(fab, { attributes: true, attributeFilter: ['class'] });
+    syncAdd();
+  }
+  if (cnt && viewEl) {
+    let t = null;
+    const update = () => {
+      const n = viewEl.querySelectorAll('.list-row').length || viewEl.querySelectorAll('tbody tr').length;
+      const q = state.search || '';
+      cnt.textContent = q ? (n ? 'Найдено: ' + n : 'Ничего не найдено') : (n ? n + ' записей' : '');
+      cnt.classList.toggle('bad', !!q && !n);
+    };
+    new MutationObserver(() => { clearTimeout(t); t = setTimeout(update, 120); }).observe(viewEl, { childList: true, subtree: true });
+  }
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault(); if (inp && inp.offsetParent) { inp.focus(); inp.select(); }
+    } else if (e.key === 'Escape' && document.activeElement === inp && (inp.value || '')) {
+      inp.value = ''; state.search = ''; searchUITick(); render();
+    }
+  });
+})();
 
 // ---------- render ----------
 async function render() {
@@ -2482,6 +2578,13 @@ async function renderActionList(type, title) {
   let rows = [];
   try {
     rows = (await listClinics()).filter(c => !c.markedDel && c.nextContact && (c.kind || 'hospital') === 'hospital' && c.actionType === type);
+    // v3.26.2: поиск работает и в «Звонках»/«Визитах»
+    const sAL = state.search;
+    if (sAL) rows = rows.filter(c =>
+      (c.name || '').toLowerCase().includes(sAL) ||
+      (c.city || '').toLowerCase().includes(sAL) ||
+      (c.region || '').toLowerCase().includes(sAL) ||
+      (c.manager || '').toLowerCase().includes(sAL));
   } catch (e) {
     view.innerHTML = '<div class="empty-state">\u26a0\ufe0f Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
     return;
@@ -2912,6 +3015,13 @@ async function renderMyDay() {
   const MGR_PICK = ['Абрамов', 'Осечкина', 'Скокова'];   // v3.15.2: в «Моём дне» — только эти менеджеры
   const mgrs = MGR_PICK.filter(m => clinics.some(c => (c.manager || '') === m));
   if (state.mydayMgr) clinics = clinics.filter(c => (c.manager || '') === state.mydayMgr);
+  // v3.26.2: поиск работает и в «Моём дне» (раньше строка поиска здесь молчала)
+  const sMD = state.search;
+  if (sMD) clinics = clinics.filter(c =>
+    (c.name || '').toLowerCase().includes(sMD) ||
+    (c.city || '').toLowerCase().includes(sMD) ||
+    (c.region || '').toLowerCase().includes(sMD) ||
+    (c.manager || '').toLowerCase().includes(sMD));
   const days = c => Math.round((new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00') - base) / 86400000);
   const withDate = clinics.filter(c => c.nextContact);
   const over = withDate.filter(c => days(c) < 0).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
@@ -2971,8 +3081,8 @@ async function renderMyDay() {
   const chipInHead = !!(bOver || bToday || bLater);
   view.innerHTML = (mgrSel && !chipInHead ? `<div class="md-tools">${mgrSel}</div>` : '')
     + bOver + bToday + bLater
-    + (!withDate.length ? `<div class="empty">Запланированных контактов нет. Клиник в базе: ${clinics.length}.</div>` : '')
-    + attBlock;
+    + (!withDate.length ? `<div class="empty">${sMD ? 'Ничего не найдено' : `Запланированных контактов нет. Клиник в базе: ${clinics.length}.`}</div>` : '')
+    + (sMD ? '' : attBlock);
   const mb = document.getElementById('mdMgrBtn');
   const mp = document.getElementById('mdMgrPop');
   const mbox = document.getElementById('mdMgrBox');
@@ -4944,16 +5054,19 @@ window.addEventListener('load', () => setTimeout(offInfo, 800));
 function placeSearch() {
   const inp = document.getElementById('globalSearch');
   const top = document.getElementById('searchTop');
+  const slot = document.getElementById('searchSlot');
   const row = document.querySelector('.bottom-bar .search-row');
   if (!inp || !top || !row) return;
   const desktop = window.innerWidth >= 900;
   if (desktop) {
-    if (inp.parentElement !== top) top.appendChild(inp);
+    const host = slot || top;
+    if (inp.parentElement !== host) host.appendChild(inp);
     top.classList.remove('hidden');
   } else {
     if (inp.parentElement !== row) row.insertBefore(inp, row.firstChild);
     top.classList.add('hidden');
   }
+  searchUITick();
 }
 window.addEventListener('resize', placeSearch);
 
