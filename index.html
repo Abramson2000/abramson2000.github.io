@@ -571,10 +571,6 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .money-tbl th:first-child, .money-tbl td:first-child { text-align: left; width: 26%; }
 .money-tbl thead th { font-size: 11.5px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
 .money-tbl .money-sum td { font-weight: 700; border-top: 1px solid var(--line); }
-.money-more { margin-top: 6px; font: inherit; font-size: 11.5px; line-height: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; }
-.money-more .mm-caret { font-size: 8px; }
-.money-more.open { color: var(--brand); border-color: var(--brand); }
-.money-more.open .mm-caret { display: inline-block; transform: rotate(180deg); }
 .mny-yr { cursor: pointer; }
 .mny-yr:hover td { color: var(--brand); }
 .mny-yr .mm-caret { font-size: 8px; }
@@ -1559,7 +1555,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.25.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.25.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4116,26 +4112,22 @@ function mnyTableHtml(c) {
   const rows = MNY_ROWS[c.id] || [];
   const src = MNY_SRC;
   const showMon = src !== 'hugemed' && mnyHasMonths(c);
-  const CUR_Y = Number(MONEY_YEARS[MONEY_YEARS.length - 1]);
-  const mainYears = [CUR_Y, CUR_Y - 1, CUR_Y - 2].map(String).filter(y => MONEY_YEARS.includes(y));
-  const oldYears = MONEY_YEARS.filter(y => !mainYears.includes(y));
   const sub = y => showMon && (rows.filter(r => String(r.year) === String(y)).length)
     ? `<tbody id="mnyY${y}" class="hidden">${mnyTbodyHtml(y, rows)}</tbody>` : '';
-  const block = (y, hidden) => {
+  const block = (y) => {
     const has = showMon && rows.some(r => String(r.year) === String(y));
     const v = mnySum(c, y, src);
     const cells = src === 'both'
       ? `<td>${c['sales_' + y] != null ? fmtMoney(c['sales_' + y]) : '—'}</td><td>${c['hugemed_' + y] != null ? fmtMoney(c['hugemed_' + y]) : '—'}</td><td>${v != null ? fmtMoney(v) : '—'}</td>`
       : `<td>${v != null ? fmtMoney(v) : '—'}</td>`;
-    return `<tbody${hidden ? ' class="hidden" data-old="1"' : ''}><tr${has ? ` class="mny-yr" data-y="${y}"` : ''}><td>${y}${has ? ' <span class="mm-caret">▾</span>' : ''}</td>${cells}</tr></tbody>` + sub(y);
+    return `<tbody><tr${has ? ` class="mny-yr" data-y="${y}"` : ''}><td>${y}${has ? ' <span class="mm-caret">▾</span>' : ''}</td>${cells}</tr></tbody>` + sub(y);
   };
   const head = src === 'both' ? '<th>Год</th><th>Boston</th><th>HugeMed</th><th>Сумма</th>'
     : `<th>Год</th><th>${SRC_RU[src]}</th>`;
-  const mains = mainYears.filter(y => mnySum(c, y, src) != null);
-  const olds = oldYears.filter(y => mnySum(c, y, src) != null);
-  if (!mains.length && !olds.length) return '<div class="sales-sub">данных нет</div>';
-  return `<table class="money-tbl"><thead><tr>${head}</tr></thead>${mains.map(y => block(y, false)).join('')}${olds.map(y => block(y, true)).join('')}</table>`
-    + (olds.length ? `<button class="money-more" id="mnyMore" type="button">${oldYears[0]}–${oldYears[oldYears.length - 1]} <span class="mm-caret">▾</span></button>` : '');
+  // 3.25.1: старые годы больше не прячем под кнопку «2021–2023» — показываем все годы с данными
+  const years = MONEY_YEARS.filter(y => mnySum(c, y, src) != null).sort((a, b) => Number(b) - Number(a));
+  if (!years.length) return '<div class="sales-sub">данных нет</div>';
+  return `<table class="money-tbl"><thead><tr>${head}</tr></thead>${years.map(block).join('')}</table>`;
 }
 function salesPageHtml(c) {
   return `<button class="detail-back" id="salesBack" type="button">← Назад</button>
@@ -4176,8 +4168,6 @@ function rerenderSalesPage() {
   const openYs = [...pg.querySelectorAll('.mny-yr')]
     .filter(r => { const tb = pg.querySelector(`tbody[id="mnyY${r.dataset.y}"]`); return tb && !tb.classList.contains('hidden'); })
     .map(r => r.dataset.y);
-  const firstOld = pg.querySelector('tbody[data-old="1"]');
-  const oldOpen = firstOld ? !firstOld.classList.contains('hidden') : false;
   const sc = pg.scrollTop;
   const cid = Number(pg.querySelector('.mny-block').dataset.clinic);
   getClinic(cid).then(c => {
@@ -4189,10 +4179,6 @@ function rerenderSalesPage() {
       const car = pg.querySelector(`.mny-yr[data-y="${y}"] .mm-caret`);
       if (car) car.style.transform = 'rotate(180deg)';
     });
-    if (oldOpen) {
-      pg.querySelectorAll('tbody[data-old="1"]').forEach(t => t.classList.remove('hidden'));
-      const b = document.getElementById('mnyMore'); if (b) b.classList.add('open');
-    }
     pg.scrollTop = sc;
   });
 }
@@ -4238,15 +4224,6 @@ function moneyClick(ev) {
     MNY_SRC = v;
     try { localStorage.setItem('mnySrc', v); } catch (_) {}
     rerenderSalesPage();
-    return true;
-  }
-  const more = ev.target.closest('#mnyMore');
-  if (more) {
-    ev.preventDefault(); ev.stopPropagation();
-    const tb = blk.querySelectorAll('tbody[data-old="1"]');
-    const show = tb.length ? tb[0].classList.contains('hidden') : false;
-    tb.forEach(t => t.classList.toggle('hidden', !show));
-    more.classList.toggle('open', show);
     return true;
   }
   const my = ev.target.closest('.mny-yr');
