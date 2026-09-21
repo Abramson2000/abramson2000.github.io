@@ -1292,7 +1292,7 @@ async function fetchAllRows(table, orderCol, tieCol) {
 // Деньги, следующий контакт и рабочая заметка лежат в отдельной таблице
 // clinic_private. Сервер отдаёт их только руководителю и ответственному
 // менеджеру — поэтому она либо пустая, либо без нужных строк.
-const MONEY_COLS = ['sales_2021', 'sales_2022', 'sales_2023', 'sales_2024', 'sales_2025', 'sales_2026', 'hugemed_2025', 'hugemed_2026'];
+const MONEY_COLS = ['sales_2016', 'sales_2017', 'sales_2018', 'sales_2019', 'sales_2020', 'sales_2021', 'sales_2022', 'sales_2023', 'sales_2024', 'sales_2025', 'sales_2026', 'hugemed_2025', 'hugemed_2026'];
 
 async function mergeClinicPrivate(list) {
   const data = await rcLoad('cp', async () => {
@@ -1305,7 +1305,7 @@ async function mergeClinicPrivate(list) {
     // если строки нет — значит сервер её не отдал: значит прав нет
     MONEY_COLS.forEach(k => { c[k] = p ? p[k] : null; });
     // вкладка «Деньги» читает те же суммы в «camelCase» (c.sales2026, c.hugemed2026)
-    [2021, 2022, 2023, 2024, 2025, 2026].forEach(y => { c['sales' + y] = c['sales_' + y]; });
+    [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026].forEach(y => { c['sales' + y] = c['sales_' + y]; });
     [2025, 2026].forEach(y => { c['hugemed' + y] = c['hugemed_' + y]; });
     c.nextContact = p ? p.next_contact : null;
     c.actionType = p ? (p.action_type || null) : null;   // v3.14.0: call | visit | other | null(Контакт)
@@ -1554,8 +1554,8 @@ function applyAccent() {
 }
 
 // ---------- деньги ----------
-const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.25.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
+const APP_VER = '3.26.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2616,7 +2616,7 @@ function phoneLines(phone) {
 function moneyBlockHtml(mc) {
   if (isRefEdit()) return '';
   const rows = [];
-  ['2021', '2022', '2023', '2024', '2025', '2026'].forEach(y => {
+  ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'].forEach(y => {
     const v = mc['sales_' + y];
     if (v) rows.push(`<div style="padding:2px 0"><b>${y}</b>: ${fmtMoney(v)} ₽</div>`);
   });
