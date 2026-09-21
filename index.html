@@ -184,6 +184,8 @@ body {
 .cns-head { padding: 9px 16px 4px; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 .cns-head:first-child { padding-top: 2px; margin-top: 0; }
 .cns-head .md-mgr { margin-left: auto; }
+.cns-head .md-mgr-pop { left: auto; right: 0; }
+.priv-row.compact #cpSave { margin-left: auto; }
 .cns-head b { color: var(--ink); }
 .cns-add { margin-left: auto; flex: none; background: var(--brand); color: #fff; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 .cns-add:hover { background: var(--brand-dark); }
@@ -1521,7 +1523,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.20.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.21.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2890,16 +2892,20 @@ async function renderMyDay() {
     return v.length ? v.reduce((a, b) => a + Number(b), 0) : null;
   };
   const att = clinics.map(c => ({ c, a: sumY(c, '2025'), b: sumY(c, '2026') }))
-    .filter(x => x.a != null && x.b != null && x.a > 0 && x.b < x.a)
-    .sort((p, q) => q.a - p.a); // v3.20.2: по убыванию общей суммы прошлого года (2025)
+    .filter(x => x.a != null && x.b != null && x.a > 0 && x.b < x.a);
+  // v3.20.3: порядок блока — «Сумма» (по убыванию суммы прошлого года, по умолчанию) или «Процент» (по убыванию падения)
+  const attSort = localStorage.getItem('attSort') === 'pct' ? 'pct' : 'sum';
+  const attRows = att.slice().sort(attSort === 'pct' ? ((p, q) => (p.b / p.a) - (q.b / q.a)) : ((p, q) => q.a - p.a));
   // v3.17.3: блок «Требуют внимания» показываем всегда; если снижений нет — пишем, сколько клиник
   // вообще имеет заполненный 2025 / 2026 (иначе блок «исчезал» и выглядел как нереализованный)
   const attD25 = clinics.filter(c => sumY(c, '2025') != null).length;
   const attD26 = clinics.filter(c => sumY(c, '2026') != null).length;
   const pct = (cur, prev) => Math.round((cur - prev) / prev * 100);
-  const attBlock = `<div class="cns-head"><span>Требуют внимания · 2026 к 2025${att.length ? ' <b>' + att.length + '</b>' : ''}</span></div>`
+  const attBlock = `<div class="cns-head"><span>Требуют внимания${att.length ? ' <b>' + att.length + '</b>' : ''}</span>`
+    + `<div class="md-mgr" id="attSrtBox"><button class="md-mgr-btn" id="attSrtBtn" title="Порядок">${attSort === 'pct' ? 'Процент' : 'Сумма'}<span class="md-caret">▾</span></button>
+      <div class="md-mgr-pop hidden" id="attSrtPop"><button class="md-mgr-opt${attSort === 'sum' ? ' active' : ''}" data-s="sum">Сумма</button><button class="md-mgr-opt${attSort === 'pct' ? ' active' : ''}" data-s="pct">Процент</button></div></div></div>`
     + (att.length
-      ? `<div class="list">${att.slice(0, 50).map(x => `<div class="card list-row" data-id="${x.c.id}" data-kind="clinic">
+      ? `<div class="list">${attRows.slice(0, 50).map(x => `<div class="card list-row" data-id="${x.c.id}" data-kind="clinic">
         <div class="list-row-top"><span class="list-row-name">${esc(x.c.name)}</span><span class="nd nd-over">${pct(x.b, x.a)}%</span></div>
         <div class="list-row-sub">${esc([x.c.city, x.c.manager].filter(Boolean).join(' · ') || '—')}</div>
       </div>`).join('')}</div>
@@ -2936,6 +2942,24 @@ async function renderMyDay() {
       await render();
     }));
     document.addEventListener('click', () => { mp.classList.add('hidden'); if (mbox) mbox.classList.remove('pop-open'); }, { once: true });
+  }
+  // v3.20.3: чип выбора порядка в блоке «Требуют внимания»
+  const ab = document.getElementById('attSrtBtn');
+  const ap = document.getElementById('attSrtPop');
+  const abox = document.getElementById('attSrtBox');
+  if (ab && ap) {
+    ab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = ap.classList.toggle('hidden');
+      if (abox) abox.classList.toggle('pop-open', !isHidden);
+    });
+    ap.querySelectorAll('.md-mgr-opt').forEach(b => b.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      localStorage.setItem('attSort', b.dataset.s === 'pct' ? 'pct' : 'sum');
+      state.selId = null;
+      await render();
+    }));
+    document.addEventListener('click', () => { ap.classList.add('hidden'); if (abox) abox.classList.remove('pop-open'); }, { once: true });
   }
   restorePanelSelection();
 }
