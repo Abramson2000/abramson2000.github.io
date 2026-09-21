@@ -576,6 +576,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 /* v3.19.0: кнопки в одну линию с полями — одинаковая высота 30px */
 .priv-row.compact .btn-primary-sm, .site-block .btn-primary-sm { height: 30px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; flex: 0 0 auto; }
 .note-edit-row #neDel { margin-left: auto; }
+/* v3.20.0: свайп «назад» с анимацией — карточка/форма едет за пальцем, под ней виден список */
+body.swipe-drag #hoverCard, body.swipe-drag #modal .modal-card, body.card-sliding #hoverCard, body.card-sliding #modal .modal-card { will-change: transform; }
+body.card-sliding #hoverCard, body.card-sliding #modal .modal-card { transition: transform .19s ease-out; }
+body.detail-mode.card-open.swipe-drag #view { display: block; }
 /* v3.16.2: блок «Связаться» — узкий, по содержимому (был растянут на всю ширину) */
 .priv-block { padding: 7px 11px; margin-bottom: 8px; }
 /* v3.17.0: сайт — отдельной плашкой, с полем правки */
@@ -1517,7 +1521,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.19.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.20.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1831,11 +1835,19 @@ document.getElementById('drawerUser') && (document.getElementById('drawerUser').
 
 // v1.146: свайп от левого края — открыть меню; свайп влево по меню — закрыть
 // v3.16.2: сначала «назад» (форма → карточка → список), меню открываем только если назад идти некуда
-let touchX = 0, touchY = 0, swipeTrack = false;
+// v3.20.0: «назад» с анимацией — карточка/форма едет за пальцем, при отпускании доводится или возвращается
+let touchX = 0, touchY = 0, swipeTrack = false, swipeStage = null, swipeDX = 0, swipeLocked = false;
+const swipeCard = () => document.getElementById('hoverCard');
+const swipeModal = () => document.querySelector('#modal .modal-card');
 document.addEventListener('touchstart', e => {
   const t = e.touches[0];
   touchX = t.clientX; touchY = t.clientY;
-  swipeTrack = true;
+  swipeTrack = true; swipeStage = null; swipeDX = 0; swipeLocked = false;
+  if (touchX > 44) return;
+  const modal = document.getElementById('modal');
+  if (modal && !modal.classList.contains('hidden')) swipeStage = 'modal';
+  else if (document.body.classList.contains('card-open')) swipeStage = 'card';
+  else swipeStage = 'menu';
 }, { passive: true });
 document.addEventListener('touchmove', e => {
   if (!swipeTrack || !drawerMenu) return;
@@ -1846,19 +1858,46 @@ document.addEventListener('touchmove', e => {
   if (drawerMenu.classList.contains('open') && touchX < 300 && dx < -60 && Math.abs(dx) > Math.abs(dy) * 1.4) {
     closeDrawer(); swipeTrack = false; return;
   }
-  if (dx < 60 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
-  // 1) открыта форма — закрываем форму
-  const modal = document.getElementById('modal');
-  if (modal && !modal.classList.contains('hidden')) { closeModal(); swipeTrack = false; return; }
-  // 2) открыта карточка — возвращаемся к списку
-  if (document.body.classList.contains('card-open')) {
-    closeCardToList();
-    swipeTrack = false; return;
+  // анимация «назад» для формы и карточки
+  if (swipeStage === 'card' || swipeStage === 'modal') {
+    if (!swipeLocked) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx)) { swipeTrack = false; return; }   // это вертикальный скролл
+      swipeLocked = true;
+      document.body.classList.add('swipe-drag');
+    }
+    swipeDX = Math.max(0, dx);
+    const el = swipeStage === 'modal' ? (swipeModal() || swipeCard()) : swipeCard();
+    if (el) el.style.transform = 'translateX(' + swipeDX + 'px)';
+    if (swipeStage === 'modal') {
+      const m = document.getElementById('modal');
+      if (m) m.style.opacity = String(Math.max(0.3, 1 - swipeDX / 420));
+    }
+    return;
   }
-  // 3) назад идти некуда — открываем меню (как раньше, только от самого края)
+  if (dx < 60 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+  // назад идти некуда — открываем меню (как раньше, только от самого края)
   if (!drawerMenu.classList.contains('open') && touchX < 24) { openDrawer(); swipeTrack = false; }
 }, { passive: true });
-document.addEventListener('touchend', () => { swipeTrack = false; }, { passive: true });
+document.addEventListener('touchend', () => {
+  if (!swipeTrack) return;
+  swipeTrack = false;
+  if (!swipeLocked || (swipeStage !== 'card' && swipeStage !== 'modal')) { swipeLocked = false; swipeStage = null; swipeDX = 0; return; }
+  const stage = swipeStage, dx = swipeDX;
+  swipeLocked = false; swipeStage = null; swipeDX = 0;
+  const el = stage === 'modal' ? (swipeModal() || swipeCard()) : swipeCard();
+  const modal = document.getElementById('modal');
+  const go = dx > Math.min(120, window.innerWidth * 0.3);
+  document.body.classList.add('card-sliding');
+  if (el) el.style.transform = go ? 'translateX(100%)' : 'translateX(0px)';
+  if (stage === 'modal' && modal) modal.style.opacity = go ? '0' : '1';
+  setTimeout(() => {
+    if (el) el.style.transform = '';
+    if (modal) modal.style.opacity = '';
+    document.body.classList.remove('card-sliding', 'swipe-drag');
+    if (go) { if (stage === 'modal') closeModal(); else closeCardToList(); }
+  }, go ? 200 : 170);
+}, { passive: true });
 
 function setActiveTab(view) {
   document.querySelectorAll('.tab').forEach(b => {
