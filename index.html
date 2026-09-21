@@ -575,6 +575,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .money-more .mm-caret { font-size: 8px; }
 .money-more.open { color: var(--brand); border-color: var(--brand); }
 .money-more.open .mm-caret { display: inline-block; transform: rotate(180deg); }
+.mny-yr { cursor: pointer; }
+.mny-yr:hover td { color: var(--brand); }
+.mny-yr .mm-caret { font-size: 8px; }
+.money-tbl tbody tr.mny-m td { color: var(--muted); font-size: 11.5px; padding-top: 1px; padding-bottom: 1px; }
 .priv-row.compact { display: flex; align-items: center; gap: 8px; margin: 0; }
 .priv-row.compact .lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; min-width: 0; }
 .priv-row.compact input[type=date] { flex: 0 0 auto; width: 148px; height: 30px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); font: inherit; font-size: 13px; }
@@ -1527,7 +1531,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.22.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.23.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3987,7 +3991,20 @@ function readComment(field) {
   return String(t || '').replace(/\u00A0/g, ' ').replace(/\r\n?/g, '\n').trim();
 }
 
-function clinicDetailBody(c, linked, contacts, canEditCard, related) {
+// v3.23.0: помесячные продажи клиники из public.sales_monthly (источник — Excel «2025»)
+const MONTH_RU = ['', 'январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+async function listMonthly(clinicId) {
+  return rcLoad('sm:' + clinicId, async () => {
+    try {
+      const { data } = await sb.from('sales_monthly').select('year,month,product,buy,sale').eq('clinic_id', clinicId).limit(300);
+      return data || [];
+    } catch (_) { return []; }
+  });
+}
+
+function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
+  const mm = {};
+  (monthly || []).forEach(r => { (mm[r.year] = mm[r.year] || []).push(r); });
   const canEditNow = canEditCard === undefined
     ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit())
     : !!canEditCard;
@@ -4002,14 +4019,27 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related) {
     const sum = (s != null || h != null) ? (Number(s || 0) + Number(h || 0)) : null;
     return `<tr><td>${y}</td><td>${s != null ? fmtMoney(s) : '—'}</td><td>${h != null ? fmtMoney(h) : '—'}</td><td>${sum != null ? fmtMoney(sum) : '—'}</td></tr>`;
   };
+  void moneyRow;
   const mainRows = mainYears.filter(hasYear);
   const oldRows = oldYears.filter(hasYear);
+  // v3.23.0: месяцa — вложенными строками под годом (только там, где они есть в базе)
+  const monthTbody = y => {
+    const list = (mm[y] || []).slice().sort((a, b) => a.month - b.month);
+    if (!list.length) return '';
+    return `<tbody id="mnyY${y}" class="hidden">` + list.map(r => `<tr class="mny-m"><td>${MONTH_RU[r.month] || r.month}</td><td>${r.sale != null ? fmtMoney(r.sale) : '—'}</td><td>—</td><td>${r.sale != null ? fmtMoney(r.sale) : '—'}</td></tr>`).join('') + `</tbody>`;
+  };
+  const yearTbody = (rows, hidden) => rows.map(y => {
+    const has = (mm[y] || []).length > 0;
+    return `<tbody${hidden ? ` class="hidden" data-old="1"` : ''}>`
+      + `<tr${has ? ` class="mny-yr" data-y="${y}"` : ''}><td>${y}${has ? ' <span class="mm-caret">▾</span>' : ''}</td><td>${c['sales_' + y] != null ? fmtMoney(c['sales_' + y]) : '—'}</td><td>${c['hugemed_' + y] != null ? fmtMoney(c['hugemed_' + y]) : '—'}</td><td>${(() => { const s = c['sales_' + y], h = c['hugemed_' + y]; return (s != null || h != null) ? fmtMoney(Number(s || 0) + Number(h || 0)) : '—'; })()}</td></tr>`
+      + `</tbody>` + monthTbody(y);
+  }).join('');
   const salesBlock = canPriv ? `<details class="detail-block" open>
       <summary>Продажи, ₽</summary>
       ${(mainRows.length || oldRows.length) ? `<table class="money-tbl">
         <thead><tr><th>Год</th><th>Boston</th><th>HugeMed</th><th>Сумма</th></tr></thead>
-        <tbody>${mainRows.map(moneyRow).join('')}</tbody>
-        ${oldRows.length ? `<tbody id="mnyOld" class="hidden">${oldRows.map(moneyRow).join('')}</tbody>` : ''}
+        ${yearTbody(mainRows, false)}
+        ${oldRows.length ? yearTbody(oldRows, true) : ''}
       </table>
       ${oldRows.length ? `<button class="money-more" id="mnyMore" type="button">${oldYears[0]}–${oldYears[oldYears.length - 1]} <span class="mm-caret">▾</span></button>` : ''}` : `<div class="v" style="color:var(--muted)">данных нет</div>`}
     </details>` : '';
@@ -4339,10 +4369,11 @@ async function showHoverCard(row, immediate) {
     const c = await getClinic(id);
     if (!c || seq !== hoverSeq) return;
     // v3.15.3: связанная карточка, контакты и обратные ссылки — одним заходом, а не по очереди
-    const [linked, contacts, relRes] = await Promise.all([
+    const [linked, contacts, relRes, monthly] = await Promise.all([
       c.linkedClinicId ? getClinic(c.linkedClinicId) : Promise.resolve(null),
       peopleByClinic(id),
-      sb.from('clinics').select('id,name,kind,linked_clinic_id').eq('linked_clinic_id', id).then(r => r).catch(() => ({ data: [] }))
+      sb.from('clinics').select('id,name,kind,linked_clinic_id').eq('linked_clinic_id', id).then(r => r).catch(() => ({ data: [] })),
+      listMonthly(id)
     ]);
     let related = (((relRes || {}).data) || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
     if (seq !== hoverSeq) return;
@@ -4354,7 +4385,7 @@ async function showHoverCard(row, immediate) {
     const head = `<h3>${esc(c.name)}</h3>${subLine ? `<div class="card-top">${esc(subLine)}</div>` : ''}`;
     const actions = `<div class="pane-actions">${canEditC ? `<button class="pane-pencil" id="paneClinicEdit" data-id="${c.id}" title="Редактировать" aria-label="Редактировать">✎</button>` : ''}</div>`;
     // v3.17.0: заголовок и карандаш — в одну компактную строку
-    inner = `<div class="card-head"><div class="card-head-txt">${head}</div>${actions}</div>` + clinicDetailBody(c, linked, contacts, undefined, related);
+    inner = `<div class="card-head"><div class="card-head-txt">${head}</div>${actions}</div>` + clinicDetailBody(c, linked, contacts, undefined, related, monthly);
   }
   panel.innerHTML = inner;
   hydrateCard(document.querySelector('#notesList[data-cid]') ? Number(document.querySelector('#notesList[data-cid]').dataset.cid) : 0);
@@ -4409,12 +4440,26 @@ document.addEventListener('click', async (ev) => {
   }
   const ed = ev.target.closest('#paneClinicEdit');
   if (ed) { ev.preventDefault(); ev.stopPropagation(); openClinicForm(Number(ed.dataset.id)); return; }
-  // v3.22.0: стрелка «более ранние годы» в таблице продаж
+  // v3.22.0: стрелка «более ранние годы» в таблице продаж + v3.23.0: разворот месяцев под годом
   const mm = ev.target.closest('#mnyMore');
   if (mm) {
     ev.preventDefault(); ev.stopPropagation();
-    const tb = document.getElementById('mnyOld');
-    if (tb) { tb.classList.toggle('hidden'); mm.classList.toggle('open', !tb.classList.contains('hidden')); }
+    const tb = document.querySelectorAll('#hoverCard tbody[data-old="1"]');
+    const show = tb.length ? tb[0].classList.contains('hidden') : false;
+    tb.forEach(t => t.classList.toggle('hidden', !show));
+    mm.classList.toggle('open', show);
+    return;
+  }
+  const my = ev.target.closest('.mny-yr');
+  if (my) {
+    ev.preventDefault(); ev.stopPropagation();
+    const y = my.dataset.y;
+    const tb = document.getElementById('mnyY' + y);
+    if (tb) {
+      const hid = tb.classList.toggle('hidden');
+      const car = my.querySelector('.mm-caret');
+      if (car) car.style.transform = hid ? '' : 'rotate(180deg)';
+    }
     return;
   }
   const ap = ev.target.closest('#paneAddPerson');
@@ -4459,9 +4504,10 @@ async function showClinic(id) {
   if (!c) return;
   const linked = c.linkedClinicId ? await getClinic(c.linkedClinicId) : null;
   const contacts = await peopleByClinic(id);
+  const monthly = await listMonthly(id);
   const canEdit = canEditMain() || (isRefEdit() && isRefKind(c.kind));
 
-  openModal(c.name, clinicDetailBody(c, linked, contacts, canEdit) + `
+  openModal(c.name, clinicDetailBody(c, linked, contacts, canEdit, null, monthly) + `
     <div class="btn-row">
       ${canEdit ? '<button class="btn" id="d_edit">Редактировать</button>' : ''}
       <button class="btn ghost" id="d_close">Закрыть</button>
