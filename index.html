@@ -1521,7 +1521,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.20.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.20.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1836,67 +1836,100 @@ document.getElementById('drawerUser') && (document.getElementById('drawerUser').
 // v1.146: свайп от левого края — открыть меню; свайп влево по меню — закрыть
 // v3.16.2: сначала «назад» (форма → карточка → список), меню открываем только если назад идти некуда
 // v3.20.0: «назад» с анимацией — карточка/форма едет за пальцем, при отпускании доводится или возвращается
+// v3.20.1: плавность как в Тингли — кривая cubic-bezier, учёт скорости жеста, анимация закрытия меню
 let touchX = 0, touchY = 0, swipeTrack = false, swipeStage = null, swipeDX = 0, swipeLocked = false;
+let swipePrevDX = 0, swipePrevT = 0, swipeVel = 0;
+const SWIPE_EASE = 'transform .26s cubic-bezier(.22,.61,.36,1), opacity .26s cubic-bezier(.22,.61,.36,1)';
 const swipeCard = () => document.getElementById('hoverCard');
 const swipeModal = () => document.querySelector('#modal .modal-card');
+const swipeOverlay = () => document.getElementById('drawerOverlay');
+const swipeFast = (d) => Math.abs(swipeVel) > 0.55 && Math.abs(d) > 36;   // быстрый короткий жест — тоже засчитываем
 document.addEventListener('touchstart', e => {
   const t = e.touches[0];
   touchX = t.clientX; touchY = t.clientY;
   swipeTrack = true; swipeStage = null; swipeDX = 0; swipeLocked = false;
-  if (touchX > 44) return;
+  swipePrevDX = 0; swipePrevT = performance.now(); swipeVel = 0;
+  if (touchX > 44 && !(drawerMenu && drawerMenu.classList.contains('open') && touchX < 300)) return;
   const modal = document.getElementById('modal');
-  if (modal && !modal.classList.contains('hidden')) swipeStage = 'modal';
-  else if (document.body.classList.contains('card-open')) swipeStage = 'card';
-  else swipeStage = 'menu';
+  if (modal && !modal.classList.contains('hidden')) { if (touchX <= 44) swipeStage = 'modal'; return; }
+  if (document.body.classList.contains('card-open')) { if (touchX <= 44) swipeStage = 'card'; return; }
+  if (drawerMenu && drawerMenu.classList.contains('open')) { if (touchX < 300) swipeStage = 'drawer'; return; }
+  swipeStage = 'menu';
 }, { passive: true });
 document.addEventListener('touchmove', e => {
   if (!swipeTrack || !drawerMenu) return;
   const t = e.touches[0];
   const dx = t.clientX - touchX;
   const dy = t.clientY - touchY;
-  // закрытие меню: свайп влево из открытого меню
-  if (drawerMenu.classList.contains('open') && touchX < 300 && dx < -60 && Math.abs(dx) > Math.abs(dy) * 1.4) {
-    closeDrawer(); swipeTrack = false; return;
+  const now = performance.now();
+  if (now > swipePrevT) { swipeVel = (dx - swipePrevDX) / (now - swipePrevT); swipePrevDX = dx; swipePrevT = now; }
+  // 0) закрытие открытого меню свайпом влево (с анимацией)
+  if (swipeStage === 'drawer') {
+    if (!swipeLocked) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx)) { swipeTrack = false; return; }
+      swipeLocked = true;
+      drawerMenu.style.transition = 'none';
+    }
+    swipeDX = Math.min(0, dx);
+    drawerMenu.style.transform = 'translateX(' + swipeDX + 'px)';
+    const ov = swipeOverlay(); if (ov) ov.style.opacity = String(Math.max(0, 1 + swipeDX / 290));
+    return;
   }
-  // анимация «назад» для формы и карточки
+  // 1) анимация «назад» для формы и карточки
   if (swipeStage === 'card' || swipeStage === 'modal') {
     if (!swipeLocked) {
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
       if (Math.abs(dy) > Math.abs(dx)) { swipeTrack = false; return; }   // это вертикальный скролл
       swipeLocked = true;
       document.body.classList.add('swipe-drag');
+      const el0 = swipeStage === 'modal' ? (swipeModal() || swipeCard()) : swipeCard();
+      if (el0) el0.style.transition = 'none';
     }
     swipeDX = Math.max(0, dx);
     const el = swipeStage === 'modal' ? (swipeModal() || swipeCard()) : swipeCard();
     if (el) el.style.transform = 'translateX(' + swipeDX + 'px)';
     if (swipeStage === 'modal') {
       const m = document.getElementById('modal');
-      if (m) m.style.opacity = String(Math.max(0.3, 1 - swipeDX / 420));
+      if (m) m.style.opacity = String(Math.max(0.25, 1 - swipeDX / 420));
     }
     return;
   }
   if (dx < 60 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
-  // назад идти некуда — открываем меню (как раньше, только от самого края)
+  // 2) назад идти некуда — открываем меню (как раньше, только от самого края)
   if (!drawerMenu.classList.contains('open') && touchX < 24) { openDrawer(); swipeTrack = false; }
 }, { passive: true });
 document.addEventListener('touchend', () => {
   if (!swipeTrack) return;
   swipeTrack = false;
-  if (!swipeLocked || (swipeStage !== 'card' && swipeStage !== 'modal')) { swipeLocked = false; swipeStage = null; swipeDX = 0; return; }
-  const stage = swipeStage, dx = swipeDX;
-  swipeLocked = false; swipeStage = null; swipeDX = 0;
+  if (!swipeLocked || !swipeStage) { swipeLocked = false; swipeStage = null; swipeDX = 0; return; }
+  const stage = swipeStage, dx = swipeDX, vel = swipeVel;
+  swipeLocked = false; swipeStage = null; swipeDX = 0; swipeVel = 0;
+  const th = Math.min(120, window.innerWidth * 0.3);
+  const go = stage === 'drawer' ? (Math.abs(dx) > th || (vel < -0.55 && Math.abs(dx) > 36))
+                                : (dx > th || swipeFast(dx));
+  if (stage === 'drawer') {
+    drawerMenu.style.transition = SWIPE_EASE;
+    drawerMenu.style.transform = go ? 'translateX(-105%)' : 'translateX(0px)';
+    const ov = swipeOverlay(); if (ov) { ov.style.transition = 'opacity .26s cubic-bezier(.22,.61,.36,1)'; ov.style.opacity = go ? '0' : '1'; }
+    setTimeout(() => {
+      drawerMenu.style.transition = ''; drawerMenu.style.transform = '';
+      if (ov) { ov.style.transition = ''; ov.style.opacity = ''; }
+      if (go) closeDrawer();
+    }, 270);
+    return;
+  }
   const el = stage === 'modal' ? (swipeModal() || swipeCard()) : swipeCard();
   const modal = document.getElementById('modal');
-  const go = dx > Math.min(120, window.innerWidth * 0.3);
   document.body.classList.add('card-sliding');
-  if (el) el.style.transform = go ? 'translateX(100%)' : 'translateX(0px)';
-  if (stage === 'modal' && modal) modal.style.opacity = go ? '0' : '1';
+  if (el) { el.style.transition = SWIPE_EASE; el.style.transform = go ? 'translateX(100%)' : 'translateX(0px)'; }
+  if (stage === 'modal' && modal) { modal.style.transition = 'opacity .26s cubic-bezier(.22,.61,.36,1)'; modal.style.opacity = go ? '0' : '1'; }
   setTimeout(() => {
-    if (el) el.style.transform = '';
-    if (modal) modal.style.opacity = '';
+    if (el) { el.style.transition = ''; el.style.transform = ''; }
+    if (modal) { modal.style.transition = ''; modal.style.opacity = ''; }
     document.body.classList.remove('card-sliding', 'swipe-drag');
     if (go) { if (stage === 'modal') closeModal(); else closeCardToList(); }
-  }, go ? 200 : 170);
+  }, go ? 265 : 265);
 }, { passive: true });
 
 function setActiveTab(view) {
@@ -2868,7 +2901,7 @@ async function renderMyDay() {
     + (att.length
       ? `<div class="list">${att.slice(0, 50).map(x => `<div class="card list-row" data-id="${x.c.id}" data-kind="clinic">
         <div class="list-row-top"><span class="list-row-name">${esc(x.c.name)}</span><span class="nd nd-over">${pct(x.b, x.a)}%</span></div>
-        <div class="list-row-sub">${x.c.manager ? esc(x.c.manager) : '—'}</div>
+        <div class="list-row-sub">${esc([x.c.city, x.c.manager].filter(Boolean).join(' · ') || '—')}</div>
       </div>`).join('')}</div>
       <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение годовых итогов 2025 и 2026 по всем продуктам (Boston + HugeMed). Помесячных данных в базе нет.</div>`
       : `<div class="empty">Снижения год к году нет. Для сравнения нужны оба года: итоги 2025 заполнены у <b>${attD25}</b> клиник, 2026 — у <b>${attD26}</b>. Заполни в карточке — клиника появится здесь.</div>`);
