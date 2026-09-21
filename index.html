@@ -563,9 +563,18 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .money-tbl th:first-child, .money-tbl td:first-child { text-align: left; width: 26%; }
 .money-tbl thead th { font-size: 11.5px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
 .money-tbl .money-sum td { font-weight: 700; border-top: 1px solid var(--line); }
-.priv-row.compact { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.priv-row.compact .lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; }
-.priv-row.compact input[type=date] { flex: 1 1 auto; min-width: 0; padding: 6px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); font: inherit; font-size: 13.5px; }
+.priv-row.compact { display: flex; align-items: center; gap: 8px; margin-bottom: 0; }
+.priv-row.compact .lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; min-width: 0; }
+.priv-row.compact input[type=date] { flex: 0 0 auto; width: 132px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); font: inherit; font-size: 13px; }
+.priv-row.compact .btn-primary-sm { padding: 6px 12px; font-size: 13px; }
+/* v3.16.2: блок «Связаться» — узкий, по содержимому (был растянут на всю ширину) */
+.priv-block { width: fit-content; max-width: 100%; }
+/* v3.16.2: правка ранее записанного — маленький карандаш у записи */
+.note-item { position: relative; padding-right: 26px; }
+.note-edit { position: absolute; right: 0; top: 4px; border: none; background: transparent; color: var(--muted); font-size: 14px; line-height: 1; padding: 2px 4px; cursor: pointer; }
+.note-edit:hover { color: var(--brand); }
+.note-edit-ta { width: 100%; min-height: 62px; border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; line-height: 1.45; resize: vertical; background: #fff; box-sizing: border-box; }
+.note-edit-row { display: flex; gap: 8px; margin-top: 6px; }
 .notes-block.hidden { display: none; }
 @media (max-width: 899px) {
   .money-tbl { font-size: 12px; }
@@ -596,7 +605,9 @@ details.detail-block[open] > summary { margin-bottom: 6px; }
   body.detail-mode.card-open .hover-card {
     display: block !important; position: fixed; left: 0; right: 0; top: 0; bottom: 0;
     width: 100%; max-width: none; border-radius: 0; margin: 0;
-    overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: 60; padding: 12px 14px 28px;
+    overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: 60;
+    /* v3.16.2: отступ сверху под «остров»/вырез iPhone — кнопка «Назад» не наезжает на него */
+    padding: calc(8px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
   }
   body.detail-mode.card-open #view, body.detail-mode.card-open #filters, body.detail-mode.card-open #fab { display: none; }
   .detail-back { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 8px; padding: 6px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 600; }
@@ -1051,13 +1062,66 @@ function toPerson(row) {
 }
 
 // ---------- справочники ----------
-// ---------- КЭШ ЧТЕНИЯ (v3.15.3) ----------
-// Без него каждый переход по меню тянул заново clinics (~670 КБ), people (~300 КБ)
-// и clinic_private (~200 КБ) — на телефоне это мегабайты трафика и долгое ожидание.
-const RC = { data: {}, ts: {}, ttl: 180000 };
+// ---------- КЭШ ЧТЕНИЯ (v3.16.2) ----------
+// 1) повторные вызовы не дублируют загрузку (раньше клиники качались дважды по 515 КБ);
+// 2) мелкие справочники/списки (/dicts/, /clinic_people/, кабинеты) больше не отнимают по 0,2 с
+//    на каждом переключении раздела; 3) если кэш устарел — отдаём его сразу и тихо обновляем в фоне.
+const RC = { data: {}, ts: {}, ttl: 1800000, pending: {} };   // 30 минут
 function rcGet(k) { const t = RC.ts[k]; return (t && Date.now() - t < RC.ttl) ? RC.data[k] : null; }
-function rcSet(k, v) { RC.data[k] = v; RC.ts[k] = Date.now(); }
-function invalidateCache() { RC.data = {}; RC.ts = {}; }
+function rcHas(k) { return Object.prototype.hasOwnProperty.call(RC.data, k); }
+// v3.16.2: тяжёлые данные держим и на диске — при открытии приложения список появляется сразу,
+// а свежесть догоняется тихим обновлением в фоне (было: пустой экран ~4 с)
+const RC_LS_PREFIX = 'rc3162:';
+const RC_LS_KEYS = ['t:clinics', 't:people', 'cp', 'cpl'];
+function rcPersist(k, v) {
+  if (RC_LS_KEYS.indexOf(k) < 0) return;
+  try { localStorage.setItem(RC_LS_PREFIX + k, JSON.stringify(v)); } catch (_) {}
+}
+function rcClearDisk() {
+  try {
+    RC_LS_KEYS.forEach((k) => localStorage.removeItem(RC_LS_PREFIX + k));
+    localStorage.removeItem(RC_LS_PREFIX + 'owner');
+  } catch (_) {}
+}
+function rcHydrate() {
+  try {
+    // кэш не должен достаться другому пользователю на том же устройстве
+    const owner = localStorage.getItem(RC_LS_PREFIX + 'owner');
+    const me = (CURRENT_EMAIL || '').toLowerCase();
+    if (owner && me && owner !== me) { rcClearDisk(); return; }
+    if (me) localStorage.setItem(RC_LS_PREFIX + 'owner', me);
+  } catch (_) {}
+  RC_LS_KEYS.forEach((k) => {
+    try {
+      const raw = localStorage.getItem(RC_LS_PREFIX + k);
+      if (!raw) return;
+      RC.data[k] = JSON.parse(raw);
+      RC.ts[k] = 0;            // данные показываем сразу, но считаем устаревшими — обновим в фоне
+    } catch (_) {}
+  });
+}
+function rcSet(k, v) { RC.data[k] = v; RC.ts[k] = Date.now(); rcPersist(k, v); }
+function invalidateCache() { RC.data = {}; RC.ts = {}; RC.pending = {}; }
+async function rcLoad(k, fn, onFresh) {
+  if (rcHas(k)) {
+    const old = RC.data[k];
+    if (!rcGet(k) && !RC.pending[k]) {
+      RC.pending[k] = (async () => {
+        try {
+          const v = await fn();
+          const changed = JSON.stringify(v) !== JSON.stringify(old);
+          rcSet(k, v);
+          if (changed && onFresh) { try { onFresh(); } catch (_) {} }
+        } catch (_) {} finally { delete RC.pending[k]; }
+      })();
+    }
+    return old;
+  }
+  if (RC.pending[k]) return RC.pending[k];
+  const p = (async () => { try { const v = await fn(); rcSet(k, v); return v; } finally { delete RC.pending[k]; } })();
+  RC.pending[k] = p;
+  return p;
+}
 // любая запись (insert/update/upsert/delete) сбрасывает кэш целиком — иначе покажем устаревшее
 (function patchWrites() {
   try {
@@ -1075,16 +1139,31 @@ function invalidateCache() { RC.data = {}; RC.ts = {}; }
     sb.__rcPatched = true;
   } catch (_) {}
 })();
+// связки многие-ко-многим — один раз на сессию
+async function listClinicLinks() {
+  return rcLoad('cpl', async () => {
+    try { const { data } = await sb.from('clinic_people').select('*'); return data || []; } catch (_) { return []; }
+  });
+}
+// роль пользователя в базе — один запрос вместо четырёх
+async function getManagerRow(email) {
+  return rcLoad('um:' + (email || ''), async () => {
+    try {
+      const { data } = await sb.from('user_managers').select('*').eq('email', email).maybeSingle();
+      return data || null;
+    } catch (_) { return null; }
+  });
+}
 
 async function getDict(type) {
   const key = 'd:' + type;
   const hit = rcGet(key);
   if (hit) return hit;
-  const { data, error } = await sb.from('dicts').select('value').eq('type', type).order('value');
-  if (error) throw error;
-  const out = (data || []).map(d => d.value);
-  rcSet(key, out);
-  return out;
+  return rcLoad(key, async () => {
+    const { data, error } = await sb.from('dicts').select('value').eq('type', type).order('value');
+    if (error) throw error;
+    return (data || []).map(d => d.value);
+  });
 }
 
 async function addDictValues(type, values) {
@@ -1106,35 +1185,40 @@ async function deleteDictValue(type, value) {
 // v3.5.2: Supabase отдаёт максимум 1000 строк на запрос — грузим постранично,
 // иначе часть карточек (например «Клиники») молча пропадала из списков
 const PAGE_SIZE = 1000;
+// v3.16.2: список клиник тянет только нужные колонки (без денежных — они приходят из clinic_private),
+// это ~590 КБ → ~490 КБ на первой загрузке
+const CLINIC_COLS = 'id,name,type,region,city,manager,linked_clinic_id,situation,tags,kind,marked_del,created_at,updated_at';
 async function fetchAllRows(table, orderCol, tieCol) {
   const key = 't:' + table;
-  const hit = rcGet(key);
-  if (hit) return hit;
-  const out = [];
-  const one = async (from) => {
-    let q = sb.from(table).select('*').order(orderCol, { ascending: true });
-    if (tieCol) q = q.order(tieCol, { ascending: true });
-    const { data, error } = await q.range(from, from + PAGE_SIZE - 1);
-    if (error) throw error;
-    return data || [];
+  const cols = table === 'clinics' ? CLINIC_COLS : '*';
+  const load = async () => {
+    const out = [];
+    const one = async (from) => {
+      let q = sb.from(table).select(cols).order(orderCol, { ascending: true });
+      if (tieCol) q = q.order(tieCol, { ascending: true });
+      const { data, error } = await q.range(from, from + PAGE_SIZE - 1);
+      if (error) throw error;
+      return data || [];
+    };
+    // сколько всего строк — одним дешёвым запросом, чтобы качать страницы ПАРАЛЛЕЛЬНО
+    let total = 0;
+    try {
+      const { count } = await sb.from(table).select('id', { count: 'exact', head: true });
+      total = count || 0;
+    } catch (_) { total = 0; }
+    const pages = Math.max(1, Math.min(total ? Math.ceil(total / PAGE_SIZE) : 1, 8));
+    const parts = await Promise.all(Array.from({ length: pages }, (_, k) => one(k * PAGE_SIZE)));
+    parts.forEach(p => out.push(...p));
+    // подстраховка: счёт мог быть неверным — догружаем, если последняя страница полная
+    let last = parts[parts.length - 1] || [];
+    let from = parts.length * PAGE_SIZE;
+    while (last.length === PAGE_SIZE && from <= 50000) {
+      last = await one(from); out.push(...last); from += PAGE_SIZE;
+    }
+    return out;
   };
-  // сколько всего строк — одним дешёвым запросом, чтобы качать страницы ПАРАЛЛЕЛЬНО
-  let total = 0;
-  try {
-    const { count } = await sb.from(table).select('id', { count: 'exact', head: true });
-    total = count || 0;
-  } catch (_) { total = 0; }
-  const pages = Math.max(1, Math.min(total ? Math.ceil(total / PAGE_SIZE) : 1, 8));
-  const parts = await Promise.all(Array.from({ length: pages }, (_, k) => one(k * PAGE_SIZE)));
-  parts.forEach(p => out.push(...p));
-  // подстраховка: счёт мог быть неверным — догружаем, если последняя страница полная
-  let last = parts[parts.length - 1] || [];
-  let from = parts.length * PAGE_SIZE;
-  while (last.length === PAGE_SIZE && from <= 50000) {
-    last = await one(from); out.push(...last); from += PAGE_SIZE;
-  }
-  rcSet(key, out);
-  return out;
+  // v3.16.2: устаревший кэш отдаём сразу и обновляем в фоне, а не ждём сеть заново
+  return rcLoad(key, load, () => { try { render(); } catch (_) {} });
 }
 // ---------- ЗАКРЫТАЯ ЧАСТЬ КАРТОЧКИ (v3.11.1) ----------
 // Деньги, следующий контакт и рабочая заметка лежат в отдельной таблице
@@ -1143,17 +1227,9 @@ async function fetchAllRows(table, orderCol, tieCol) {
 const MONEY_COLS = ['sales_2021', 'sales_2022', 'sales_2023', 'sales_2024', 'sales_2025', 'sales_2026', 'hugemed_2025', 'hugemed_2026'];
 
 async function mergeClinicPrivate(list) {
-  let data = rcGet('cp');
-  if (!data) {
-    data = [];
-    let ok = false;
-    try {
-      const res = await sb.from('clinic_private').select('*');
-      data = res.data || [];
-      ok = true;
-    } catch (_) { data = []; }
-    if (ok) rcSet('cp', data);   // ошибку не кэшируем
-  }
+  const data = await rcLoad('cp', async () => {
+    try { const res = await sb.from('clinic_private').select('*'); return res.data || []; } catch (_) { return []; }
+  }, () => { try { render(); } catch (_) {} });
   const map = {};
   data.forEach(p => { map[p.clinic_id] = p; });
   list.forEach(c => {
@@ -1244,39 +1320,24 @@ async function setPersonMarked(id, val) {
   if (error) throw error;
 }
 async function peopleByClinic(clinicId) {
-  // прямые (clinic_id) + доп. связи многие-ко-многим (clinic_people)
-  const { data: direct, error } = await sb.from(peopleSource).select('*').eq('clinic_id', clinicId).order('full_name');
-  if (error) throw error;
-  let extra = [];
-  try {
-    const { data: links, error: lerr } = await sb.from('clinic_people').select('person_id').eq('clinic_id', clinicId);
-    if (!lerr && links && links.length) {
-      const have = new Set((direct || []).map(d => d.id));
-      const ids = links.map(l => l.person_id).filter(id => !have.has(id));
-      if (ids.length) {
-        const { data: e, error: eerr } = await sb.from(peopleSource).select('*').in('id', ids).order('full_name');
-        if (!eerr) extra = e || [];
-      }
-    }
-  } catch (_) { /* таблица clinic_people может отсутствовать у старых клиентов */ }
-  return [...(direct || []), ...extra].map(fromPerson);
+  // v3.16.2: без запросов на каждую карточку — берём из уже загруженного кэша людей и связок
+  const [all, links] = await Promise.all([listPeople(), listClinicLinks()]);
+  const extraIds = new Set(links.filter(l => l.clinic_id === clinicId).map(l => l.person_id));
+  return all.filter(p => p.clinicId === clinicId || extraIds.has(p.id))
+    .sort((a, b) => String(a.fullName || '').localeCompare(String(b.fullName || ''), 'ru'));
 }
 
 // все клиники человека: основная (clinic_id) + доп. связи многие-ко-многим
 async function personAllClinics(p) {
-  const clinics = [];
-  const seen = new Set();
-  if (p.clinicId) { clinics.push(p.clinicId); seen.add(p.clinicId); }
-  try {
-    const { data: links, error: lerr } = await sb.from('clinic_people').select('clinic_id').eq('person_id', p.id);
-    if (!lerr && links) links.forEach(l => { if (!seen.has(l.clinic_id)) { clinics.push(l.clinic_id); seen.add(l.clinic_id); } });
-  } catch (_) {}
-  if (!clinics.length) return [];
-  const { data, error } = await sb.from('clinics').select('id,name').in('id', clinics);
-  if (error) throw error;
+  const links = await listClinicLinks();
+  const ids = [];
+  if (p.clinicId) ids.push(p.clinicId);
+  links.filter(l => l.person_id === p.id).forEach(l => { if (!ids.includes(l.clinic_id)) ids.push(l.clinic_id); });
+  if (!ids.length) return [];
+  const clinics = await listClinics();
   const map = {};
-  (data || []).forEach(c => map[c.id] = c);
-  return clinics.map(id => map[id]).filter(Boolean);
+  clinics.forEach(c => { map[c.id] = { id: c.id, name: c.name }; });
+  return ids.map(id => map[id]).filter(Boolean);
 }
 async function clearPeopleClinic(clinicId) {
   const { error } = await sb.from('people').update({ clinic_id: null }).eq('clinic_id', clinicId);
@@ -1320,13 +1381,16 @@ async function signOut() { await sb.auth.signOut(); }
 
 // ---------- рабочие листы (Настя/Галя): изолированные вкладки, свои таблицы ----------
 async function getWorklist(W) {
-  const [clinics, people] = await Promise.all([
-    withTimeout(sb.from(W.cl).select('*').order('name'), 10000, 'wl-clinics'),
-    withTimeout(sb.from(W.pp).select('*').order('full_name'), 10000, 'wl-people')
-  ]);
-  if (clinics.error) throw clinics.error;
-  if (people.error) throw people.error;
-  return { clinics: clinics.data || [], people: people.data || [] };
+  // v3.16.2: кабинеты кэшируются — переключение разделов больше не ждёт эти запросы
+  return rcLoad('wl:' + W.cl, async () => {
+    const [clinics, people] = await Promise.all([
+      withTimeout(sb.from(W.cl).select('*').order('name'), 10000, 'wl-clinics'),
+      withTimeout(sb.from(W.pp).select('*').order('full_name'), 10000, 'wl-people')
+    ]);
+    if (clinics.error) throw clinics.error;
+    if (people.error) throw people.error;
+    return { clinics: clinics.data || [], people: people.data || [] };
+  }, () => { try { render(); } catch (_) {} });
 }
 async function getNastya() { return getWorklist(WORKLISTS.nastya); }
 async function getGalya() { return getWorklist(WORKLISTS.galya); }
@@ -1423,7 +1487,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.16.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.16.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1607,7 +1671,7 @@ async function bootstrap() {
   if (window.__d) window.__d.m.push('user ' + (Date.now() - window.__d.t) + 'ms');
   if (!user) { showLogin(); return; }  // нет валидной сессии — показываем экран входа
   try {
-    const { data: am } = await sb.from('user_managers').select('*').eq('email', user.email).maybeSingle();
+    const am = await getManagerRow(user.email);
     if (am) { CURRENT_ROLE = am.role; window.CURRENT_MANAGER = am.manager || null; try { localStorage.setItem('crm-role', am.role); } catch (e) {} }
     else { const c = localStorage.getItem('crm-role'); if (c) CURRENT_ROLE = c; }
   } catch (_) {
@@ -1616,6 +1680,7 @@ async function bootstrap() {
   }
   try { localStorage.setItem('crm-offline-user', JSON.stringify({ email: (user.email || '').toLowerCase(), role: CURRENT_ROLE, at: Date.now() })); } catch (e) {}
   CURRENT_EMAIL = user.email || null;
+  rcHydrate();   // v3.16.2: показываем прошлые данные сразу, свежесть догоняем в фоне
   Object.keys(WORKLISTS).forEach(k => {
     const can = WORKLISTS[k].emails.includes(CURRENT_EMAIL);
     document.querySelectorAll('.' + k + '-tab').forEach(el => el.classList.toggle('hidden', !can));
@@ -1735,6 +1800,7 @@ drawerOverlay?.addEventListener('click', closeDrawer);
 document.getElementById('drawerUser') && (document.getElementById('drawerUser').textContent = CURRENT_EMAIL || '');
 
 // v1.146: свайп от левого края — открыть меню; свайп влево по меню — закрыть
+// v3.16.2: сначала «назад» (форма → карточка → список), меню открываем только если назад идти некуда
 let touchX = 0, touchY = 0, swipeTrack = false;
 document.addEventListener('touchstart', e => {
   const t = e.touches[0];
@@ -1746,16 +1812,22 @@ document.addEventListener('touchmove', e => {
   const t = e.touches[0];
   const dx = t.clientX - touchX;
   const dy = t.clientY - touchY;
-  // открытие: старт у левого края (<24px), движение вправо >60px, жест горизонтальный
-  if (!drawerMenu.classList.contains('open') && touchX < 24 && dx > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) {
-    openDrawer();
-    swipeTrack = false;
-  }
-  // закрытие: свайп влево из открытого меню
+  // закрытие меню: свайп влево из открытого меню
   if (drawerMenu.classList.contains('open') && touchX < 300 && dx < -60 && Math.abs(dx) > Math.abs(dy) * 1.4) {
-    closeDrawer();
-    swipeTrack = false;
+    closeDrawer(); swipeTrack = false; return;
   }
+  if (dx < 60 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+  // 1) открыта форма — закрываем форму
+  const modal = document.getElementById('modal');
+  if (modal && !modal.classList.contains('hidden')) { closeModal(); swipeTrack = false; return; }
+  // 2) открыта карточка — возвращаемся к списку
+  if (document.body.classList.contains('card-open')) {
+    state.selId = null; state.selKind = null;
+    clearDetailPanel(); showPanelHint();
+    swipeTrack = false; return;
+  }
+  // 3) назад идти некуда — открываем меню (как раньше, только от самого края)
+  if (!drawerMenu.classList.contains('open') && touchX < 24) { openDrawer(); swipeTrack = false; }
 }, { passive: true });
 document.addEventListener('touchend', () => { swipeTrack = false; }, { passive: true });
 
@@ -2739,12 +2811,10 @@ async function renderContacts() {
   const view = document.getElementById('view');
   const s = state.search;
   const f = state.filters;
-  const people = await listPeople();
-  const clinics = await listClinics();
+  // v3.16.2: люди, клиники и связки — параллельно и из кэша
+  const [people, clinics, links] = await Promise.all([listPeople(), listClinics(), listClinicLinks()]);
   const clinicMap = {};
   clinics.forEach(c => clinicMap[c.id] = c);
-  let links = [];
-  try { const { data } = await sb.from('clinic_people').select('*'); links = data || []; } catch (_) {}
   const extra = {};
   links.forEach(l => { (extra[l.person_id] = extra[l.person_id] || []).push(l.clinic_id); });
   const orgIds = (p) => {
@@ -3137,11 +3207,11 @@ async function renderPeople() {
   const clinicMap = {};
   const clinics = await listClinics();
   clinics.forEach(c => clinicMap[c.id] = c.name);
-  // доп. клиники человека (многие-ко-многим)
+  // доп. клиники человека (многие-ко-многим) — из кэша связок
   const extraMap = {};
   try {
-    const { data: links, error: lerr } = await sb.from('clinic_people').select('*');
-    if (!lerr && links) links.forEach(l => { (extraMap[l.person_id] = extraMap[l.person_id] || []).push(l.clinic_id); });
+    const links = await listClinicLinks();
+    if (links) links.forEach(l => { (extraMap[l.person_id] = extraMap[l.person_id] || []).push(l.clinic_id); });
   } catch (_) {}
 
   people.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0) || (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
@@ -3173,7 +3243,7 @@ async function renderDicts() {
   try {
     const { data: { user } } = await sb.auth.getUser();
     if (user) {
-      const { data: am } = await sb.from('user_managers').select('*').eq('email', user.email).maybeSingle();
+      const am = await getManagerRow(user.email);
       me = { email: user.email, manager: am ? am.manager : null, role: am ? am.role : null };
     }
   } catch (_) {}
@@ -3217,7 +3287,9 @@ async function renderDicts() {
   const lo = document.getElementById('logoutBtn');
   if (lo) lo.addEventListener('click', async () => {
     if (!me) { showLogin(); return; }
-    try { await sb.auth.signOut(); } catch (_) {} showLogin();
+    try { await sb.auth.signOut(); } catch (_) {}
+    rcClearDisk();   // v3.16.2: чужому пользователю на этом устройстве кэш не отдаём
+    showLogin();
   });
   view.querySelectorAll('.swatch').forEach(s => {
     s.addEventListener('click', () => {
@@ -3457,7 +3529,7 @@ async function openClinicForm(id, presetKind) {
     try {
       const { data: { user } } = await sb.auth.getUser();
       if (user) {
-        const { data: am } = await sb.from('user_managers').select('manager').eq('email', user.email).maybeSingle();
+        const am = await getManagerRow(user.email);
         if (am) myManager = am.manager;
       }
     } catch (_) {}
@@ -3721,13 +3793,11 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related) {
   const canPriv = canSeePrivate(c);
   // v3.16.0: ПРОДАЖИ — ПЕРВЫМИ в карточке, раскрытая компактная таблица: годы и два продукта
   const salesYears = MONEY_YEARS.filter(y => c['sales_' + y] != null || c['hugemed_' + y] != null);
-  const sumOf = (p) => salesYears.reduce((s, y) => s + (Number(c[p + y]) || 0), 0);
   const salesBlock = canPriv ? `<details class="detail-block" open>
       <summary>Продажи, ₽</summary>
       ${salesYears.length ? `<table class="money-tbl">
         <thead><tr><th>Год</th><th>Boston</th><th>HugeMed</th></tr></thead>
-        <tbody>${salesYears.map(y => `<tr><td>${y}</td><td>${c['sales_' + y] != null ? fmtMoney(c['sales_' + y]) : '—'}</td><td>${c['hugemed_' + y] != null ? fmtMoney(c['hugemed_' + y]) : '—'}</td></tr>`).join('')}
-        <tr class="money-sum"><td>Итого</td><td>${fmtMoney(sumOf('sales_'))}</td><td>${fmtMoney(sumOf('hugemed_'))}</td></tr></tbody>
+        <tbody>${salesYears.map(y => `<tr><td>${y}</td><td>${c['sales_' + y] != null ? fmtMoney(c['sales_' + y]) : '—'}</td><td>${c['hugemed_' + y] != null ? fmtMoney(c['hugemed_' + y]) : '—'}</td></tr>`).join('')}</tbody>
       </table>` : `<div class="v" style="color:var(--muted)">данных нет</div>`}
     </details>` : '';
   // v3.16.0: ЛЮДИ — компактный список (имя, должность, телефон), без счётчика и слова «нет»
@@ -3797,8 +3867,10 @@ function privBlock(c, canEditNow) {
   // Поле «Текущая ситуация» убрано — теперь одна лента записей ниже (п.3 дополнения),
   // сам текст ситуации сохранён: он перенесён в записи, в базе не тронут.
   return `<div class="detail-block priv-block" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">
-      <div class="priv-row compact"><span class="lbl">Связаться</span><input type="date" id="cpNext" value="${esc(d)}" ${canEditNow ? '' : 'disabled'} /></div>
-      ${canEditNow ? `<div style="margin-top:8px"><button class="btn-primary-sm" id="cpSave" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">Сохранить</button></div>` : ''}
+      <div class="priv-row compact"><span class="lbl">Связаться</span>
+        <input type="date" id="cpNext" value="${esc(d)}" ${canEditNow ? '' : 'disabled'} />
+        ${canEditNow ? `<button class="btn-primary-sm" id="cpSave" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">Сохранить</button>` : ''}
+      </div>
     </div>`;
 }
 function notesBlock(c, canEditNow) {
@@ -3809,10 +3881,14 @@ function notesBlock(c, canEditNow) {
       <div class="v" id="notesList" data-cid="${c.id}"><span style="color:var(--muted)">загрузка…</span></div>
     </div>`;
 }
-async function fillNotesBlock(cid) {
+function fillNotesBlock(cid) {
+  return fillNotesBlock0(cid);
+}
+async function fillNotesBlock0(cid) {
   const box = document.querySelector('#notesList[data-cid="' + cid + '"]');
   if (!box) return;
   const blk = box.closest('.notes-block');
+  const canEdit = !!(blk && blk.getAttribute('data-canedit') === '1');
   let list = [];
   try {
     const { data, error } = await sb.from('notes')
@@ -3821,16 +3897,53 @@ async function fillNotesBlock(cid) {
     if (error) throw error;
     list = data || [];
   } catch (_) { list = []; box.classList.remove('hidden'); box.innerHTML = '<span style="color:var(--muted)">нет доступа к заметкам</span>'; return; }
-  // v3.16.1: пустую историю и счётчик не показываем; у записи — дата и автор (если известны)
+  // v3.16.2: пустую историю и счётчик не показываем; у записи — дата и автор (если известны)
   box.classList.toggle('hidden', !list.length);
-  if (!list.length && blk && blk.getAttribute('data-canedit') !== '1') blk.classList.add('hidden');
+  if (!list.length && blk && !canEdit) blk.classList.add('hidden');
   box.innerHTML = list.length
     ? list.map(n => {
         const meta = [fmtDate(n.created_at), (n.author_name || n.author_email || '')].filter(Boolean).join(' · ');
-        return `<div class="note-item">${meta ? `<div class="note-meta">${esc(meta)}</div>` : ''}<div class="note-text">${esc(n.text)}</div></div>`;
+        const pencil = canEdit ? `<button class="note-edit" data-note-edit="${n.id}" title="Изменить запись" aria-label="Изменить запись">✎</button>` : '';
+        return `<div class="note-item" data-note="${n.id}">${pencil}${meta ? `<div class="note-meta">${esc(meta)}</div>` : ''}<div class="note-text">${esc(n.text)}</div></div>`;
       }).join('')
     : '';
 }
+// v3.16.2: правка ранее записанного (карандаш → текст → «Сохранить»/«Отмена»)
+document.addEventListener('click', async (ev) => {
+  const ed = ev.target.closest('[data-note-edit]');
+  if (!ed) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const item = ed.closest('.note-item');
+  if (!item || item.querySelector('.note-edit-ta')) return;
+  const id = Number(ed.dataset.noteEdit);
+  const box = item.closest('#notesList');
+  const cid = box ? Number(box.dataset.cid) : 0;
+  const textEl = item.querySelector('.note-text');
+  const cur = textEl ? textEl.textContent : '';
+  const metaEl = item.querySelector('.note-meta');
+  const meta = metaEl ? metaEl.outerHTML : '';
+  item.innerHTML = `${meta}<textarea class="note-edit-ta" id="neTa">${esc(cur)}</textarea>
+    <div class="note-edit-row"><button class="btn-primary-sm" id="neSave">Сохранить</button><button class="pane-btn" id="neCancel">Отмена</button></div>`;
+  const ta = item.querySelector('#neTa');
+  if (ta) { ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (_) {} }
+  item.querySelector('#neCancel').addEventListener('click', async (e2) => { e2.stopPropagation(); await fillNotesBlock(cid); });
+  item.querySelector('#neSave').addEventListener('click', async (e2) => {
+    e2.stopPropagation();
+    const btn = e2.currentTarget; if (btn.disabled) return; btn.disabled = true;
+    const txt = (ta.value || '').trim();
+    if (!txt) { toast('Пустая запись не сохраняется'); btn.disabled = false; return; }
+    try {
+      const { error } = await sb.from('notes').update({ text: txt }).eq('id', id);
+      if (error) throw error;
+      await fillNotesBlock(cid);
+      if (state.selId) { /* карточка уже открыта */ }
+      toast('✓ Запись изменена');
+    } catch (e3) {
+      toast('⚠️ Не сохранилось: ' + (e3 && e3.message ? e3.message : e3));
+      btn.disabled = false;
+    }
+  });
+});
 function hydrateCard(cid) { if (cid) fillNotesBlock(cid); }
 document.addEventListener('click', async (ev) => {
   const save = ev.target.closest('#cpSave');
@@ -3963,10 +4076,10 @@ async function showHoverCard(row, immediate) {
     let related = (((relRes || {}).data) || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
     if (seq !== hoverSeq) return;
     const canEditC = canEditMain() || (isRefEdit() && isRefKind(c.kind));
-    // v3.16.0: без слова «Клиника» и лишних подписей — одна строка: город · тип · ответственный
-    const ctype = isFirmKind(c.kind) ? 'Компания' : (isRefKind(c.kind) ? 'Справочник' : (c.kind === 'distributor' ? 'Партнёр' : ''));
-    const locLine = ctype === 'Справочник' ? '' : ctype;
-    const subLine = [c.city, ownershipLabel(ownershipOf(c)), locLine, (c.manager && !isFirmKind(c.kind)) ? c.manager : ''].filter(Boolean).join(' · ');
+    // v3.16.2: вторая строка карточки — город · ЛПУ (госы) / ЧК (частники) · менеджер
+    const own = ownershipOf(c);
+    const ownShort = own === 'state' ? 'ЛПУ' : (own === 'private' ? 'ЧК' : '');
+    const subLine = [c.city, ownShort, (c.manager && !isFirmKind(c.kind)) ? c.manager : ''].filter(Boolean).join(' · ');
     const head = `<h3>${esc(c.name)}</h3>${subLine ? `<div class="card-top">${esc(subLine)}</div>` : ''}`;
     const actions = `<div class="pane-actions">${canEditC ? `<button class="pane-pencil" id="paneClinicEdit" data-id="${c.id}" title="Редактировать" aria-label="Редактировать">✎</button>` : ''}</div>`;
     inner = head + actions + clinicDetailBody(c, linked, contacts, undefined, related);
