@@ -538,6 +538,10 @@ body.logged-out .toast { display: none !important; }
   .search-box { width: calc((100vw - 260px) * .45 - 8px - 32px); }
   .bottom-bar { display: none; }
   body { padding-bottom: 24px; }
+  /* v3.27.0: пока карточка не выбрана — список занимает всю рабочую область (место под карточку не висит пустым);
+     кнопка «← Назад» — только на телефоне (в правой панели она не нужна) */
+  body.detail-mode:not(.card-open) .work .hover-card { display: none; }
+  .detail-back { display: none !important; }
 }
 
 /* телефон — ссылка для звонка */
@@ -591,6 +595,21 @@ input[type=search]::-webkit-search-cancel-button { display: none; }
 .search-kbd { flex: none; font-size: 11px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
 .search-count { font-size: 12px; color: var(--muted); padding: 6px 2px 0; min-height: 16px; }
 .search-count.bad { color: var(--danger); }
+/* v3.27.0: сайт — компактной ссылкой в шапке карточки (вместо отдельной плашки) */
+.card-head-acts { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.site-chip {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 190px;
+  padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--card); color: var(--brand); font-size: 12.5px; font-weight: 600;
+  text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.site-chip:hover { border-color: var(--brand); }
+/* v3.27.0: скелет карточки — панель открывается мгновенно, данные догоняются */
+.card-skel { padding: 6px 0 2px; }
+.skel-line { height: 11px; border-radius: 6px; background: linear-gradient(90deg, #ececec 25%, #f6f6f6 37%, #ececec 63%); background-size: 400% 100%; animation: skel 1.2s ease-in-out infinite; margin: 8px 0; }
+.skel-line.short { width: 55%; }
+.skel-block { height: 76px; border-radius: 12px; background: linear-gradient(90deg, #ececec 25%, #f6f6f6 37%, #ececec 63%); background-size: 400% 100%; animation: skel 1.2s ease-in-out infinite; margin: 12px 0; }
+@keyframes skel { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
 .add-btn {
   flex: none; width: 42px; height: 42px; border-radius: 12px;
   background: var(--brand); color: #fff; border: none; font-size: 22px; line-height: 1;
@@ -687,6 +706,8 @@ body.detail-mode.card-open.swipe-drag #view { display: block; }
 .pane-btn.danger { color: var(--danger); border-color: #f3c9c9; }
 .md-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 6px; }
 .md-tools .sp { flex: 1 1 auto; }
+.md-tools-lbl { font-size: 12px; color: var(--muted); }
+@media (min-width: 900px) { .md-tools { position: sticky; top: 48px; z-index: 12; background: var(--bg); padding: 6px 0 8px; margin: 0; } }
 /* v3.16.5: фильтр менеджеров — компактная кнопка-чип вместо широкого селекта (только у Абрамова) */
 .md-mgr { position: relative; display: inline-block; }
 .md-mgr-btn { font: inherit; font-size: 11.5px; line-height: 1; padding: 3px 7px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
@@ -1611,7 +1632,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.26.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.27.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2389,16 +2410,42 @@ function searchUITick() {
   document.addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
       e.preventDefault(); if (inp && inp.offsetParent) { inp.focus(); inp.select(); }
-    } else if (e.key === 'Escape' && document.activeElement === inp && (inp.value || '')) {
-      inp.value = ''; state.search = ''; searchUITick(); render();
+    } else if (e.key === 'Escape') {
+      // v3.27.0: Esc закрывает верхний слой (попап → модалка → страница продаж → карточка → шторка меню)
+      if (closeTopLayer()) { e.preventDefault(); return; }
+      if (document.activeElement === inp && (inp.value || '')) {
+        inp.value = ''; state.search = ''; searchUITick(); render();
+      }
     }
   });
+})();
+// v3.27.0: единое закрытие верхнего слоя — по Esc и по тапу мимо окна
+function closeTopLayer() {
+  // 1) открытый выпадающий список (фильтр менеджера / порядок)
+  const pop = document.querySelector('.md-mgr.pop-open .md-mgr-btn');
+  if (pop) { pop.click(); return true; }
+  // 2) модальное окно
+  const m = document.getElementById('modal');
+  if (m && !m.classList.contains('hidden')) { closeModal(); return true; }
+  // 3) отдельная страница продаж
+  if (document.body.classList.contains('sales-open')) { closeSalesPage(); return true; }
+  // 4) карточка (полноэкранная на телефоне)
+  if (document.body.classList.contains('card-open')) { closeCardToList(); return true; }
+  // 5) шторка меню
+  const dm = document.getElementById('drawerMenu');
+  if (dm && dm.classList.contains('open')) { closeDrawer(); return true; }
+  return false;
+}
+// тап мимо окна: клик по затемнению закрывает модалку
+(function initBackdrop() {
+  const m = document.getElementById('modal');
+  if (m) m.addEventListener('click', (ev) => { if (ev.target === m) closeModal(); });
 })();
 
 // ---------- render ----------
 async function render() {
   if (isRefEdit() && REFEDIT_DENIED.includes(state.view)) { state.view = 'clinics'; }
-  const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
+  const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'money', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
   document.body.classList.toggle('detail-mode', PANEL_VIEWS.includes(state.view));
   // v3.15.0: до выбора — короткая подсказка в правой панели
   if (document.body.classList.contains('detail-mode') && !state.selId) showPanelHint();
@@ -3074,12 +3121,15 @@ async function renderMyDay() {
     </div>` : '';
   // v3.16.0: без верхней строки «Мой день · дата», без дублирующего «просрочено», без выбора дня
   // и без кнопок выполнения; заголовки — только над группами, пустые группы не выводятся
-  // v3.17.2: кнопка фильтра встроена в строку первого непустого заголовка (раньше — отдельная полоса сверху)
-  const bOver = block('Просрочено', over, c => fmtDate(c.nextContact), true);
-  const bToday = block('Сегодня', tod, c => fmtDate(c.nextContact), !over.length);
-  const bLater = block('Позже', [...week, ...later].slice(0, 20), c => fmtDate(c.nextContact), !over.length && !tod.length);
-  const chipInHead = !!(bOver || bToday || bLater);
-  view.innerHTML = (mgrSel && !chipInHead ? `<div class="md-tools">${mgrSel}</div>` : '')
+  // v3.17.2: на телефоне кнопка фильтра встроена в строку первого непустого заголовка;
+  // v3.27.0: на компьютере — всегда своя строка сверху (как на телефоне, но не спрятана)
+  const isDesk = window.innerWidth >= 900;
+  const bOver = block('Просрочено', over, c => fmtDate(c.nextContact), !isDesk);
+  const bToday = block('Сегодня', tod, c => fmtDate(c.nextContact), !isDesk && !over.length);
+  const bLater = block('Позже', [...week, ...later].slice(0, 20), c => fmtDate(c.nextContact), !isDesk && !over.length && !tod.length);
+  const chipInHead = !isDesk && !!(bOver || bToday || bLater);
+  const toolsRow = mgrSel ? `<div class="md-tools">${isDesk ? '<span class="md-tools-lbl">Менеджер</span>' : ''}${mgrSel}<span class="sp"></span></div>` : '';
+  view.innerHTML = (mgrSel && !chipInHead ? toolsRow : '')
     + bOver + bToday + bLater
     + (!withDate.length ? `<div class="empty">${sMD ? 'Ничего не найдено' : `Запланированных контактов нет. Клиник в базе: ${clinics.length}.`}</div>` : '')
     + (sMD ? '' : attBlock);
@@ -4407,7 +4457,6 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
     ${privBlock(c, canEditNow)}
     ${notesBlock(c, canEditNow)}
     ${peopleBlock}
-    ${siteBlockFull(c.situation, 'clinics', c.id, canEditNow)}
     ${relBlock}
     ${tagsBlock}
   `;
@@ -4611,7 +4660,6 @@ function personDetailBody(p, clinics, canEditCard) {
     ${[['Должность', p.position], ['Почта', p.email]]
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
     ${p.phone ? `<div class="detail-block"><div class="k">Телефон</div><div class="v">${telLink(p.phone)}</div></div>` : ''}
-    ${siteBlockFull(p.situation, 'people', p.id, canEditNow)}
     ${commentField('people', p.id, p.situation, canEditNow)}
     ${tagsHtml(refTags(p.tags))}
   `;
@@ -4680,6 +4728,15 @@ async function showHoverCard(row, immediate) {
   if (!panel) return;
   panel.classList.remove('hidden');
   panel.classList.remove('panel-empty');   // v3.16.1: карточка выбрана — пустое место занимать не нужно
+  // v3.27.0: панель открывается МГНОВЕННО — сначала шапка из кэша + скелет, затем полная карточка
+  if (kind !== 'person' && kind !== 'refdoc') {
+    const fast = clinicFromCache(id);
+    panel.innerHTML = (fast
+      ? `<div class="card-head"><div class="card-head-txt"><h3>${esc(fast.name)}</h3>${clinicSubLine(fast) ? `<div class="card-top">${esc(clinicSubLine(fast))}</div>` : ''}</div><div class="card-head-acts">${siteChipHtml(fast.situation)}</div></div>`
+      : '') + `<div class="card-skel"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-block"></div></div>`;
+  } else {
+    panel.innerHTML = `<div class="card-skel"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-block"></div></div>`;
+  }
   let inner;
   if (kind === 'person' || kind === 'refdoc') {
     state.selKind = kind;
@@ -4689,7 +4746,7 @@ async function showHoverCard(row, immediate) {
     if (seq !== hoverSeq) return;
     const canEditP = canEditMain() || (isRefEdit() && (isRefDoc(p) || (clinics || []).some(c => c && isRefKind(c.kind))));
     inner = `<h3>${esc(p.fullName)}</h3>` + personDetailBody(p, clinics)
-      + `<div class="pane-actions">${canEditP ? `<button class="pane-btn primary" id="panePersonEdit" data-id="${p.id}">Редактировать</button>` : ''}</div>`;
+      + `<div class="pane-actions">${canEditP ? `<button class="pane-btn primary" id="panePersonEdit" data-id="${p.id}">Редактировать</button>` : ''}${siteChipHtml(p.situation)}</div>`;
   } else {
     state.selKind = 'clinic';
     const c = await getClinic(id);
@@ -4707,21 +4764,44 @@ async function showHoverCard(row, immediate) {
     // v3.16.2: вторая строка карточки — город · ЛПУ (госы) / ЧК (частники) · менеджер
     const own = ownershipOf(c);
     const ownShort = own === 'state' ? 'ЛПУ' : (own === 'private' ? 'ЧК' : '');
-    const subLine = [c.city, ownShort, (c.manager && !isFirmKind(c.kind)) ? c.manager : ''].filter(Boolean).join(' · ');
+    const subLine = clinicSubLine(c);
     const head = `<h3>${esc(c.name)}</h3>${subLine ? `<div class="card-top">${esc(subLine)}</div>` : ''}`;
-    const actions = `<div class="pane-actions">${canEditC ? `<button class="pane-pencil" id="paneClinicEdit" data-id="${c.id}" title="Редактировать" aria-label="Редактировать">✎</button>` : ''}</div>`;
+    const actions = `<div class="card-head-acts">${siteChipHtml(c.situation)}${canEditC ? `<button class="pane-pencil" id="paneClinicEdit" data-id="${c.id}" title="Редактировать" aria-label="Редактировать">✎</button>` : ''}</div>`;
     // v3.17.0: заголовок и карандаш — в одну компактную строку
     inner = `<div class="card-head"><div class="card-head-txt">${head}</div>${actions}</div>` + clinicDetailBody(c, linked, contacts, undefined, related, monthly);
   }
   panel.innerHTML = inner;
   hydrateCard(document.querySelector('#notesList[data-cid]') ? Number(document.querySelector('#notesList[data-cid]').dataset.cid) : 0);
-  if (document.body.classList.contains('detail-mode')) {
+  if (window.innerWidth < 900) {
     const back = document.createElement('button');
     back.className = 'btn ghost detail-back';
     back.textContent = '← Назад';
     back.addEventListener('click', (ev) => { ev.stopPropagation(); closeCardToList(); });
     panel.insertBefore(back, panel.firstChild);
   }
+}
+
+// v3.27.0: вторая строка карточки клиники — «город · ЛПУ/ЧК · менеджер»
+function clinicSubLine(c) {
+  const own = ownershipOf(c);
+  const ownShort = own === 'state' ? 'ЛПУ' : (own === 'private' ? 'ЧК' : '');
+  return [c.city, ownShort, (c.manager && !isFirmKind(c.kind)) ? c.manager : ''].filter(Boolean).join(' · ');
+}
+// v3.27.0: быстрый доступ к карточке из кэша — чтобы панель открывалась без ожидания сети
+function clinicFromCache(id) {
+  try {
+    const v = (rcHas('t:clinics') && Array.isArray(RC.data['t:clinics'])) ? RC.data['t:clinics'] : null;
+    if (!v) return null;
+    const r = v.find(x => Number(x.id) === Number(id));
+    return r ? fromClinic(r) : null;
+  } catch (_) { return null; }
+}
+// v3.27.0: сайт — компактной ссылкой в шапке (отдельной плашки «Сайт» больше нет)
+function siteChipHtml(situation) {
+  const { site } = splitSite(situation);
+  if (!site) return '';
+  let dom = site; try { dom = new URL(site).hostname.replace(/^www\./, ''); } catch (_) {}
+  return `<a class="site-chip" href="${esc(site)}" target="_blank" rel="noopener" title="${esc(site)}">🌐 ${esc(dom)}</a>`;
 }
 
 {
