@@ -1514,7 +1514,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.17.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.18.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2808,22 +2808,29 @@ async function renderMyDay() {
   const block = (title, list, badgeFn, useChip) => list.length
     ? `<div class="cns-head"><span>${title}${list.length ? ' · <b>' + list.length + '</b>' : ''}</span>${useChip && mgrSel ? mgrSel : ''}</div><div class="list">${list.map(c => row(c, badgeFn(c))).join('')}</div>`
     : '';
-  // «Требуют внимания»: снижение по двум продуктам HugeMed, сравнение год к году
-  const att = clinics.filter(c => c.hugemed_2025 > 0 && c.hugemed_2026 > 0 && c.hugemed_2026 < c.hugemed_2025)
-    .sort((a, b) => (a.hugemed_2026 / a.hugemed_2025) - (b.hugemed_2026 / b.hugemed_2025));
+  // v3.18.0: «Требуют внимания» — снижение ПО ВСЕМ продуктам: сравниваем годовые итоги 2025 и 2026
+  // (Boston + HugeMed вместе; отсутствующее значение не считаем нулём)
+  const sumY = (c, y) => {
+    const v = [c['sales_' + y], c['hugemed_' + y]].filter(x => x != null && x !== '');
+    return v.length ? v.reduce((a, b) => a + Number(b), 0) : null;
+  };
+  const att = clinics.map(c => ({ c, a: sumY(c, '2025'), b: sumY(c, '2026') }))
+    .filter(x => x.a != null && x.b != null && x.a > 0 && x.b < x.a)
+    .sort((p, q) => (p.b / p.a) - (q.b / q.a));
   // v3.17.3: блок «Требуют внимания» показываем всегда; если снижений нет — пишем, сколько клиник
-  // вообще имеет заполненные HugeMed 2025 / 2026 (иначе блок «исчезал» и выглядел как нереализованный)
-  const attD25 = clinics.filter(c => (c.hugemed_2025 || 0) > 0).length;
-  const attD26 = clinics.filter(c => (c.hugemed_2026 || 0) > 0).length;
+  // вообще имеет заполненный 2025 / 2026 (иначе блок «исчезал» и выглядел как нереализованный)
+  const attD25 = clinics.filter(c => sumY(c, '2025') != null).length;
+  const attD26 = clinics.filter(c => sumY(c, '2026') != null).length;
   const pct = (cur, prev) => Math.round((cur - prev) / prev * 100);
-  const attBlock = `<div class="cns-head"><span>Требуют внимания · HugeMed 2026${att.length ? ' <b>' + att.length + '</b>' : ''}</span></div>`
+  const kv = (cur, prev) => (prev == null ? '—' : fmtMoney(prev)) + ' → ' + (cur == null ? '—' : fmtMoney(cur));
+  const attBlock = `<div class="cns-head"><span>Требуют внимания · 2026 к 2025${att.length ? ' <b>' + att.length + '</b>' : ''}</span></div>`
     + (att.length
-      ? `<div class="list">${att.slice(0, 20).map(c => `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
-        <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span><span class="nd nd-over">${pct(c.hugemed_2026, c.hugemed_2025)}%</span></div>
-        <div class="list-row-sub">2025: ${fmtMoney(c.hugemed_2025)} ₽ · 2026: ${fmtMoney(c.hugemed_2026)} ₽${c.manager ? ' · ' + esc(c.manager) : ''}</div>
+      ? `<div class="list">${att.slice(0, 50).map(x => `<div class="card list-row" data-id="${x.c.id}" data-kind="clinic">
+        <div class="list-row-top"><span class="list-row-name">${esc(x.c.name)}</span><span class="nd nd-over">${pct(x.b, x.a)}%</span></div>
+        <div class="list-row-sub">Boston ${kv(x.c['sales_2026'], x.c['sales_2025'])} · HugeMed ${kv(x.c['hugemed_2026'], x.c['hugemed_2025'])} · итого ${fmtMoney(x.a)} → ${fmtMoney(x.b)}${x.c.manager ? ' · ' + esc(x.c.manager) : ''}</div>
       </div>`).join('')}</div>
-      <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение «HugeMed 2025» и «HugeMed 2026» — годовые итоги. Помесячных данных в базе нет, поэтому помесячное сравнение невозможно.</div>`
-      : `<div class="empty">Снижения год к году нет. Для сравнения нужны оба года: «HugeMed 2025» заполнен у <b>${attD25}</b> клиник, «HugeMed 2026» — у <b>${attD26}</b>. Заполни в карточке — клиника появится здесь.</div>`);
+      <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение годовых итогов 2025 и 2026 по всем продуктам (Boston + HugeMed). Помесячных данных в базе нет.</div>`
+      : `<div class="empty">Снижения год к году нет. Для сравнения нужны оба года: итоги 2025 заполнены у <b>${attD25}</b> клиник, 2026 — у <b>${attD26}</b>. Заполни в карточке — клиника появится здесь.</div>`);
   const chip = () => state.mydayMgr || 'Все';
   const mgrSel = isBoss ? `<div class="md-mgr" id="mdMgrBox"><button class="md-mgr-btn" id="mdMgrBtn" title="Фильтр по менеджеру">${esc(chip())}<span class="md-caret">▾</span></button>
       <div class="md-mgr-pop hidden" id="mdMgrPop">${[''].concat(mgrs).map(m => `<button class="md-mgr-opt${(state.mydayMgr || '') === m ? ' active' : ''}" data-m="${esc(m)}">${esc(m || 'Все менеджеры')}</button>`).join('')}</div>
