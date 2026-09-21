@@ -579,6 +579,9 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .mny-yr:hover td { color: var(--brand); }
 .mny-yr .mm-caret { font-size: 8px; }
 .money-tbl tbody tr.mny-m td { color: var(--muted); font-size: 11.5px; padding-top: 1px; padding-bottom: 1px; }
+.mny-gran { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); margin: 2px 0 6px; }
+.mny-g { font: inherit; font-size: 11.5px; line-height: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; }
+.mny-g.on { color: var(--brand); border-color: var(--brand); }
 .priv-row.compact { display: flex; align-items: center; gap: 8px; margin: 0; }
 .priv-row.compact .lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; min-width: 0; }
 .priv-row.compact input[type=date] { flex: 0 0 auto; width: 148px; height: 30px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); font: inherit; font-size: 13px; }
@@ -1531,7 +1534,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.23.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.24.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4002,7 +4005,29 @@ async function listMonthly(clinicId) {
   });
 }
 
+// v3.24.0: гранулярность разворота продаж — месяцы или кварталы
+let MNY_G = (localStorage.getItem('mnyGran') === 'q') ? 'q' : 'm';
+let MNY_CUR = [];
+function mnyRows(y) {
+  const list = (MNY_CUR || []).filter(r => String(r.year) === String(y));
+  if (!list.length) return [];
+  if (MNY_G === 'q') {
+    const q = {};
+    list.forEach(r => {
+      const k = Math.ceil(Number(r.month) / 3);
+      if (!q[k]) q[k] = { sale: null };
+      if (r.sale != null) q[k].sale = Number(q[k].sale || 0) + Number(r.sale);
+    });
+    return Object.keys(q).sort((a, b) => a - b).map(k => ({ label: ['', 'I', 'II', 'III', 'IV'][k] + ' кв', sale: q[k].sale }));
+  }
+  return list.slice().sort((a, b) => Number(a.month) - Number(b.month)).map(r => ({ label: MONTH_RU[Number(r.month)] || r.month, sale: r.sale }));
+}
+function mnyTbodyHtml(y) {
+  return mnyRows(y).map(r => `<tr class="mny-m"><td>${r.label}</td><td>${r.sale != null ? fmtMoney(r.sale) : '—'}</td><td>—</td><td>${r.sale != null ? fmtMoney(r.sale) : '—'}</td></tr>`).join('');
+}
+
 function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
+  MNY_CUR = (monthly || []).slice();
   const mm = {};
   (monthly || []).forEach(r => { (mm[r.year] = mm[r.year] || []).push(r); });
   const canEditNow = canEditCard === undefined
@@ -4024,9 +4049,9 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
   const oldRows = oldYears.filter(hasYear);
   // v3.23.0: месяцa — вложенными строками под годом (только там, где они есть в базе)
   const monthTbody = y => {
-    const list = (mm[y] || []).slice().sort((a, b) => a.month - b.month);
-    if (!list.length) return '';
-    return `<tbody id="mnyY${y}" class="hidden">` + list.map(r => `<tr class="mny-m"><td>${MONTH_RU[r.month] || r.month}</td><td>${r.sale != null ? fmtMoney(r.sale) : '—'}</td><td>—</td><td>${r.sale != null ? fmtMoney(r.sale) : '—'}</td></tr>`).join('') + `</tbody>`;
+    const inner = mnyTbodyHtml(y);
+    if (!inner) return '';
+    return `<tbody id="mnyY${y}" class="hidden">` + inner + `</tbody>`;
   };
   const yearTbody = (rows, hidden) => rows.map(y => {
     const has = (mm[y] || []).length > 0;
@@ -4034,8 +4059,11 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
       + `<tr${has ? ` class="mny-yr" data-y="${y}"` : ''}><td>${y}${has ? ' <span class="mm-caret">▾</span>' : ''}</td><td>${c['sales_' + y] != null ? fmtMoney(c['sales_' + y]) : '—'}</td><td>${c['hugemed_' + y] != null ? fmtMoney(c['hugemed_' + y]) : '—'}</td><td>${(() => { const s = c['sales_' + y], h = c['hugemed_' + y]; return (s != null || h != null) ? fmtMoney(Number(s || 0) + Number(h || 0)) : '—'; })()}</td></tr>`
       + `</tbody>` + monthTbody(y);
   }).join('');
+  const hasMon = Object.keys(mm).length > 0;
+  const granSwitch = `<div class="mny-gran">Показать: <button class="mny-g${MNY_G === 'm' ? ' on' : ''}" data-g="m" type="button">Месяцы</button><button class="mny-g${MNY_G === 'q' ? ' on' : ''}" data-g="q" type="button">Кварталы</button></div>`;
   const salesBlock = canPriv ? `<details class="detail-block" open>
       <summary>Продажи, ₽</summary>
+      ${hasMon ? granSwitch : ''}
       ${(mainRows.length || oldRows.length) ? `<table class="money-tbl">
         <thead><tr><th>Год</th><th>Boston</th><th>HugeMed</th><th>Сумма</th></tr></thead>
         ${yearTbody(mainRows, false)}
@@ -4448,6 +4476,27 @@ document.addEventListener('click', async (ev) => {
     const show = tb.length ? tb[0].classList.contains('hidden') : false;
     tb.forEach(t => t.classList.toggle('hidden', !show));
     mm.classList.toggle('open', show);
+    return;
+  }
+  const mg = ev.target.closest('.mny-g');           // v3.24.0: переключатель месяцы/кварталы
+  if (mg) {
+    ev.preventDefault(); ev.stopPropagation();
+    const g = mg.dataset.g === 'q' ? 'q' : 'm';
+    if (g === MNY_G) return;
+    MNY_G = g;
+    try { localStorage.setItem('mnyGran', g); } catch (_) {}
+    document.querySelectorAll('#hoverCard .mny-g').forEach(b => b.classList.toggle('on', b.dataset.g === g));
+    document.querySelectorAll('#hoverCard tbody[id^="mnyY"]').forEach(tb => {
+      const y = tb.id.slice(4);
+      const html = mnyTbodyHtml(y);
+      if (html) { tb.innerHTML = html; tb.classList.remove('hidden'); }
+      else {
+        tb.innerHTML = ''; tb.classList.add('hidden');
+        const yr = document.querySelector(`#hoverCard .mny-yr[data-y="${y}"]`);
+        const car = yr && yr.querySelector('.mm-caret');
+        if (car) car.style.transform = '';
+      }
+    });
     return;
   }
   const my = ev.target.closest('.mny-yr');
