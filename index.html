@@ -548,6 +548,51 @@ body.logged-out .toast { display: none !important; }
   .cns-head .md-mgr { margin-right: 8px; }
 }
 
+/* ================= v3.28.0: «Взять в работу», «Добавить клинику», календарь даты связи ================= */
+.work-block .work-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.work-block select.mini, .work-block .mini { font: inherit; font-size: 13px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.btn.mini { padding: 4px 10px; font-size: 13px; border-radius: 8px; }
+.btn.primary { background: var(--brand); color: #fff; border-color: var(--brand); font-weight: 700; }
+.btn.primary:hover { background: var(--brand-dark); }
+.ac-hint { font-size: 12px; color: var(--muted); margin: 2px 0 8px; }
+.ac-list { max-height: 46vh; overflow-y: auto; border-top: 1px solid var(--line); }
+.ac-row { display: flex; align-items: center; gap: 10px; padding: 9px 2px; border-bottom: 1px solid var(--line); }
+.ac-main { min-width: 0; flex: 1 1 auto; }
+.ac-name { font-weight: 600; font-size: 14px; }
+.ac-sub { font-size: 12px; color: var(--muted); }
+.ac-act { flex: 0 0 auto; }
+.ac-badge { font-size: 12px; color: var(--brand-dark); background: #e6f4f4; border-radius: 8px; padding: 4px 8px; white-space: nowrap; }
+.ac-empty { font-size: 13px; color: var(--muted); padding: 10px 2px; }
+.ac-mgr { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+.ac-mgr select { font: inherit; font-size: 13px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+.nc-matches { margin-top: 6px; }
+.nc-hit-t { font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+.nc-hit { font-size: 13px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 4px; cursor: pointer; background: #fff; }
+.nc-hit:hover { background: var(--bg); }
+/* поле даты связи + свой календарь (кнопки ◀ • ▶, • — сегодня) */
+.date-wrap { display: inline-flex; align-items: center; gap: 4px; }
+.date-inp { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font: inherit; background: #fff; min-width: 116px; cursor: pointer; }
+.date-inp:disabled { background: var(--bg); color: var(--muted); }
+.date-cal, .date-clear { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 5px 8px; cursor: pointer; font-size: 14px; line-height: 1; }
+.date-clear { color: var(--danger); }
+.cal-ovl { position: fixed; inset: 0; background: rgba(0,0,0,.32); z-index: 60; }
+.cal-pop { position: fixed; z-index: 61; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 296px; max-width: calc(100vw - 24px);
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-lg); padding: 12px; }
+.cal-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.cal-nav { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 4px 10px; cursor: pointer; font-size: 14px; }
+.cal-nav:hover { background: var(--bg); }
+.cal-title { flex: 1 1 auto; text-align: center; font-weight: 600; font-size: 14px; }
+.cal-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--brand); background: #fff; cursor: pointer; padding: 0; flex: 0 0 auto; }
+.cal-dot:hover { background: var(--brand); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-w { font-size: 11px; color: var(--muted); text-align: center; padding: 2px 0; }
+.cal-d { text-align: center; padding: 7px 0; border-radius: 8px; font-size: 13px; cursor: pointer; }
+.cal-d:hover { background: var(--bg); }
+.cal-d.other { color: #c9c9c9; }
+.cal-d.today { box-shadow: inset 0 0 0 1px var(--brand); font-weight: 700; }
+.cal-d.sel { background: var(--brand); color: #fff; font-weight: 700; }
+.cal-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.cal-foot .btn { padding: 6px 10px; font-size: 13px; }
 /* телефон — ссылка для звонка */
 a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 
@@ -622,6 +667,10 @@ input[type=search]::-webkit-search-cancel-button { display: none; }
   box-shadow: var(--shadow);
 }
 .add-btn:hover { background: var(--brand-dark); }
+/* v3.28.0: на десктопе кнопка «Добавить …» подписана (в «Клиниках» — «Добавить клинику») */
+@media (min-width: 900px) {
+  .add-btn.with-label { width: auto; padding: 0 12px; font-size: 13.5px; font-weight: 700; gap: 6px; }
+}
 .panel-hint { color: var(--muted); font-size: 14px; padding: 28px 8px; text-align: center; }
 .card-top { color: var(--muted); font-size: 12.5px; margin: 0; }
 .card-mgr { font-size: 13px; color: var(--muted); margin: 0 0 6px; }
@@ -1635,7 +1684,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.27.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.28.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1864,7 +1913,7 @@ async function bootstrap() {
   render();
   refreshCounts();
   // v3.27.3: в фоне прогреваем кэш людей и связок — тогда карточка клиники открывается мгновенно
-  setTimeout(() => { listPeople().catch(() => {}); listClinicLinks().catch(() => {}); }, 1200);
+  setTimeout(() => { listPeople().catch(() => {}); listClinicLinks().catch(() => {}); getDict('manager').catch(() => {}); }, 1200);
 }
 
 async function init() {
@@ -2107,14 +2156,15 @@ const VIEW_FILTER_KEYS = {
   reffirm: ['region', 'city', 'tags'],
   refcontact: ['region', 'city'],
 };
+// v3.28.0: виды, где кнопка «＋» не показывается (кнопку синхронизируем и в render())
+const FAB_HIDDEN_VIEWS = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
 const EMPTY_FILTERS = { region: '', city: '', manager: '', type: '', tag: '', tags: [] };
 const viewFilters = {};
 const viewSearch = {};
 async function updateFiltersUI() {
   const bar = document.getElementById('filters');
   const fab = document.getElementById('fab');
-  const menuViews = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
-  fab.classList.toggle('hidden', menuViews.includes(state.view));
+  fab.classList.toggle('hidden', FAB_HIDDEN_VIEWS.includes(state.view));
   // мобильная нижняя плашка: у Саши свой 3-й стол (Саша/Настя/Галя), у остальных 2-й стол анализа
   const inAnalysis = ['analysis', 'money', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(state.view);
   const mainBar = document.getElementById('tabbar-main');
@@ -2364,9 +2414,8 @@ document.getElementById('f_city').addEventListener('change', e => {
 document.getElementById('fab').addEventListener('click', async () => {
   if (CURRENT_ROLE === 'guest' || CURRENT_ROLE === 'viewer') return;
   try {
-    if (state.view === 'clinics') await openClinicForm(null, 'hospital');
+    if (state.view === 'clinics' || state.view === 'money') await openAddClinicDialog();
     else if (state.view === 'distributors') await openClinicForm(null, 'distributor');
-    else if (state.view === 'money') await openClinicForm(null, 'hospital');
     else if (state.view === 'people') await openPersonForm();
     else if (state.view === 'analysis' || state.view === 'calls' || state.view === 'visits' || state.view === 'nastya') return;
     else addDictPrompt();
@@ -2459,6 +2508,21 @@ async function render() {
   if (state.view !== 'calls' && state.view !== 'visits') state.defaultAction = null;
   hideHover();
   setActiveTab(state.view);
+  // v3.28.0: кнопка «＋» (в строке поиска / fab) — держим видимой там, где она нужна (в «Клиниках» тоже)
+  {
+    const fabEl = document.getElementById('fab');
+    const addEl = document.getElementById('addBtn');
+    if (fabEl) {
+      fabEl.classList.toggle('hidden', FAB_HIDDEN_VIEWS.includes(state.view));
+      if (addEl) {
+        addEl.classList.toggle('hidden', fabEl.classList.contains('hidden'));
+        const addLabels = { clinics: '＋ Добавить клинику', money: '＋ Добавить клинику', distributors: '＋ Добавить партнёра', people: '＋ Добавить человека', dicts: '＋ Добавить' };
+        const withLabel = window.innerWidth >= 900 && !!addLabels[state.view];
+        addEl.classList.toggle('with-label', withLabel);
+        addEl.textContent = withLabel ? addLabels[state.view] : '＋';
+      }
+    }
+  }
   // гейт рабочих листов — применяется при каждом рендере (кеш не обманет)
   Object.keys(WORKLISTS).forEach(k => {
     const can = WORKLISTS[k].emails.includes(CURRENT_EMAIL);
@@ -3064,7 +3128,8 @@ async function renderMyDay() {
   // v3.16.4: фильтр по менеджерам в «Моём дне» — ТОЛЬКО для аккаунта Абрамова (строго по e-mail,
   // без фолбэка на роль из localStorage — иначе чужой вход на этом же устройстве видел фильтр)
   const isBoss = String(CURRENT_EMAIL || '').toLowerCase() === 'abramson@crm.ru';
-  let clinics = (await listClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital');
+  // v3.28.0: в «Мой день» попадают и справочные клиники, взятые в работу (есть ответственный)
+  let clinics = (await listClinics()).filter(c => !c.markedDel && ((c.kind || 'hospital') === 'hospital' || (isRefClinicCard(c) && String(c.manager || '').trim() !== '')));
   const MGR_PICK = ['Абрамов', 'Осечкина', 'Скокова'];   // v3.15.2: в «Моём дне» — только эти менеджеры
   const mgrs = MGR_PICK.filter(m => clinics.some(c => (c.manager || '') === m));
   if (state.mydayMgr) clinics = clinics.filter(c => (c.manager || '') === state.mydayMgr);
@@ -3233,7 +3298,12 @@ async function renderOrgList(kind) {
   const view = document.getElementById('view');
   const emptyWord = kind === 'distributor' ? 'Партнеров' : 'Клиник';
   let clinics = await listClinics();
-  clinics = clinics.filter(c => (c.kind || 'hospital') === kind);
+  // v3.28.0: в рабочих «Клиниках» — больницы + справочные карточки, взятые в работу (есть ответственный)
+  clinics = clinics.filter(c => {
+    const k = c.kind || 'hospital';
+    if (k === kind) return true;
+    return kind === 'hospital' && isRefClinicCard(c) && String(c.manager || '').trim() !== '';
+  });
   const s = state.search;
   const f = state.filters;
   const mineOnly = kind === 'hospital' && !!state.mineOnly;
@@ -4416,6 +4486,309 @@ document.addEventListener('click', async ev => {
   }
 });
 
+// ================= v3.28.0: клиника из справочника → «Взять в работу» (без копии) =================
+// Справочная клиника (Гос ЛПУ / Частная) становится рабочей, когда у неё появляется ответственный:
+// пишем clinics.manager (виден всем) + закрытую clinic_private.manager (доступ к записям и деньгам).
+// Если справочная карточка уже связана с рабочей (linked_clinic_id) — ответственного ставим рабочей карточке.
+function isRefClinicCard(c) {
+  const k = (c && c.kind) || '';
+  return k === 'ref_gos' || k === 'ref_priv';
+}
+function cacheClinicsById() {
+  const byId = {};
+  const arr = RC.data['t:clinics'];
+  if (Array.isArray(arr)) arr.forEach(r => { byId[r.id] = fromClinic(r); });
+  return byId;
+}
+function patchClinicCache(id, patch) {
+  const arr = RC.data['t:clinics'];
+  if (Array.isArray(arr)) arr.forEach(r => { if (Number(r.id) === Number(id)) Object.assign(r, patch); });
+}
+function patchPrivCache(cid, patch) {
+  const arr = RC.data['cp'];
+  if (Array.isArray(arr)) arr.forEach(r => { if (Number(r.clinic_id) === Number(cid)) Object.assign(r, patch); });
+}
+// «в работе» = есть ответственный (у самой карточки или у связанной рабочей)
+function refWorkInfo(c, byId) {
+  const map = byId || cacheClinicsById();
+  const own = String(c.manager || '').trim();
+  const linked = (c.linkedClinicId && map[c.linkedClinicId]) ? map[c.linkedClinicId] : null;
+  const linkedIsWork = !!(linked && !isRefKind(linked.kind));
+  const lm = linkedIsWork ? String(linked.manager || '').trim() : '';
+  const inWork = !!(lm || own);
+  const workId = lm ? linked.id : (own ? c.id : (linkedIsWork ? linked.id : c.id));
+  return { inWork, manager: lm || own, workId, linked, linkedIsWork };
+}
+function canTakeClinic() {
+  return CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit();
+}
+function mgrOptionsNow(sel) {
+  let vals = [];
+  try { vals = rcGet('d:manager') || []; } catch (_) { vals = []; }
+  vals = (vals || []).filter(Boolean);
+  if (!vals.length) vals = ['Абрамов', 'Осечкина', 'Скокова'];
+  const cur = String(sel || '');
+  return vals.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(v)}</option>`).join('');
+}
+async function mgrOptionsHtml(sel) {
+  let vals = [];
+  try { vals = await getDict('manager'); } catch (_) { vals = []; }
+  vals = (vals || []).filter(Boolean);
+  if (!vals.length) vals = ['Абрамов', 'Осечкина', 'Скокова'];
+  const cur = String(sel || '');
+  return vals.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(v)}</option>`).join('');
+}
+// взять справочную клинику в работу (или сменить ответственного — то же действие на уже рабочей)
+async function takeClinicIntoWork(cid, mgr) {
+  const who = String(mgr || '').trim();
+  if (!who) { toast('Выбери ответственного'); return null; }
+  const c = await getClinic(cid);
+  if (!c) return null;
+  const info = refWorkInfo(c);
+  const target = info.workId || c.id;
+  const { error } = await sb.from('clinics').update({ manager: who }).eq('id', target);
+  if (error) { toast('⚠️ ' + error.message); return null; }
+  try {
+    const { data: ex } = await sb.from('clinic_private').select('clinic_id,manager').eq('clinic_id', target).maybeSingle();
+    if (!ex) await saveClinicPrivate(target, who, {});
+    else if (String(ex.manager || '').trim() !== who) await sb.from('clinic_private').update({ manager: who }).eq('clinic_id', target);
+  } catch (_) { /* закрытую часть настроит руководитель */ }
+  patchClinicCache(target, { manager: who });
+  toast('✓ В работе · ' + who);
+  return target;
+}
+// блок «В работе» в карточке справочной клиники
+function workBlockHtml(c, canEditNow) {
+  if (!isRefClinicCard(c)) return '';
+  const w = refWorkInfo(c);
+  const boss = CURRENT_ROLE === 'admin';
+  if (!canTakeClinic()) {
+    return w.inWork ? `<div class="detail-block work-block"><div class="k">В работе</div><div class="v">${esc(w.manager)}</div></div>` : '';
+  }
+  const mgrOptionsStr = mgrOptionsNow(w.inWork ? w.manager : myManager());
+  if (w.inWork) {
+    return `<div class="detail-block work-block" data-cid="${c.id}">
+      <div class="k">В работе</div>
+      <div class="v work-line">Ответственный: <b>${esc(w.manager)}</b>
+        ${boss ? `<button type="button" class="btn ghost mini" id="workChange">Сменить</button>` : ''}
+      </div>
+      ${boss ? `<div class="work-line hidden" id="workChangeBox" style="margin-top:6px">
+        <select id="workMgr" class="mini">${mgrOptionsStr}</select>
+        <button type="button" class="btn primary mini" id="workSet" data-id="${c.id}">Поставить</button></div>` : ''}
+    </div>`;
+  }
+  return `<div class="detail-block work-block" data-cid="${c.id}">
+    <div class="k">Не в работе</div>
+    <div class="v work-line">${boss ? `<select id="workMgr" class="mini">${mgrOptionsStr}</select>` : ''}
+      <button type="button" class="btn primary mini" id="workTake" data-id="${c.id}">Взять в работу</button>
+      <span class="ac-hint" style="margin:0">появится в «Клиниках» и в «Моих клиниках»</span>
+    </div>
+  </div>`;
+}
+// ---------- «Добавить клинику»: поиск по справочнику ----------
+async function openAddClinicDialog() {
+  if (!canTakeClinic()) return;
+  const boss = CURRENT_ROLE === 'admin';
+  const mgrSel = await mgrOptionsHtml(myManager());
+  openModal('Добавить клинику', `
+    <div class="field"><label>Найди клинику в справочнике (государственные и частные)</label>
+      <input id="ac_q" placeholder="Название или город" autocomplete="off" /></div>
+    ${boss ? `<div class="ac-mgr">Ответственный: <select id="ac_mgr">${mgrSel}</select></div>` : `<div class="ac-hint">Тебя назначат ответственным автоматически.</div>`}
+    <div class="ac-list" id="ac_list"><div class="ac-empty">Загрузка…</div></div>
+    <div class="btn-row" style="margin-top:12px"><button type="button" class="btn primary" id="ac_new">Создать новую клинику</button></div>
+  `);
+  const inp = document.getElementById('ac_q');
+  if (inp) { inp.focus(); inp.addEventListener('input', () => renderAddClinicResults(inp.value.trim().toLowerCase())); }
+  document.getElementById('ac_new').addEventListener('click', async () => {
+    const q = inp ? inp.value.trim() : '';
+    closeModal();
+    await openNewClinicForm(q);
+  });
+  const list = document.getElementById('ac_list');
+  list.addEventListener('click', async (ev) => {
+    const take = ev.target.closest('[data-take]');
+    if (take) {
+      ev.preventDefault(); ev.stopPropagation();
+      const selM = document.getElementById('ac_mgr');
+      const who = selM ? selM.value : myManager();
+      take.disabled = true;
+      const t = await takeClinicIntoWork(Number(take.dataset.take), who);
+      if (t) { await renderAddClinicResults((inp && inp.value.trim().toLowerCase()) || ''); }
+      return;
+    }
+    const row = ev.target.closest('[data-open]');
+    if (row) {
+      ev.preventDefault(); ev.stopPropagation();
+      const cid = Number(row.dataset.open);
+      closeModal();
+      state.selId = cid; state.selKind = 'clinic';
+      document.body.classList.add('card-open');
+      await showHoverCard({ dataset: { id: String(cid), kind: 'clinic' } }, true);
+      return;
+    }
+  });
+  await renderAddClinicResults('');
+}
+async function renderAddClinicResults(q) {
+  const list = document.getElementById('ac_list');
+  if (!list) return;
+  const all = await listClinics();
+  const byId = {}; all.forEach(c => { byId[c.id] = c; });
+  let rows = all.filter(c => isRefClinicCard(c) && !c.markedDel);
+  if (q) rows = rows.filter(c => (c.name || '').toLowerCase().includes(q) || (c.city || '').toLowerCase().includes(q));
+  rows.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+  const shown = rows.slice(0, 40);
+  if (!shown.length) {
+    list.innerHTML = `<div class="ac-empty">Ничего не найдено. ${q ? 'Проверь написание или ' : ''}Создай новую клинику ниже.</div>`;
+    return;
+  }
+  list.innerHTML = shown.map(c => {
+    const w = refWorkInfo(c, byId);
+    const typ = ownershipLabel(ownershipOf(c));
+    const act = w.inWork
+      ? `<span class="ac-badge">В работе · ${esc(w.manager)}</span>`
+      : `<button type="button" class="btn primary mini" data-take="${c.id}">Взять в работу</button>`;
+    return `<div class="ac-row" data-open="${w.inWork ? w.workId : c.id}">
+      <div class="ac-main"><div class="ac-name">${esc(c.name)}</div>
+      <div class="ac-sub">${esc([c.city, typ].filter(Boolean).join(' · ') || '—')}</div></div>
+      <div class="ac-act">${act}</div></div>`;
+  }).join('') + (rows.length > shown.length ? `<div class="ac-empty">Показаны первые ${shown.length} из ${rows.length} — уточни поиск.</div>` : '');
+}
+// ---------- «Создать новую клинику»: короткая форма ----------
+async function openNewClinicForm(presetName) {
+  const [regions, cities, mgrSel] = await Promise.all([datalistOptions('region'), datalistOptions('city'), mgrOptionsHtml(myManager())]);
+  const boss = CURRENT_ROLE === 'admin';
+  openModal('Новая клиника', `
+    <div class="field"><label>Название *</label><input id="nc_name" value="${esc(presetName || '')}" autocomplete="off" />
+      <div class="nc-matches" id="nc_matches"></div></div>
+    <div class="row2">
+      <div class="field"><label>Регион *</label><input id="nc_region" list="dl_r2" /><datalist id="dl_r2">${regions}</datalist></div>
+      <div class="field"><label>Город *</label><input id="nc_city" list="dl_c2" /><datalist id="dl_c2">${cities}</datalist></div>
+    </div>
+    <div class="field"><label>Тип</label><select id="nc_type"><option value="state">Государственная</option><option value="private">Частная</option></select></div>
+    <div class="field"><label>Ответственный</label>${boss ? `<select id="nc_mgr">${mgrSel}</select>` : `<input id="nc_mgr" value="${esc(myManager() || '')}" readonly />`}</div>
+    <div class="ac-hint">Остальное (люди, продажи, записи) заполняется потом в карточке.</div>
+    <button type="button" class="btn primary" id="nc_save">Создать клинику</button>
+  `);
+  const nm = document.getElementById('nc_name');
+  const drawHits = async () => {
+    const box = document.getElementById('nc_matches');
+    const q = nm.value.trim().toLowerCase();
+    if (q.length < 3) { box.innerHTML = ''; return; }
+    const all = await listClinics();
+    const hits = all.filter(c => (c.name || '').toLowerCase().includes(q)).slice(0, 6);
+    box.innerHTML = hits.length
+      ? `<div class="nc-hit-t">Похожие в базе (открой, если это она — совпадения не объединяем):</div>` +
+        hits.map(c => `<div class="nc-hit" data-open="${c.id}">${esc(c.name)}${c.city ? ' · ' + esc(c.city) : ''}</div>`).join('')
+      : '';
+  };
+  nm.addEventListener('input', drawHits);
+  if (nm.value) drawHits();
+  const matches = document.getElementById('nc_matches');
+  matches.addEventListener('click', async (ev) => {
+    const hit = ev.target.closest('[data-open]');
+    if (!hit) return;
+    ev.preventDefault(); ev.stopPropagation();
+    const cid = Number(hit.dataset.open);
+    closeModal();
+    state.selId = cid; state.selKind = 'clinic';
+    document.body.classList.add('card-open');
+    await showHoverCard({ dataset: { id: String(cid), kind: 'clinic' } }, true);
+  });
+  document.getElementById('nc_save').addEventListener('click', async () => {
+    const name = nm.value.trim();
+    const region = document.getElementById('nc_region').value.trim();
+    const city = document.getElementById('nc_city').value.trim();
+    const type = document.getElementById('nc_type').value;
+    const mgrEl = document.getElementById('nc_mgr');
+    const manager = (mgrEl.value || '').trim();
+    if (!name) { toast('Название обязательно'); return; }
+    if (!region) { toast('Регион обязателен'); return; }
+    if (!city) { toast('Город обязателен'); return; }
+    const tags = [type === 'private' ? 'частная' : 'государственная'];
+    try {
+      await addDictValues('region', [region]);
+      await addDictValues('city', [city]);
+      if (manager) await addDictValues('manager', [manager]);
+      const newId = (await addClinic({ name, region, city, manager, tags, kind: 'hospital', linkedClinicId: null })).id;
+      if (manager) {
+        try { await saveClinicPrivate(newId, manager, {}); } catch (_) {}
+      }
+      patchClinicCache(newId, { manager });
+      closeModal();
+      toast('✓ Клиника создана · ' + (manager ? 'в работе у ' + manager : 'без ответственного'));
+      render(); updateFiltersUI(); refreshCounts();
+    } catch (e) { toast('⚠️ Не сохранилось: ' + ((e && e.message) || e)); }
+  });
+}
+// ---------- дата связи: свой календарь (◀ • ▶, • — сегодня, выбор дня подтверждает сразу) ----------
+function ruDateShort(iso) {
+  if (!iso) return '';
+  const [y, m, d] = String(iso).slice(0, 10).split('-');
+  return d + '.' + m + '.' + y.slice(2);
+}
+let calOvl = null, calPop = null;
+function closeDateCal() {
+  if (calOvl) { calOvl.remove(); calOvl = null; }
+  if (calPop) { calPop.remove(); calPop = null; }
+}
+function openDateCal(curIso, onPick) {
+  closeDateCal();
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const cur = curIso ? new Date(String(curIso).slice(0, 10) + 'T00:00:00') : null;
+  let view = new Date(cur && !isNaN(cur) ? cur : today);
+  view = new Date(view.getFullYear(), view.getMonth(), 1);
+  const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  calOvl = document.createElement('div'); calOvl.className = 'cal-ovl'; calOvl.addEventListener('click', closeDateCal);
+  document.body.appendChild(calOvl);
+  calPop = document.createElement('div'); calPop.className = 'cal-pop';
+  document.body.appendChild(calPop);
+  const draw = () => {
+    const y = view.getFullYear(), m = view.getMonth();
+    const first = new Date(y, m, 1);
+    const start = new Date(first); start.setDate(first.getDate() - ((first.getDay() + 6) % 7));   // неделя с понедельника
+    let cells = '';
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      const cls = ['cal-d'];
+      if (d.getMonth() !== m) cls.push('other');
+      if (d.getTime() === today.getTime()) cls.push('today');
+      if (cur && d.getTime() === cur.getTime()) cls.push('sel');
+      cells += `<div class="${cls.join(' ')}" data-d="${iso(d)}">${d.getDate()}</div>`;
+    }
+    calPop.innerHTML = `<div class="cal-head">
+        <button type="button" class="cal-nav" data-nav="-1">‹</button>
+        <button type="button" class="cal-dot" data-today="1" title="Сегодня"></button>
+        <div class="cal-title">${MONTH_RU[m + 1]} ${y}</div>
+        <button type="button" class="cal-nav" data-nav="1">›</button></div>
+      <div class="cal-grid">${['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'].map(w => `<div class="cal-w">${w}</div>`).join('')}${cells}</div>
+      <div class="cal-foot"><button type="button" class="btn ghost" data-clr="1">Очистить</button><button type="button" class="btn ghost" data-close="1">Отмена</button></div>`;
+  };
+  draw();
+  calPop.addEventListener('click', (ev) => {
+    const nav = ev.target.closest('[data-nav]');
+    if (nav) { view = new Date(view.getFullYear(), view.getMonth() + Number(nav.dataset.nav), 1); draw(); return; }
+    if (ev.target.closest('[data-today]')) { const t = new Date(); view = new Date(t.getFullYear(), t.getMonth(), 1); draw(); closeDateCal(); onPick(iso(t)); return; }
+    if (ev.target.closest('[data-clr]')) { closeDateCal(); onPick(null); return; }
+    if (ev.target.closest('[data-close]')) { closeDateCal(); return; }
+    const d = ev.target.closest('[data-d]');
+    if (d) { const v = d.dataset.d; closeDateCal(); onPick(v); return; }
+  });
+}
+async function saveNextContact(cid, iso, mgr) {
+  try {
+    await saveClinicPrivate(cid, mgr || null, { next_contact: iso });
+    patchPrivCache(cid, { next_contact: iso });
+    const inp = document.getElementById('cpNext');
+    if (inp) { inp.value = iso ? ruDateShort(iso) : ''; inp.dataset.date = iso || ''; }
+    const clr = document.getElementById('cpClear');
+    if (clr) clr.classList.toggle('hidden', !iso);
+    toast(iso ? '✓ Связь: ' + ruDateShort(iso) : 'Дата очищена — клиника ушла из «Моего дня»');
+  } catch (e) {
+    toast('⚠️ Не сохранилось: ' + ((e && e.message) || e));
+  }
+}
+
 function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
   MNY_ROWS[c.id] = (monthly || []).slice();
   const canEditNow = canEditCard === undefined ? canEditCardNow() : !!canEditCard;
@@ -4431,6 +4804,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
     ${salesBlock}
     ${privBlock(c, canEditNow)}
+    ${workBlockHtml(c, canEditNow)}
     ${notesBlock(c, canEditNow)}
     <div id="pplWrap">${peopleBlock}</div>
     <div id="relWrap">${relBlock}</div>
@@ -4497,10 +4871,15 @@ function privBlock(c, canEditNow) {
   // v3.16.1: остался только компактный «Связаться» (дата необязательна).
   // Поле «Текущая ситуация» убрано — теперь одна лента записей ниже (п.3 дополнения),
   // сам текст ситуации сохранён: он перенесён в записи, в базе не тронут.
+  // v3.28.0: свой календарь (выбор дня подтверждает сразу), очистка даты — отдельной кнопкой ✕
   return `<div class="detail-block priv-block" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">
       <div class="priv-row compact"><span class="lbl">Связаться</span>
-        <input type="date" id="cpNext" value="${esc(d)}" ${canEditNow ? '' : 'disabled'} />
-        ${canEditNow ? `<button class="btn-primary-sm" id="cpSave" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">Сохранить</button>` : ''}
+        <span class="date-wrap">
+          <input type="text" id="cpNext" class="date-inp" readonly inputmode="none" placeholder="не назначено"
+                 value="${esc(d ? ruDateShort(d) : '')}" data-date="${esc(d)}" ${canEditNow ? '' : 'disabled'} />
+          ${canEditNow ? `<button type="button" class="date-cal" id="cpCal" data-cid="${c.id}" title="Календарь">📅</button>
+          <button type="button" class="date-clear${d ? '' : ' hidden'}" id="cpClear" data-cid="${c.id}" title="Очистить дату">✕</button>` : ''}
+        </span>
       </div>
     </div>`;
 }
@@ -4874,6 +5253,43 @@ document.addEventListener('click', async (ev) => {
   const ed = ev.target.closest('#paneClinicEdit');
   if (ed) { ev.preventDefault(); ev.stopPropagation(); openClinicForm(Number(ed.dataset.id)); return; }
   if (moneyClick(ev)) return;   // v3.24.1: разворот денег (годы/месяцы/кварталы) — общий обработчик
+  // v3.28.0: «Взять в работу» / «Сменить ответственного» / календарь даты связи
+  const wset = ev.target.closest('#workTake, #workSet');
+  if (wset) {
+    ev.preventDefault(); ev.stopPropagation();
+    const cid = Number(wset.dataset.id);
+    const sel = document.getElementById('workMgr');
+    const who = sel ? sel.value : myManager();
+    wset.disabled = true;
+    const t = await takeClinicIntoWork(cid, who);
+    if (t) { state.selId = t; state.selKind = 'clinic'; await showHoverCard({ dataset: { id: String(t), kind: 'clinic' } }, true); }
+    else { wset.disabled = false; }
+    return;
+  }
+  const wch = ev.target.closest('#workChange');
+  if (wch) {
+    ev.preventDefault(); ev.stopPropagation();
+    const box = document.getElementById('workChangeBox');
+    if (box) box.classList.toggle('hidden');
+    return;
+  }
+  const ccal = ev.target.closest('#cpCal');
+  if (ccal) {
+    ev.preventDefault(); ev.stopPropagation();
+    const pb = ccal.closest('.priv-block');
+    const mgr = pb ? (pb.dataset.mgr || '') : '';
+    const inp = document.getElementById('cpNext');
+    openDateCal((inp && inp.dataset.date) || '', (v) => saveNextContact(Number(ccal.dataset.cid), v, mgr));
+    return;
+  }
+  const cclr = ev.target.closest('#cpClear');
+  if (cclr) {
+    ev.preventDefault(); ev.stopPropagation();
+    const pb = cclr.closest('.priv-block');
+    const mgr = pb ? (pb.dataset.mgr || '') : '';
+    await saveNextContact(Number(cclr.dataset.cid), null, mgr);
+    return;
+  }
   const ap = ev.target.closest('#paneAddPerson');
   if (ap) { ev.preventDefault(); ev.stopPropagation(); openPersonForm(null, Number(ap.dataset.id)); return; }
   const pe = ev.target.closest('#panePersonEdit');
