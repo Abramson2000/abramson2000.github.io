@@ -1249,8 +1249,7 @@ function renderTheory() {
       ${l.book && !xMode ? `<p style="font-size:13px;opacity:.7;margin-top:10px">${l.course ? '📚 Источники курса' : '📖 По книге'}: ${esc(l.book)}</p>` : ''}
       ${xMode ? (function () { const b = l.blocks[xb]; return `
         ${b.p.map((par) => `<p>${esc(par)}</p>`).join('')}
-        ${b.ex ? `<div class="example-block"><div class="example-label">ПРИМЕР</div><div class="coach-note"><p>${esc(b.ex)}</p></div></div>` : ''}
-        ${(b.practice && b.practice.length) ? blockPracticeHtml(l, xb, b) : ''}`; })()
+        ${b.ex ? `<div class="example-block"><div class="example-label">ПРИМЕР</div><div class="coach-note"><p>${esc(b.ex)}</p></div></div>` : ''}`; })()
       : l.blocks.map((b, bi) => `
         <h2 class="content-heading">${esc(b.h)}</h2>
         ${b.p.map((par) => `<p>${esc(par)}</p>`).join('')}
@@ -1266,6 +1265,7 @@ function renderTheory() {
         ${l.remember.map((r, ri) => `<div class="level-card"><span>!</span><div><p>${esc(r)}</p></div></div>`).join('')}
       </div>`}
       ${chkHtml}
+      ${xMode && l.blocks[xb] && l.blocks[xb].practice && l.blocks[xb].practice.length ? blockPracticeHtml(l, xb, l.blocks[xb]) : ''}
       ${practiceHtml(l, i, done)}
       <div class="lesson-footer">
         ${mode === 'spiced'
@@ -1946,6 +1946,13 @@ function selfCheckCatalog() {
     x4.blocks.map((b, i) => ({ num: i + 1, title: b.h, qs: b.practice || [] })), true);
   return cat;
 }
+// Куда вернуться в практике «Проверь себя»: первый неотвеченный вопрос (ответы уже помечены)
+function scResume(id, total) {
+  const st = scStatOf(id);
+  const answered = new Set((st.a || []).map(Number));
+  for (let k = 0; k < total; k++) if (!answered.has(k)) return k;
+  return 0; // всё отвечено — начинаем прогон заново
+}
 function scMark(id, qi, ok) { // отмечаем ответ на вопрос практики: answered + (если верно) correct
   if (!S.scStat) S.scStat = {};
   const st = S.scStat[id] || (S.scStat[id] = { a: [], r: [] });
@@ -2014,7 +2021,16 @@ function renderSelfCheck() {
         </article>`;
       }).join('')}
       </div>`;
-    b.querySelectorAll('[data-sc]').forEach((x) => x.addEventListener('click', () => { S.sc = { id: x.dataset.sc, i: 0, pick: null, score: 0 }; renderSelfCheck(); }));
+    b.querySelectorAll('[data-sc]').forEach((x) => x.addEventListener('click', () => {
+      const cat = selfCheckCatalog();
+      const c = cat.find((z) => z.id === x.dataset.sc);
+      const st = scStatOf(x.dataset.sc);
+      const start = c ? scResume(x.dataset.sc, c.qs.length) : 0;
+      const already = st.r ? st.r.length : 0;   // уже верные ответы — счёт не теряем
+      S.sc = { id: x.dataset.sc, i: start, pick: null, score: already };
+      renderSelfCheck();
+      if (c && start > 0) toast('Продолжаем с вопроса ' + (start + 1) + ' из ' + c.qs.length);
+    }));
     return;
   }
   const c = selfCheckCatalog().find((z) => z.id === S.sc.id) || selfCheckCatalog()[0];
