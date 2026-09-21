@@ -1514,7 +1514,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.17.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.17.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2811,13 +2811,19 @@ async function renderMyDay() {
   // «Требуют внимания»: снижение по двум продуктам HugeMed, сравнение год к году
   const att = clinics.filter(c => c.hugemed_2025 > 0 && c.hugemed_2026 > 0 && c.hugemed_2026 < c.hugemed_2025)
     .sort((a, b) => (a.hugemed_2026 / a.hugemed_2025) - (b.hugemed_2026 / b.hugemed_2025));
+  // v3.17.3: блок «Требуют внимания» показываем всегда; если снижений нет — пишем, сколько клиник
+  // вообще имеет заполненные HugeMed 2025 / 2026 (иначе блок «исчезал» и выглядел как нереализованный)
+  const attD25 = clinics.filter(c => (c.hugemed_2025 || 0) > 0).length;
+  const attD26 = clinics.filter(c => (c.hugemed_2026 || 0) > 0).length;
   const pct = (cur, prev) => Math.round((cur - prev) / prev * 100);
-  const attBlock = att.length ? `<div class="cns-head"><span>Требуют внимания · HugeMed 2026 <b>${att.length}</b></span></div>
-      <div class="list">${att.slice(0, 20).map(c => `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
+  const attBlock = `<div class="cns-head"><span>Требуют внимания · HugeMed 2026${att.length ? ' <b>' + att.length + '</b>' : ''}</span></div>`
+    + (att.length
+      ? `<div class="list">${att.slice(0, 20).map(c => `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span><span class="nd nd-over">${pct(c.hugemed_2026, c.hugemed_2025)}%</span></div>
         <div class="list-row-sub">2025: ${fmtMoney(c.hugemed_2025)} ₽ · 2026: ${fmtMoney(c.hugemed_2026)} ₽${c.manager ? ' · ' + esc(c.manager) : ''}</div>
       </div>`).join('')}</div>
-      <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение «HugeMed 2025» и «HugeMed 2026» — годовые итоги. Помесячных данных в базе нет, поэтому помесячное сравнение невозможно.</div>` : '';
+      <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение «HugeMed 2025» и «HugeMed 2026» — годовые итоги. Помесячных данных в базе нет, поэтому помесячное сравнение невозможно.</div>`
+      : `<div class="empty">Снижения год к году нет. Для сравнения нужны оба года: «HugeMed 2025» заполнен у <b>${attD25}</b> клиник, «HugeMed 2026» — у <b>${attD26}</b>. Заполни в карточке — клиника появится здесь.</div>`);
   const chip = () => state.mydayMgr || 'Все';
   const mgrSel = isBoss ? `<div class="md-mgr" id="mdMgrBox"><button class="md-mgr-btn" id="mdMgrBtn" title="Фильтр по менеджеру">${esc(chip())}<span class="md-caret">▾</span></button>
       <div class="md-mgr-pop hidden" id="mdMgrPop">${[''].concat(mgrs).map(m => `<button class="md-mgr-opt${(state.mydayMgr || '') === m ? ' active' : ''}" data-m="${esc(m)}">${esc(m || 'Все менеджеры')}</button>`).join('')}</div>
