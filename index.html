@@ -1636,7 +1636,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.27.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.27.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4417,16 +4417,37 @@ document.addEventListener('click', async ev => {
 
 function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
   MNY_ROWS[c.id] = (monthly || []).slice();
-  const canEditNow = canEditCard === undefined
-    ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit())
-    : !!canEditCard;
+  const canEditNow = canEditCard === undefined ? canEditCardNow() : !!canEditCard;
   const canPriv = canSeePrivate(c);
-  // v3.25.0: ПРОДАЖИ в карточке — ОДНОЙ СТРОКОЙ (последнее сравнение). Все данные — на отдельной странице
+  // v3.25.0: ПРОДАЖИ в карточке — ОДНОЙ строкой (последнее сравнение). Все данные — на отдельной странице
   const salesBlock = canPriv ? salesLineHtml(c) : '';
+  const peopleBlock = peopleBlockHtml(c, contacts, canEditNow);
+  const relBlock = relBlockHtml(c, linked, related);
+  // v3.22.1: блок «Подробнее» убран из карточки клиники (город/тип/ответственный дублируют шапку);
+  // метки оставлены отдельной компактной плашкой — они нигде больше в карточке не показываются
+  const tagsBlock = tagsHtml(c.tags);
+  return `
+    ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
+    ${salesBlock}
+    ${privBlock(c, canEditNow)}
+    ${notesBlock(c, canEditNow)}
+    <div id="pplWrap">${peopleBlock}</div>
+    <div id="relWrap">${relBlock}</div>
+    ${tagsBlock}
+  `;
+}
+
+// v3.27.2: право правки карточки (когда параметр не задан)
+function canEditCardNow() {
+  return CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit();
+}
+
+// v3.27.2: ЛЮДИ — отдельной функцией, чтобы карточка рисовалась раньше, а список людей досыпался позже
+function peopleBlockHtml(c, contacts, canEditNow) {
   // v3.16.0: ЛЮДИ — компактный список (имя, должность, телефон), без счётчика и слова «нет»
-  const sortedContacts = [...contacts].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
+  const sortedContacts = [...(contacts || [])].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
   const addPersonBtn = `<button class="pane-btn" id="paneAddPerson" data-id="${c.id}">＋ Добавить человека</button>`;
-  const peopleBlock = sortedContacts.length
+  return sortedContacts.length
     ? `<div class="detail-block ppl-block">
         ${sortedContacts.map(p => `<div class="ppl-row contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">
             <div class="ppl-name">${esc(p.fullName)}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}</div>
@@ -4436,6 +4457,10 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
         ${canEditNow ? `<div class="ppl-add">${addPersonBtn}</div>` : ''}
       </div>`
     : (canEditNow ? `<div class="detail-block ppl-block ppl-empty">${addPersonBtn}</div>` : '');
+}
+
+// v3.27.2: СВЯЗАННЫЕ ПАРТНЁРЫ — тоже отдельной функцией
+function relBlockHtml(c, linked, related) {
   // v3.16.0: ПАРТНЁРЫ — только реальные компании; свою справочную запись не показываем
   const isCompanyKind = k => k === 'distributor' || k === 'ref_firm';
   const ownRef = c.linkedClinicId || 0;
@@ -4449,21 +4474,9 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
   };
   pushRel(linked);
   (related || []).forEach(pushRel);
-  const relBlock = rel.length
+  return rel.length
     ? `<div class="detail-block"><div class="k">Связанные партнёры</div>${rel.map(r => `<div class="v"><span class="org-link" data-clinic="${r.id}">${esc(r.name)}</span></div>`).join('')}</div>`
     : '';
-  // v3.22.1: блок «Подробнее» убран из карточки клиники (город/тип/ответственный дублируют шапку);
-  // метки оставлены отдельной компактной плашкой — они нигде больше в карточке не показываются
-  const tagsBlock = tagsHtml(c.tags);
-  return `
-    ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-    ${salesBlock}
-    ${privBlock(c, canEditNow)}
-    ${notesBlock(c, canEditNow)}
-    ${peopleBlock}
-    ${relBlock}
-    ${tagsBlock}
-  `;
 }
 
 // ---- v3.12.2: «Работа и продажи · Вам и руководителю» + история записей ----
@@ -4755,34 +4768,43 @@ async function showHoverCard(row, immediate) {
     state.selKind = 'clinic';
     const c = await getClinic(id);
     if (!c || seq !== hoverSeq) return;
-    // v3.15.3: связанная карточка, контакты и обратные ссылки — одним заходом, а не по очереди
+    const canEditC = canEditMain() || (isRefEdit() && isRefKind(c.kind));
+    // v3.27.2: карточка рисуется СРАЗУ после ответа по клинике — без медленных блоков
+    // (люди / партнёры / помесячные продажи). Они досыпаются ниже, введённое не перерисовывается.
+    const cardHead = `<div class="card-head"><div class="card-head-txt"><h3>${esc(c.name)}</h3>${clinicSubLine(c) ? `<div class="card-top">${esc(clinicSubLine(c))}</div>` : ''}</div>`
+      + `<div class="card-head-acts">${siteChipHtml(c.situation)}${canEditC ? `<button class="pane-pencil" id="paneClinicEdit" data-id="${c.id}" title="Редактировать" aria-label="Редактировать">✎</button>` : ''}</div></div>`;
+    panel.innerHTML = cardHead + clinicDetailBody(c, null, [], undefined, [], null);
+    if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
+    hydrateCard(Number(c.id) || 0);
+    // медленная часть — одним заходом (параллельно)
     const [linked, contacts, relRes, monthly] = await Promise.all([
       c.linkedClinicId ? getClinic(c.linkedClinicId) : Promise.resolve(null),
       peopleByClinic(id),
       sb.from('clinics').select('id,name,kind,linked_clinic_id').eq('linked_clinic_id', id).then(r => r).catch(() => ({ data: [] })),
       listMonthly(id)
     ]);
-    let related = (((relRes || {}).data) || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
     if (seq !== hoverSeq) return;
-    const canEditC = canEditMain() || (isRefEdit() && isRefKind(c.kind));
-    // v3.16.2: вторая строка карточки — город · ЛПУ (госы) / ЧК (частники) · менеджер
-    const own = ownershipOf(c);
-    const ownShort = own === 'state' ? 'ЛПУ' : (own === 'private' ? 'ЧК' : '');
-    const subLine = clinicSubLine(c);
-    const head = `<h3>${esc(c.name)}</h3>${subLine ? `<div class="card-top">${esc(subLine)}</div>` : ''}`;
-    const actions = `<div class="card-head-acts">${siteChipHtml(c.situation)}${canEditC ? `<button class="pane-pencil" id="paneClinicEdit" data-id="${c.id}" title="Редактировать" aria-label="Редактировать">✎</button>` : ''}</div>`;
-    // v3.17.0: заголовок и карандаш — в одну компактную строку
-    inner = `<div class="card-head"><div class="card-head-txt">${head}</div>${actions}</div>` + clinicDetailBody(c, linked, contacts, undefined, related, monthly);
+    const related = (((relRes || {}).data) || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
+    MNY_ROWS[c.id] = (monthly || []).slice();
+    const pw = document.getElementById('pplWrap');
+    if (pw) pw.innerHTML = peopleBlockHtml(c, contacts, canEditCardNow());
+    const rw = document.getElementById('relWrap');
+    if (rw) rw.innerHTML = relBlockHtml(c, linked, related);
+    if (document.body.classList.contains('sales-open')) rerenderSalesPage();
+    return;
   }
   panel.innerHTML = inner;
   hydrateCard(document.querySelector('#notesList[data-cid]') ? Number(document.querySelector('#notesList[data-cid]').dataset.cid) : 0);
-  if (window.innerWidth < 900) {
-    const back = document.createElement('button');
-    back.className = 'btn ghost detail-back';
-    back.textContent = '← Назад';
-    back.addEventListener('click', (ev) => { ev.stopPropagation(); closeCardToList(); });
-    panel.insertBefore(back, panel.firstChild);
-  }
+  if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
+}
+
+// v3.27.2: кнопка «← Назад» в карточке (только телефон)
+function makeBackBtn() {
+  const back = document.createElement('button');
+  back.className = 'btn ghost detail-back';
+  back.textContent = '← Назад';
+  back.addEventListener('click', (ev) => { ev.stopPropagation(); closeCardToList(); });
+  return back;
 }
 
 // v3.27.0: вторая строка карточки клиники — «город · ЛПУ/ЧК · менеджер»
