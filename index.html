@@ -1487,7 +1487,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.16.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.16.4';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2755,7 +2755,9 @@ async function renderMyDay() {
   state.mydayOffset = 0;               // v3.15.2: выбор дня убран — «Мой день» всегда на сегодня
   const off = 0;
   const base = new Date(); base.setHours(0, 0, 0, 0);
-  const isBoss = CURRENT_ROLE === 'admin' || String(CURRENT_EMAIL || '').toLowerCase() === 'abramson@crm.ru' || window.CURRENT_MANAGER === 'Абрамов';
+  // v3.16.4: фильтр по менеджерам в «Моём дне» — ТОЛЬКО для аккаунта Абрамова (строго по e-mail,
+  // без фолбэка на роль из localStorage — иначе чужой вход на этом же устройстве видел фильтр)
+  const isBoss = String(CURRENT_EMAIL || '').toLowerCase() === 'abramson@crm.ru';
   let clinics = (await listClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital');
   const MGR_PICK = ['Абрамов', 'Осечкина', 'Скокова'];   // v3.15.2: в «Моём дне» — только эти менеджеры
   const mgrs = MGR_PICK.filter(m => clinics.some(c => (c.manager || '') === m));
