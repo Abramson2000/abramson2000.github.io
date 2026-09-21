@@ -586,8 +586,18 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .pane-btn:hover { background: var(--bg); }
 .pane-btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
 .pane-btn.danger { color: var(--danger); border-color: #f3c9c9; }
-.md-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0 10px; }
+.md-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 6px; }
 .md-tools .sp { flex: 1 1 auto; }
+/* v3.16.5: фильтр менеджеров — компактная кнопка-чип вместо широкого селекта (только у Абрамова) */
+.md-mgr { position: relative; display: inline-block; }
+.md-mgr-btn { font: inherit; font-size: 11.5px; line-height: 1; padding: 3px 7px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+.md-mgr-btn .md-caret { font-size: 8px; line-height: 1; }
+.md-mgr.pop-open .md-mgr-btn { color: var(--brand); border-color: var(--brand); }
+.md-mgr-pop { position: absolute; left: 0; top: calc(100% + 4px); z-index: 40; background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.10); padding: 4px; min-width: 128px; }
+.md-mgr-pop.hidden { display: none; }
+.md-mgr-opt { display: block; width: 100%; text-align: left; font: inherit; font-size: 12.5px; padding: 6px 8px; border: none; background: transparent; border-radius: 7px; cursor: pointer; color: var(--ink); }
+.md-mgr-opt:hover { background: #f2f2f1; }
+.md-mgr-opt.active { color: var(--brand); font-weight: 700; }
 .md-day { font-weight: 700; font-size: 13.5px; }
 .md-act { display: inline-flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
 .md-act .pane-btn { padding: 5px 10px; font-size: 12.5px; }
@@ -1487,7 +1497,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.16.4';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.16.5';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2792,7 +2802,10 @@ async function renderMyDay() {
         <div class="list-row-sub">2025: ${fmtMoney(c.hugemed_2025)} ₽ · 2026: ${fmtMoney(c.hugemed_2026)} ₽${c.manager ? ' · ' + esc(c.manager) : ''}</div>
       </div>`).join('')}</div>
       <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение «HugeMed 2025» и «HugeMed 2026» — годовые итоги. Помесячных данных в базе нет, поэтому помесячное сравнение невозможно.</div>` : '';
-  const mgrSel = isBoss ? `<select id="mdMgr"><option value="">Все менеджеры</option>${mgrs.map(m => `<option value="${esc(m)}"${state.mydayMgr === m ? ' selected' : ''}>${esc(m)}</option>`).join('')}</select>` : '';
+  const chip = () => state.mydayMgr || 'Все';
+  const mgrSel = isBoss ? `<div class="md-mgr" id="mdMgrBox"><button class="md-mgr-btn" id="mdMgrBtn" title="Фильтр по менеджеру">${esc(chip())}<span class="md-caret">▾</span></button>
+      <div class="md-mgr-pop hidden" id="mdMgrPop">${[''].concat(mgrs).map(m => `<button class="md-mgr-opt${(state.mydayMgr || '') === m ? ' active' : ''}" data-m="${esc(m)}">${esc(m || 'Все менеджеры')}</button>`).join('')}</div>
+    </div>` : '';
   // v3.16.0: без верхней строки «Мой день · дата», без дублирующего «просрочено», без выбора дня
   // и без кнопок выполнения; заголовки — только над группами, пустые группы не выводятся
   view.innerHTML = (mgrSel ? `<div class="md-tools">${mgrSel}</div>` : '')
@@ -2801,8 +2814,23 @@ async function renderMyDay() {
     + block('Позже', [...week, ...later].slice(0, 20), c => fmtDate(c.nextContact))
     + (!withDate.length ? `<div class="empty">Запланированных контактов нет. Клиник в базе: ${clinics.length}.</div>` : '')
     + attBlock;
-  const ms = document.getElementById('mdMgr');
-  if (ms) ms.addEventListener('change', async () => { state.mydayMgr = ms.value; state.selId = null; await render(); });
+  const mb = document.getElementById('mdMgrBtn');
+  const mp = document.getElementById('mdMgrPop');
+  const mbox = document.getElementById('mdMgrBox');
+  if (mb && mp) {
+    mb.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = mp.classList.toggle('hidden');
+      if (mbox) mbox.classList.toggle('pop-open', !open);
+    });
+    mp.querySelectorAll('.md-mgr-opt').forEach(b => b.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      state.mydayMgr = b.dataset.m || '';
+      state.selId = null;
+      await render();
+    }));
+    document.addEventListener('click', () => { mp.classList.add('hidden'); if (mbox) mbox.classList.remove('pop-open'); }, { once: true });
+  }
   restorePanelSelection();
 }
 
