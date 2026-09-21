@@ -572,7 +572,7 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .priv-row.compact input[type=date] { flex: 0 0 auto; width: 148px; height: 30px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); font: inherit; font-size: 13px; }
 .priv-row.compact .btn-primary-sm { padding: 5px 12px; font-size: 13px; }
 /* v3.16.2: блок «Связаться» — узкий, по содержимому (был растянут на всю ширину) */
-.priv-block { width: fit-content; max-width: 100%; padding: 7px 11px; margin-bottom: 8px; }
+.priv-block { padding: 7px 11px; margin-bottom: 8px; }
 /* v3.17.0: сайт — отдельной плашкой, с полем правки */
 .site-block { padding: 8px 11px; margin-bottom: 8px; }
 .site-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -1512,7 +1512,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.17.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.17.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3825,7 +3825,7 @@ function siteLineHtml(site) {
 }
 function siteBlockFull(situation, table, id, canEdit) {
   const { site } = splitSite(situation);
-  if (!canEdit && !site) return '';
+  // v3.17.1: блок «Сайт» показываем ВСЕГДА (даже пустой и без прав) — он не должен пропадать
   return `<div class="detail-block site-block" data-table="${table}" data-id="${id}">
       <div class="k">Сайт</div>
       <div class="v site-row">
@@ -3981,12 +3981,17 @@ async function fillNotesBlock0(cid) {
 }
 // v3.16.2: правка ранее записанного (карандаш → текст → «Сохранить»/«Отмена»)
 // v3.17.0: рядом с карандашом — удаление записи (с подтверждением в самой строке)
+// скрываем «инструменты» (карандаш и корзину) у ВСЕХ записей, пока одна редактируется/удаляется
+function hideNoteTools() {
+  document.querySelectorAll('#notesList .note-tools').forEach(t => { t.style.display = 'none'; });
+}
 document.addEventListener('click', async (ev) => {
   const dl = ev.target.closest('[data-note-del]');
   if (dl) {
     ev.preventDefault(); ev.stopPropagation();
     const item = dl.closest('.note-item');
     if (!item || item.querySelector('.note-text') === null) return;
+    hideNoteTools();   // v3.17.1: корзина не висит, пока идёт подтверждение
     const id = Number(dl.dataset.noteDel);
     const box = item.closest('#notesList');
     const cid = box ? Number(box.dataset.cid) : 0;
@@ -4021,6 +4026,7 @@ document.addEventListener('click', async (ev) => {
   const cur = textEl ? textEl.textContent : '';
   const metaEl = item.querySelector('.note-meta');
   const meta = metaEl ? metaEl.outerHTML : '';
+  hideNoteTools();   // v3.17.1: на время правки корзина/карандаш не показываются
   item.innerHTML = `${meta}<textarea class="note-edit-ta" id="neTa">${esc(cur)}</textarea>
     <div class="note-edit-row"><button class="btn-primary-sm" id="neSave">Сохранить</button><button class="pane-btn" id="neCancel">Отмена</button></div>`;
   const ta = item.querySelector('#neTa');
