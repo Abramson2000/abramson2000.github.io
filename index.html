@@ -571,6 +571,10 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .money-tbl th:first-child, .money-tbl td:first-child { text-align: left; width: 26%; }
 .money-tbl thead th { font-size: 11.5px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
 .money-tbl .money-sum td { font-weight: 700; border-top: 1px solid var(--line); }
+.money-more { margin-top: 6px; font: inherit; font-size: 11.5px; line-height: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; }
+.money-more .mm-caret { font-size: 8px; }
+.money-more.open { color: var(--brand); border-color: var(--brand); }
+.money-more.open .mm-caret { display: inline-block; transform: rotate(180deg); }
 .priv-row.compact { display: flex; align-items: center; gap: 8px; margin: 0; }
 .priv-row.compact .lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; min-width: 0; }
 .priv-row.compact input[type=date] { flex: 0 0 auto; width: 148px; height: 30px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); font: inherit; font-size: 13px; }
@@ -1523,7 +1527,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.21.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.22.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3718,7 +3722,8 @@ async function openClinicForm(id, presetKind) {
     <div class="field"><label>Связь (другая клиника/суб)</label>
       <select id="f_link"><option value="">— нет —</option>${linkOptions}</select>
     </div>
-    <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(c.situation)}</textarea></div>
+    <div class="field"><label>Сайт</label><input id="f_site" type="url" placeholder="https://…" value="${esc(splitSite(c.situation).site)}" /></div>
+    <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(splitSite(c.situation).rest)}</textarea></div>
     <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc((c.tags || []).join(', '))}" /></div>
     <button class="btn" id="f_save" data-id="${c.id || ''}">Сохранить</button>
     ${id ? `<div class="btn-row"><button class="btn ghost" id="f_delete">${CURRENT_ROLE === 'admin' ? 'Удалить' : (c.markedDel ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button></div>` : ''}
@@ -3824,7 +3829,9 @@ async function saveClinic(id) {
   if (!region) { toast('Регион обязателен'); return; }
   const city = document.getElementById('fm_city').value.trim();
   const manager = document.getElementById('fm_manager').value.trim();
-  const situation = document.getElementById('f_situation').value.trim();
+  const sitRaw = document.getElementById('f_situation').value.trim();
+  const siteEl = document.getElementById('f_site');
+  const situation = withSite(sitRaw, siteEl ? siteEl.value : '');
   const tags = parseTags(document.getElementById('f_tags').value);
   const linkedClinicId = document.getElementById('f_link').value ? Number(document.getElementById('f_link').value) : null;
   const isRefK = isRefKind(kind);
@@ -3879,7 +3886,8 @@ async function openPersonForm(id, presetClinicId, opts) {
       <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(p.phone)}" /></div>
       <div class="field"><label>Почта</label><input id="f_email" value="${esc(p.email)}" /></div>
     </div>
-    <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(p.situation)}</textarea></div>
+    <div class="field"><label>Сайт</label><input id="f_site" type="url" placeholder="https://…" value="${esc(splitSite(p.situation).site)}" /></div>
+    <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(splitSite(p.situation).rest)}</textarea></div>
     <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc(refTags(p.tags).join(', '))}" /></div>
     <input type="hidden" id="f_refdoc" value="${isDoc ? '1' : ''}" />
     <button class="btn" id="f_save" data-id="${p.id || ''}">Сохранить</button>
@@ -3902,7 +3910,9 @@ async function savePerson(id) {
   const phone = document.getElementById('f_phone').value.trim();
   const email = document.getElementById('f_email').value.trim();
   const position = document.getElementById('f_position').value.trim();
-  const situation = document.getElementById('f_situation').value.trim();
+  const sitRawP = document.getElementById('f_situation').value.trim();
+  const siteElP = document.getElementById('f_site');
+  const situation = withSite(sitRawP, siteElP ? siteElP.value : '');
   const tags = parseTags(document.getElementById('f_tags').value);
   const rd = document.getElementById('f_refdoc');
   if (rd && rd.value === '1' && !tags.includes(REFDOC_TAG)) tags.unshift(REFDOC_TAG);
@@ -3939,6 +3949,12 @@ function siteLineHtml(site) {
   let dom = site; try { dom = new URL(site).hostname.replace(/^www\./, ''); } catch (e) {}
   return `<a class="site-link" href="${esc(site)}" target="_blank" rel="noopener">🌐 ${esc(dom)}</a>`;
 }
+function withSite(situation, site) {
+  const { rest } = splitSite(situation);
+  const s = String(site || '').trim();
+  return s ? (rest ? rest + '\n' : '') + 'Сайт: ' + s : rest;
+}
+// v3.22.0: плашка «Сайт» только ПОКАЗЫВАЕТ адрес; правка — в форме организации/человека
 function siteBlockFull(situation, table, id, canEdit) {
   const { site } = splitSite(situation);
   // v3.17.1: блок «Сайт» показываем ВСЕГДА (даже пустой и без прав) — он не должен пропадать
@@ -3946,8 +3962,6 @@ function siteBlockFull(situation, table, id, canEdit) {
       <div class="k">Сайт</div>
       <div class="v site-row">
         <span class="site-link-wrap">${siteLineHtml(site)}</span>
-        ${canEdit ? `<input type="url" id="siteInput" class="site-input" placeholder="https://…" value="${esc(site)}" />
-        <button class="btn-primary-sm" id="siteSave" data-table="${table}" data-id="${id}">Сохранить</button>` : ''}
       </div>
     </div>`;
 }
@@ -3978,14 +3992,26 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related) {
     ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit())
     : !!canEditCard;
   const canPriv = canSeePrivate(c);
-  // v3.16.0: ПРОДАЖИ — ПЕРВЫМИ в карточке, раскрытая компактная таблица: годы и два продукта
-  const salesYears = MONEY_YEARS.filter(y => c['sales_' + y] != null || c['hugemed_' + y] != null);
+  // v3.22.0: ПРОДАЖИ — Год | Boston | HugeMed | Сумма (в году); видны текущий и два прошлых года, старые — под стрелкой
+  const CUR_Y = Number(MONEY_YEARS[MONEY_YEARS.length - 1]);
+  const mainYears = [CUR_Y, CUR_Y - 1, CUR_Y - 2].map(String).filter(y => MONEY_YEARS.includes(y));
+  const oldYears = MONEY_YEARS.filter(y => !mainYears.includes(y));
+  const hasYear = y => c['sales_' + y] != null || c['hugemed_' + y] != null;
+  const moneyRow = y => {
+    const s = c['sales_' + y], h = c['hugemed_' + y];
+    const sum = (s != null || h != null) ? (Number(s || 0) + Number(h || 0)) : null;
+    return `<tr><td>${y}</td><td>${s != null ? fmtMoney(s) : '—'}</td><td>${h != null ? fmtMoney(h) : '—'}</td><td>${sum != null ? fmtMoney(sum) : '—'}</td></tr>`;
+  };
+  const mainRows = mainYears.filter(hasYear);
+  const oldRows = oldYears.filter(hasYear);
   const salesBlock = canPriv ? `<details class="detail-block" open>
       <summary>Продажи, ₽</summary>
-      ${salesYears.length ? `<table class="money-tbl">
-        <thead><tr><th>Год</th><th>Boston</th><th>HugeMed</th></tr></thead>
-        <tbody>${salesYears.map(y => `<tr><td>${y}</td><td>${c['sales_' + y] != null ? fmtMoney(c['sales_' + y]) : '—'}</td><td>${c['hugemed_' + y] != null ? fmtMoney(c['hugemed_' + y]) : '—'}</td></tr>`).join('')}</tbody>
-      </table>` : `<div class="v" style="color:var(--muted)">данных нет</div>`}
+      ${(mainRows.length || oldRows.length) ? `<table class="money-tbl">
+        <thead><tr><th>Год</th><th>Boston</th><th>HugeMed</th><th>Сумма</th></tr></thead>
+        <tbody>${mainRows.map(moneyRow).join('')}</tbody>
+        ${oldRows.length ? `<tbody id="mnyOld" class="hidden">${oldRows.map(moneyRow).join('')}</tbody>` : ''}
+      </table>
+      ${oldRows.length ? `<button class="money-more" id="mnyMore" type="button">${oldYears[0]}–${oldYears[oldYears.length - 1]} <span class="mm-caret">▾</span></button>` : ''}` : `<div class="v" style="color:var(--muted)">данных нет</div>`}
     </details>` : '';
   // v3.16.0: ЛЮДИ — компактный список (имя, должность, телефон), без счётчика и слова «нет»
   const sortedContacts = [...contacts].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
@@ -4021,7 +4047,6 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related) {
       <summary>Подробнее</summary>
       ${[['Город', c.city], ['Тип', ownershipLabel(ownershipOf(c))], ['Ответственный', c.manager]]
         .filter(([k, v]) => v).map(([k, v]) => `<div class="v"><span class="row-sub-done">${k}:</span> ${esc(v)}</div>`).join('')}
-      ${commentField('clinics', c.id, c.situation, canEditNow)}
       ${tagsHtml(c.tags)}
     </details>`;
   return `
@@ -4388,6 +4413,14 @@ document.addEventListener('click', async (ev) => {
   }
   const ed = ev.target.closest('#paneClinicEdit');
   if (ed) { ev.preventDefault(); ev.stopPropagation(); openClinicForm(Number(ed.dataset.id)); return; }
+  // v3.22.0: стрелка «более ранние годы» в таблице продаж
+  const mm = ev.target.closest('#mnyMore');
+  if (mm) {
+    ev.preventDefault(); ev.stopPropagation();
+    const tb = document.getElementById('mnyOld');
+    if (tb) { tb.classList.toggle('hidden'); mm.classList.toggle('open', !tb.classList.contains('hidden')); }
+    return;
+  }
   const ap = ev.target.closest('#paneAddPerson');
   if (ap) { ev.preventDefault(); ev.stopPropagation(); openPersonForm(null, Number(ap.dataset.id)); return; }
   const pe = ev.target.closest('#panePersonEdit');
