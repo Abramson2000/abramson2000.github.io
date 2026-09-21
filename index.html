@@ -533,7 +533,7 @@ body.logged-out .toast { display: none !important; }
   .view, .filters, .searchbar, .work { margin-left: 260px; }
   /* v3.26.2: поиск — залипающая строка сверху, ширина = колонка списка (45%);
      нижняя плашка на десктопе не нужна (кнопка «＋» переехала в строку поиска) */
-  .searchbar { position: sticky; top: 0; z-index: 16; background: var(--bg); margin: 0; padding: 10px 16px 4px; }
+  .searchbar { position: sticky; top: 0; z-index: 16; background: var(--bg); margin: 0; padding: 8px 16px 2px; }
   .search-col { width: calc((100vw - 260px) * .45 - 8px); flex: 0 0 auto; }
   .search-box { width: calc((100vw - 260px) * .45 - 8px - 32px); }
   .bottom-bar { display: none; }
@@ -542,6 +542,11 @@ body.logged-out .toast { display: none !important; }
      кнопка «← Назад» — только на телефоне (в правой панели она не нужна) */
   body.detail-mode:not(.card-open) .work .hover-card { display: none; }
   .detail-back { display: none !important; }
+  /* v3.27.1: колонка списка на компьютере — та же ширина, что и строка поиска (45% рабочей области);
+     список не растягивается на весь экран, при открытии карточки ширина не меняется */
+  .work > #view { max-width: calc((100vw - 260px) * .45 - 8px); padding: 8px 16px 12px; }
+  /* фильтр менеджера в «Моём дне» — в строке заголовка справа, с отступом от края */
+  .cns-head .md-mgr { margin-right: 8px; }
 }
 
 /* телефон — ссылка для звонка */
@@ -593,7 +598,8 @@ input[type=search]::-webkit-search-cancel-button { display: none; }
 }
 .search-clear:hover { background: var(--line); color: var(--ink); }
 .search-kbd { flex: none; font-size: 11px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
-.search-count { font-size: 12px; color: var(--muted); padding: 6px 2px 0; min-height: 16px; }
+.search-count { font-size: 12px; color: var(--muted); padding: 6px 2px 0; }
+.search-count:empty { display: none; }
 .search-count.bad { color: var(--danger); }
 /* v3.27.0: сайт — компактной ссылкой в шапке карточки (вместо отдельной плашки) */
 .card-head-acts { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
@@ -704,10 +710,8 @@ body.detail-mode.card-open.swipe-drag #view { display: block; }
 .pane-btn:hover { background: var(--bg); }
 .pane-btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
 .pane-btn.danger { color: var(--danger); border-color: #f3c9c9; }
-.md-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 6px; }
-.md-tools .sp { flex: 1 1 auto; }
-.md-tools-lbl { font-size: 12px; color: var(--muted); }
-@media (min-width: 900px) { .md-tools { position: sticky; top: 48px; z-index: 12; background: var(--bg); padding: 6px 0 8px; margin: 0; } }
+/* v3.27.1: запасная строка фильтра (когда групп нет вовсе) — справа, плотно */
+.md-tools { display: flex; justify-content: flex-end; gap: 8px; align-items: center; margin: 0 0 4px; padding-right: 16px; }
 /* v3.16.5: фильтр менеджеров — компактная кнопка-чип вместо широкого селекта (только у Абрамова) */
 .md-mgr { position: relative; display: inline-block; }
 .md-mgr-btn { font: inherit; font-size: 11.5px; line-height: 1; padding: 3px 7px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
@@ -758,7 +762,7 @@ details.detail-block[open] > summary { margin-bottom: 6px; }
   body:not(.detail-mode) .work .hover-card { display: none; }
   /* базовая ширина: сдвиг задаём ЗДЕСЬ (правило идёт после базовых .searchbar/.view) */
   .work, .searchbar { margin-left: 260px; }
-  .work > #view { margin: 0; max-width: none; }
+  .work > #view { margin: 0; }
 }
 .badge a.tel { color: inherit; }
 .detail-block a.tel, .contact-row a.tel { color: var(--brand); }
@@ -1632,7 +1636,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.27.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.27.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2402,7 +2406,8 @@ function searchUITick() {
     const update = () => {
       const n = viewEl.querySelectorAll('.list-row').length || viewEl.querySelectorAll('tbody tr').length;
       const q = state.search || '';
-      cnt.textContent = q ? (n ? 'Найдено: ' + n : 'Ничего не найдено') : (n ? n + ' записей' : '');
+      // v3.27.1: без запроса счётчик не показываем (лишняя надпись «N записей»)
+      cnt.textContent = q ? (n ? 'Найдено: ' + n : 'Ничего не найдено') : '';
       cnt.classList.toggle('bad', !!q && !n);
     };
     new MutationObserver(() => { clearTimeout(t); t = setTimeout(update, 120); }).observe(viewEl, { childList: true, subtree: true });
@@ -3123,12 +3128,11 @@ async function renderMyDay() {
   // и без кнопок выполнения; заголовки — только над группами, пустые группы не выводятся
   // v3.17.2: на телефоне кнопка фильтра встроена в строку первого непустого заголовка;
   // v3.27.0: на компьютере — всегда своя строка сверху (как на телефоне, но не спрятана)
-  const isDesk = window.innerWidth >= 900;
-  const bOver = block('Просрочено', over, c => fmtDate(c.nextContact), !isDesk);
-  const bToday = block('Сегодня', tod, c => fmtDate(c.nextContact), !isDesk && !over.length);
-  const bLater = block('Позже', [...week, ...later].slice(0, 20), c => fmtDate(c.nextContact), !isDesk && !over.length && !tod.length);
-  const chipInHead = !isDesk && !!(bOver || bToday || bLater);
-  const toolsRow = mgrSel ? `<div class="md-tools">${isDesk ? '<span class="md-tools-lbl">Менеджер</span>' : ''}${mgrSel}<span class="sp"></span></div>` : '';
+  const bOver = block('Просрочено', over, c => fmtDate(c.nextContact), true);
+  const bToday = block('Сегодня', tod, c => fmtDate(c.nextContact), !over.length);
+  const bLater = block('Позже', [...week, ...later].slice(0, 20), c => fmtDate(c.nextContact), !over.length && !tod.length);
+  const chipInHead = !!(bOver || bToday || bLater);
+  const toolsRow = mgrSel ? `<div class="md-tools">${mgrSel}</div>` : '';
   view.innerHTML = (mgrSel && !chipInHead ? toolsRow : '')
     + bOver + bToday + bLater
     + (!withDate.length ? `<div class="empty">${sMD ? 'Ничего не найдено' : `Запланированных контактов нет. Клиник в базе: ${clinics.length}.`}</div>` : '')
