@@ -1027,10 +1027,40 @@ function toPerson(row) {
 }
 
 // ---------- справочники ----------
+// ---------- КЭШ ЧТЕНИЯ (v3.15.3) ----------
+// Без него каждый переход по меню тянул заново clinics (~670 КБ), people (~300 КБ)
+// и clinic_private (~200 КБ) — на телефоне это мегабайты трафика и долгое ожидание.
+const RC = { data: {}, ts: {}, ttl: 180000 };
+function rcGet(k) { const t = RC.ts[k]; return (t && Date.now() - t < RC.ttl) ? RC.data[k] : null; }
+function rcSet(k, v) { RC.data[k] = v; RC.ts[k] = Date.now(); }
+function invalidateCache() { RC.data = {}; RC.ts = {}; }
+// любая запись (insert/update/upsert/delete) сбрасывает кэш целиком — иначе покажем устаревшее
+(function patchWrites() {
+  try {
+    if (!sb || sb.__rcPatched) return;
+    const origFrom = sb.from.bind(sb);
+    sb.from = function (t) {
+      const q = origFrom(t);
+      ['insert', 'update', 'upsert', 'delete'].forEach((m) => {
+        const f = q[m] && q[m].bind(q);
+        if (!f) return;
+        q[m] = function () { invalidateCache(); return f.apply(null, arguments); };
+      });
+      return q;
+    };
+    sb.__rcPatched = true;
+  } catch (_) {}
+})();
+
 async function getDict(type) {
+  const key = 'd:' + type;
+  const hit = rcGet(key);
+  if (hit) return hit;
   const { data, error } = await sb.from('dicts').select('value').eq('type', type).order('value');
   if (error) throw error;
-  return (data || []).map(d => d.value);
+  const out = (data || []).map(d => d.value);
+  rcSet(key, out);
+  return out;
 }
 
 async function addDictValues(type, values) {
@@ -1053,17 +1083,33 @@ async function deleteDictValue(type, value) {
 // иначе часть карточек (например «Клиники») молча пропадала из списков
 const PAGE_SIZE = 1000;
 async function fetchAllRows(table, orderCol, tieCol) {
+  const key = 't:' + table;
+  const hit = rcGet(key);
+  if (hit) return hit;
   const out = [];
-  for (let from = 0; ; from += PAGE_SIZE) {
+  const one = async (from) => {
     let q = sb.from(table).select('*').order(orderCol, { ascending: true });
     if (tieCol) q = q.order(tieCol, { ascending: true });
     const { data, error } = await q.range(from, from + PAGE_SIZE - 1);
     if (error) throw error;
-    const part = data || [];
-    out.push(...part);
-    if (part.length < PAGE_SIZE) break;
-    if (from > 50000) break;
+    return data || [];
+  };
+  // сколько всего строк — одним дешёвым запросом, чтобы качать страницы ПАРАЛЛЕЛЬНО
+  let total = 0;
+  try {
+    const { count } = await sb.from(table).select('id', { count: 'exact', head: true });
+    total = count || 0;
+  } catch (_) { total = 0; }
+  const pages = Math.max(1, Math.min(total ? Math.ceil(total / PAGE_SIZE) : 1, 8));
+  const parts = await Promise.all(Array.from({ length: pages }, (_, k) => one(k * PAGE_SIZE)));
+  parts.forEach(p => out.push(...p));
+  // подстраховка: счёт мог быть неверным — догружаем, если последняя страница полная
+  let last = parts[parts.length - 1] || [];
+  let from = parts.length * PAGE_SIZE;
+  while (last.length === PAGE_SIZE && from <= 50000) {
+    last = await one(from); out.push(...last); from += PAGE_SIZE;
   }
+  rcSet(key, out);
   return out;
 }
 // ---------- ЗАКРЫТАЯ ЧАСТЬ КАРТОЧКИ (v3.11.1) ----------
@@ -1073,11 +1119,17 @@ async function fetchAllRows(table, orderCol, tieCol) {
 const MONEY_COLS = ['sales_2021', 'sales_2022', 'sales_2023', 'sales_2024', 'sales_2025', 'sales_2026', 'hugemed_2025', 'hugemed_2026'];
 
 async function mergeClinicPrivate(list) {
-  let data = [];
-  try {
-    const res = await sb.from('clinic_private').select('*');
-    data = res.data || [];
-  } catch (_) { data = []; }
+  let data = rcGet('cp');
+  if (!data) {
+    data = [];
+    let ok = false;
+    try {
+      const res = await sb.from('clinic_private').select('*');
+      data = res.data || [];
+      ok = true;
+    } catch (_) { data = []; }
+    if (ok) rcSet('cp', data);   // ошибку не кэшируем
+  }
   const map = {};
   data.forEach(p => { map[p.clinic_id] = p; });
   list.forEach(c => {
@@ -1347,7 +1399,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.15.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.15.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3839,14 +3891,13 @@ async function showHoverCard(row, immediate) {
     state.selKind = 'clinic';
     const c = await getClinic(id);
     if (!c || seq !== hoverSeq) return;
-    const linked = c.linkedClinicId ? await getClinic(c.linkedClinicId) : null;
-    const contacts = await peopleByClinic(id);
-    // v3.15.0: связанные партнёры/справочная карточка — обратная ссылка
-    let related = [];
-    try {
-      const { data } = await sb.from('clinics').select('id,name,kind,linked_clinic_id').eq('linked_clinic_id', id);
-      related = (data || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
-    } catch (_) {}
+    // v3.15.3: связанная карточка, контакты и обратные ссылки — одним заходом, а не по очереди
+    const [linked, contacts, relRes] = await Promise.all([
+      c.linkedClinicId ? getClinic(c.linkedClinicId) : Promise.resolve(null),
+      peopleByClinic(id),
+      sb.from('clinics').select('id,name,kind,linked_clinic_id').eq('linked_clinic_id', id).then(r => r).catch(() => ({ data: [] }))
+    ]);
+    let related = (((relRes || {}).data) || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
     if (seq !== hoverSeq) return;
     const canEditC = canEditMain() || (isRefEdit() && isRefKind(c.kind));
     const ctype = isFirmKind(c.kind) ? 'Компания' : (isRefKind(c.kind) ? 'Справочник' : (c.kind === 'distributor' ? 'Партнёр' : 'Клиника'));
