@@ -271,6 +271,13 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
   .modal { align-items: center; }
   .modal-card { border-radius: 18px; max-height: 88vh; }
 }
+/* v3.16.0: на телефоне форма — поверх карточки (z-index выше карточки 60), с доступной кнопкой сохранения */
+@media (max-width: 899px) {
+  .modal { z-index: 100; }
+  .modal-card { max-height: 100dvh; padding-bottom: calc(14px + env(safe-area-inset-bottom)); scroll-padding-bottom: 96px; }
+  .modal-card .btn { position: sticky; bottom: 0; z-index: 3; box-shadow: 0 -8px 16px rgba(245,245,244,.95); }
+  .modal-card .btn-row .btn { box-shadow: none; }
+}
 .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .modal-head h2 { margin: 0; font-size: 18px; }
 .icon-btn { border: none; background: transparent; font-size: 20px; color: var(--muted); cursor: pointer; padding: 4px 8px; }
@@ -541,8 +548,29 @@ a.tel { color: var(--brand); text-decoration: none; font-weight: 600; }
 .searchbar input { width: 100%; box-sizing: border-box; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); font: inherit; }
 .searchbar input:focus { outline: 2px solid var(--brand); border-color: transparent; }
 .panel-hint { color: var(--muted); font-size: 14px; padding: 28px 8px; text-align: center; }
-.card-top { color: var(--muted); font-size: 13px; margin: 0 0 4px; }
-.card-mgr { font-size: 13.5px; font-weight: 600; margin: 0 0 10px; }
+.card-top { color: var(--muted); font-size: 13px; margin: 0 0 6px; }
+.card-mgr { font-size: 13px; color: var(--muted); margin: 0 0 6px; }
+/* v3.16.0: карточка — компактные блоки */
+.pane-pencil { padding: 4px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-size: 15px; line-height: 1; cursor: pointer; }
+.ppl-row { }
+.ppl-row:last-child { border-bottom: none; }
+.ppl-name { font-size: 15px; font-weight: 600; }
+.ppl-sub { font-size: 12.5px; color: var(--muted); }
+.ppl-add { margin-top: 8px; }
+.ppl-empty .ppl-add { margin-top: 0; }
+.money-tbl { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+.money-tbl th, .money-tbl td { padding: 4px 4px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.money-tbl th:first-child, .money-tbl td:first-child { text-align: left; width: 26%; }
+.money-tbl thead th { font-size: 11.5px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
+.money-tbl .money-sum td { font-weight: 700; border-top: 1px solid var(--line); }
+.priv-row.compact { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.priv-row.compact .lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.priv-row.compact input[type=date] { flex: 1 1 auto; min-width: 0; padding: 6px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); font: inherit; font-size: 13.5px; }
+.notes-block.hidden { display: none; }
+@media (max-width: 899px) {
+  .money-tbl { font-size: 12px; }
+  .money-tbl th, .money-tbl td { padding: 3px 2px; }
+}
 .card-quick { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 2px 0 12px; }
 .pane-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 10px; }
 .pane-btn { padding: 6px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-weight: 600; font-size: 13px; cursor: pointer; }
@@ -571,14 +599,9 @@ details.detail-block[open] > summary { margin-bottom: 6px; }
     overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: 60; padding: 12px 14px 28px;
   }
   body.detail-mode.card-open #view, body.detail-mode.card-open #filters, body.detail-mode.card-open #fab { display: none; }
-  .detail-back { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
-  .detail-back-fixed { display: none; }
-  body.card-open .detail-back-fixed {
-    display: flex; position: fixed; left: 12px; top: 10px; z-index: 70;
-    align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px;
-    border: 1px solid var(--line); background: var(--card); color: var(--ink); font-weight: 600;
-  }
-  body.card-open .hover-card { padding-top: 58px; }
+  .detail-back { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 8px; padding: 6px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 600; }
+  /* v3.16.0: второй («приклеенный») кнопки возврата нет — он накладывался на название и поля */
+  .detail-back-fixed { display: none !important; }
 }
 /* v1.160: Клиники/Партнёры на десктопе — карточка закреплена справа, список занимает оставшееся место */
 @media (min-width: 900px) {
@@ -947,8 +970,6 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 
   <div id="offChip" class="off-chip hidden"><span class="off-dot"></span><span id="offText"></span><button id="offSync">Синхронизировать</button></div>
   <div id="toast" class="toast hidden"></div>
-
-  <button id="detailBack" class="detail-back-fixed">← Назад к списку</button>
 
   <script>if(window.__d)window.__d.m.push('sdk-start '+(Date.now()-window.__d.t)+'ms');</script>
   <script src="supabase.v139.min.js?v=139"></script>
@@ -1399,7 +1420,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.15.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.16.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1486,6 +1507,8 @@ window.addEventListener('unhandledrejection', e => {
 
 // v3.10.1: «Тип клиники» — отдельный атрибут карточки (хранится меткой гос/частная)
 const OWN_TAGS = ['государственная', 'частная'];
+// v3.16.0: технические метки в карточке не показываем (в базе остаются как есть)
+const TECH_TAGS = ['old', 'cns', 'миграция', 'migration', 'migrated', 'перенос', 'import', 'импорт', 'старое', 'дубль'];
 function ownershipOf(c) {
   const t = ((c && c.tags) || []).map(x => String(x).toLowerCase());
   if (t.includes('частная')) return 'private';
@@ -1498,7 +1521,10 @@ function myManager() {
   return myManagerName();   // MANAGER_BY_EMAIL: Осечкина / Скокова / Абрамов
 }
 function tagsHtml(tags) {
-  const list = (tags || []).filter(t => !OWN_TAGS.includes(String(t).toLowerCase()));
+  const list = (tags || []).filter(t => {
+    const s = String(t).toLowerCase();
+    return !OWN_TAGS.includes(s) && !TECH_TAGS.includes(s);
+  });
   if (!list.length) return '';
   return '<div class="row">' + list.map(t => `<span class="tag">${esc(t)}</span>`).join('') + '</div>';
 }
@@ -1508,6 +1534,14 @@ function openModal(title, bodyHtml) {
   document.getElementById('modalBody').innerHTML = bodyHtml;
   document.getElementById('modal').classList.remove('hidden');
 }
+
+// v3.16.0: при открытой клавиатуре подтягиваем кнопку «Сохранить» в видимую часть формы
+document.addEventListener('focusin', (e) => {
+  if (!e.target.closest || !e.target.closest('#modal')) return;
+  const btn = document.querySelector('#modal .btn');
+  if (!btn) return;
+  setTimeout(() => { try { btn.scrollIntoView({ block: 'nearest' }); } catch (_) {} }, 300);
+});
 
 function closeModal() {
   document.getElementById('modal').classList.add('hidden');
@@ -2667,7 +2701,7 @@ async function renderMyDay() {
     </div>`;
   };
   const block = (title, list, badgeFn) => list.length
-    ? `<div class="cns-head" style="margin-top:14px"><span>${title} · <b>${list.length}</b></span></div><div class="list">${list.map(c => row(c, badgeFn(c))).join('')}</div>`
+    ? `<div class="cns-head" style="margin-top:14px"><span>${title}${list.length ? ' · <b>' + list.length + '</b>' : ''}</span></div><div class="list">${list.map(c => row(c, badgeFn(c))).join('')}</div>`
     : '';
   // «Требуют внимания»: снижение по двум продуктам HugeMed, сравнение год к году
   const att = clinics.filter(c => c.hugemed_2025 > 0 && c.hugemed_2026 > 0 && c.hugemed_2026 < c.hugemed_2025)
@@ -2679,22 +2713,17 @@ async function renderMyDay() {
         <div class="list-row-sub">2025: ${fmtMoney(c.hugemed_2025)} ₽ · 2026: ${fmtMoney(c.hugemed_2026)} ₽${c.manager ? ' · ' + esc(c.manager) : ''}</div>
       </div>`).join('')}</div>
       <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение «HugeMed 2025» и «HugeMed 2026» — годовые итоги. Помесячных данных в базе нет, поэтому помесячное сравнение невозможно.</div>` : '';
-  const dlbl = base.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
   const mgrSel = isBoss ? `<select id="mdMgr"><option value="">Все менеджеры</option>${mgrs.map(m => `<option value="${esc(m)}"${state.mydayMgr === m ? ' selected' : ''}>${esc(m)}</option>`).join('')}</select>` : '';
-  const undoStrip = mdUndo ? `<div class="md-tools"><span class="row-sub-done">Завершено: «${esc(mdUndo.name || '')}»</span><button class="pane-btn" id="mdUndo">↩ Отменить</button></div>` : '';
-  view.innerHTML = `<div class="cns-head"><span>Мой день · ${esc(dlbl)}</span>${over.length ? `<span class="row-next">просрочено: ${over.length}</span>` : ''}</div>`
-    + (mgrSel ? `<div class="md-tools">${mgrSel}</div>` : '')
-    + undoStrip
-    + block('Просрочено', over, c => 'просрочено ' + fmtDate(c.nextContact))
+  // v3.16.0: без верхней строки «Мой день · дата», без дублирующего «просрочено», без выбора дня
+  // и без кнопок выполнения; заголовки — только над группами, пустые группы не выводятся
+  view.innerHTML = (mgrSel ? `<div class="md-tools">${mgrSel}</div>` : '')
+    + block('Просрочено', over, c => fmtDate(c.nextContact))
     + block('Сегодня', tod, c => fmtDate(c.nextContact))
-    + block('Ближайшая неделя', week, c => fmtDate(c.nextContact))
-    + block('Позже', later.slice(0, 20), c => fmtDate(c.nextContact))
+    + block('Позже', [...week, ...later].slice(0, 20), c => fmtDate(c.nextContact))
     + (!withDate.length ? `<div class="empty">Запланированных контактов нет. Клиник в базе: ${clinics.length}.</div>` : '')
     + attBlock;
   const ms = document.getElementById('mdMgr');
   if (ms) ms.addEventListener('change', async () => { state.mydayMgr = ms.value; state.selId = null; await render(); });
-  const un = document.getElementById('mdUndo');
-  if (un) un.addEventListener('click', mdUndoLast);
   restorePanelSelection();
 }
 
@@ -3678,38 +3707,53 @@ function readComment(field) {
 }
 
 function clinicDetailBody(c, linked, contacts, canEditCard, related) {
-  const isRef = isRefKind(c.kind);
   const canEditNow = canEditCard === undefined
     ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer' && !isRefEdit())
     : !!canEditCard;
-  const urRows = isRef ? ['2023', '2024'].map(y => {
-    const v = c['sales' + y];
-    return `<div class="v money-line"><span>${y}</span><span>${v != null ? 'Продажа Уро ' + fmtMoney(v) + ' ₽' : '—'}</span></div>`;
-  }).join('') : '';
-  const moneyRows = MONEY_YEARS.map(y => {
-    const b = c['sales' + y], h = c['hugemed' + y];
-    const parts = [];
-    if (b != null) parts.push(`Boston ${fmtMoney(b)}`);
-    if (h != null) parts.push(`ХМ ${fmtMoney(h)}`);
-    return `<div class="v money-line"><span>${y}</span><span>${parts.length ? parts.join(' · ') : '—'}</span></div>`;
-  }).join('');
+  const canPriv = canSeePrivate(c);
+  // v3.16.0: ПРОДАЖИ — ПЕРВЫМИ в карточке, раскрытая компактная таблица: годы и два продукта
+  const salesYears = MONEY_YEARS.filter(y => c['sales_' + y] != null || c['hugemed_' + y] != null);
+  const sumOf = (p) => salesYears.reduce((s, y) => s + (Number(c[p + y]) || 0), 0);
+  const salesBlock = canPriv ? `<details class="detail-block" open>
+      <summary>Продажи, ₽</summary>
+      ${salesYears.length ? `<table class="money-tbl">
+        <thead><tr><th>Год</th><th>Boston</th><th>HugeMed</th></tr></thead>
+        <tbody>${salesYears.map(y => `<tr><td>${y}</td><td>${c['sales_' + y] != null ? fmtMoney(c['sales_' + y]) : '—'}</td><td>${c['hugemed_' + y] != null ? fmtMoney(c['hugemed_' + y]) : '—'}</td></tr>`).join('')}
+        <tr class="money-sum"><td>Итого</td><td>${fmtMoney(sumOf('sales_'))}</td><td>${fmtMoney(sumOf('hugemed_'))}</td></tr></tbody>
+      </table>` : `<div class="v" style="color:var(--muted)">данных нет</div>`}
+    </details>` : '';
+  // v3.16.0: ЛЮДИ — компактный список (имя, должность, телефон), без счётчика и слова «нет»
   const sortedContacts = [...contacts].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
-  const peopleBlock = `<div class="detail-block">
-      <div class="k">Люди и контакты (${contacts.length})</div>
-      ${sortedContacts.length ? sortedContacts.map(p => `<div class="v contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' — <span title="' + esc(p.position) + '">' + esc(shortPos(p.position)) + '</span>' : ''}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}${p.phone ? phoneLines(p.phone) : ''}</div>`).join('') : '<div class="v" style="color:var(--muted)">нет</div>'}
-    </div>`;
-  // v3.15.0: связанные партнёры/справочная карточка — одной строкой-ссылкой
+  const addPersonBtn = `<button class="pane-btn" id="paneAddPerson" data-id="${c.id}">＋ Добавить человека</button>`;
+  const peopleBlock = sortedContacts.length
+    ? `<div class="detail-block ppl-block">
+        ${sortedContacts.map(p => `<div class="ppl-row contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">
+            <div class="ppl-name">${esc(p.fullName)}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}</div>
+            ${p.position ? `<div class="ppl-sub">${esc(shortPos(p.position))}</div>` : ''}
+            ${p.phone ? phoneLines(p.phone) : ''}
+          </div>`).join('')}
+        ${canEditNow ? `<div class="ppl-add">${addPersonBtn}</div>` : ''}
+      </div>`
+    : (canEditNow ? `<div class="detail-block ppl-block ppl-empty">${addPersonBtn}</div>` : '');
+  // v3.16.0: ПАРТНЁРЫ — только реальные компании; свою справочную запись не показываем
+  const isCompanyKind = k => k === 'distributor' || k === 'ref_firm';
+  const ownRef = c.linkedClinicId || 0;
   const rel = [];
-  if (linked) rel.push({ id: linked.id, name: linked.name, kind: linked.kind });
-  (related || []).forEach(r => { if (r && r.id && !rel.some(x => x.id === r.id)) rel.push(r); });
-  const relLabel = k => k === 'ref_firm' ? 'компания' : (k === 'distributor' ? 'партнёр' : (isRefKind(k) ? 'справочная карточка' : 'клиника'));
+  const pushRel = (r) => {
+    if (!r || !r.id || !r.name) return;
+    if (r.id === c.id || r.id === ownRef) return;
+    if (!isCompanyKind(r.kind)) return;
+    if (rel.some(x => x.id === r.id)) return;
+    rel.push({ id: r.id, name: r.name, kind: r.kind });
+  };
+  pushRel(linked);
+  (related || []).forEach(pushRel);
   const relBlock = rel.length
-    ? `<div class="detail-block"><div class="k">Связанные партнёры (${rel.length})</div>${rel.map(r => `<div class="v"><span class="org-link" data-clinic="${r.id}">${esc(r.name)}</span> <span class="row-sub-done">· ${esc(relLabel(r.kind))}</span></div>`).join('')}</div>`
+    ? `<div class="detail-block"><div class="k">Связанные партнёры</div>${rel.map(r => `<div class="v"><span class="org-link" data-clinic="${r.id}">${esc(r.name)}</span></div>`).join('')}</div>`
     : '';
-  const salesBlock = `<details class="detail-block"><summary>Продажи (₽) — Boston / HugeMed</summary>${moneyRows}${isRef && !isFirmKind(c.kind) && urRows ? urRows : ''}</details>`;
-  const refDetails = `
-    <details class="detail-block">
-      <summary>Справочные сведения и метки</summary>
+  // v3.16.0: справочное — под компактной кнопкой «Подробнее»; технических меток нет
+  const refDetails = `<details class="detail-block">
+      <summary>Подробнее</summary>
       ${[['Город', c.city], ['Тип', ownershipLabel(ownershipOf(c))], ['Ответственный', c.manager]]
         .filter(([k, v]) => v).map(([k, v]) => `<div class="v"><span class="row-sub-done">${k}:</span> ${esc(v)}</div>`).join('')}
       ${siteBlock(c.situation)}
@@ -3718,11 +3762,11 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related) {
     </details>`;
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-    ${peopleBlock}
-    ${relBlock}
+    ${salesBlock}
     ${privBlock(c, canEditNow)}
     ${notesBlock(c, canEditNow)}
-    ${salesBlock}
+    ${peopleBlock}
+    ${relBlock}
     ${refDetails}
   `;
 }
@@ -3741,22 +3785,19 @@ function actionLabel(t) {
 function privBlock(c, canEditNow) {
   if (!canSeePrivate(c)) return '';
   const d = c.nextContact ? String(c.nextContact).slice(0, 10) : '';
-  // при создании из «Звонков»/«Визитов» тип подставляется автоматически
-  const t = c.actionType || state.defaultAction || '';
-  const opt = (v, lbl) => `<option value="${v}"${t === v ? ' selected' : ''}>${lbl}</option>`;
+  // v3.16.0: без заголовка «Работа и продажи · Вам и руководителю» и без выбора типа действия
+  // (тип в базе сохраняется, разделы «Звонки»/«Визиты» читают его как раньше)
   return `<div class="detail-block priv-block" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">
-      <div class="k">Работа и продажи · Вам и руководителю</div>
-      <div class="priv-row"><span class="lbl">Следующий контакт</span><input type="date" id="cpNext" value="${esc(d)}" ${canEditNow ? '' : 'disabled'} /></div>
-      <div class="priv-row"><span class="lbl">Тип действия</span><select id="cpType" ${canEditNow ? '' : 'disabled'}>${opt('', 'Контакт')}${opt('call', 'Звонок')}${opt('visit', 'Визит')}${opt('other', 'Другое')}</select></div>
-      <div class="k" style="font-size:12.5px;margin-top:2px">Текущая ситуация</div>
+      <div class="priv-row compact"><span class="lbl">Связаться</span><input type="date" id="cpNext" value="${esc(d)}" ${canEditNow ? '' : 'disabled'} /></div>
+      <div class="priv-row compact"><span class="lbl">Ситуация</span></div>
       <textarea class="priv-note" id="cpNote" placeholder="Договорённости, следующий шаг…" ${canEditNow ? '' : 'readonly'}>${esc(c.privateNote || '')}</textarea>
       ${canEditNow ? `<div style="margin-top:8px"><button class="btn-primary-sm" id="cpSave" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">Сохранить</button></div>` : ''}
     </div>`;
 }
 function notesBlock(c, canEditNow) {
   if (!canSeePrivate(c)) return '';
-  return `<div class="detail-block">
-      <div class="k">История записей (<span id="notesCount">…</span>)</div>
+  return `<div class="detail-block notes-block" data-canedit="${canEditNow ? '1' : ''}">
+      <div class="k">Заметки</div>
       <div class="v" id="notesList" data-cid="${c.id}"><span style="color:var(--muted)">загрузка…</span></div>
       ${canEditNow ? `<div class="note-add"><textarea id="noteText" placeholder="Добавить запись…"></textarea><button class="btn-primary-sm" id="noteAdd" data-cid="${c.id}">Добавить</button></div>` : ''}
     </div>`;
@@ -3764,6 +3805,7 @@ function notesBlock(c, canEditNow) {
 async function fillNotesBlock(cid) {
   const box = document.querySelector('#notesList[data-cid="' + cid + '"]');
   if (!box) return;
+  const blk = box.closest('.notes-block');
   let list = [];
   try {
     const { data, error } = await sb.from('notes')
@@ -3771,12 +3813,13 @@ async function fillNotesBlock(cid) {
       .eq('clinic_id', cid).order('created_at', { ascending: false });
     if (error) throw error;
     list = data || [];
-  } catch (_) { list = []; box.innerHTML = '<span style="color:var(--muted)">нет доступа к истории</span>'; return; }
-  const cnt = document.getElementById('notesCount');
-  if (cnt) cnt.textContent = String(list.length);
+  } catch (_) { list = []; box.classList.remove('hidden'); box.innerHTML = '<span style="color:var(--muted)">нет доступа к заметкам</span>'; return; }
+  // v3.16.0: пустую историю и счётчик не показываем
+  box.classList.toggle('hidden', !list.length);
+  if (!list.length && blk && blk.getAttribute('data-canedit') !== '1') blk.classList.add('hidden');
   box.innerHTML = list.length
     ? list.map(n => `<div class="note-item"><div class="note-meta">${fmtDate(n.created_at)} · ${esc(n.author_name || n.author_email || '')}</div><div class="note-text">${esc(n.text)}</div></div>`).join('')
-    : '<span style="color:var(--muted)">записей нет</span>';
+    : '';
 }
 function hydrateCard(cid) { if (cid) fillNotesBlock(cid); }
 document.addEventListener('click', async (ev) => {
@@ -3786,8 +3829,12 @@ document.addEventListener('click', async (ev) => {
     save.disabled = true;
     const cid = Number(save.dataset.cid);
     const nd = document.getElementById('cpNext'), nt = document.getElementById('cpNote');
+    // v3.16.0: выбора типа действия в карточке нет — если поля нет, тип в базе НЕ трогаем
+    const fields = { next_contact: (nd && nd.value) || null, note: (nt && nt.value) || null };
+    const tp = document.getElementById('cpType');
+    if (tp) fields.action_type = tp.value || null;
     try {
-      await saveClinicPrivate(cid, save.dataset.mgr || null, { next_contact: (nd && nd.value) || null, note: (nt && nt.value) || null, action_type: (document.getElementById('cpType') || {}).value || null });
+      await saveClinicPrivate(cid, save.dataset.mgr || null, fields);
       toast('✓ Работа и продажи сохранены');
     } catch (e) {
       toast('⚠️ Не сохранилось: ' + (e && e.message ? e.message : e) + ' — текст оставлен в поле');
@@ -3900,13 +3947,12 @@ async function showHoverCard(row, immediate) {
     let related = (((relRes || {}).data) || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
     if (seq !== hoverSeq) return;
     const canEditC = canEditMain() || (isRefEdit() && isRefKind(c.kind));
-    const ctype = isFirmKind(c.kind) ? 'Компания' : (isRefKind(c.kind) ? 'Справочник' : (c.kind === 'distributor' ? 'Партнёр' : 'Клиника'));
-    const locLine = [c.city, ownershipLabel(ownershipOf(c))].filter(Boolean).join(' · ');
-    const showMgr = c.manager && !isFirmKind(c.kind);
-    const head = `<h3>${esc(c.name)}</h3>
-      <div class="card-top">${esc([ctype, locLine].filter(Boolean).join(' · ') || '—')}</div>
-      ${showMgr ? `<div class="card-mgr">Ответственный: ${esc(c.manager)}</div>` : ''}`;
-    const actions = `<div class="pane-actions">${canEditC ? `<button class="pane-btn primary" id="paneClinicEdit" data-id="${c.id}">Редактировать</button>` : ''}${canEditC ? `<button class="pane-btn" id="paneAddPerson" data-id="${c.id}">＋ Человек</button>` : ''}</div>`;
+    // v3.16.0: без слова «Клиника» и лишних подписей — одна строка: город · тип · ответственный
+    const ctype = isFirmKind(c.kind) ? 'Компания' : (isRefKind(c.kind) ? 'Справочник' : (c.kind === 'distributor' ? 'Партнёр' : ''));
+    const locLine = ctype === 'Справочник' ? '' : ctype;
+    const subLine = [c.city, ownershipLabel(ownershipOf(c)), locLine, (c.manager && !isFirmKind(c.kind)) ? c.manager : ''].filter(Boolean).join(' · ');
+    const head = `<h3>${esc(c.name)}</h3>${subLine ? `<div class="card-top">${esc(subLine)}</div>` : ''}`;
+    const actions = `<div class="pane-actions">${canEditC ? `<button class="pane-pencil" id="paneClinicEdit" data-id="${c.id}" title="Редактировать" aria-label="Редактировать">✎</button>` : ''}</div>`;
     inner = head + actions + clinicDetailBody(c, linked, contacts, undefined, related);
   }
   panel.innerHTML = inner;
@@ -3914,7 +3960,7 @@ async function showHoverCard(row, immediate) {
   if (document.body.classList.contains('detail-mode')) {
     const back = document.createElement('button');
     back.className = 'btn ghost detail-back';
-    back.textContent = '← Назад к списку';
+    back.textContent = '← Назад';
     back.addEventListener('click', (ev) => { ev.stopPropagation(); state.selId = null; state.selKind = null; clearDetailPanel(); showPanelHint(); });
     panel.insertBefore(back, panel.firstChild);
   }
@@ -4066,6 +4112,18 @@ function addDictPrompt() {
     closeModal(); toast('Добавлено'); render();
   });
 }
+
+// v3.16.0: тап по человеку в карточке (панель справа / экран на телефоне) — открываем его карточку
+// (раньше строка была кликабельной по виду, но клик ничего не делал)
+document.addEventListener('click', async (ev) => {
+  const cr = ev.target.closest('#hoverCard .contact-row[data-person]');
+  if (!cr) return;
+  if (ev.target.closest('a.tel')) return;
+  const pid = Number(cr.dataset.person);
+  if (!pid) return;
+  ev.preventDefault(); ev.stopPropagation();
+  await showPerson(pid);
+});
 
 // делегирование кликов по view
 document.getElementById('view').addEventListener('click', async e => {
