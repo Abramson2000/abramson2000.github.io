@@ -611,6 +611,9 @@ details.detail-block[open] > summary { margin-bottom: 6px; }
     flex: 0 0 calc(55% - 8px); position: sticky; top: 8px;
     max-height: calc(100vh - 24px); overflow-y: auto;
   }
+  /* v3.16.1: до выбора клиники плашки в правой колонке нет (ни текста, ни фона, ни рамки, ни тени),
+     но место сохранено — список не дёргается и не меняет ширину при открытии карточки */
+  .work .hover-card.panel-empty { visibility: hidden; background: transparent; border-color: transparent; box-shadow: none; padding: 0; }
   body:not(.detail-mode) .work .hover-card { display: none; }
   /* базовая ширина: сдвиг задаём ЗДЕСЬ (правило идёт после базовых .searchbar/.view) */
   .work, .searchbar { margin-left: 260px; }
@@ -1420,7 +1423,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.16.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.16.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2692,12 +2695,17 @@ async function renderMyDay() {
   const week = withDate.filter(c => days(c) > 0 && days(c) <= 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
   const later = withDate.filter(c => days(c) > 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
   const row = (c, badge) => {
+    // v3.16.1: вместо «Контакт» — суть: короткий следующий шаг/договорённость, если он записан
+    const essRaw = String(c.privateNote || '').replace(/\s+/g, ' ').trim();
+    const ess = essRaw.length > 52 ? essRaw.slice(0, 50).replace(/[\s,.;:—-]+$/, '') + '…' : essRaw;
+    const act = c.actionType === 'call' ? 'Звонок' : c.actionType === 'visit' ? 'Визит' : c.actionType === 'other' ? 'Другое' : '';
+    const sub = [ess || act, c.city, c.manager].filter(Boolean).join(' · ');
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
         <span class="list-row-name">${esc(c.name)}</span>
         <span class="row-next">${badge}</span>
       </div>
-      <div class="list-row-sub">${esc(actionLabel(c.actionType))} · ${esc([c.city].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}</div>
+      <div class="list-row-sub"${essRaw ? ` title="${esc(essRaw)}"` : ''}>${esc(sub || '—')}</div>
     </div>`;
   };
   const block = (title, list, badgeFn) => list.length
@@ -3785,21 +3793,20 @@ function actionLabel(t) {
 function privBlock(c, canEditNow) {
   if (!canSeePrivate(c)) return '';
   const d = c.nextContact ? String(c.nextContact).slice(0, 10) : '';
-  // v3.16.0: без заголовка «Работа и продажи · Вам и руководителю» и без выбора типа действия
-  // (тип в базе сохраняется, разделы «Звонки»/«Визиты» читают его как раньше)
+  // v3.16.1: остался только компактный «Связаться» (дата необязательна).
+  // Поле «Текущая ситуация» убрано — теперь одна лента записей ниже (п.3 дополнения),
+  // сам текст ситуации сохранён: он перенесён в записи, в базе не тронут.
   return `<div class="detail-block priv-block" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">
       <div class="priv-row compact"><span class="lbl">Связаться</span><input type="date" id="cpNext" value="${esc(d)}" ${canEditNow ? '' : 'disabled'} /></div>
-      <div class="priv-row compact"><span class="lbl">Ситуация</span></div>
-      <textarea class="priv-note" id="cpNote" placeholder="Договорённости, следующий шаг…" ${canEditNow ? '' : 'readonly'}>${esc(c.privateNote || '')}</textarea>
       ${canEditNow ? `<div style="margin-top:8px"><button class="btn-primary-sm" id="cpSave" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">Сохранить</button></div>` : ''}
     </div>`;
 }
 function notesBlock(c, canEditNow) {
   if (!canSeePrivate(c)) return '';
+  // v3.16.1: одно поле ввода сверху, ниже — записи (новые сверху)
   return `<div class="detail-block notes-block" data-canedit="${canEditNow ? '1' : ''}">
-      <div class="k">Заметки</div>
-      <div class="v" id="notesList" data-cid="${c.id}"><span style="color:var(--muted)">загрузка…</span></div>
       ${canEditNow ? `<div class="note-add"><textarea id="noteText" placeholder="Добавить запись…"></textarea><button class="btn-primary-sm" id="noteAdd" data-cid="${c.id}">Добавить</button></div>` : ''}
+      <div class="v" id="notesList" data-cid="${c.id}"><span style="color:var(--muted)">загрузка…</span></div>
     </div>`;
 }
 async function fillNotesBlock(cid) {
@@ -3814,11 +3821,14 @@ async function fillNotesBlock(cid) {
     if (error) throw error;
     list = data || [];
   } catch (_) { list = []; box.classList.remove('hidden'); box.innerHTML = '<span style="color:var(--muted)">нет доступа к заметкам</span>'; return; }
-  // v3.16.0: пустую историю и счётчик не показываем
+  // v3.16.1: пустую историю и счётчик не показываем; у записи — дата и автор (если известны)
   box.classList.toggle('hidden', !list.length);
   if (!list.length && blk && blk.getAttribute('data-canedit') !== '1') blk.classList.add('hidden');
   box.innerHTML = list.length
-    ? list.map(n => `<div class="note-item"><div class="note-meta">${fmtDate(n.created_at)} · ${esc(n.author_name || n.author_email || '')}</div><div class="note-text">${esc(n.text)}</div></div>`).join('')
+    ? list.map(n => {
+        const meta = [fmtDate(n.created_at), (n.author_name || n.author_email || '')].filter(Boolean).join(' · ');
+        return `<div class="note-item">${meta ? `<div class="note-meta">${esc(meta)}</div>` : ''}<div class="note-text">${esc(n.text)}</div></div>`;
+      }).join('')
     : '';
 }
 function hydrateCard(cid) { if (cid) fillNotesBlock(cid); }
@@ -3829,8 +3839,10 @@ document.addEventListener('click', async (ev) => {
     save.disabled = true;
     const cid = Number(save.dataset.cid);
     const nd = document.getElementById('cpNext'), nt = document.getElementById('cpNote');
-    // v3.16.0: выбора типа действия в карточке нет — если поля нет, тип в базе НЕ трогаем
-    const fields = { next_contact: (nd && nd.value) || null, note: (nt && nt.value) || null };
+    // v3.16.1: в карточке больше нет полей «Ситуация» и «Тип действия» —
+    // если элементов нет, значения в базе НЕ трогаем (текст ситуации не теряется)
+    const fields = { next_contact: (nd && nd.value) || null };
+    if (nt) fields.note = nt.value || null;
     const tp = document.getElementById('cpType');
     if (tp) fields.action_type = tp.value || null;
     try {
@@ -3891,6 +3903,7 @@ function clearDetailPanel() {
   const p = document.getElementById('hoverCard');
   if (!p) return;
   p.classList.add('hidden');
+  p.classList.remove('panel-empty');
   p.innerHTML = '';
 }
 
@@ -3898,10 +3911,12 @@ function clearDetailPanel() {
 function hideHover() { /* no-op */ }
 
 function showPanelHint() {
+  // v3.16.1: пустую плашку «Выберите клинику» убрали целиком (текст/фон/рамка/тень)
   const p = document.getElementById('hoverCard');
   if (!p) return;
-  p.innerHTML = '<div class="panel-hint">Выберите клинику</div>';
+  p.innerHTML = '';
   p.classList.remove('hidden');
+  p.classList.add('panel-empty');
 }
 
 // после перерисовки списка возвращаем карточку выбранной строки (не сбрасываем выбор)
@@ -3924,6 +3939,7 @@ async function showHoverCard(row, immediate) {
   const panel = document.getElementById('hoverCard');
   if (!panel) return;
   panel.classList.remove('hidden');
+  panel.classList.remove('panel-empty');   // v3.16.1: карточка выбрана — пустое место занимать не нужно
   let inner;
   if (kind === 'person' || kind === 'refdoc') {
     state.selKind = kind;
