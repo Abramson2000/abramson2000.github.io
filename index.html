@@ -1514,7 +1514,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.18.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.18.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2822,12 +2822,11 @@ async function renderMyDay() {
   const attD25 = clinics.filter(c => sumY(c, '2025') != null).length;
   const attD26 = clinics.filter(c => sumY(c, '2026') != null).length;
   const pct = (cur, prev) => Math.round((cur - prev) / prev * 100);
-  const kv = (cur, prev) => (prev == null ? '—' : fmtMoney(prev)) + ' → ' + (cur == null ? '—' : fmtMoney(cur));
   const attBlock = `<div class="cns-head"><span>Требуют внимания · 2026 к 2025${att.length ? ' <b>' + att.length + '</b>' : ''}</span></div>`
     + (att.length
       ? `<div class="list">${att.slice(0, 50).map(x => `<div class="card list-row" data-id="${x.c.id}" data-kind="clinic">
         <div class="list-row-top"><span class="list-row-name">${esc(x.c.name)}</span><span class="nd nd-over">${pct(x.b, x.a)}%</span></div>
-        <div class="list-row-sub">Boston ${kv(x.c['sales_2026'], x.c['sales_2025'])} · HugeMed ${kv(x.c['hugemed_2026'], x.c['hugemed_2025'])} · итого ${fmtMoney(x.a)} → ${fmtMoney(x.b)}${x.c.manager ? ' · ' + esc(x.c.manager) : ''}</div>
+        <div class="list-row-sub">${x.c.manager ? esc(x.c.manager) : '—'}</div>
       </div>`).join('')}</div>
       <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение годовых итогов 2025 и 2026 по всем продуктам (Boston + HugeMed). Помесячных данных в базе нет.</div>`
       : `<div class="empty">Снижения год к году нет. Для сравнения нужны оба года: итоги 2025 заполнены у <b>${attD25}</b> клиник, 2026 — у <b>${attD26}</b>. Заполни в карточке — клиника появится здесь.</div>`);
