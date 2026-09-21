@@ -181,7 +181,9 @@ body {
 .cns-ico { width: 18px; height: 18px; display: block; pointer-events: none; }
 .cns-btn.on .cns-ico { filter: brightness(0) invert(1); }
 .cns-drawer-ico { width: 20px; height: 20px; flex: none; }
-.cns-head { padding: 14px 16px 6px; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+.cns-head { padding: 9px 16px 4px; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.cns-head:first-child { padding-top: 2px; margin-top: 0; }
+.cns-head .md-mgr { margin-left: auto; }
 .cns-head b { color: var(--ink); }
 .cns-add { margin-left: auto; flex: none; background: var(--brand); color: #fff; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 .cns-add:hover { background: var(--brand-dark); }
@@ -1512,7 +1514,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.17.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.17.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2803,14 +2805,14 @@ async function renderMyDay() {
       <div class="list-row-sub">${esc(sub || '—')}</div>
     </div>`;
   };
-  const block = (title, list, badgeFn) => list.length
-    ? `<div class="cns-head" style="margin-top:14px"><span>${title}${list.length ? ' · <b>' + list.length + '</b>' : ''}</span></div><div class="list">${list.map(c => row(c, badgeFn(c))).join('')}</div>`
+  const block = (title, list, badgeFn, useChip) => list.length
+    ? `<div class="cns-head"><span>${title}${list.length ? ' · <b>' + list.length + '</b>' : ''}</span>${useChip && mgrSel ? mgrSel : ''}</div><div class="list">${list.map(c => row(c, badgeFn(c))).join('')}</div>`
     : '';
   // «Требуют внимания»: снижение по двум продуктам HugeMed, сравнение год к году
   const att = clinics.filter(c => c.hugemed_2025 > 0 && c.hugemed_2026 > 0 && c.hugemed_2026 < c.hugemed_2025)
     .sort((a, b) => (a.hugemed_2026 / a.hugemed_2025) - (b.hugemed_2026 / b.hugemed_2025));
   const pct = (cur, prev) => Math.round((cur - prev) / prev * 100);
-  const attBlock = att.length ? `<div class="cns-head" style="margin-top:14px"><span>Требуют внимания · HugeMed 2026 <b>${att.length}</b></span></div>
+  const attBlock = att.length ? `<div class="cns-head"><span>Требуют внимания · HugeMed 2026 <b>${att.length}</b></span></div>
       <div class="list">${att.slice(0, 20).map(c => `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span><span class="nd nd-over">${pct(c.hugemed_2026, c.hugemed_2025)}%</span></div>
         <div class="list-row-sub">2025: ${fmtMoney(c.hugemed_2025)} ₽ · 2026: ${fmtMoney(c.hugemed_2026)} ₽${c.manager ? ' · ' + esc(c.manager) : ''}</div>
@@ -2822,10 +2824,13 @@ async function renderMyDay() {
     </div>` : '';
   // v3.16.0: без верхней строки «Мой день · дата», без дублирующего «просрочено», без выбора дня
   // и без кнопок выполнения; заголовки — только над группами, пустые группы не выводятся
-  view.innerHTML = (mgrSel ? `<div class="md-tools">${mgrSel}</div>` : '')
-    + block('Просрочено', over, c => fmtDate(c.nextContact))
-    + block('Сегодня', tod, c => fmtDate(c.nextContact))
-    + block('Позже', [...week, ...later].slice(0, 20), c => fmtDate(c.nextContact))
+  // v3.17.2: кнопка фильтра встроена в строку первого непустого заголовка (раньше — отдельная полоса сверху)
+  const bOver = block('Просрочено', over, c => fmtDate(c.nextContact), true);
+  const bToday = block('Сегодня', tod, c => fmtDate(c.nextContact), !over.length);
+  const bLater = block('Позже', [...week, ...later].slice(0, 20), c => fmtDate(c.nextContact), !over.length && !tod.length);
+  const chipInHead = !!(bOver || bToday || bLater);
+  view.innerHTML = (mgrSel && !chipInHead ? `<div class="md-tools">${mgrSel}</div>` : '')
+    + bOver + bToday + bLater
     + (!withDate.length ? `<div class="empty">Запланированных контактов нет. Клиник в базе: ${clinics.length}.</div>` : '')
     + attBlock;
   const mb = document.getElementById('mdMgrBtn');
