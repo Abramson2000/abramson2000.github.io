@@ -137,6 +137,13 @@ body {
 .list-row.hovering { background: #f7f8fa; }
 .list-row-tags { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
 .row-type { font-size: 11.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; }
+/* v3.29.0: единая метка клиники в списках — «ЛПУ» (государственная) / «ЧК» (частная) */
+.own-badge { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; border-radius: 6px; padding: 0 5px; line-height: 15px; flex: none; }
+.own-badge.own-lpu { color: var(--brand-dark); background: #e6f4f4; }
+.own-badge.own-chk { color: #8a5a00; background: #fdf3e3; }
+.rn-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.rn-wrap .list-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-row-sub .own-badge, .ac-sub .own-badge { margin-right: 5px; }
 .row-next { font-size: 11.5px; color: var(--accent); }
 .subtabs { display: flex; gap: 6px; margin: 0 0 8px; }
 .subtab { border: 1px solid rgba(0,0,0,.12); background: transparent; color: var(--muted); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
@@ -1684,7 +1691,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.28.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.29.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1780,6 +1787,30 @@ function ownershipOf(c) {
   return '';
 }
 function ownershipLabel(o) { return o === 'private' ? 'Частная' : (o === 'state' ? 'Государственная' : ''); }
+// v3.29.0: единая короткая метка клиники для всех списков — «ЛПУ» / «ЧК»
+function ownShortLabel(c) {
+  let o = ownershipOf(c);
+  if (!o) {
+    const k = (c && c.kind) || '';
+    if (k === 'ref_gos') o = 'state';
+    else if (k === 'ref_priv') o = 'private';
+  }
+  if (!o) {   // запасной вариант — по имени («ЧК …» = частная, «ЛПУ …» = государственная)
+    const n = String((c && c.name) || '').trim();
+    if (/^ЧК(\s|$|-)/i.test(n)) o = 'private';
+    else if (/^ЛПУ(\s|$|-)/i.test(n)) o = 'state';
+  }
+  return o === 'state' ? 'ЛПУ' : (o === 'private' ? 'ЧК' : '');
+}
+function ownBadge(c) {
+  const t = ownShortLabel(c);
+  if (!t) return '';
+  return `<span class="own-badge own-${t === 'ЛПУ' ? 'lpu' : 'chk'}">${t}</span>`;
+}
+function ownBadgeById(id, map) {
+  const c = map && map[id];
+  return c && typeof c === 'object' ? ownBadge(c) : '';
+}
 function myManager() {
   if (window.CURRENT_MANAGER) return window.CURRENT_MANAGER;
   return myManagerName();   // MANAGER_BY_EMAIL: Осечкина / Скокова / Абрамов
@@ -2587,7 +2618,7 @@ async function renderCns() {
       const m = (c.manager || '').trim();
       return `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
-          <span class="list-row-name">${esc(c.name)}</span>
+          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span>
           <span class="row-actions"><span class="cns-btn on" data-cns="${c.id}" title="Убрать из отбора ЦНС"><img src="cns.png" class="cns-ico" alt="" /></span></span>
         </div>
         <div class="list-row-sub">${loc ? esc(loc) : '—'}${m ? ' · ' + esc(m) : ''}</div>
@@ -2622,7 +2653,7 @@ async function bindCnsAdd(view) {
     if (!pool.length) { toast('Все клиники уже в отборе'); return; }
     openModal('Добавить в отбор ЦНС',
       '<div class="list" id="cnsPool">' + pool.map(c =>
-        `<div class="card list-row cns-pool-row" data-id="${c.id}" style="cursor:pointer"><span class="list-row-name">${esc(c.name)}</span></div>`
+        `<div class="card list-row cns-pool-row" data-id="${c.id}" style="cursor:pointer"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span></div>`
       ).join('') + '</div>');
     document.querySelectorAll('#cnsPool .cns-pool-row').forEach(row => row.addEventListener('click', async () => {
       const c = all.find(x => x.id === Number(row.dataset.id));
@@ -2716,7 +2747,7 @@ async function renderActionList(type, title) {
     const nd = new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00');
     const cls = nd < today ? 'nd-over' : (nd.getTime() === today.getTime() ? 'nd-today' : 'nd-future');
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
-      <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span><span class="nd ${cls}">${fmtDate(c.nextContact)}</span></div>
+      <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span><span class="nd ${cls}">${fmtDate(c.nextContact)}</span></div>
       <div class="list-row-sub">${esc([c.city].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}</div>
     </div>`;
   }).join('');
@@ -2777,7 +2808,7 @@ async function renderWorklist(key) {
     const mgr = c.manager ? ' \u00b7 ' + esc(c.manager) : '';
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
-          <span class="list-row-name">${esc(c.name)}</span>
+          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span>
           ${ndBadge}
         </div>
         <div class="list-row-sub">${loc ? esc(loc) : '\u2014'}${mgr}</div>
@@ -3151,7 +3182,7 @@ async function renderMyDay() {
     const sub = [c.city, c.manager].filter(Boolean).join(' · ');
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
-        <span class="list-row-name">${esc(c.name)}</span>
+        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span>
         <span class="row-next">${badge}</span>
       </div>
       <div class="list-row-sub">${esc(sub || '—')}</div>
@@ -3181,7 +3212,7 @@ async function renderMyDay() {
       <div class="md-mgr-pop hidden" id="attSrtPop"><button class="md-mgr-opt${attSort === 'sum' ? ' active' : ''}" data-s="sum">Сумма</button><button class="md-mgr-opt${attSort === 'pct' ? ' active' : ''}" data-s="pct">Процент</button></div></div></div>`
     + (att.length
       ? `<div class="list">${attRows.slice(0, 50).map(x => `<div class="card list-row" data-id="${x.c.id}" data-kind="clinic">
-        <div class="list-row-top"><span class="list-row-name">${esc(x.c.name)}</span><span class="nd nd-over">${pct(x.b, x.a)}%</span></div>
+        <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(x.c.name)}</span>${ownBadge(x.c)}</span><span class="nd nd-over">${pct(x.b, x.a)}%</span></div>
         <div class="list-row-sub">${esc([x.c.city, x.c.manager].filter(Boolean).join(' · ') || '—')}</div>
       </div>`).join('')}</div>
       <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение годовых итогов 2025 и 2026 по всем продуктам (Boston + HugeMed). Помесячных данных в базе нет.</div>`
@@ -3288,7 +3319,7 @@ async function renderContacts() {
     const sub = [orgName(p), shortPos(p.position), p.phone, p.email].filter(Boolean).join(' / ');
     return `<div class="card list-row" data-id="${p.id}" data-kind="person">
       <div class="list-row-top"><span class="list-row-name">${esc(p.fullName)}</span><span class="row-actions"><span class="tag">${esc(kindOf(p))}</span></span></div>
-      <div class="list-row-sub">${esc(sub || '—')}</div>
+      <div class="list-row-sub">${ownBadgeById(p.clinicId, clinicMap)}${esc(sub || '—')}</div>
     </div>`;
   }).join('') + '</div>';
   restorePanelSelection();
@@ -3357,16 +3388,16 @@ async function renderOrgList(kind) {
     const tr = showTr ? `<span class="transfer-btn${inWl ? ' on' : ''}" data-transfer="${c.id}" title="${inWl ? 'Уже в вашем листе' : 'Перенести в мой лист'}">⇄</span>` : '';
     const cnsOn = (c.tags || []).includes('cns');
     const cnsBtn = `<span class="cns-btn${cnsOn ? ' on' : ''}" data-cns="${c.id}" title="${cnsOn ? 'В отборе ЦНС — убрать' : 'Отобрать для ЦНС'}"><img src="cns.png" class="cns-ico" alt="" /></span>`;
-    const typ = `<span class="row-type">${esc(ownershipLabel(ownershipOf(c)))}</span>`;
+    // v3.29.0: единая метка ЛПУ / ЧК — в верхней строке сразу за названием (как во всех списках)
     const nc = (mineOnly && c.nextContact) ? `<span class="row-next">След. контакт: ${esc(String(c.nextContact).slice(0, 10))}</span>` : '';
     return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
-        <span class="list-row-name">${esc(c.name)}</span>
+        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span>
         ${c.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
         <span class="row-actions">${cnsBtn}${tr}</span>
       </div>
       <div class="list-row-sub">${loc ? esc(loc) : '—'}</div>
-      <div class="list-row-tags">${typ}${nc}</div>
+      ${nc ? `<div class="list-row-tags">${nc}</div>` : ''}
     </div>`;
   }).join('') + '</div>';
   view.querySelectorAll('.subtab').forEach(b => b.addEventListener('click', () => {
@@ -3562,7 +3593,7 @@ async function renderMoney() {
         ? `<span class="list-row-money money-zero">0 ₽</span>` : '';
       return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
-          <span class="list-row-name">${esc(c.name)}</span>
+          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span>
           ${c.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
           ${money ? `<span class="list-row-money ${trend}">${money} ₽</span>` : zeroBadge}
         </div>
@@ -3645,7 +3676,7 @@ async function renderPeople() {
   }
   const clinicMap = {};
   const clinics = await listClinics();
-  clinics.forEach(c => clinicMap[c.id] = c.name);
+  clinics.forEach(c => clinicMap[c.id] = c);
   // доп. клиники человека (многие-ко-многим) — из кэша связок
   const extraMap = {};
   try {
@@ -3657,8 +3688,8 @@ async function renderPeople() {
   let html = '<div class="list">';
   for (const p of people) {
     const orgs = [];
-    if (p.clinicId && clinicMap[p.clinicId]) orgs.push(clinicMap[p.clinicId]);
-    (extraMap[p.id] || []).forEach(cid => { const n = clinicMap[cid]; if (n && !orgs.includes(n)) orgs.push(n); });
+    if (p.clinicId && clinicMap[p.clinicId]) orgs.push(clinicMap[p.clinicId].name);
+    (extraMap[p.id] || []).forEach(cid => { const n = clinicMap[cid] && clinicMap[cid].name; if (n && !orgs.includes(n)) orgs.push(n); });
     const org = orgs.join(', ');
     const sub = [org, shortPos(p.position)].filter(Boolean).join(' / ');
     html += `<div class="card list-row${p.markedDel ? ' marked-del' : ''}" data-id="${p.id}" data-kind="person">
@@ -3666,7 +3697,7 @@ async function renderPeople() {
         <span class="list-row-name">${esc(p.fullName)}</span>
         ${p.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
       </div>
-      <div class="list-row-sub">${esc(sub || '—')}</div>
+      <div class="list-row-sub">${ownBadgeById(p.clinicId, clinicMap)}${esc(sub || '—')}</div>
     </div>`;
   }
   view.innerHTML = html + '</div>';
@@ -3793,7 +3824,7 @@ async function renderRefOrgs(kind) {
   const head = `<div class="cns-head"><span>${esc(label)} · <b>${clinics.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (clinics.length
     ? '<div class="list">' + clinics.map(c => `<div class="card list-row" data-id="${c.id}" data-kind="refclinic">
-        <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span></div>
+        <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span></div>
         <div class="list-row-sub">${refLoc(c) ? esc(refLoc(c)) : '—'}</div>
         ${refTagRow(c.tags)}
       </div>`).join('') + '</div>'
@@ -3807,7 +3838,7 @@ async function renderRefDoctors() {
   const view = document.getElementById('view');
   const s = state.search;
   const clinicMap = {};
-  (await listClinics()).forEach(c => { clinicMap[c.id] = c.name; });
+  (await listClinics()).forEach(c => { clinicMap[c.id] = c; });
   let docs = (await listPeople()).filter(isRefDoc);
   if (s) docs = docs.filter(p =>
     (p.fullName || '').toLowerCase().includes(s) ||
@@ -3824,10 +3855,10 @@ async function renderRefDoctors() {
   const head = `<div class="cns-head"><span>Врачи · <b>${docs.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (docs.length
     ? '<div class="list">' + docs.map(p => {
-        const sub = [clinicMap[p.clinicId] || '', shortPos(p.position)].filter(Boolean).join(' / ');
+        const sub = [(clinicMap[p.clinicId] && clinicMap[p.clinicId].name) || '', shortPos(p.position)].filter(Boolean).join(' / ');
         return `<div class="card list-row" data-id="${p.id}" data-kind="refdoc">
           <div class="list-row-top"><span class="list-row-name">${esc(p.fullName)}</span></div>
-          <div class="list-row-sub">${esc(sub || '—')}</div>
+          <div class="list-row-sub">${ownBadgeById(p.clinicId, clinicMap)}${esc(sub || '—')}</div>
           ${refTagRow(p.tags)}
         </div>`;
       }).join('') + '</div>'
@@ -4644,13 +4675,12 @@ async function renderAddClinicResults(q) {
   }
   list.innerHTML = shown.map(c => {
     const w = refWorkInfo(c, byId);
-    const typ = ownershipLabel(ownershipOf(c));
     const act = w.inWork
       ? `<span class="ac-badge">В работе · ${esc(w.manager)}</span>`
       : `<button type="button" class="btn primary mini" data-take="${c.id}">Взять в работу</button>`;
     return `<div class="ac-row" data-open="${w.inWork ? w.workId : c.id}">
-      <div class="ac-main"><div class="ac-name">${esc(c.name)}</div>
-      <div class="ac-sub">${esc([c.city, typ].filter(Boolean).join(' · ') || '—')}</div></div>
+      <div class="ac-main"><div class="ac-name">${esc(c.name)} ${ownBadge(c)}</div>
+      <div class="ac-sub">${esc(c.city || '—')}</div></div>
       <div class="ac-act">${act}</div></div>`;
   }).join('') + (rows.length > shown.length ? `<div class="ac-empty">Показаны первые ${shown.length} из ${rows.length} — уточни поиск.</div>` : '');
 }
