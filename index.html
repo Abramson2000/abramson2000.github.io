@@ -1736,7 +1736,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.30.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.30.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3813,9 +3813,8 @@ async function renderMoney() {
         <div class="list-row-top">
           <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
           ${c.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
-          ${money ? `<span class="list-row-money ${trend}">${money} ₽</span>` : zeroBadge}
         </div>
-        ${subMarks(c, (loc ? esc(loc) : '—') + split)}
+        ${subMarks(c, loc ? esc(loc) : '—')}
       </div>`;
       }).join('') + '</div>'
       : '<div class="empty">Ничего не найдено</div>');
@@ -4113,7 +4112,6 @@ async function renderRefFirms() {
         return `<div class="card list-row" data-id="${c.id}" data-kind="refclinic">
           <div class="list-row-top"><span class="list-row-name">${esc(c.name)}</span><span class="row-actions"><span class="tag">${c.kind === 'distributor' ? 'Партнёр' : 'Компания'}</span></span></div>
           <div class="list-row-sub">${refLoc(c) ? esc(refLoc(c)) : '—'}</div>
-          ${ppl.length ? `<div class="row firm-people">${ppl.map(p => `<span class="firm-person" data-person="${p.id}">${esc(p.fullName)}${p.position ? ' · ' + esc(shortPos(p.position)) : ''}</span>`).join('')}</div>` : ''}
           ${c.situation ? `<div class="list-row-sub firm-note">${esc(c.situation)}</div>` : ''}
         </div>`;
       }).join('') + '</div>'
@@ -5344,7 +5342,6 @@ function personDetailBody(p, clinics, canEditCard) {
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
     ${p.phone ? `<div class="detail-block"><div class="k">Телефон</div><div class="v">${telLink(p.phone)}</div></div>` : ''}
     ${commentField('people', p.id, p.situation, canEditNow)}
-    ${tagsHtml(refTags(p.tags))}
   `;
 }
 
