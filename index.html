@@ -1736,7 +1736,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.30.9';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.31.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5128,12 +5128,28 @@ function privBlock(c, canEditNow) {
       </div>
     </div>`;
 }
+// v3.31.0: комментарий (ситуация) карточки — первой записью в ленте записей, видно и можно править
+function situationItem(c, canEditNow) {
+  const editable = (canEditNow === undefined)
+    ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer')
+    : !!canEditNow;
+  const { site, rest } = splitSite(c.situation);
+  return `<div class="note-item note-situation" data-cid="${c.id}">
+      <div class="note-meta">Комментарии / ситуация</div>
+      <div class="note-text comment-field"${editable ? ' contenteditable="true" spellcheck="false"' : ''} data-table="clinics" data-id="${c.id}" data-site="${esc(site)}">${esc(rest)}</div>
+    </div>`;
+}
 function notesBlock(c, canEditNow) {
-  if (!canSeePrivate(c)) return '';
+  const priv = canSeePrivate(c);
+  const sit = situationItem(c, canEditNow);
+  const sitTxt = splitSite(c.situation).rest.trim();
+  if (!priv && !sitTxt) return '';
   // v3.16.1: одно поле ввода сверху, ниже — записи (новые сверху)
+  // v3.31.0: первой записью — комментарий/ситуация самой карточки (правится тут же, по клику)
   return `<div class="detail-block notes-block" data-canedit="${canEditNow ? '1' : ''}">
       ${canEditNow ? `<div class="note-add"><textarea id="noteText" placeholder="Добавить запись…"></textarea><button class="btn-primary-sm" id="noteAdd" data-cid="${c.id}">Добавить</button></div>` : ''}
-      <div class="v" id="notesList" data-cid="${c.id}"><span style="color:var(--muted)">загрузка…</span></div>
+      ${sit}
+      ${priv ? `<div class="v" id="notesList" data-cid="${c.id}"><span style="color:var(--muted)">загрузка…</span></div>` : ''}
     </div>`;
 }
 function fillNotesBlock(cid) {
@@ -5154,7 +5170,10 @@ async function fillNotesBlock0(cid) {
   } catch (_) { list = []; box.classList.remove('hidden'); box.innerHTML = '<span style="color:var(--muted)">нет доступа к заметкам</span>'; return; }
   // v3.16.2: пустую историю и счётчик не показываем; у записи — дата и автор (если известны)
   box.classList.toggle('hidden', !list.length);
-  if (!list.length && blk && !canEdit) blk.classList.add('hidden');
+  if (!list.length && blk && !canEdit) {
+    const st = blk.querySelector('.note-situation .note-text');
+    if (!st || !(st.textContent || '').trim()) blk.classList.add('hidden');
+  }
   box.innerHTML = list.length
     ? list.map(n => {
         const meta = [fmtDate(n.created_at), (n.author_name || n.author_email || '')].filter(Boolean).join(' · ');
