@@ -1736,7 +1736,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.30.6';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.30.7';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2835,28 +2835,10 @@ async function renderCns() {
       return `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
           <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
-          <span class="row-actions"><span class="cns-btn on" data-cns="${c.id}" title="Убрать из отбора ЦНС"><img src="cns.png" class="cns-ico" alt="" /></span></span>
         </div>
         ${subMarks(c, (loc ? esc(loc) : '—') + (m ? ' · ' + esc(m) : ''))}
       </div>`;
     }).join('') + '</div>';
-  view.querySelectorAll('.cns-btn').forEach(b => b.addEventListener('click', async e => {
-    e.stopPropagation();
-    e.preventDefault();
-    const id = Number(b.dataset.cns);
-    const c = clinics.find(x => x.id === id);
-    if (!c) return;
-    try {
-      const tags = setTagInGroup(c.tags, PROD_ALIAS, 'ЦНС', false);
-      const { error } = await withTimeout(sb.from('clinics').update({ tags }).eq('id', id), 10000, 'cns-remove');
-      if (error) throw error;
-      toast('Убрано из отбора ЦНС');
-      renderCns();
-      refreshCounts();
-    } catch (err) {
-      toast('Ошибка: ' + (err && err.message ? err.message : err));
-    }
-  }));
   bindCnsAdd(view);
 }
 async function bindCnsAdd(view) {
@@ -3605,15 +3587,13 @@ async function renderOrgList(kind) {
       (myEmail === 'skokova@crm.ru' && m === 'Скокова'));
     const inWl = myWlIds.has(c.id);
     const tr = showTr ? `<span class="transfer-btn${inWl ? ' on' : ''}" data-transfer="${c.id}" title="${inWl ? 'Уже в вашем листе' : 'Перенести в мой лист'}">⇄</span>` : '';
-    const cnsOn = cardProducts(c).includes('ЦНС');
-    const cnsBtn = `<span class="cns-btn${cnsOn ? ' on' : ''}" data-cns="${c.id}" title="${cnsOn ? 'В отборе ЦНС — убрать' : 'Отобрать для ЦНС'}"><img src="cns.png" class="cns-ico" alt="" /></span>`;
-    // v3.29.0: единая метка ЛПУ / ЧК — в верхней строке сразу за названием (как во всех списках)
+    // v3.30.7: логотип мочевого пузыря (cns.png) с плашек больниц убран — метка ЦНС ставится продуктом в карточке
     const nc = (mineOnly && c.nextContact) ? `<span class="row-next">След. контакт: ${esc(String(c.nextContact).slice(0, 10))}</span>` : '';
     return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
         <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
         ${c.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
-        <span class="row-actions">${cnsBtn}${tr}</span>
+        <span class="row-actions">${tr}</span>
       </div>
       ${subMarks(c, loc ? esc(loc) : '—')}
       ${nc ? `<div class="list-row-tags">${nc}</div>` : ''}
@@ -3640,28 +3620,6 @@ async function renderOrgList(kind) {
     const c = clinics.find(x => x.id === Number(b.dataset.transfer));
     if (!c) return;
     await transferToWorklist(c);
-  }));
-  // v1.158: клик по лого — пометка клиники в отбор ЦНС
-  view.querySelectorAll('.cns-btn').forEach(b => b.addEventListener('click', async e => {
-    e.stopPropagation();
-    e.preventDefault();
-    const id = Number(b.dataset.cns);
-    const c = clinics.find(x => x.id === id);
-    if (!c) return;
-    const on = !cardProducts(c).includes('ЦНС');
-    b.classList.toggle('on', on);
-    b.title = on ? 'В отборе ЦНС — убрать' : 'Отобрать для ЦНС';
-    try {
-      const tags = setTagInGroup(c.tags, PROD_ALIAS, 'ЦНС', on);
-      const { error } = await withTimeout(sb.from('clinics').update({ tags }).eq('id', id), 10000, 'cns-toggle');
-      if (error) throw error;
-      c.tags = tags;
-      refreshCounts();
-      toast(on ? 'Добавлено в отбор ЦНС' : 'Убрано из отбора ЦНС');
-    } catch (err) {
-      b.classList.toggle('on', !on);
-      toast('Ошибка: ' + (err && err.message ? err.message : err));
-    }
   }));
 }
 
