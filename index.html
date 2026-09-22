@@ -85,7 +85,7 @@ body {
 .filters.hidden { display: none; }
 .hidden { display: none !important; }
 .filters select {
-  flex: 0 0 auto; width: auto; padding: 7px 26px 7px 12px; border: 1px solid var(--line); border-radius: 10px;
+  flex: 0 0 auto; width: auto; max-width: 190px; padding: 7px 26px 7px 12px; border: 1px solid var(--line); border-radius: 10px;
   font-size: 13px; background: var(--card); color: var(--ink); cursor: pointer;
   appearance: none; -webkit-appearance: none; font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -162,10 +162,10 @@ body {
 .pr-b.on { background: #eaf6f6; border-color: var(--brand); color: var(--brand-dark); font-weight: 700; }
 #fPanel { flex: 1 1 auto; min-width: 0; }
 #fPanel > summary { display: none; }
-/* v3.31.3: фильтры сверху — ОДНА строка с горизонтальной прокруткой (не сжимаются и не наползают друг на друга) */
-.f-ctl { display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: thin; padding-bottom: 2px; }
+/* v3.31.5: фильтры — своя натуральная ширина, ничего не сжимается и не наползает */
+.f-ctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .f-ctl > * { flex: 0 0 auto; }
-#fChips { flex: 1 1 100%; display: flex; gap: 6px; flex-wrap: nowrap; align-items: center; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; padding-bottom: 2px; }
+#fChips { flex: 1 1 100%; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 #fChips > * { flex: 0 0 auto; }
 .fchip { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #eaf6f6; color: var(--brand-dark); border: 1px solid #cfe8e8; cursor: pointer; }
 .fchip .x { opacity: .6; margin-left: 4px; }
@@ -173,6 +173,8 @@ body {
 .f-n { font-weight: 400; color: var(--muted); }
 @media (max-width: 899px) {
   .filters { padding: 6px 12px 0; }
+  /* v3.31.5: на телефоне полоса фильтров — ОДНА строка, листается вправо-влево */
+  .f-ctl, #fChips { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: thin; padding-bottom: 2px; }
   #fPanel > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--brand-dark); font-weight: 700; padding: 4px 0; }
   #fPanel:not([open]) .f-ctl { display: none; }
   .pchip { font-size: 9.5px; line-height: 14px; padding: 0 4px; }
@@ -1739,7 +1741,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.31.4';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.31.6';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
