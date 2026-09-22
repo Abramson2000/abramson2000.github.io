@@ -1736,7 +1736,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.30.5';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.30.6';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4074,8 +4074,9 @@ async function renderRefDoctors() {
   const head = `<div class="cns-head"><span>Врачи · <b>${docs.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (docs.length
     ? '<div class="list">' + docs.map(p => {
-        // v3.30.4: у врачей в справочнике — без метки/тегов в строке (только учреждение и должность)
-        const sub = [(clinicMap[p.clinicId] && clinicMap[p.clinicId].name) || '', shortPos(p.position)].filter(Boolean).join(' / ');
+        // v3.30.6: у врачей в справочнике — вторая строка: ГОРОД · учреждение · должность
+        const cl = clinicMap[p.clinicId] || {};
+        const sub = [cl.city || p.city || '', cl.name || '', shortPos(p.position)].filter(Boolean).join(' · ');
         return `<div class="card list-row" data-id="${p.id}" data-kind="refdoc">
           <div class="list-row-top"><span class="list-row-name">${esc(p.fullName)}</span></div>
           <div class="list-row-sub">${esc(sub || '—')}</div>
