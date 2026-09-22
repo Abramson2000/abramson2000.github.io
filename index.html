@@ -1279,7 +1279,7 @@ function fromClinic(r) {
   return {
     id: r.id, name: r.name, type: r.type, region: r.region, city: r.city,
     manager: r.manager, linkedClinicId: r.linked_clinic_id, kind: r.kind || 'hospital',
-    situation: r.situation, tags: r.tags || [], updatedAt: r.updated_at,
+    situation: r.situation, tags: r.tags || [], updatedAt: r.updated_at, createdAt: r.created_at,
     markedDel: r.marked_del || false
   };
 }
@@ -1736,7 +1736,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.31.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.31.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5134,8 +5134,11 @@ function situationItem(c, canEditNow) {
     ? (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer')
     : !!canEditNow;
   const { site, rest } = splitSite(c.situation);
+  // как обычная запись ленты: номер 1 + дата создания карточки
+  const d = fmtDate(c.createdAt || c.created_at);
+  const meta = [esc('1'), (d ? esc(d) : '')].filter(Boolean).join(' · ');
   return `<div class="note-item note-situation" data-cid="${c.id}">
-      <div class="note-meta">Комментарии / ситуация</div>
+      <div class="note-meta">${meta}</div>
       <div class="note-text comment-field"${editable ? ' contenteditable="true" spellcheck="false"' : ''} data-table="clinics" data-id="${c.id}" data-site="${esc(site)}">${esc(rest)}</div>
     </div>`;
 }
