@@ -148,6 +148,8 @@ body {
 .pchip { font-size: 10.5px; font-weight: 700; letter-spacing: .02em; border-radius: 6px; padding: 0 5px; line-height: 15px; flex: none; }
 .pchip-prod { color: #0b6f6f; background: #eaf6f6; border: 1px solid #cfe8e8; }
 .pchip-src { color: #4b4b4b; background: #f1f1ef; border: 1px solid #e2e2df; }
+.sub-sep { margin: 0 4px; color: var(--muted); }
+.list-row-sub .pchip { vertical-align: middle; }
 .pchip-svc { color: #8a5a00; background: #fdf3e3; border: 1px solid #f2e0c0; }
 .rn-wrap .pchip { margin-left: 2px; }
 .list-row-sub .pchip { margin-right: 5px; }
@@ -568,7 +570,8 @@ body.logged-out .toast { display: none !important; }
   .view, .filters, .searchbar, .work { margin-left: 260px; }
   /* v3.26.2: поиск — залипающая строка сверху, ширина = колонка списка (45%);
      нижняя плашка на десктопе не нужна (кнопка «＋» переехала в строку поиска) */
-  .searchbar { position: sticky; top: 0; z-index: 16; background: var(--bg); margin: 0; padding: 8px 16px 2px; }
+  /* v3.30.1: строка поиска больше НЕ закреплена (просил Саша — закреплённая кнопка «＋ Добавить клинику» мешала) */
+  .searchbar { position: static; background: var(--bg); margin: 0; padding: 8px 16px 2px; }
   .search-col { width: calc((100vw - 260px) * .45 - 8px); flex: 0 0 auto; }
   .search-box { width: calc((100vw - 260px) * .45 - 8px - 32px); }
   .bottom-bar { display: none; }
@@ -1733,7 +1736,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.30.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.30.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1869,6 +1872,12 @@ function ownShortLabel(c) { return cardType(c); }
 function typeBadge(t) { return t ? `<span class="own-badge own-${t === 'ЛПУ' ? 'lpu' : 'chk'}">${t}</span>` : ''; }
 function chip(txt, cls) { return `<span class="pchip${cls ? ' ' + cls : ''}">${esc(txt)}</span>`; }
 function productChips(c) { return cardProducts(c).map(v => chip(v, 'pchip-prod')).join(''); }
+// v3.30.1: метки (тип + продукты) — во ВТОРОЙ строке плашки, перед городом/менеджером
+function markChips(c) { return ownBadge(c) + productChips(c); }
+function subMarks(c, text) {
+  const m = markChips(c);
+  return `<div class="list-row-sub">${m}${m && text ? '<span class="sub-sep">·</span>' : ''}${text}</div>`;
+}
 function sourceChips(c) { return cardSources(c).map(v => chip(v, 'pchip-src')).join('') + cardService(c).map(v => chip(v, 'pchip-svc')).join(''); }
 // вкл/выкл значения внутри группы меток (канонизируя остальные значения группы)
 function setTagInGroup(tags, map, canon, on) {
@@ -2795,8 +2804,8 @@ async function renderProductList(product, title) {
     ? '<div class="list">' + clinics.map(c => {
         const m = (c.manager || '').trim();
         return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}" data-id="${c.id}" data-kind="clinic">
-          <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span></div>
-          <div class="list-row-sub">${esc(c.city || '—')}${m ? ' · ' + esc(m) : ''}</div>
+          <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span></div>
+          ${subMarks(c, esc(c.city || '—') + (m ? ' · ' + esc(m) : ''))}
         </div>`;
       }).join('') + '</div>'
     : `<div class="empty">${s ? 'Ничего не найдено' : 'Нет клиник с продуктом «' + esc(product) + '» — отметь продукт в карточке клиники'}</div>`);
@@ -2825,10 +2834,10 @@ async function renderCns() {
       const m = (c.manager || '').trim();
       return `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
-          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span>
+          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
           <span class="row-actions"><span class="cns-btn on" data-cns="${c.id}" title="Убрать из отбора ЦНС"><img src="cns.png" class="cns-ico" alt="" /></span></span>
         </div>
-        <div class="list-row-sub">${loc ? esc(loc) : '—'}${m ? ' · ' + esc(m) : ''}</div>
+        ${subMarks(c, (loc ? esc(loc) : '—') + (m ? ' · ' + esc(m) : ''))}
       </div>`;
     }).join('') + '</div>';
   view.querySelectorAll('.cns-btn').forEach(b => b.addEventListener('click', async e => {
@@ -2954,8 +2963,8 @@ async function renderActionList(type, title) {
     const nd = new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00');
     const cls = nd < today ? 'nd-over' : (nd.getTime() === today.getTime() ? 'nd-today' : 'nd-future');
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
-      <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span><span class="nd ${cls}">${fmtDate(c.nextContact)}</span></div>
-      <div class="list-row-sub">${esc([c.city].filter(Boolean).join(', ') || '—')}${c.manager ? ' · ' + esc(c.manager) : ''}</div>
+      <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span><span class="nd ${cls}">${fmtDate(c.nextContact)}</span></div>
+      ${subMarks(c, esc([c.city].filter(Boolean).join(', ') || '—') + (c.manager ? ' · ' + esc(c.manager) : ''))}
     </div>`;
   }).join('');
   view.innerHTML = `<div class="cns-head"><span>${esc(title)} \u00b7 <b>${rows.length}</b></span></div>` +
@@ -3015,10 +3024,10 @@ async function renderWorklist(key) {
     const mgr = c.manager ? ' \u00b7 ' + esc(c.manager) : '';
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
-          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span>
+          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
           ${ndBadge}
         </div>
-        <div class="list-row-sub">${loc ? esc(loc) : '\u2014'}${mgr}</div>
+        ${subMarks(c, (loc ? esc(loc) : '\u2014') + mgr)}
       </div>`;
   }).join('');
   let confBlock = '';
@@ -3389,10 +3398,10 @@ async function renderMyDay() {
     const sub = [c.city, c.manager].filter(Boolean).join(' · ');
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
-        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span>
+        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
         <span class="row-next">${badge}</span>
       </div>
-      <div class="list-row-sub">${esc(sub || '—')}</div>
+      ${subMarks(c, esc(sub || '—'))}
     </div>`;
   };
   const block = (title, list, badgeFn, useChip) => list.length
@@ -3601,11 +3610,11 @@ async function renderOrgList(kind) {
     const nc = (mineOnly && c.nextContact) ? `<span class="row-next">След. контакт: ${esc(String(c.nextContact).slice(0, 10))}</span>` : '';
     return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
-        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span>
+        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
         ${c.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
         <span class="row-actions">${cnsBtn}${tr}</span>
       </div>
-      <div class="list-row-sub">${loc ? esc(loc) : '—'}</div>
+      ${subMarks(c, loc ? esc(loc) : '—')}
       ${nc ? `<div class="list-row-tags">${nc}</div>` : ''}
     </div>`;
   }).join('') + '</div>';
@@ -3802,11 +3811,11 @@ async function renderMoney() {
         ? `<span class="list-row-money money-zero">0 ₽</span>` : '';
       return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
-          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span>
+          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
           ${c.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
           ${money ? `<span class="list-row-money ${trend}">${money} ₽</span>` : zeroBadge}
         </div>
-        <div class="list-row-sub">${loc ? esc(loc) : '—'}${split}</div>
+        ${subMarks(c, (loc ? esc(loc) : '—') + split)}
       </div>`;
       }).join('') + '</div>'
       : '<div class="empty">Ничего не найдено</div>');
@@ -4034,8 +4043,8 @@ async function renderRefOrgs(kind) {
   const head = `<div class="cns-head"><span>${esc(label)} · <b>${clinics.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (clinics.length
     ? '<div class="list">' + clinics.map(c => `<div class="card list-row" data-id="${c.id}" data-kind="refclinic">
-        <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span></div>
-        <div class="list-row-sub">${refLoc(c) ? esc(refLoc(c)) : '—'}</div>
+        <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span></div>
+        ${subMarks(c, refLoc(c) ? esc(refLoc(c)) : '—')}
         ${refTagRow(c.tags)}
       </div>`).join('') + '</div>'
     : refEmpty(s));
@@ -4925,8 +4934,8 @@ async function renderAddClinicResults(q) {
       ? `<span class="ac-badge">В работе · ${esc(w.manager)}</span>`
       : `<button type="button" class="btn primary mini" data-take="${c.id}">Взять в работу</button>`;
     return `<div class="ac-row" data-open="${w.inWork ? w.workId : c.id}">
-      <div class="ac-main"><div class="ac-name">${esc(c.name)} ${ownBadge(c)}</div>
-      <div class="ac-sub">${esc(c.city || '—')}</div></div>
+      <div class="ac-main"><div class="ac-name">${esc(c.name)}</div>
+      <div class="ac-sub">${ownBadge(c)}${c.city ? esc(c.city) : '—'}</div></div>
       <div class="ac-act">${act}</div></div>`;
   }).join('') + (rows.length > shown.length ? `<div class="ac-empty">Показаны первые ${shown.length} из ${rows.length} — уточни поиск.</div>` : '');
 }
@@ -5086,6 +5095,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
     <div id="relWrap">${relBlock}</div>
     ${sourcesBlockHtml(c)}
     ${tagsBlock}
+    ${canEditNow ? `<div class="detail-block edit-block"><button class="pane-btn" id="paneEditClinic" data-id="${c.id}">✎ Редактировать карточку</button></div>` : ''}
   `;
 }
 
@@ -5099,10 +5109,12 @@ function peopleBlockHtml(c, contacts, canEditNow) {
   // v3.16.0: ЛЮДИ — компактный список (имя, должность, телефон), без счётчика и слова «нет»
   const sortedContacts = [...(contacts || [])].sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0));
   const addPersonBtn = `<button class="pane-btn" id="paneAddPerson" data-id="${c.id}">＋ Добавить человека</button>`;
+  // v3.30.1: человек, привязанный к ДРУГОЙ карточке (связка clinic_people), помечен словом «связь»
+  const linkChip = (p) => (p.clinicId !== c.id) ? `<span class="pchip pchip-src" title="Человек закреплён за другой карточкой — здесь показан по связи">связь</span>` : '';
   return sortedContacts.length
     ? `<div class="detail-block ppl-block">
         ${sortedContacts.map(p => `<div class="ppl-row contact-row${p.markedDel ? ' marked-del-row' : ''}" data-person="${p.id}">
-            <div class="ppl-name">${esc(p.fullName)}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}</div>
+            <div class="ppl-name">${esc(p.fullName)}${p.markedDel ? ' <span class="mark-badge">на удалении</span>' : ''}${linkChip(p)}</div>
             ${p.position ? `<div class="ppl-sub">${esc(shortPos(p.position))}</div>` : ''}
             ${p.phone ? phoneLines(p.phone) : ''}
           </div>`).join('')}
@@ -5527,7 +5539,7 @@ document.addEventListener('click', async (ev) => {
     } finally { ss.disabled = false; }
     return;
   }
-  const ed = ev.target.closest('#paneClinicEdit');
+  const ed = ev.target.closest('#paneClinicEdit, #paneEditClinic');
   if (ed) { ev.preventDefault(); ev.stopPropagation(); openClinicForm(Number(ed.dataset.id)); return; }
   if (moneyClick(ev)) return;   // v3.24.1: разворот денег (годы/месяцы/кварталы) — общий обработчик
   // v3.28.0: «Взять в работу» / «Сменить ответственного» / календарь даты связи
