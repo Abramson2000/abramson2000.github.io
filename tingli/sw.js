@@ -1,17 +1,17 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.30.3 (2026-09-22: шрифт пересобран (9 иероглифов), добавлены 才/下礼拜 в урок 212, переозвучен 212-w2; было 2026-09-19: женский голос ±3% — диалог/текст +3%, слова/примеры −3%; переозвучены уроки 10 и 面试困难 + font-build: simsun-subset-STSong-1497 — маркер прекэша
+// data-build: v2.30.4 (2026-09-22: названия уроков 13/14 Бизнес (313/314) — исправлен перевод и нумерация; шрифт пересобран (9 иероглифов), добавлены 才/下礼拜 в урок 212, переозвучен 212-w2; было 2026-09-19: женский голос ±3% — диалог/текст +3%, слова/примеры −3%; переозвучены уроки 10 и 面试困难 + font-build: simsun-subset-STSong-1497 — маркер прекэша
 const CACHE = 'tingli-cache-v1';
 
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './data/units.js?v=2.30.3',
-  './data/extra.js?v=2.30.3',
-  './data/idv.js?v=2.30.3',
-  './data/biz.js?v=2.30.3',
+  './data/units.js?v=2.30.4',
+  './data/extra.js?v=2.30.4',
+  './data/idv.js?v=2.30.4',
+  './data/biz.js?v=2.30.4',
   './apple-touch-icon-v2.png',
   './apple-touch-icon.png',
   './bg.jpg',
@@ -68,7 +68,7 @@ const ASSETS = [
   './fonts/rubik-cyr-600.woff2',
   './fonts/rubik-cyr-700.woff2',
   './fonts/rubik-cyr-800.woff2',
-  './fonts/simsun-subset.woff2?v=2.30.3',
+  './fonts/simsun-subset.woff2?v=2.30.4',
   './fonts/xiaoshan-mashan.woff2',
   './fonts/xiaoshan-title.woff2?v=2.23.3',
   './fonts/xiaoshan-longcang.woff2',
