@@ -285,6 +285,17 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
 /* v3.5.4: метки в списках — кликабельные (тап включает фильтр по этой метке) */
 .tag-click { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .12s, color .12s; }
 .tag-click:hover, .tag-click:active { background: var(--brand); color: #fff; }
+/* v3.32.0: метка на карточке = фильтр. Клик включает фильтр по метке, повторный — снимает */
+.tchip { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.tchip.on { background: var(--brand) !important; border-color: var(--brand) !important; color: #fff !important; }
+/* v3.32.0: управление метками в форме правки */
+.tag-edit { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 2px; min-height: 26px; }
+.tag-edit .te-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 3px 8px; border-radius: 999px; background: #eaf6f6; color: var(--brand-dark); border: 1px solid #cfe8e8; }
+.tag-edit .te-chip .x { cursor: pointer; font-weight: 700; opacity: .6; }
+.tag-edit .te-chip .x:hover { opacity: 1; }
+.tag-edit .te-empty { font-size: 12.5px; color: var(--muted); }
+.te-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.te-row input { flex: 1 1 auto; min-width: 0; }
 /* v3.6.0: «Компании» — человек в строке списка (тап → карточка человека) */
 .firm-people { gap: 6px; }
 .firm-person { cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--brand); -webkit-tap-highlight-color: transparent; }
@@ -1741,7 +1752,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.31.6';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.32.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1921,6 +1932,134 @@ function tagsHtml(tags) {
   if (!list.length) return '';
   return '<div class="row">' + list.map(t => `<span class="tag">${esc(t)}</span>`).join('') + '</div>';
 }
+
+// ===== v3.32.0: ФИЛЬТРЫ = МЕТКИ. Набор значений фильтров строится из меток, которые есть на листе =====
+let tagPool = { prod: [], src: [], other: [] };
+function isHiddenTag(t) {
+  const str = String(t == null ? '' : t).trim();
+  const low = str.toLowerCase();
+  return !str || OWN_TAGS.includes(low) || TECH_TAGS.includes(low) || str === REFDOC_TAG || str === FIRM_TAG;
+}
+function canonTag(str) {
+  const x = String(str == null ? '' : str).trim();
+  if (!x) return '';
+  return aliasOf(PROD_ALIAS, x) || aliasOf(SRC_ALIAS, x) || aliasOf(SVC_ALIAS, x) || x;
+}
+function buildTagPool(rows) {
+  const prod = {}, src = {}, other = {};
+  (rows || []).forEach(r => ((r && r.tags) || []).forEach(t => {
+    if (isHiddenTag(t)) return;
+    const v = String(t).trim();
+    const a = aliasOf(PROD_ALIAS, v), b = aliasOf(SRC_ALIAS, v), c = aliasOf(SVC_ALIAS, v);
+    if (a) { prod[a] = 1; return; }
+    if (b) { src[b] = 1; return; }
+    if (c) { src[c] = 1; return; }
+    const k = v.toLowerCase();
+    if (!other[k]) other[k] = v;
+  }));
+  tagPool.prod = PRODUCT_VALS.filter(v => prod[v]);
+  tagPool.src = SOURCE_VALS.filter(v => src[v]).concat(SERVICE_VALS.filter(v => src[v]));
+  tagPool.other = Object.keys(other).map(k => other[k]).sort((x, y) => x.localeCompare(y, 'ru'));
+  tagAllTags = tagPool.other;
+  // выбранные значения, которых больше нет на листе, — снимаем
+  const f = state.filters || {};
+  f.prods = (f.prods || []).filter(v => tagPool.prod.includes(v));
+  f.srcs = (f.srcs || []).filter(v => tagPool.src.includes(v));
+  f.tags = (f.tags || []).filter(v => tagPool.other.some(t => t.toLowerCase() === String(v).toLowerCase()));
+}
+function tagSuggestions() {
+  const svc = CURRENT_ROLE === 'admin' ? SERVICE_VALS : [];
+  return [...new Set([].concat(PRODUCT_VALS, SOURCE_VALS, svc, tagPool.other))];
+}
+// метка-чип на карточке: клик включает/снимает фильтр
+function tagChipHtml(t, grp, cls) {
+  const on = (((state.filters || {})[grp] || [])).some(x => String(x).toLowerCase() === String(t).toLowerCase());
+  return `<span class="${cls} tchip${on ? ' on' : ''}" data-tagf="${esc(t)}" data-grp="${grp}" title="Фильтр по метке «${esc(t)}»">${esc(t)}</span>`;
+}
+// все метки карточки одной строкой (продукты · источники · служебные · прочие)
+function tagChipsHtml(tags) {
+  const all = (tags || []).filter(t => !isHiddenTag(t));
+  const prod = groupOfTags({ tags: all }, PROD_ALIAS, PRODUCT_VALS);
+  const src = groupOfTags({ tags: all }, SRC_ALIAS, SOURCE_VALS);
+  const svc = groupOfTags({ tags: all }, SVC_ALIAS, SERVICE_VALS);
+  const other = all.filter(t => !isProdTag(t) && !isSrcTag(t) && !isSvcTag(t));
+  return prod.map(v => tagChipHtml(v, 'prods', 'pchip pchip-prod')).join('')
+    + src.map(v => tagChipHtml(v, 'srcs', 'pchip pchip-src')).join('')
+    + svc.map(v => tagChipHtml(v, 'srcs', 'pchip pchip-svc')).join('')
+    + other.map(t => tagChipHtml(t, 'tags', 'tag')).join('');
+}
+function cardTagsBlockHtml(c) {
+  const chips = tagChipsHtml((c && c.tags) || []);
+  if (!chips) return '';
+  return `<div class="detail-block src-block"><div class="k">Метки</div><div class="row">${chips}</div></div>`;
+}
+// включить/снять фильтр по метке
+async function toggleTagFilter(grp, val) {
+  if (!val) return;
+  const key = grp === 'prods' ? 'prods' : (grp === 'srcs' ? 'srcs' : 'tags');
+  const arr = (state.filters[key] || []).slice();
+  const low = String(val).toLowerCase();
+  const has = arr.some(x => String(x).toLowerCase() === low);
+  state.filters[key] = has ? arr.filter(x => String(x).toLowerCase() !== low) : arr.concat([val]);
+  try { syncAllFilterUI(); } catch (_) {}
+  await render();
+  toast(has ? 'Фильтр снят: ' + val : 'Фильтр по метке: ' + val);
+}
+// метки в форме правки: добавить/убрать
+let teTags = [];
+function teRender() {
+  const box = document.getElementById('teBox');
+  if (!box) return;
+  box.innerHTML = teTags.length
+    ? teTags.map(t => `<span class="te-chip" data-te="${esc(t)}">${esc(t)}<span class="x" data-tex="1" title="Убрать метку">✕</span></span>`).join('')
+    : '<span class="te-empty">меток нет</span>';
+}
+function teAdd(val) {
+  const v = canonTag(val);
+  if (!v) return;
+  if (isHiddenTag(v)) { toast('Эта метка служебная'); return; }
+  if (isSvcTag(v) && CURRENT_ROLE !== 'admin') { toast('Служебные метки — только руководитель'); return; }
+  if (teTags.some(x => x.toLowerCase() === v.toLowerCase())) { toast('Такая метка уже есть'); return; }
+  teTags.push(v);
+  teRender();
+}
+function tagEditorHtml(tags) {
+  teTags = ((tags || []).filter(t => !isHiddenTag(t))).slice();
+  return `<div class="field"><label>Метки (теги = фильтры)</label>
+      <div class="tag-edit" id="teBox"></div>
+      <div class="te-row"><input id="teNew" list="dl_tags" placeholder="Новая метка…" /><button type="button" class="btn ghost" id="teAdd">＋ Добавить</button></div>
+      <datalist id="dl_tags">${tagSuggestions().map(t => `<option value="${esc(t)}"></option>`).join('')}</datalist>
+      <div class="ac-hint">Метка = фильтр: добавил метку — появился фильтр по ней. ✕ убирает метку. Тип (ЛПУ/ЧК) — отдельно.</div>
+    </div>`;
+}
+document.addEventListener('click', ev => {
+  const x = ev.target && ev.target.closest ? ev.target.closest('.tag-edit .te-chip .x') : null;
+  if (x) {
+    ev.preventDefault(); ev.stopPropagation();
+    const chip = x.closest('.te-chip');
+    const val = chip && chip.dataset.te;
+    if (val) { teTags = teTags.filter(v => v !== val); teRender(); }
+    return;
+  }
+  if (ev.target && ev.target.closest && ev.target.closest('#teAdd')) {
+    ev.preventDefault(); ev.stopPropagation();
+    const inp = document.getElementById('teNew');
+    if (inp) { teAdd(inp.value); inp.value = ''; inp.focus(); }
+  }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Enter' && ev.target && ev.target.id === 'teNew') {
+    ev.preventDefault(); teAdd(ev.target.value); ev.target.value = '';
+  }
+});
+// v3.32.0: клик по метке НА КАРТОЧКЕ (в т.ч. в панели #hoverCard и в модалке) = фильтр
+// слушатель на document, т.к. карточка живёт вне #view
+document.addEventListener('click', ev => {
+  const el = (ev.target && ev.target.closest) ? ev.target.closest('[data-tagf]') : null;
+  if (!el || (el.classList && el.classList.contains('te-chip'))) return;
+  ev.preventDefault(); ev.stopPropagation();
+  toggleTagFilter(el.dataset.grp || 'tags', el.dataset.tagf);
+});
 
 function openModal(title, bodyHtml) {
   document.getElementById('modalTitle').textContent = title;
@@ -2396,12 +2535,13 @@ function passFilters(f, c) {
 function syncGroupMenu(cfg) {
   const wrap = document.getElementById(cfg.wrap);
   if (!wrap) return;
+  const vals = (cfg.key === 'prods') ? tagPool.prod : tagPool.src;   // v3.32.0: значения = метки листа
   const chosen = state.filters[cfg.key] || [];
   const sum = document.getElementById(cfg.sum);
   if (sum) sum.textContent = chosen.length ? (chosen.length === 1 ? chosen[0] : cfg.label + ': ' + chosen.length + ' — ' + chosen.join(', ')) : cfg.label;
   wrap.classList.toggle('on', chosen.length > 0);
   const menu = document.getElementById(cfg.menu);
-  menu.innerHTML = cfg.vals.map(v => `<label><input type="checkbox" value="${esc(v)}" ${chosen.includes(v) ? 'checked' : ''} /><span>${esc(v)}</span></label>`).join('')
+  menu.innerHTML = vals.map(v => `<label><input type="checkbox" value="${esc(v)}" ${chosen.includes(v) ? 'checked' : ''} /><span>${esc(v)}</span></label>`).join('')
     + `<button type="button" class="tagpick-clear${chosen.length ? '' : ' hidden'}">Сбросить</button>`;
   menu.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', () => {
     state.filters[cfg.key] = [...menu.querySelectorAll('input[type=checkbox]')].filter(x => x.checked).map(x => x.value);
@@ -2494,10 +2634,13 @@ function syncFilterGroupVisibility() {
   const g = FILTER_GROUPS_BY_VIEW[state.view] || [];
   const ty = document.getElementById('f_type');
   if (ty) ty.classList.toggle('hidden', !g.includes('type'));
+  // v3.32.0: есть метка на листе = есть фильтр (пул строится из меток листа)
   const pw = document.getElementById('f_prodWrap');
-  if (pw) pw.classList.toggle('hidden', !g.includes('prods'));
+  if (pw) pw.classList.toggle('hidden', !tagPool.prod.length);
   const sw = document.getElementById('f_srcWrap');
-  if (sw) sw.classList.toggle('hidden', !g.includes('srcs'));
+  if (sw) sw.classList.toggle('hidden', !tagPool.src.length);
+  const tw = document.getElementById('f_tagWrap');
+  if (tw) tw.classList.toggle('hidden', !tagPool.other.length);
 }
 
 // фильтры справочников: регионы/города только из карточек этого справочника
@@ -2531,12 +2674,12 @@ function syncTagMenu() {
   });
 }
 function fillTagSelect(rows) {
-  const tags = [...new Set((rows || []).flatMap(r => refTags(r.tags)))]
-    .filter(t => t && !OWN_TAGS.includes(String(t).toLowerCase()))
-    .sort((a, b) => a.localeCompare(b, 'ru'));
-  tagAllTags = tags;
-  state.filters.tags = (state.filters.tags || []).filter(t => tags.includes(t));
-  if (state.filters.tag) { if (tags.includes(state.filters.tag) && !state.filters.tags.includes(state.filters.tag)) state.filters.tags.push(state.filters.tag); state.filters.tag = ''; }
+  // v3.32.0: группа «Метки» = прочие метки, которые реально есть на этом листе
+  buildTagPool(rows);
+  if (state.filters.tag) {
+    if (tagPool.other.some(t => t.toLowerCase() === String(state.filters.tag).toLowerCase()) && !state.filters.tags.includes(state.filters.tag)) state.filters.tags.push(state.filters.tag);
+    state.filters.tag = '';
+  }
   syncTagMenu();
 }
 
@@ -2549,6 +2692,8 @@ async function populateRefFilters() {
   let rows = [];
   if (state.view === 'refdoc') {
     rows = (await listPeople()).filter(isRefDoc);
+  } else if (state.view === 'refcontact') {
+    rows = (await listPeople()).filter(p => !isHiddenPerson(p));
   } else {
     const kind = state.view === 'refgos' ? 'ref_gos' : (state.view === 'refpriv' ? 'ref_priv' : 'ref_firm');
     rows = (await listClinics()).filter(c => c.kind === kind);
@@ -2585,12 +2730,18 @@ async function populateFilters() {
         (locMap.cityRegions[c.city] = locMap.cityRegions[c.city] || new Set()).add(c.region);
       }
     });
+    // v3.32.0: пул меток — из карточек ЭТОГО листа (клиники / партнёры / деньги)
+    const poolRows = (clinics || []).filter(c => {
+      const k = c.kind || 'hospital';
+      if (state.view === 'distributors') return k === 'distributor';
+      return k === 'hospital';
+    });
+    buildTagPool(poolRows);
   } catch (_) {}
   fillSelect('f_region', regions, 'Регионы');
   fillSelect('f_city', cities, 'Города');
   fillSelect('f_manager', managers, 'Менеджеры');
   fillSelect('f_year', YEAR_OPTIONS, 'Годы');
-  fillTagSelect([]);   // метки — только в Справочниках (в «Клиниках» фильтра меток нет)
   syncAllFilterUI();
   // применить зависимость к уже выбранным значениям (после переключения вкладок)
   syncRegionOptions();
@@ -4138,11 +4289,12 @@ async function openRefOrgForm(id, kind) {
       <div class="field"><label>Регион</label><input id="fm_region" list="dl_region" value="${esc(c.region)}" /><datalist id="dl_region">${regions}</datalist></div>
       <div class="field"><label>Город</label><input id="fm_city" list="dl_city" value="${esc(c.city)}" /><datalist id="dl_city">${cities}</datalist></div>
     </div>
-    <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc(refTags(c.tags).join(', '))}" placeholder="специальность, источник" /></div>
+    ${tagEditorHtml(c.tags)}
     <div class="field"><label>Комментарии</label><textarea id="f_situation">${esc(c.situation)}</textarea></div>
     <button class="btn" id="f_save">Сохранить</button>
     ${id ? '<div class="btn-row"><button class="btn ghost" id="f_delete">Удалить</button></div>' : ''}
   `);
+  teRender();
   document.getElementById('f_save').addEventListener('click', () => saveRefOrg(id, k));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deleteClinic(id));
 }
@@ -4152,7 +4304,7 @@ async function saveRefOrg(id, kind) {
   if (!name) { toast('Название обязательно'); return; }
   const region = document.getElementById('fm_region').value.trim();
   const city = document.getElementById('fm_city').value.trim();
-  const tags = parseTags(document.getElementById('f_tags').value);
+  const tags = [...(teTags || [])].map(t => canonTag(t)).filter(Boolean);   // v3.32.0
   const situation = document.getElementById('f_situation').value.trim();
   await addDictValues('region', [region]);
   await addDictValues('city', [city]);
@@ -4179,11 +4331,12 @@ async function openRefDoctorForm(id) {
       <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(p.phone)}" /></div>
       <div class="field"><label>Почта</label><input id="f_email" value="${esc(p.email)}" /></div>
     </div>
-    <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc(refTags(p.tags).join(', '))}" placeholder="специальность, источник (конференция)" /></div>
+    ${tagEditorHtml(p.tags)}
     <div class="field"><label>Комментарии</label><textarea id="f_situation">${esc(p.situation)}</textarea></div>
     <button class="btn" id="f_save">Сохранить</button>
     ${id ? '<div class="btn-row"><button class="btn ghost" id="f_delete">Удалить</button></div>' : ''}
   `);
+  teRender();
   document.getElementById('f_save').addEventListener('click', () => saveRefDoctor(id));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deletePerson(id));
   maskPhoneInput(document.getElementById('f_phone'));
@@ -4199,10 +4352,10 @@ async function saveRefDoctor(id) {
   const phone = document.getElementById('f_phone').value.trim();
   const email = document.getElementById('f_email').value.trim();
   const situation = document.getElementById('f_situation').value.trim();
-  const tags = [...new Set([...parseTags(document.getElementById('f_tags').value), REFDOC_TAG])];
+  const tags = [...new Set([...(teTags || [])].map(t => canonTag(t)).filter(Boolean).concat([REFDOC_TAG]))];   // v3.32.0
   const row = { fullName, position, clinicId, region, city, phone, email, situation, tags };
   if (id) await updatePerson(id, row); else await addPerson(row);
-  closeModal(); toast('Сохранено'); render(); refreshCounts();
+  closeModal(); toast('Сохранено'); render(); updateFiltersUI(); refreshCounts();
 }
 
 // ---------- forms ----------
@@ -4227,10 +4380,7 @@ async function openClinicForm(id, presetKind) {
   const linkOptions = await clinicSelectOptions(c.linkedClinicId);
 
   const clinicKindNow = ['hospital', 'ref_gos', 'ref_priv'].includes(kind);
-  const curProds = cardProducts(c), curSrcs = cardSources(c), curSvc = cardService(c);
   const typeNow = cardType(c) || (kind === 'ref_gos' ? 'ЛПУ' : (kind === 'ref_priv' ? 'ЧК' : ''));
-  const plainTagsNow = (c.tags || []).filter(t => !isProdTag(t) && !isSrcTag(t) && !isSvcTag(t) && !OWN_TAGS.includes(String(t).toLowerCase()));
-  const pickRow = (pid, vals, cur) => `<div class="pick-row" id="${pid}">${vals.map(v => `<button type="button" class="pr-b${cur.includes(v) ? ' on' : ''}" data-p="${esc(v)}">${esc(v)}</button>`).join('')}</div>`;
   const typeField = clinicKindNow ? `
     <div class="field"><label>Тип клиники *</label>
       <div class="seg" id="f_typeseg">
@@ -4239,9 +4389,6 @@ async function openClinicForm(id, presetKind) {
       </div>
       <div class="ac-hint">ЛПУ → справочник «Государственные», ЧК → «Частные». Смена типа переносит карточку, новая не создаётся.</div>
     </div>` : '';
-  const prodField = clinicKindNow ? `<div class="field"><label>Продукты</label>${pickRow('f_prods', PRODUCT_VALS, curProds)}<div class="ac-hint">Несколько или ни одного; повторный клик снимает. Продукт ≠ продажа.</div></div>` : '';
-  const srcField = `<div class="field"><label>Источники</label>${pickRow('f_srcs', SOURCE_VALS, curSrcs)}</div>`
-    + (CURRENT_ROLE === 'admin' ? `<div class="field"><label>Служебные метки</label>${pickRow('f_svcs', SERVICE_VALS, curSvc)}</div>` : '');
   const KIND_OPTS = [['hospital', 'Больница'], ['distributor', 'Партнеры'], ['ref_gos', 'Государственные'], ['ref_priv', 'Частные'], ['ref_firm', 'Компании']];
   const kindOptsHtml = KIND_OPTS.map(([v, l]) => `<option value="${v}"${kind === v ? ' selected' : ''}>${l}</option>`).join('');
   const titleMap = { distributor: 'Новый дистрибьютор', ref_gos: 'Новое учреждение', ref_priv: 'Новая частная клиника', ref_firm: 'Новая компания' };
@@ -4265,13 +4412,12 @@ async function openClinicForm(id, presetKind) {
     </div>
     <div class="field"><label>Сайт</label><input id="f_site" type="url" placeholder="https://…" value="${esc(splitSite(c.situation).site)}" /></div>
     <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(splitSite(c.situation).rest)}</textarea></div>
-    ${prodField}
-    ${srcField}
-    <div class="field"><label>Прочие метки (через запятую)</label><input id="f_tags" value="${esc(plainTagsNow.join(', '))}" /></div>
+    ${tagEditorHtml(c.tags)}
     <button class="btn" id="f_save" data-id="${c.id || ''}">Сохранить</button>
     ${id ? `<div class="btn-row"><button class="btn ghost" id="f_delete">${CURRENT_ROLE === 'admin' ? 'Удалить' : (c.markedDel ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button></div>` : ''}
   `);
 
+  teRender();
   document.getElementById('f_save').addEventListener('click', () => saveClinic(id));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deleteClinic(id));
 }
@@ -4389,10 +4535,8 @@ async function saveClinic(id) {
   const sitRaw = document.getElementById('f_situation').value.trim();
   const siteEl = document.getElementById('f_site');
   const situation = withSite(sitRaw, siteEl ? siteEl.value : '');
-  const plainTags = parseTags(document.getElementById('f_tags').value)
-    .filter(t => !isProdTag(t) && !isSrcTag(t) && !isSvcTag(t) && !OWN_TAGS.includes(String(t).toLowerCase()));
-  const pickOf = pid => [...document.querySelectorAll('#' + pid + ' .pr-b.on')].map(b => b.dataset.p);
-  const tags = [...new Set([...plainTags, ...pickOf('f_prods'), ...pickOf('f_srcs'), ...pickOf('f_svcs')])];
+  // v3.32.0: метки карточки берём из редактора меток
+  const tags = [...new Set((teTags || []).map(t => canonTag(t)).filter(t => t && !isHiddenTag(t) && !OWN_TAGS.includes(String(t).toLowerCase())))];
   const linkedClinicId = document.getElementById('f_link').value ? Number(document.getElementById('f_link').value) : null;
   const isRefK = isRefKind(kind);
   let sales, hms;
@@ -4448,12 +4592,13 @@ async function openPersonForm(id, presetClinicId, opts) {
     </div>
     <div class="field"><label>Сайт</label><input id="f_site" type="url" placeholder="https://…" value="${esc(splitSite(p.situation).site)}" /></div>
     <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(splitSite(p.situation).rest)}</textarea></div>
-    <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc(refTags(p.tags).join(', '))}" /></div>
+    ${tagEditorHtml(p.tags)}
     <input type="hidden" id="f_refdoc" value="${isDoc ? '1' : ''}" />
     <button class="btn" id="f_save" data-id="${p.id || ''}">Сохранить</button>
     ${id ? `<div class="btn-row"><button class="btn ghost" id="f_delete">${CURRENT_ROLE === 'admin' ? 'Удалить' : (p.markedDel ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button></div>` : ''}
   `);
 
+  teRender();
   document.getElementById('f_save').addEventListener('click', () => savePerson(id));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deletePerson(id));
   maskPhoneInput(document.getElementById('f_phone'));
@@ -4473,7 +4618,7 @@ async function savePerson(id) {
   const sitRawP = document.getElementById('f_situation').value.trim();
   const siteElP = document.getElementById('f_site');
   const situation = withSite(sitRawP, siteElP ? siteElP.value : '');
-  const tags = parseTags(document.getElementById('f_tags').value);
+  const tags = [...(teTags || [])].map(t => canonTag(t)).filter(Boolean);   // v3.32.0: метки из редактора
   const rd = document.getElementById('f_refdoc');
   if (rd && rd.value === '1' && !tags.includes(REFDOC_TAG)) tags.unshift(REFDOC_TAG);
 
@@ -5080,7 +5225,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
   const relBlock = relBlockHtml(c, linked, related);
   // v3.22.1: блок «Подробнее» убран из карточки клиники (город/тип/ответственный дублируют шапку);
   // метки оставлены отдельной компактной плашкой — они нигде больше в карточке не показываются
-  const tagsBlock = tagsHtml(c.tags);
+  const tagsBlock = cardTagsBlockHtml(c);   // v3.32.0: все метки карточки — одной строкой, клик = фильтр
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
     ${salesBlock}
@@ -5089,7 +5234,6 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
     ${notesBlock(c, canEditNow)}
     <div id="pplWrap">${peopleBlock}</div>
     <div id="relWrap">${relBlock}</div>
-    ${sourcesBlockHtml(c)}
     ${tagsBlock}
   `;
 }
@@ -5363,6 +5507,7 @@ function personDetailBody(p, clinics, canEditCard) {
     ${[['Должность', p.position], ['Почта', p.email]]
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
     ${p.phone ? `<div class="detail-block"><div class="k">Телефон</div><div class="v">${telLink(p.phone)}</div></div>` : ''}
+    ${cardTagsBlockHtml(p)}
     ${commentField('people', p.id, p.situation, canEditNow)}
   `;
 }
@@ -5750,14 +5895,11 @@ document.getElementById('view').addEventListener('click', async e => {
     await showPerson(Number(fpEl.dataset.person));
     return;
   }
-  // v3.5.4: тап по метке в списке — сразу включаем фильтр по этой метке
-  const tagEl = e.target.closest('.tag-click[data-tag]');
-  if (tagEl) {
+  // v3.5.4: тап по метке в списке — сразу включаем фильтр по этой метке (v3.32.0: тоггл)
+  const tagOld = e.target.closest ? e.target.closest('.tag-click[data-tag]') : null;
+  if (tagOld) {
     e.preventDefault(); e.stopPropagation();
-    state.filters.tags = [tagEl.dataset.tag];
-    try { syncTagMenu(); } catch (_) {}
-    await render();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    await toggleTagFilter('tags', tagOld.dataset.tag);
     return;
   }
   // v3.15.0: действия «Выполнено»/«Перенести» из «Моего дня»
