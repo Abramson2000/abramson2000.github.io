@@ -80,7 +80,7 @@ body {
 /* Filters */
 .filters {
   max-width: 720px; margin: 0 auto; padding: 8px 16px 0;
-  display: flex; gap: 8px;
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start;
 }
 .filters.hidden { display: none; }
 .hidden { display: none !important; }
@@ -144,6 +144,34 @@ body {
 .rn-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .rn-wrap .list-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .list-row-sub .own-badge, .ac-sub .own-badge { margin-right: 5px; }
+/* ===== v3.30.0: группы меток (продукты/источники/служебные) + фильтры-панель ===== */
+.pchip { font-size: 10.5px; font-weight: 700; letter-spacing: .02em; border-radius: 6px; padding: 0 5px; line-height: 15px; flex: none; }
+.pchip-prod { color: #0b6f6f; background: #eaf6f6; border: 1px solid #cfe8e8; }
+.pchip-src { color: #4b4b4b; background: #f1f1ef; border: 1px solid #e2e2df; }
+.pchip-svc { color: #8a5a00; background: #fdf3e3; border: 1px solid #f2e0c0; }
+.rn-wrap .pchip { margin-left: 2px; }
+.list-row-sub .pchip { margin-right: 5px; }
+.src-block .k { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.seg { display: inline-flex; gap: 6px; }
+.seg-b { padding: 6px 14px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); color: #555; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.seg-b.on { background: var(--brand); color: #fff; border-color: var(--brand); }
+.pick-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.pr-b { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: #555; font: inherit; font-size: 13px; cursor: pointer; }
+.pr-b.on { background: #eaf6f6; border-color: var(--brand); color: var(--brand-dark); font-weight: 700; }
+#fPanel { flex: 1 1 auto; min-width: 0; }
+#fPanel > summary { display: none; }
+.f-ctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+#fChips { flex: 1 1 100%; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.fchip { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #eaf6f6; color: var(--brand-dark); border: 1px solid #cfe8e8; cursor: pointer; }
+.fchip .x { opacity: .6; margin-left: 4px; }
+.f-reset { font-size: 12px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: #555; cursor: pointer; }
+.f-n { font-weight: 400; color: var(--muted); }
+@media (max-width: 899px) {
+  .filters { padding: 6px 12px 0; }
+  #fPanel > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--brand-dark); font-weight: 700; padding: 4px 0; }
+  #fPanel:not([open]) .f-ctl { display: none; }
+  .pchip { font-size: 9.5px; line-height: 14px; padding: 0 4px; }
+}
 .row-next { font-size: 11.5px; color: var(--accent); }
 .subtabs { display: flex; gap: 6px; margin: 0 0 8px; }
 .subtab { border: 1px solid rgba(0,0,0,.12); background: transparent; color: var(--muted); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
@@ -1078,16 +1106,30 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
   </aside>
 
   <div id="filters" class="filters hidden">
-    <select id="f_region"><option value="">Регионы</option></select>
-    <select id="f_city"><option value="">Города</option></select>
-    <select id="f_type"><option value="">Тип клиники</option><option value="state">Государственная</option><option value="private">Частная</option></select>
-    <select id="f_year" class="hidden"><option value="">Годы</option></select>
-    <select id="f_manager"><option value="">Менеджеры</option></select>
-    <select id="f_tag" class="hidden"><option value="">Метки</option></select>
-    <details id="f_tagWrap" class="tagpick hidden">
-      <summary id="f_tagSummary">Метки</summary>
-      <div id="f_tagMenu" class="tagpick-menu"></div>
+    <details id="fPanel" open>
+      <summary>Фильтры<span id="fSumN" class="f-n"></span></summary>
+      <div class="f-ctl">
+        <select id="f_region"><option value="">Регионы</option></select>
+        <select id="f_city"><option value="">Города</option></select>
+        <select id="f_type" class="hidden"><option value="">Все типы</option><option value="ЛПУ">ЛПУ</option><option value="ЧК">ЧК</option></select>
+        <select id="f_year" class="hidden"><option value="">Годы</option></select>
+        <select id="f_manager"><option value="">Менеджеры</option></select>
+        <select id="f_tag" class="hidden"><option value="">Метки</option></select>
+        <details id="f_prodWrap" class="tagpick hidden">
+          <summary id="f_prodSummary">Продукты</summary>
+          <div id="f_prodMenu" class="tagpick-menu"></div>
+        </details>
+        <details id="f_srcWrap" class="tagpick hidden">
+          <summary id="f_srcSummary">Источники</summary>
+          <div id="f_srcMenu" class="tagpick-menu"></div>
+        </details>
+        <details id="f_tagWrap" class="tagpick hidden">
+          <summary id="f_tagSummary">Метки</summary>
+          <div id="f_tagMenu" class="tagpick-menu"></div>
+        </details>
+      </div>
     </details>
+    <div id="fChips" class="fchips hidden"></div>
   </div>
 
   <div class="searchbar" id="searchTop">
@@ -1666,7 +1708,7 @@ const DICT_LABELS = {
   sub: 'Суб / партнёр'
 };
 
-const state = { view: 'myday', search: '', selId: null, selKind: null, filters: { region: '', city: '', manager: '', type: '', tag: '', tags: [] }, moneySort: 'desc', moneySource: 'both', moneyYear: '', moneyFilter: 'all', nastyaId: null, fromCalls: false, mydayOffset: 0, mydayMgr: '' };
+const state = { view: 'myday', search: '', selId: null, selKind: null, filters: { region: '', city: '', manager: '', type: '', tag: '', tags: [], prods: [], srcs: [] }, moneySort: 'desc', moneySource: 'both', moneyYear: '', moneyFilter: 'all', nastyaId: null, fromCalls: false, mydayOffset: 0, mydayMgr: '' };
 
 // ---------- цвет выделения ----------
 const ACCENT_OPTIONS = [
@@ -1691,7 +1733,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.29.9';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.30.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1736,9 +1778,9 @@ async function refreshCounts() {
         (c.kind || 'hospital') === 'hospital' &&
         MONEY_YEARS.some(y => yearTotal(c, y) != null)
       ).length,
-      cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && (c.tags || []).includes('cns')).length,
-      refgos: clinics.filter(c => c.kind === 'ref_gos').length,
-      refpriv: clinics.filter(c => c.kind === 'ref_priv').length,
+      cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС')).length,
+      refgos: clinics.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital') && cardType(c) === 'ЛПУ').length,
+      refpriv: clinics.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital') && cardType(c) === 'ЧК').length,
       refdoc: people.filter(p => isRefDoc(p)).length,
       reffirm: clinics.filter(c => c.kind === 'ref_firm').length,
       refcontact: people.filter(p => !p.markedDel && (p.phone || p.email)).length
@@ -1779,7 +1821,7 @@ window.addEventListener('unhandledrejection', e => {
 // v3.10.1: «Тип клиники» — отдельный атрибут карточки (хранится меткой гос/частная)
 const OWN_TAGS = ['государственная', 'частная'];
 // v3.16.0: технические метки в карточке не показываем (в базе остаются как есть)
-const TECH_TAGS = ['old', 'cns', 'миграция', 'migration', 'migrated', 'перенос', 'import', 'импорт', 'старое', 'дубль'];
+const TECH_TAGS = ['миграция', 'migration', 'migrated', 'перенос', 'import', 'импорт', 'старое', 'дубль'];
 function ownershipOf(c) {
   const t = ((c && c.tags) || []).map(x => String(x).toLowerCase());
   if (t.includes('частная')) return 'private';
@@ -1788,19 +1830,56 @@ function ownershipOf(c) {
 }
 function ownershipLabel(o) { return o === 'private' ? 'Частная' : (o === 'state' ? 'Государственная' : ''); }
 // v3.29.0: единая короткая метка клиники для всех списков — «ЛПУ» / «ЧК»
-function ownShortLabel(c) {
-  let o = ownershipOf(c);
-  if (!o) {
-    const k = (c && c.kind) || '';
-    if (k === 'ref_gos') o = 'state';
-    else if (k === 'ref_priv') o = 'private';
-  }
-  if (!o) {   // запасной вариант — по имени («ЧК …» = частная, «ЛПУ …» = государственная)
-    const n = String((c && c.name) || '').trim();
-    if (/^ЧК(\s|$|-)/i.test(n)) o = 'private';
-    else if (/^ЛПУ(\s|$|-)/i.test(n)) o = 'state';
-  }
-  return o === 'state' ? 'ЛПУ' : (o === 'private' ? 'ЧК' : '');
+// ===== v3.30.0: МЕТКИ ПО ГРУППАМ — тип (ЛПУ/ЧК) · продукты · источники · служебные =====
+const TYPE_VALS = ['ЛПУ', 'ЧК'];
+const PRODUCT_VALS = ['ЦНС', 'BS', 'ХМ', 'АиР', 'Эндо'];
+const SOURCE_VALS = ['База', 'MDPro', 'Сафайр', 'РОУ26', 'OLD'];
+const SERVICE_VALS = ['ТЕСТ'];
+const PROD_ALIAS = { 'цнс': 'ЦНС', 'cns': 'ЦНС', 'bs': 'BS', 'boston': 'BS', 'хм': 'ХМ', 'hm': 'ХМ', 'hugemed': 'ХМ', 'аир': 'АиР', 'air': 'АиР', 'эндо': 'Эндо', 'endo': 'Эндо' };
+const SRC_ALIAS = { 'база': 'База', 'base': 'База', 'mdpro': 'MDPro', 'сафайр': 'Сафайр', 'safair': 'Сафайр', 'роу26': 'РОУ26', 'rou26': 'РОУ26', 'old': 'OLD' };
+const SVC_ALIAS = { 'тест': 'ТЕСТ', 'test': 'ТЕСТ' };
+function aliasOf(map, t) { return map[String(t || '').trim().toLowerCase()] || ''; }
+function groupOfTags(c, map, order) {
+  const hit = {};
+  ((c && c.tags) || []).forEach(t => { const v = aliasOf(map, t); if (v) hit[v] = 1; });
+  return order.filter(v => hit[v]);
+}
+function cardProducts(c) { return groupOfTags(c, PROD_ALIAS, PRODUCT_VALS); }
+function cardSources(c) { return groupOfTags(c, SRC_ALIAS, SOURCE_VALS); }
+function cardService(c) { return groupOfTags(c, SVC_ALIAS, SERVICE_VALS); }
+function isProdTag(t) { return !!aliasOf(PROD_ALIAS, t); }
+function isSrcTag(t) { return !!aliasOf(SRC_ALIAS, t); }
+function isSvcTag(t) { return !!aliasOf(SVC_ALIAS, t); }
+// тип клиники: поле type → метка гос/частная → вид справочника → имя
+function cardType(c) {
+  const t = String((c && c.type) || '').trim().toUpperCase();
+  if (t === 'ЛПУ' || t === 'ГОСУДАРСТВЕННАЯ') return 'ЛПУ';
+  if (t === 'ЧК' || t === 'ЧАСТНАЯ') return 'ЧК';
+  const o = ownershipOf(c);
+  if (o) return o === 'state' ? 'ЛПУ' : 'ЧК';
+  const k = (c && c.kind) || '';
+  if (k === 'ref_gos') return 'ЛПУ';
+  if (k === 'ref_priv') return 'ЧК';
+  const n = String((c && c.name) || '').trim();
+  if (/^ЧК(\s|$|-)/i.test(n)) return 'ЧК';
+  if (/^ЛПУ(\s|$|-)/i.test(n)) return 'ЛПУ';
+  return '';
+}
+function ownShortLabel(c) { return cardType(c); }
+function typeBadge(t) { return t ? `<span class="own-badge own-${t === 'ЛПУ' ? 'lpu' : 'chk'}">${t}</span>` : ''; }
+function chip(txt, cls) { return `<span class="pchip${cls ? ' ' + cls : ''}">${esc(txt)}</span>`; }
+function productChips(c) { return cardProducts(c).map(v => chip(v, 'pchip-prod')).join(''); }
+function sourceChips(c) { return cardSources(c).map(v => chip(v, 'pchip-src')).join('') + cardService(c).map(v => chip(v, 'pchip-svc')).join(''); }
+// вкл/выкл значения внутри группы меток (канонизируя остальные значения группы)
+function setTagInGroup(tags, map, canon, on) {
+  const out = [];
+  (tags || []).forEach(t => {
+    const a = aliasOf(map, t);
+    if (!a) { out.push(t); return; }        // не наша группа — оставляем как есть
+    if (a !== canon) out.push(a);           // другие значения группы — канонизируем и оставляем
+  });
+  if (on && !out.includes(canon)) out.push(canon);
+  return [...new Set(out)];
 }
 function ownBadge(c) {
   const t = ownShortLabel(c);
@@ -1815,10 +1894,15 @@ function myManager() {
   if (window.CURRENT_MANAGER) return window.CURRENT_MANAGER;
   return myManagerName();   // MANAGER_BY_EMAIL: Осечкина / Скокова / Абрамов
 }
+function sourcesBlockHtml(c) {
+  const src = cardSources(c), svc = cardService(c);
+  if (!src.length && !svc.length) return '';
+  return `<div class="detail-block src-block"><div class="k">Источники</div><div class="row">${src.map(v => chip(v, 'pchip-src')).join('')}${svc.map(v => chip(v, 'pchip-svc')).join('')}</div></div>`;
+}
 function tagsHtml(tags) {
   const list = (tags || []).filter(t => {
     const s = String(t).toLowerCase();
-    return !OWN_TAGS.includes(s) && !TECH_TAGS.includes(s);
+    return !OWN_TAGS.includes(s) && !TECH_TAGS.includes(s) && !isProdTag(t) && !isSrcTag(t) && !isSvcTag(t);
   });
   if (!list.length) return '';
   return '<div class="row">' + list.map(t => `<span class="tag">${esc(t)}</span>`).join('') + '</div>';
@@ -2177,19 +2261,29 @@ document.querySelectorAll('.tab').forEach(btn => {
 // (пример: «Тип клиники» в «Клиниках» больше не глушит «Партнёров» и справочники).
 let filterCtx = '';
 const VIEW_FILTER_KEYS = {
-  clinics: ['region', 'city', 'manager', 'type'],
-  distributors: ['region', 'city', 'manager'],
-  money: ['region', 'city', 'manager'],
+  clinics: ['region', 'city', 'manager', 'type', 'prods', 'srcs'],
+  distributors: ['region', 'city', 'manager', 'srcs'],
+  money: ['region', 'city', 'manager', 'type', 'prods', 'srcs'],
   cns: ['region', 'city'],
-  refgos: ['region', 'city', 'tags'],
-  refpriv: ['region', 'city', 'tags'],
-  refdoc: ['region', 'city', 'tags'],
-  reffirm: ['region', 'city', 'tags'],
+  refgos: ['region', 'city', 'tags', 'prods', 'srcs'],
+  refpriv: ['region', 'city', 'tags', 'prods', 'srcs'],
+  refdoc: ['region', 'city', 'tags', 'srcs'],
+  reffirm: ['region', 'city', 'tags', 'srcs'],
   refcontact: ['region', 'city'],
+};
+// v3.30.0: какие группы фильтров применимы в разделе
+const FILTER_GROUPS_BY_VIEW = {
+  clinics: ['type', 'prods', 'srcs'],
+  distributors: ['srcs'],
+  money: ['type', 'prods', 'srcs'],
+  refgos: ['prods', 'srcs'],
+  refpriv: ['prods', 'srcs'],
+  refdoc: ['srcs'],
+  reffirm: ['srcs'],
 };
 // v3.28.0: виды, где кнопка «＋» не показывается (кнопку синхронизируем и в render())
 const FAB_HIDDEN_VIEWS = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
-const EMPTY_FILTERS = { region: '', city: '', manager: '', type: '', tag: '', tags: [] };
+const EMPTY_FILTERS = { region: '', city: '', manager: '', type: '', tag: '', tags: [], prods: [], srcs: [] };
 const viewFilters = {};
 const viewSearch = {};
 async function updateFiltersUI() {
@@ -2211,8 +2305,7 @@ async function updateFiltersUI() {
     bar.classList.remove('hidden');
     await populateFilters();
     document.getElementById('f_year').classList.toggle('hidden', state.view !== 'money');
-    // v3.15.0: «Тип клиники» применим ТОЛЬКО к Клиникам
-    document.getElementById('f_type').classList.toggle('hidden', state.view !== 'clinics');
+    syncFilterGroupVisibility();
     // у Насти/Гали фильтр «Менеджер» в «Деньгах» бесполезен — там и так только их клиники
     if (myManagerName()) {
       document.getElementById('f_manager').classList.add('hidden');
@@ -2225,9 +2318,11 @@ async function updateFiltersUI() {
     document.getElementById('f_year').classList.add('hidden');
     document.getElementById('f_manager').classList.add('hidden');
     await populateRefFilters();
+    syncFilterGroupVisibility();
   } else {
     bar.classList.add('hidden');
   }
+  syncGroupMenu(PROD_MENU_CFG); syncGroupMenu(SRC_MENU_CFG); updateFilterChips();
 }
 
 // v3.15.0: состояние раздела (фильтры + поиск + прокрутка) восстанавливается при возврате
@@ -2273,6 +2368,88 @@ function tagHit(f, tags) {
   if (!sel.length) return true;
   const have = tags || [];
   return sel.some(t => have.includes(t));
+}
+// v3.30.0: ИЛИ внутри группы, И между группами
+function prodHit(f, c) { const sel = (f && f.prods) || []; if (!sel.length) return true; const have = cardProducts(c); return sel.some(x => have.includes(x)); }
+function srcHit(f, c) { const sel = (f && f.srcs) || []; if (!sel.length) return true; const have = cardSources(c).concat(cardService(c)); return sel.some(x => have.includes(x)); }
+function typeHit(f, c) { const sel = (f && f.type) || ''; return !sel || cardType(c) === sel; }
+function passFilters(f, c) {
+  return (!f.region || c.region === f.region) && (!f.city || c.city === f.city) &&
+    (!f.manager || c.manager === f.manager) &&
+    typeHit(f, c) && prodHit(f, c) && srcHit(f, c) && tagHit(f, c.tags);
+}
+// однотипные меню-переключатели (продукты/источники)
+function syncGroupMenu(cfg) {
+  const wrap = document.getElementById(cfg.wrap);
+  if (!wrap) return;
+  const chosen = state.filters[cfg.key] || [];
+  const sum = document.getElementById(cfg.sum);
+  if (sum) sum.textContent = chosen.length ? (chosen.length === 1 ? chosen[0] : cfg.label + ': ' + chosen.length + ' — ' + chosen.join(', ')) : cfg.label;
+  wrap.classList.toggle('on', chosen.length > 0);
+  const menu = document.getElementById(cfg.menu);
+  menu.innerHTML = cfg.vals.map(v => `<label><input type="checkbox" value="${esc(v)}" ${chosen.includes(v) ? 'checked' : ''} /><span>${esc(v)}</span></label>`).join('')
+    + `<button type="button" class="tagpick-clear${chosen.length ? '' : ' hidden'}">Сбросить</button>`;
+  menu.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', () => {
+    state.filters[cfg.key] = [...menu.querySelectorAll('input[type=checkbox]')].filter(x => x.checked).map(x => x.value);
+    syncGroupMenu(cfg); updateFilterChips(); render();
+  }));
+  const clr = menu.querySelector('.tagpick-clear');
+  if (clr) clr.addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    state.filters[cfg.key] = []; syncGroupMenu(cfg); updateFilterChips(); render();
+  });
+}
+const PROD_MENU_CFG = { wrap: 'f_prodWrap', menu: 'f_prodMenu', sum: 'f_prodSummary', key: 'prods', vals: PRODUCT_VALS, label: 'Продукты' };
+const SRC_MENU_CFG = { wrap: 'f_srcWrap', menu: 'f_srcMenu', sum: 'f_srcSummary', key: 'srcs', vals: SOURCE_VALS, label: 'Источники' };
+function filterActiveCount() {
+  const f = state.filters || {};
+  return [f.region, f.city, f.manager, f.type].filter(Boolean).length + (f.prods || []).length + (f.srcs || []).length + (f.tags || []).length;
+}
+function updateFilterChips() {
+  const box = document.getElementById('fChips');
+  const n = filterActiveCount();
+  const sumN = document.getElementById('fSumN');
+  if (sumN) { sumN.textContent = n ? ' · ' + n : ''; }
+  if (!box) return;
+  const parts = [];
+  const f = state.filters || {};
+  if (f.region) parts.push({ t: f.region, fn: () => { state.filters.region = ''; } });
+  if (f.city) parts.push({ t: f.city, fn: () => { state.filters.city = ''; } });
+  if (f.manager) parts.push({ t: f.manager, fn: () => { state.filters.manager = ''; } });
+  if (f.type) parts.push({ t: 'Тип: ' + f.type, fn: () => { state.filters.type = ''; } });
+  (f.prods || []).forEach(p => parts.push({ t: 'Продукт: ' + p, fn: () => { state.filters.prods = state.filters.prods.filter(x => x !== p); } }));
+  (f.srcs || []).forEach(p => parts.push({ t: 'Источник: ' + p, fn: () => { state.filters.srcs = state.filters.srcs.filter(x => x !== p); } }));
+  (f.tags || []).forEach(p => parts.push({ t: 'Метка: ' + p, fn: () => { state.filters.tags = state.filters.tags.filter(x => x !== p); } }));
+  box.classList.toggle('hidden', !parts.length);
+  box.innerHTML = parts.length
+    ? parts.map((p, i) => `<span class="fchip" data-fi="${i}">${esc(p.t)}<span class="x">✕</span></span>`).join('')
+      + `<button type="button" class="f-reset" id="fReset">Сбросить фильтры</button>`
+    : '';
+  box.querySelectorAll('.fchip').forEach(el => el.addEventListener('click', () => {
+    parts[Number(el.dataset.fi)].fn(); syncAllFilterUI(); render();
+  }));
+  const rst = document.getElementById('fReset');
+  if (rst) rst.addEventListener('click', () => {
+    Object.assign(state.filters, { region: '', city: '', manager: '', type: '', tag: '', tags: [], prods: [], srcs: [] });
+    syncAllFilterUI(); render();   // вкладку «Мои клиники» НЕ переключаем
+  });
+}
+function syncAllFilterUI() {
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+  set('f_region', state.filters.region); set('f_city', state.filters.city);
+  set('f_manager', state.filters.manager); set('f_type', state.filters.type);
+  syncGroupMenu(PROD_MENU_CFG); syncGroupMenu(SRC_MENU_CFG);
+  syncTagMenu();
+  updateFilterChips();
+}
+function syncFilterGroupVisibility() {
+  const g = FILTER_GROUPS_BY_VIEW[state.view] || [];
+  const ty = document.getElementById('f_type');
+  if (ty) ty.classList.toggle('hidden', !g.includes('type'));
+  const pw = document.getElementById('f_prodWrap');
+  if (pw) pw.classList.toggle('hidden', !g.includes('prods'));
+  const sw = document.getElementById('f_srcWrap');
+  if (sw) sw.classList.toggle('hidden', !g.includes('srcs'));
 }
 
 // фильтры справочников: регионы/города только из карточек этого справочника
@@ -2338,6 +2515,7 @@ async function populateRefFilters() {
   document.getElementById('f_region').value = state.filters.region || '';
   document.getElementById('f_city').value = state.filters.city || '';
   fillTagSelect(rows);
+  syncAllFilterUI();
 }
 
 async function populateFilters() {
@@ -2365,6 +2543,7 @@ async function populateFilters() {
   fillSelect('f_manager', managers, 'Менеджеры');
   fillSelect('f_year', YEAR_OPTIONS, 'Годы');
   fillTagSelect([]);   // метки — только в Справочниках (в «Клиниках» фильтра меток нет)
+  syncAllFilterUI();
   // применить зависимость к уже выбранным значениям (после переключения вкладок)
   syncRegionOptions();
   syncCityOptions();
@@ -2408,6 +2587,7 @@ function fillSelect(id, values, emptyLabel) {
   document.getElementById(id).addEventListener('change', e => {
     if (id === 'f_year') { state.moneyYear = e.target.value; render(); return; }
     state.filters[id.replace('f_', '')] = e.target.value;
+    updateFilterChips();   // v3.30.0: активные условия + счётчик
     render();
   });
 });
@@ -2427,6 +2607,7 @@ document.getElementById('f_region').addEventListener('change', e => {
     state.filters.city = '';
   }
   syncCityOptions();
+  updateFilterChips();
   render();
 });
 
@@ -2439,6 +2620,7 @@ document.getElementById('f_city').addEventListener('change', e => {
     state.filters.region = '';
   }
   syncRegionOptions();
+  updateFilterChips();
   render();
 });
 
@@ -2487,9 +2669,11 @@ function searchUITick() {
     const update = () => {
       const n = viewEl.querySelectorAll('.list-row').length || viewEl.querySelectorAll('tbody tr').length;
       const q = state.search || '';
-      // v3.27.1: без запроса счётчик не показываем (лишняя надпись «N записей»)
-      cnt.textContent = q ? (n ? 'Найдено: ' + n : 'Ничего не найдено') : '';
-      cnt.classList.toggle('bad', !!q && !n);
+      const nf = (typeof filterActiveCount === 'function') ? filterActiveCount() : 0;
+      // v3.27.1: без запроса и фильтров счётчик не показываем (лишняя надпись «N записей»)
+      // v3.30.0: при активных фильтрах показываем, сколько найдено
+      cnt.textContent = (q || nf) ? (n ? 'Найдено: ' + n : 'Ничего не найдено') : '';
+      cnt.classList.toggle('bad', !!(q || nf) && !n);
     };
     new MutationObserver(() => { clearTimeout(t); t = setTimeout(update, 120); }).observe(viewEl, { childList: true, subtree: true });
   }
@@ -2579,8 +2763,8 @@ async function render() {
     else if (state.view === 'reffirm') await renderRefFirms();
     else if (state.view === 'refcontact') await renderContacts();
     else if (state.view === 'myday') await renderMyDay();
-    else if (state.view === 'air') await renderStub('АиР');
-    else if (state.view === 'endo') await renderStub('Эндо');
+    else if (state.view === 'air') await renderProductList('АиР', 'АиР');
+    else if (state.view === 'endo') await renderProductList('Эндо', 'Эндо');
     else if (state.view === 'visits') renderVisits();
     else if (state.view === 'nastya' && WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) await renderNastya();
     else if (state.view === 'galya' && WORKLISTS.galya.emails.includes(CURRENT_EMAIL)) await renderGalya();
@@ -2595,11 +2779,34 @@ async function render() {
 }
 
 // ---------- ЦНС: отобранные клиники (v1.158) ----------
+// v3.30.0: разделы продуктов (АиР/Эндо) — карточки с этим продуктом
+async function renderProductList(product, title) {
+  const view = document.getElementById('view');
+  const s = state.search;
+  const kinds = ['hospital', 'ref_gos', 'ref_priv'];
+  let clinics = (await listClinics()).filter(c => kinds.includes(c.kind || 'hospital') && cardProducts(c).includes(product));
+  if (s) clinics = clinics.filter(c =>
+    (c.name || '').toLowerCase().includes(s) || (c.city || '').toLowerCase().includes(s) ||
+    (c.region || '').toLowerCase().includes(s) || (c.manager || '').toLowerCase().includes(s));
+  const f = state.filters;
+  clinics = clinics.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city) && typeHit(f, c) && srcHit(f, c));
+  clinics.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0) || (a.name || '').localeCompare(b.name || '', 'ru'));
+  view.innerHTML = `<div class="cns-head"><span>${esc(title)} · <b>${clinics.length}</b></span></div>` + (clinics.length
+    ? '<div class="list">' + clinics.map(c => {
+        const m = (c.manager || '').trim();
+        return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}" data-id="${c.id}" data-kind="clinic">
+          <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span></div>
+          <div class="list-row-sub">${esc(c.city || '—')}${m ? ' · ' + esc(m) : ''}</div>
+        </div>`;
+      }).join('') + '</div>'
+    : `<div class="empty">${s ? 'Ничего не найдено' : 'Нет клиник с продуктом «' + esc(product) + '» — отметь продукт в карточке клиники'}</div>`);
+  restorePanelSelection();
+}
 async function renderCns() {
   const view = document.getElementById('view');
   const s = state.search;
   let clinics = await listClinics();
-  clinics = clinics.filter(c => (c.kind || 'hospital') === 'hospital' && (c.tags || []).includes('cns'));
+  clinics = clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС'));
   if (s) clinics = clinics.filter(c =>
     (c.name || '').toLowerCase().includes(s) ||
     (c.city || '').toLowerCase().includes(s) ||
@@ -2618,7 +2825,7 @@ async function renderCns() {
       const m = (c.manager || '').trim();
       return `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
-          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span>
+          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span>
           <span class="row-actions"><span class="cns-btn on" data-cns="${c.id}" title="Убрать из отбора ЦНС"><img src="cns.png" class="cns-ico" alt="" /></span></span>
         </div>
         <div class="list-row-sub">${loc ? esc(loc) : '—'}${m ? ' · ' + esc(m) : ''}</div>
@@ -2631,7 +2838,7 @@ async function renderCns() {
     const c = clinics.find(x => x.id === id);
     if (!c) return;
     try {
-      const tags = (c.tags || []).filter(t => t !== 'cns');
+      const tags = setTagInGroup(c.tags, PROD_ALIAS, 'ЦНС', false);
       const { error } = await withTimeout(sb.from('clinics').update({ tags }).eq('id', id), 10000, 'cns-remove');
       if (error) throw error;
       toast('Убрано из отбора ЦНС');
@@ -2648,17 +2855,17 @@ async function bindCnsAdd(view) {
   if (!btn) return;
   btn.addEventListener('click', async () => {
     const all = await listClinics();
-    const pool = all.filter(c => (c.kind || 'hospital') === 'hospital' && !(c.tags || []).includes('cns'))
+    const pool = all.filter(c => (c.kind || 'hospital') === 'hospital' && !cardProducts(c).includes('ЦНС'))
       .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
     if (!pool.length) { toast('Все клиники уже в отборе'); return; }
     openModal('Добавить в отбор ЦНС',
       '<div class="list" id="cnsPool">' + pool.map(c =>
-        `<div class="card list-row cns-pool-row" data-id="${c.id}" style="cursor:pointer"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span></div>`
+        `<div class="card list-row cns-pool-row" data-id="${c.id}" style="cursor:pointer"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span></div>`
       ).join('') + '</div>');
     document.querySelectorAll('#cnsPool .cns-pool-row').forEach(row => row.addEventListener('click', async () => {
       const c = all.find(x => x.id === Number(row.dataset.id));
       if (!c) return;
-      const tags = [...(c.tags || []), 'cns'];
+      const tags = setTagInGroup(c.tags, PROD_ALIAS, 'ЦНС', true);
       const { error } = await withTimeout(sb.from('clinics').update({ tags }).eq('id', c.id), 10000, 'cns-add');
       if (error) { toast('Ошибка: ' + (error.message || error)); return; }
       c.tags = tags;
@@ -3182,7 +3389,7 @@ async function renderMyDay() {
     const sub = [c.city, c.manager].filter(Boolean).join(' · ');
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
-        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span>
+        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span>
         <span class="row-next">${badge}</span>
       </div>
       <div class="list-row-sub">${esc(sub || '—')}</div>
@@ -3349,7 +3556,9 @@ async function renderOrgList(kind) {
       (c.tags || []).some(t => t.toLowerCase().includes(s))) &&
     (!f.region || c.region === f.region) &&
     (!f.city || c.city === f.city) &&
-    (!f.type || kind !== 'hospital' || ownershipOf(c) === f.type) &&
+    (!f.type || kind !== 'hospital' || cardType(c) === f.type) &&
+    (kind !== 'hospital' || prodHit(f, c)) &&
+    srcHit(f, c) &&
     (kind !== 'hospital' || tagHit(f, c.tags)) &&
     (!f.manager || c.manager === f.manager) &&
     (!mineOnly || (c.manager || '').trim() === mym)
@@ -3386,13 +3595,13 @@ async function renderOrgList(kind) {
       (myEmail === 'skokova@crm.ru' && m === 'Скокова'));
     const inWl = myWlIds.has(c.id);
     const tr = showTr ? `<span class="transfer-btn${inWl ? ' on' : ''}" data-transfer="${c.id}" title="${inWl ? 'Уже в вашем листе' : 'Перенести в мой лист'}">⇄</span>` : '';
-    const cnsOn = (c.tags || []).includes('cns');
+    const cnsOn = cardProducts(c).includes('ЦНС');
     const cnsBtn = `<span class="cns-btn${cnsOn ? ' on' : ''}" data-cns="${c.id}" title="${cnsOn ? 'В отборе ЦНС — убрать' : 'Отобрать для ЦНС'}"><img src="cns.png" class="cns-ico" alt="" /></span>`;
     // v3.29.0: единая метка ЛПУ / ЧК — в верхней строке сразу за названием (как во всех списках)
     const nc = (mineOnly && c.nextContact) ? `<span class="row-next">След. контакт: ${esc(String(c.nextContact).slice(0, 10))}</span>` : '';
     return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
-        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span>
+        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span>
         ${c.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
         <span class="row-actions">${cnsBtn}${tr}</span>
       </div>
@@ -3429,11 +3638,11 @@ async function renderOrgList(kind) {
     const id = Number(b.dataset.cns);
     const c = clinics.find(x => x.id === id);
     if (!c) return;
-    const on = !(c.tags || []).includes('cns');
+    const on = !cardProducts(c).includes('ЦНС');
     b.classList.toggle('on', on);
     b.title = on ? 'В отборе ЦНС — убрать' : 'Отобрать для ЦНС';
     try {
-      const tags = on ? [...(c.tags || []), 'cns'] : (c.tags || []).filter(t => t !== 'cns');
+      const tags = setTagInGroup(c.tags, PROD_ALIAS, 'ЦНС', on);
       const { error } = await withTimeout(sb.from('clinics').update({ tags }).eq('id', id), 10000, 'cns-toggle');
       if (error) throw error;
       c.tags = tags;
@@ -3509,7 +3718,7 @@ async function renderMoney() {
       (c.manager || '').toLowerCase().includes(s)) &&
     (!f.region || c.region === f.region) &&
     (!f.city || c.city === f.city) &&
-    (tagHit(f, c.tags)) &&
+    typeHit(f, c) && prodHit(f, c) && srcHit(f, c) && tagHit(f, c.tags) &&
     (!f.manager || c.manager === f.manager)
   );
   // сортировка: по сумме (вверх/вниз) или по алфавиту; 0₽-бейджи — в середине (только при выбранном годе), пустые — вниз по алфавиту
@@ -3593,7 +3802,7 @@ async function renderMoney() {
         ? `<span class="list-row-money money-zero">0 ₽</span>` : '';
       return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
-          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span>
+          <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span>
           ${c.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
           ${money ? `<span class="list-row-money ${trend}">${money} ₽</span>` : zeroBadge}
         </div>
@@ -3811,7 +4020,8 @@ async function renderRefOrgs(kind) {
   const view = document.getElementById('view');
   const label = REF_KIND_LABEL[kind] || kind;
   const s = state.search;
-  let clinics = (await listClinics()).filter(c => c.kind === kind);
+  const wantType = kind === 'ref_gos' ? 'ЛПУ' : 'ЧК';
+  let clinics = (await listClinics()).filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital') && cardType(c) === wantType);
   if (s) clinics = clinics.filter(c =>
     (c.name || '').toLowerCase().includes(s) ||
     (c.city || '').toLowerCase().includes(s) ||
@@ -3819,12 +4029,12 @@ async function renderRefOrgs(kind) {
     (c.situation || '').toLowerCase().includes(s) ||
     (c.tags || []).some(t => t.toLowerCase().includes(s)));
   const f = state.filters;
-  clinics = clinics.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city) && (tagHit(f, c.tags)));
+  clinics = clinics.filter(c => passFilters(f, c));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const head = `<div class="cns-head"><span>${esc(label)} · <b>${clinics.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (clinics.length
     ? '<div class="list">' + clinics.map(c => `<div class="card list-row" data-id="${c.id}" data-kind="refclinic">
-        <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}</span></div>
+        <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span></div>
         <div class="list-row-sub">${refLoc(c) ? esc(refLoc(c)) : '—'}</div>
         ${refTagRow(c.tags)}
       </div>`).join('') + '</div>'
@@ -3851,7 +4061,7 @@ async function renderRefDoctors() {
     (p.tags || []).some(t => t.toLowerCase().includes(s)));
   docs.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
   const f = state.filters;
-  docs = docs.filter(p => (!f.region || p.region === f.region) && (!f.city || p.city === f.city) && (tagHit(f, p.tags)));
+  docs = docs.filter(p => (!f.region || p.region === f.region) && (!f.city || p.city === f.city) && srcHit(f, p) && (tagHit(f, p.tags)));
   const head = `<div class="cns-head"><span>Врачи · <b>${docs.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (docs.length
     ? '<div class="list">' + docs.map(p => {
@@ -3884,7 +4094,7 @@ async function renderRefFirms() {
     (c.situation || '').toLowerCase().includes(s) ||
     (c.tags || []).some(t => t.toLowerCase().includes(s)));
   const f = state.filters;
-  firms = firms.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city) && tagHit(f, c.tags));
+  firms = firms.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city) && srcHit(f, c) && tagHit(f, c.tags));
   firms.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const byClinic = {};
   people.forEach(p => { if (p.clinicId) (byClinic[p.clinicId] = byClinic[p.clinicId] || []).push(p); });
@@ -4011,11 +4221,28 @@ async function openClinicForm(id, presetKind) {
   ]);
   const linkOptions = await clinicSelectOptions(c.linkedClinicId);
 
+  const clinicKindNow = ['hospital', 'ref_gos', 'ref_priv'].includes(kind);
+  const curProds = cardProducts(c), curSrcs = cardSources(c), curSvc = cardService(c);
+  const typeNow = cardType(c) || (kind === 'ref_gos' ? 'ЛПУ' : (kind === 'ref_priv' ? 'ЧК' : ''));
+  const plainTagsNow = (c.tags || []).filter(t => !isProdTag(t) && !isSrcTag(t) && !isSvcTag(t) && !OWN_TAGS.includes(String(t).toLowerCase()));
+  const pickRow = (pid, vals, cur) => `<div class="pick-row" id="${pid}">${vals.map(v => `<button type="button" class="pr-b${cur.includes(v) ? ' on' : ''}" data-p="${esc(v)}">${esc(v)}</button>`).join('')}</div>`;
+  const typeField = clinicKindNow ? `
+    <div class="field"><label>Тип клиники *</label>
+      <div class="seg" id="f_typeseg">
+        <button type="button" class="seg-b${typeNow === 'ЛПУ' ? ' on' : ''}" data-t="ЛПУ">ЛПУ</button>
+        <button type="button" class="seg-b${typeNow === 'ЧК' ? ' on' : ''}" data-t="ЧК">ЧК</button>
+      </div>
+      <div class="ac-hint">ЛПУ → справочник «Государственные», ЧК → «Частные». Смена типа переносит карточку, новая не создаётся.</div>
+    </div>` : '';
+  const prodField = clinicKindNow ? `<div class="field"><label>Продукты</label>${pickRow('f_prods', PRODUCT_VALS, curProds)}<div class="ac-hint">Несколько или ни одного; повторный клик снимает. Продукт ≠ продажа.</div></div>` : '';
+  const srcField = `<div class="field"><label>Источники</label>${pickRow('f_srcs', SOURCE_VALS, curSrcs)}</div>`
+    + (CURRENT_ROLE === 'admin' ? `<div class="field"><label>Служебные метки</label>${pickRow('f_svcs', SERVICE_VALS, curSvc)}</div>` : '');
   const KIND_OPTS = [['hospital', 'Больница'], ['distributor', 'Партнеры'], ['ref_gos', 'Государственные'], ['ref_priv', 'Частные'], ['ref_firm', 'Компании']];
   const kindOptsHtml = KIND_OPTS.map(([v, l]) => `<option value="${v}"${kind === v ? ' selected' : ''}>${l}</option>`).join('');
   const titleMap = { distributor: 'Новый дистрибьютор', ref_gos: 'Новое учреждение', ref_priv: 'Новая частная клиника', ref_firm: 'Новая компания' };
 
   openModal(id ? 'Редактировать организацию' : (titleMap[kind] || 'Новая клиника'), `
+    ${typeField}
     <div class="field"><label>Вид *</label>
       <select id="f_kind">
         ${kindOptsHtml}
@@ -4033,7 +4260,9 @@ async function openClinicForm(id, presetKind) {
     </div>
     <div class="field"><label>Сайт</label><input id="f_site" type="url" placeholder="https://…" value="${esc(splitSite(c.situation).site)}" /></div>
     <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(splitSite(c.situation).rest)}</textarea></div>
-    <div class="field"><label>Метки (через запятую)</label><input id="f_tags" value="${esc((c.tags || []).join(', '))}" /></div>
+    ${prodField}
+    ${srcField}
+    <div class="field"><label>Прочие метки (через запятую)</label><input id="f_tags" value="${esc(plainTagsNow.join(', '))}" /></div>
     <button class="btn" id="f_save" data-id="${c.id || ''}">Сохранить</button>
     ${id ? `<div class="btn-row"><button class="btn ghost" id="f_delete">${CURRENT_ROLE === 'admin' ? 'Удалить' : (c.markedDel ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button></div>` : ''}
   `);
@@ -4041,6 +4270,14 @@ async function openClinicForm(id, presetKind) {
   document.getElementById('f_save').addEventListener('click', () => saveClinic(id));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deleteClinic(id));
 }
+
+// v3.30.0: переключатели в формах (тип клиники + плашки продуктов/источников)
+document.addEventListener('click', (ev) => {
+  const sb = ev.target.closest && ev.target.closest('#f_typeseg .seg-b');
+  if (sb) { ev.preventDefault(); sb.parentElement.querySelectorAll('.seg-b').forEach(b => b.classList.toggle('on', b === sb)); return; }
+  const pb = ev.target.closest && ev.target.closest('#f_prods .pr-b, #f_srcs .pr-b, #f_svcs .pr-b');
+  if (pb) { ev.preventDefault(); pb.classList.toggle('on'); }
+});
 
 // v3.6.4: короткая должность («пара слов») для карточек и списков
 function shortPos(p) {
@@ -4133,7 +4370,13 @@ function salesFormFields(c, isRef) {
 async function saveClinic(id) {
   const name = document.getElementById('f_name').value.trim();
   if (!name) { toast('Название обязательно'); return; }
-  const kind = document.getElementById('f_kind').value;
+  let kind = document.getElementById('f_kind').value;
+  const typeSelEl = document.querySelector('#f_typeseg .seg-b.on');
+  const type = typeSelEl ? typeSelEl.dataset.t : '';
+  const kindIsClinic = ['hospital', 'ref_gos', 'ref_priv'].includes(kind);
+  if (kindIsClinic && !type) { toast('Укажите тип: ЛПУ или ЧК'); return; }
+  // тип определяет справочник: ЛПУ → «Государственные», ЧК → «Частные» (карточка та же)
+  if (isRefKind(kind)) kind = type === 'ЧК' ? 'ref_priv' : (type === 'ЛПУ' ? 'ref_gos' : kind);
   const region = document.getElementById('fm_region').value.trim();
   if (!region) { toast('Регион обязателен'); return; }
   const city = document.getElementById('fm_city').value.trim();
@@ -4141,7 +4384,10 @@ async function saveClinic(id) {
   const sitRaw = document.getElementById('f_situation').value.trim();
   const siteEl = document.getElementById('f_site');
   const situation = withSite(sitRaw, siteEl ? siteEl.value : '');
-  const tags = parseTags(document.getElementById('f_tags').value);
+  const plainTags = parseTags(document.getElementById('f_tags').value)
+    .filter(t => !isProdTag(t) && !isSrcTag(t) && !isSvcTag(t) && !OWN_TAGS.includes(String(t).toLowerCase()));
+  const pickOf = pid => [...document.querySelectorAll('#' + pid + ' .pr-b.on')].map(b => b.dataset.p);
+  const tags = [...new Set([...plainTags, ...pickOf('f_prods'), ...pickOf('f_srcs'), ...pickOf('f_svcs')])];
   const linkedClinicId = document.getElementById('f_link').value ? Number(document.getElementById('f_link').value) : null;
   const isRefK = isRefKind(kind);
   let sales, hms;
@@ -4158,7 +4404,7 @@ async function saveClinic(id) {
   await addDictValues('city', [city]);
   await addDictValues('manager', [manager]);
 
-  const row = { name, region, city, manager, situation, tags, linkedClinicId, kind };
+  const row = { name, region, city, manager, situation, tags, linkedClinicId, kind, type: kindIsClinic ? type : null };
   const moneyFields = {};
   MONEY_YEARS.forEach((y, i) => { moneyFields['sales_' + y] = sales[i]; });
   HUGEMED_YEARS.forEach((y, i) => { moneyFields['hugemed_' + y] = hms[i]; });
@@ -4695,7 +4941,7 @@ async function openNewClinicForm(presetName) {
       <div class="field"><label>Регион *</label><input id="nc_region" list="dl_r2" /><datalist id="dl_r2">${regions}</datalist></div>
       <div class="field"><label>Город *</label><input id="nc_city" list="dl_c2" /><datalist id="dl_c2">${cities}</datalist></div>
     </div>
-    <div class="field"><label>Тип</label><select id="nc_type"><option value="state">Государственная</option><option value="private">Частная</option></select></div>
+    <div class="field"><label>Тип *</label><select id="nc_type"><option value="ЛПУ">ЛПУ (государственная)</option><option value="ЧК">ЧК (частная)</option></select></div>
     <div class="field"><label>Ответственный</label>${boss ? `<select id="nc_mgr">${mgrSel}</select>` : `<input id="nc_mgr" value="${esc(myManager() || '')}" readonly />`}</div>
     <div class="ac-hint">Остальное (люди, продажи, записи) заполняется потом в карточке.</div>
     <button type="button" class="btn primary" id="nc_save">Создать клинику</button>
@@ -4735,12 +4981,12 @@ async function openNewClinicForm(presetName) {
     if (!name) { toast('Название обязательно'); return; }
     if (!region) { toast('Регион обязателен'); return; }
     if (!city) { toast('Город обязателен'); return; }
-    const tags = [type === 'private' ? 'частная' : 'государственная'];
+    const tags = [];
     try {
       await addDictValues('region', [region]);
       await addDictValues('city', [city]);
       if (manager) await addDictValues('manager', [manager]);
-      const newId = (await addClinic({ name, region, city, manager, tags, kind: 'hospital', linkedClinicId: null })).id;
+      const newId = (await addClinic({ name, region, city, manager, tags, kind: 'hospital', type, linkedClinicId: null })).id;
       if (manager) {
         try { await saveClinicPrivate(newId, manager, {}); } catch (_) {}
       }
@@ -4838,6 +5084,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
     ${notesBlock(c, canEditNow)}
     <div id="pplWrap">${peopleBlock}</div>
     <div id="relWrap">${relBlock}</div>
+    ${sourcesBlockHtml(c)}
     ${tagsBlock}
   `;
 }
