@@ -1752,7 +1752,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.32.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.32.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1886,7 +1886,13 @@ function cardType(c) {
 }
 function ownShortLabel(c) { return cardType(c); }
 function typeBadge(t) { return t ? `<span class="own-badge own-${t === 'ЛПУ' ? 'lpu' : 'chk'}">${t}</span>` : ''; }
-function chip(txt, cls) { return `<span class="pchip${cls ? ' ' + cls : ''}">${esc(txt)}</span>`; }
+function chip(txt, cls) {
+  // v3.32.2: метка-чип = фильтр. Клик включает фильтр по этой метке, повторный — снимает.
+  const grp = cls === 'pchip-prod' ? 'prods' : ((cls === 'pchip-src' || cls === 'pchip-svc') ? 'srcs' : '');
+  const on = grp && (((state.filters || {})[grp] || [])).some(x => String(x).toLowerCase() === String(txt).toLowerCase());
+  const attrs = grp ? ` data-tagf="${esc(txt)}" data-grp="${grp}" title="Фильтр по метке «${esc(txt)}»"` : '';
+  return `<span class="pchip${cls ? ' ' + cls : ''}${grp ? ' tchip' : ''}${on ? ' on' : ''}"${attrs}>${esc(txt)}</span>`;
+}
 function productChips(c) { return cardProducts(c).map(v => chip(v, 'pchip-prod')).join(''); }
 // v3.30.1: метки (тип + продукты) — во ВТОРОЙ строке плашки, перед городом/менеджером
 function markChips(c) { return ownBadge(c) + productChips(c); }
@@ -2052,14 +2058,14 @@ document.addEventListener('keydown', ev => {
     ev.preventDefault(); teAdd(ev.target.value); ev.target.value = '';
   }
 });
-// v3.32.0: клик по метке НА КАРТОЧКЕ (в т.ч. в панели #hoverCard и в модалке) = фильтр
-// слушатель на document, т.к. карточка живёт вне #view
+// v3.32.2: клик по метке (=фильтру) — и на плашке в списке, и на карточке.
+// Фаза ПЕРЕХВАТА: гасим событие раньше, чем откроется карточка по клику на строку.
 document.addEventListener('click', ev => {
   const el = (ev.target && ev.target.closest) ? ev.target.closest('[data-tagf]') : null;
-  if (!el || (el.classList && el.classList.contains('te-chip'))) return;
+  if (!el) return;
   ev.preventDefault(); ev.stopPropagation();
   toggleTagFilter(el.dataset.grp || 'tags', el.dataset.tagf);
-});
+}, true);
 
 function openModal(title, bodyHtml) {
   document.getElementById('modalTitle').textContent = title;
