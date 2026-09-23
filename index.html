@@ -1752,7 +1752,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.33.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.34.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1951,25 +1951,29 @@ function canonTag(str) {
   return aliasOf(PROD_ALIAS, x) || aliasOf(SRC_ALIAS, x) || aliasOf(SVC_ALIAS, x) || x;
 }
 function buildTagPool(rows) {
+  const cfg = FILTER_CFG[state.view] || {};
   const prod = {}, src = {}, other = {};
   (rows || []).forEach(r => ((r && r.tags) || []).forEach(t => {
     if (isHiddenTag(t)) return;
     const v = String(t).trim();
+    const k = v.toLowerCase();
+    // v3.34.0: у людей собственные назначения меток — в общий котёл не раскладываем
+    if (cfg.ownTags) { if (!other[k]) other[k] = v; return; }
     const a = aliasOf(PROD_ALIAS, v), b = aliasOf(SRC_ALIAS, v), c = aliasOf(SVC_ALIAS, v);
     if (a) { prod[a] = 1; return; }
     if (b) { src[b] = 1; return; }
     if (c) { src[c] = 1; return; }
-    const k = v.toLowerCase();
     if (!other[k]) other[k] = v;
   }));
   tagPool.prod = PRODUCT_VALS.filter(v => prod[v]);
   tagPool.src = SOURCE_VALS.filter(v => src[v]).concat(SERVICE_VALS.filter(v => src[v]));
   tagPool.other = Object.keys(other).map(k => other[k]).sort((x, y) => x.localeCompare(y, 'ru'));
   tagAllTags = tagPool.other;
-  // выбранные значения, которых больше нет на листе, — снимаем
+  // v3.34.0: снимаем выбранное только если значения нет в КАНОНЕ группы (иначе выбор по канону
+  // в разделе, где такого значения пока нет на листе, слетал бы сам)
   const f = state.filters || {};
-  f.prods = (f.prods || []).filter(v => tagPool.prod.includes(v));
-  f.srcs = (f.srcs || []).filter(v => tagPool.src.includes(v));
+  f.prods = (f.prods || []).filter(v => PRODUCT_VALS.includes(v));
+  f.srcs = (f.srcs || []).filter(v => SOURCE_VALS.includes(v) || SERVICE_VALS.includes(v));
   f.tags = (f.tags || []).filter(v => tagPool.other.some(t => t.toLowerCase() === String(v).toLowerCase()));
 }
 function tagSuggestions() {
@@ -2423,25 +2427,35 @@ let filterCtx = '';
 // v3.33.0: ЕДИНАЯ таблица фильтров раздела — одна логика для рабочих списков и справочников.
 // sel — регион/город/менеджер, type — ЛПУ/ЧК, year — год (только «Деньги»);
 // группы меток (Продукты / Источники / Метки) показываются всегда, если такие метки есть на листе.
+// v3.34.0: РАЗДЕЛЬНАЯ КЛАССИФИКАЦИЯ.
+//   type — «Тип клиники» (ЛПУ/ЧК) — ОДИНОЧНЫЙ выбор, только где тип не задан разделом;
+//   prods — «Продукты» (ЦНС, BS, ХМ, АиР, Эндо) — МУЛЬТИвыбор;
+//   srcs  — «Источники» (База, MDPro, Сафайр, РОУ26, OLD) — МУЛЬТИвыбор;
+//   tags  — «Метки» (прочие метки листа); ownTags — у людей свои назначения меток,
+//           канонические продукты/источники им не подставляются.
+//   sel — регион/город/менеджер, year — год (только «Деньги»).
 const FILTER_CFG = {
-  clinics:      { sel: 1, type: 1, year: 0 },
-  distributors: { sel: 1, type: 0, year: 0 },
-  money:        { sel: 1, type: 1, year: 1 },
-  refgos:       { sel: 1, type: 0, year: 0 },
-  refpriv:      { sel: 1, type: 0, year: 0 },
-  refdoc:       { sel: 1, type: 0, year: 0 },
-  reffirm:      { sel: 1, type: 0, year: 0 },
-  refcontact:   { sel: 1, type: 0, year: 0 },
-  cns:          { sel: 0, type: 0, year: 0 },
-  air:          { sel: 0, type: 0, year: 0 },
-  endo:         { sel: 0, type: 0, year: 0 },
-  nastya:       { sel: 0, type: 0, year: 0 },
-  galya:        { sel: 0, type: 0, year: 0 },
-  sasha:        { sel: 0, type: 0, year: 0 },
-  myday:        { sel: 0, type: 0, year: 0 },
-  calls:        { sel: 0, type: 0, year: 0 },
-  visits:       { sel: 0, type: 0, year: 0 },
+  clinics:      { sel: 1, type: 1, prods: 1, srcs: 1, tags: 1, year: 0 },   // все группы
+  distributors: { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // продукты и источники, тип не нужен
+  money:        { sel: 1, type: 1, prods: 1, srcs: 1, tags: 1, year: 1 },
+  refgos:       { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
+  refpriv:      { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
+  reffirm:      { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // как партнёры
+  refdoc:       { sel: 1, type: 0, prods: 0, srcs: 0, tags: 1, ownTags: 1, year: 0 },   // свои метки человека
+  refcontact:   { sel: 1, type: 0, prods: 0, srcs: 0, tags: 1, ownTags: 1, year: 0 },
+  cns:          { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  air:          { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  endo:         { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  nastya:       { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  galya:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  sasha:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  myday:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  calls:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  visits:       { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
 };
+// v3.34.0: значения групп — КАНОН, а не «что нашлось на листе»
+function prodMenuVals() { return PRODUCT_VALS.slice(); }
+function srcMenuVals() { return SOURCE_VALS.slice(); }   // служебная метка «ТЕСТ» в выборе не показывается (но остаётся рабочей с чипа карточки)
 const VIEW_FILTER_KEYS = {};
 Object.keys(FILTER_CFG).forEach(v => {
   const c = FILTER_CFG[v], keys = [];
@@ -2560,7 +2574,8 @@ function passFilters(f, c) {
 function syncGroupMenu(cfg) {
   const wrap = document.getElementById(cfg.wrap);
   if (!wrap) return;
-  const vals = (cfg.key === 'prods') ? tagPool.prod : tagPool.src;   // v3.32.0: значения = метки листа
+  // v3.34.0: продукты и источники — всегда полный канон раздела (мультивыбор), метки — свои метки листа
+  const vals = (cfg.key === 'prods') ? prodMenuVals() : (cfg.key === 'srcs' ? srcMenuVals() : tagAllTags);
   const chosen = state.filters[cfg.key] || [];
   const sum = document.getElementById(cfg.sum);
   if (sum) sum.textContent = chosen.length ? (chosen.length === 1 ? chosen[0] : cfg.label + ': ' + chosen.length + ' — ' + chosen.join(', ')) : cfg.label;
@@ -2665,13 +2680,14 @@ function syncFilterGroupVisibility() {
   if (fm) fm.classList.toggle('hidden', !cfg.sel);
   const fy = document.getElementById('f_year');
   if (fy) fy.classList.toggle('hidden', !cfg.year);
-  // v3.32.0: есть метка на листе = есть фильтр (пул строится из меток листа)
+  // v3.34.0: группы продуктов/источников — по конфигурации раздела (канон), а не по наличию на листе
   const pw = document.getElementById('f_prodWrap');
-  if (pw) pw.classList.toggle('hidden', !tagPool.prod.length);
+  if (pw) { const on = !!cfg.prods; pw.classList.toggle('hidden', !on); if (!on) pw.open = false; }
   const sw = document.getElementById('f_srcWrap');
-  if (sw) sw.classList.toggle('hidden', !tagPool.src.length);
+  if (sw) { const on = !!cfg.srcs; sw.classList.toggle('hidden', !on); if (!on) sw.open = false; }
+  // «Метки» — только там, где группа разрешена разделом и есть хоть одна метка листа
   const tw = document.getElementById('f_tagWrap');
-  if (tw) tw.classList.toggle('hidden', !tagPool.other.length);
+  if (tw) { const on = !!cfg.tags && tagPool.other.length > 0; tw.classList.toggle('hidden', !on); if (!on) tw.open = false; }
 }
 
 // фильтры справочников: регионы/города только из карточек этого справочника
