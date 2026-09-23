@@ -1753,7 +1753,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.35.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.35.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1978,8 +1978,14 @@ function buildTagPool(rows) {
   f.tags = (f.tags || []).filter(v => tagPool.other.some(t => t.toLowerCase() === String(v).toLowerCase()));
 }
 function tagSuggestions() {
-  const svc = CURRENT_ROLE === 'admin' ? SERVICE_VALS : [];
-  return [...new Set([].concat(PRODUCT_VALS, SOURCE_VALS, svc, tagPool.other))];
+  // v3.35.1: в обычном выборе меток — только НЕклассифицированные; служебные и канонические не предлагаем
+  return [...new Set([].concat(tagPool.other))];
+}
+// v3.35.1: подсказки для блока «Неклассифицированные метки» организации
+function unclassifiedSuggest(tags) {
+  const own = (tags || []).map(t => canonTag(t) || t)
+    .filter(t => t && !isProdTag(t) && !isSrcTag(t) && !isSvcTag(t) && !isHiddenTag(t));
+  return [...new Set([].concat(own, tagSuggestions()))];
 }
 // метка-чип на карточке: клик включает/снимает фильтр
 function tagChipHtml(t, grp, cls) {
@@ -2012,8 +2018,10 @@ function cardTagsBlockHtml(c) {
   const other = otherTagsOnly(t);
   let html = '';
   if (prod.length) html += `<div class="detail-block src-block"><div class="k">Продукты</div><div class="row">${prod.map(v => tagChipHtml(v, 'prods', 'pchip pchip-prod')).join('')}</div></div>`;
-  if (src.length || svc.length) html += `<div class="detail-block src-block"><div class="k">Источники</div><div class="row">${src.map(v => tagChipHtml(v, 'srcs', 'pchip pchip-src')).join('')}${svc.map(v => tagChipHtml(v, 'srcs', 'pchip pchip-svc')).join('')}</div></div>`;
-  if (other.length) html += `<div class="detail-block src-block"><div class="k">Метки</div><div class="row">${other.map(x => tagChipHtml(x, 'tags', 'tag')).join('')}</div></div>`;
+  if (src.length) html += `<div class="detail-block src-block"><div class="k">Источники</div><div class="row">${src.map(v => tagChipHtml(v, 'srcs', 'pchip pchip-src')).join('')}</div></div>`;
+  // v3.35.1: служебные метки — отдельным блоком и НЕ как фильтр (в обычном выборе их нет)
+  if (svc.length) html += `<div class="detail-block src-block"><div class="k">Служебные</div><div class="row">${svc.map(v => `<span class="pchip pchip-svc">${esc(v)}</span>`).join('')}</div></div>`;
+  if (other.length) html += `<div class="detail-block src-block"><div class="k">Неклассифицированные метки</div><div class="row">${other.map(x => tagChipHtml(x, 'tags', 'tag')).join('')}</div></div>`;
   return html;
 }
 // включить/снять фильтр по метке
@@ -2050,7 +2058,7 @@ function teAdd(val) {
 function tagEditorHtml(tags, label, suggest) {
   teTags = ((tags || []).filter(t => !isHiddenTag(t))).slice();
   const opts = suggest || tagSuggestions();
-  return `<div class="field"><label>${esc(label || 'Прочие метки')}</label>
+  return `<div class="field">      <div class="field"><label>${esc(label || 'Неклассифицированные метки')}</label>
       <div class="tag-edit" id="teBox"></div>
       <div class="te-row"><input id="teNew" list="dl_tags" placeholder="Новая метка…" /><button type="button" class="btn ghost" id="teAdd">＋ Добавить</button></div>
       <datalist id="dl_tags">${opts.map(t => `<option value="${esc(t)}"></option>`).join('')}</datalist>
@@ -2058,25 +2066,29 @@ function tagEditorHtml(tags, label, suggest) {
     </div>`;
 }
 // ===== v3.35.0: ОТДЕЛЬНЫЕ ПОЛЯ «Продукты» И «Источники» (канон, мультивыбор) =====
-let teProds = [], teSrcs = [], teSvcs = [], teSvcKeep = [];
+let teProds = [], teSrcs = [], teSvcs = [], teSvcKeep = [], teTechKeep = [];
 function platesHtml(id, vals, chosen) {
   return `<div class="pr-row" id="${id}">` + vals.map(v =>
     `<button type="button" class="pr-b${chosen.includes(v) ? ' on' : ''}" data-v="${esc(v)}">${esc(v)}</button>`).join('') + '</div>';
 }
 function productsFieldHtml(tags) {
   teProds = cardProducts({ tags });
+  teSvcKeep = []; teTechKeep = [];   // v3.35.1: значения прошлой карточки не переходят в новую
   return `<div class="field"><label>Продукты</label>${platesHtml('f_prods', PRODUCT_VALS, teProds)}
       <div class="ac-hint">Мультивыбор. Все пять продуктов доступны для назначения — даже если пока нигде не используются.</div></div>`;
 }
 function sourcesFieldHtml(tags) {
   teSrcs = cardSources({ tags });
   teSvcKeep = cardService({ tags });
+  // v3.35.1: технические метки (миграция/дубль и т.п.) — скрытые, но при сохранении переносятся
+  teTechKeep = (tags || []).filter(t => TECH_TAGS.includes(String(t).toLowerCase()));
   let html = `<div class="field"><label>Источники</label>${platesHtml('f_srcs', SOURCE_VALS, teSrcs)}
       <div class="ac-hint">Мультивыбор. На плашках списка источники не показываем — они видны в карточке и в фильтрах.</div></div>`;
-  // служебные метки — только руководителю, отдельной строкой
+  // служебные метки — отдельный служебный выбор, только у руководителя; в источниках их нет
   if (CURRENT_ROLE === 'admin') {
     teSvcs = cardService({ tags });
-    html += `<div class="field"><label>Служебные</label>${platesHtml('f_svcs', SERVICE_VALS, teSvcs)}</div>`;
+    html += `<div class="field"><label>Служебные метки</label>${platesHtml('f_svcs', SERVICE_VALS, teSvcs)}
+      <div class="ac-hint">Служебный выбор — виден только руководителю. В источниках и в обычном выборе служебные метки не показываются.</div></div>`;
   }
   return html;
 }
@@ -2089,14 +2101,18 @@ function platesChosen(id) {
   return w ? [...w.querySelectorAll('.pr-b.on')].map(b => b.dataset.v) : [];
 }
 function orgTagsHtml(tags) {
-  return productsFieldHtml(tags) + sourcesFieldHtml(tags) + tagEditorHtml(otherTagsOnly(tags), 'Прочие метки');
+  // v3.35.1: продукты → источники → служебные (если руководитель) → неклассифицированные метки
+  return productsFieldHtml(tags) + sourcesFieldHtml(tags)
+    + tagEditorHtml(otherTagsOnly(tags), 'Неклассифицированные метки', unclassifiedSuggest(otherTagsOnly(tags)));
 }
 function orgTagsFromForm() {
   const prods = platesChosen('f_prods');
   const srcs = platesChosen('f_srcs');
   const svcs = (CURRENT_ROLE === 'admin' && document.getElementById('f_svcs')) ? platesChosen('f_svcs') : teSvcKeep;
   const other = (teTags || []).map(t => canonTag(t)).filter(t => t && !isHiddenTag(t) && !isProdTag(t) && !isSrcTag(t) && !isSvcTag(t));
-  return [...new Set([].concat(prods, srcs, svcs, other))];
+  // v3.35.1: скрытые технические метки карточки не теряем при сохранении
+  const tech = [...(teTechKeep || [])];
+  return [...new Set([].concat(prods, srcs, svcs, other, tech))];
 }
 // подсказки для меток человека — только его собственные
 function ownTagSuggest(tags) {
