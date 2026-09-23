@@ -1630,19 +1630,24 @@ async function linkedPairInfo(c) {
 // компактный блок «Связанная запись»: ссылка на парную карточку + её признаки (только для справки)
 function pairBlockHtml(pair) {
   if (!pair || !pair.others || !pair.others.length) return '';
+  const selfCard = (pair.cards || []).filter(x => x && Number(x.id) === Number(pair.selfId))[0] || null;
+  const setOf = c => c ? [...cardProducts(c), ...cardSources(c), ...otherTagsOnly(c.tags)].sort().join('|') : null;
+  const selfSet = setOf(selfCard);
   const rows = pair.others.map(o => {
     const t = cardType(o);
     const kindRu = PAIR_KIND_RU[o.kind || 'hospital'] || '';
-    const chips = cardProducts(o).map(v => `<span class="pchip pchip-prod">${esc(v)}</span>`).join('')
+    // v3.37.0: если классификация у записей уже одна (после объединения) — чипы не дублируем
+    const same = selfSet !== null && setOf(o) === selfSet;
+    const chips = same ? '' : (cardProducts(o).map(v => `<span class="pchip pchip-prod">${esc(v)}</span>`).join('')
       + cardSources(o).map(v => `<span class="pchip pchip-src">${esc(v)}</span>`).join('')
-      + otherTagsOnly(o.tags).map(v => `<span class="tag">${esc(v)}</span>`).join('');
+      + otherTagsOnly(o.tags).map(v => `<span class="tag">${esc(v)}</span>`).join(''));
     return `<div class="pair-row"><span class="org-link" data-clinic="${o.id}">${esc(o.name)}</span>
         <span class="pair-sub">${t ? esc(t) + ' · ' : ''}${esc(kindRu)}${o.manager ? ' · ' + esc(o.manager) : ''}</span>
         ${chips ? `<span class="pair-chips" title="Признаки связанной записи — для справки, назначения не переносятся">${chips}</span>` : ''}
       </div>`;
   }).join('');
   return `<div class="detail-block pair-block"><div class="k">Связанная запись</div>${rows}
-      <div class="pair-hint">Это один и тот же объект: люди и продажи — общие. Метки хранятся на своей записи и не переносятся.</div></div>`;
+      <div class="pair-hint">Это один и тот же объект: продукты, источники, люди и продажи — общие.</div></div>`;
 }
 
 // все клиники человека: основная (clinic_id) + доп. связи многие-ко-многим
@@ -1805,7 +1810,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.36.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.37.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2134,15 +2139,11 @@ function sourcesFieldHtml(tags) {
   teSvcKeep = cardService({ tags });
   // v3.35.1: технические метки (миграция/дубль и т.п.) — скрытые, но при сохранении переносятся
   teTechKeep = (tags || []).filter(t => TECH_TAGS.includes(String(t).toLowerCase()));
-  let html = `<div class="field"><label>Источники</label>${platesHtml('f_srcs', SOURCE_VALS, teSrcs)}
+  // v3.37.0: блок «Служебные метки» из формы убран (просьба Саши). Сами служебные и технические
+  // метки карточки при сохранении не теряются — они переносятся через teSvcKeep/teTechKeep.
+  teSvcs = [];
+  return `<div class="field"><label>Источники</label>${platesHtml('f_srcs', SOURCE_VALS, teSrcs)}
       <div class="ac-hint">Мультивыбор. На плашках списка источники не показываем — они видны в карточке и в фильтрах.</div></div>`;
-  // служебные метки — отдельный служебный выбор, только у руководителя; в источниках их нет
-  if (CURRENT_ROLE === 'admin') {
-    teSvcs = cardService({ tags });
-    html += `<div class="field"><label>Служебные метки</label>${platesHtml('f_svcs', SERVICE_VALS, teSvcs)}
-      <div class="ac-hint">Служебный выбор — виден только руководителю. В источниках и в обычном выборе служебные метки не показываются.</div></div>`;
-  }
-  return html;
 }
 // прочие метки = всё, что не продукт, не источник и не служебная
 function otherTagsOnly(tags) {
@@ -2863,6 +2864,9 @@ document.addEventListener('click', e => {
 });
 
 // v3.33.0: строки, по которым строится фильтр-пул ЭТОГО раздела (метки = значения фильтров)
+// v3.37.0: справочная запись, привязанная к рабочей карточке, — та же клиника.
+// В разделах продуктов (ЦНС/АиР/Эндо) показываем одну строку — рабочую карточку, без дубля.
+function isRefLinkedToWorking(c) { return isRefClinicCard(c) && !!(c.linkedClinicId && Number(c.linkedClinicId) !== Number(c.id)); }
 // v3.36.0: служебные агрегаты («ЧК ДИСТРИБЬЮТОРЫ» и т.п.) реальными компаниями не считаются —
 // один признак и для списка «Компаний», и для пула их фильтров (регион/город/менеджер/метки)
 function isServiceFirmRow(c) { return (c.kind === 'distributor') && /^\s*ЧК\s+(ДИСТРИБЬЮТОРЫ|Частное лицо)/i.test(c.name || ''); }
@@ -2873,7 +2877,9 @@ async function filterRowsFor(view) {
   if (view === 'money') return all.filter(c => (c.kind || 'hospital') === 'hospital');
   if (view === 'cns' || view === 'air' || view === 'endo') {
     const prod = view === 'cns' ? 'ЦНС' : (view === 'air' ? 'АиР' : 'Эндо');
-    return all.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital') && cardProducts(c).includes(prod));
+    // v3.37.0: минус справочные записи, связанные с рабочей карточкой (иначе клиника попадёт дважды)
+    return all.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital')
+      && cardProducts(c).includes(prod) && !isRefLinkedToWorking(c));
   }
   if (view === 'refgos' || view === 'refpriv' || view === 'reffirm') {
     // v3.36.0: в «Компаниях» список = справочные фирмы + реальные дистрибьюторы (как в renderRefFirms),
@@ -4541,6 +4547,7 @@ async function saveRefOrg(id, kind) {
   await addDictValues('city', [city]);
   const row = { name, region, city, tags, situation, kind, manager: '', linkedClinicId: null };
   if (id) await updateClinic(id, row); else await addClinic(row);
+  await syncPairTags(id, tags);   // v3.37.0: классификация парной записи той же клиники
   closeModal(); toast('Сохранено'); render(); updateFiltersUI(); refreshCounts();
 }
 
@@ -4749,6 +4756,28 @@ function salesFormFields(c, isRef) {
     + (hm ? `<div class="field"><label>HugeMed (₽)</label><div class="money-grid">${hm}</div></div>` : '');
 }
 
+// v3.37.0 («Авиценну объедини»): у связанных записей одной клиники классификация должна быть одна.
+// После сохранения переносим продукты/источники/неклассифицированные метки на парную запись,
+// её собственные служебные и технические метки сохраняем.
+async function syncPairTags(id, tags) {
+  try {
+    if (!id || !canEditMain()) return;
+    const self = await getClinic(id);
+    if (!self) return;
+    const pair = await linkedPairInfo(self);
+    const others = pair.others || [];
+    if (!others.length) return;
+    const keep = t => isSvcTag(t) || TECH_TAGS.includes(String(t).toLowerCase());
+    const cls = (tags || []).filter(t => !keep(t));
+    for (const o of others) {
+      const kept = (o.tags || []).filter(keep);
+      const next = [...new Set(cls.concat(kept))];
+      const cur = [...new Set(o.tags || [])];
+      if (next.length === cur.length && next.every(t => cur.includes(t))) continue;
+      try { await sb.from('clinics').update({ tags: next }).eq('id', o.id); } catch (_) {}
+    }
+  } catch (_) {}
+}
 async function saveClinic(id) {
   const name = document.getElementById('f_name').value.trim();
   if (!name) { toast('Название обязательно'); return; }
@@ -4801,6 +4830,8 @@ async function saveClinic(id) {
   const isBossNow = CURRENT_ROLE === 'admin';
   const canMoney = isBossNow || (!!myManager() && myManager() === manager);
   if (canMoney) { try { await saveClinicPrivate(id, manager, moneyFields); } catch (e) { toast('Клиника сохранена, деньги — нет: ' + (e.message || e)); } }
+
+  await syncPairTags(id, tags);   // v3.37.0: классификация парной записи той же клиники
 
   closeModal(); toast('Сохранено'); render(); updateFiltersUI(); refreshCounts();
 }
