@@ -161,6 +161,11 @@ body {
 .pr-b { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: #555; font: inherit; font-size: 13px; cursor: pointer; }
 .pr-b.on { background: #eaf6f6; border-color: var(--brand); color: var(--brand-dark); font-weight: 700; }
 .pr-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 2px; }
+.pair-block .pair-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 4px; }
+.pair-block .pair-sub { font-size: 12px; color: var(--muted); }
+.pair-block .pair-chips { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.pair-block .pair-chips .pchip, .pair-block .pair-chips .tag { opacity: .75; cursor: default; }
+.pair-block .pair-hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
 #fPanel { flex: 1 1 auto; min-width: 0; }
 #fPanel > summary { display: none; }
 /* v3.31.5: фильтры — своя натуральная ширина, ничего не сжимается и не наползает */
@@ -1585,12 +1590,59 @@ async function setPersonMarked(id, val) {
   const { error } = await sb.from('people').update({ marked_del: !!val }).eq('id', id);
   if (error) throw error;
 }
-async function peopleByClinic(clinicId) {
+async function peopleByClinic(clinicId, alsoIds) {
   // v3.16.2: без запросов на каждую карточку — берём из уже загруженного кэша людей и связок
+  // v3.36.0: alsoIds — связанные карточки той же клиники (пара «рабочая + справочная»)
   const [all, links] = await Promise.all([listPeople(), listClinicLinks()]);
-  const extraIds = new Set(links.filter(l => l.clinic_id === clinicId).map(l => l.person_id));
-  return all.filter(p => p.clinicId === clinicId || extraIds.has(p.id))
+  const ids = [Number(clinicId)].concat((alsoIds || []).map(Number));
+  const extraIds = new Set(links.filter(l => ids.includes(Number(l.clinic_id))).map(l => l.person_id));
+  return all.filter(p => ids.includes(Number(p.clinicId)) || extraIds.has(p.id))
     .sort((a, b) => String(a.fullName || '').localeCompare(String(b.fullName || ''), 'ru'));
+}
+
+// ===== v3.36.0: СВЯЗАННАЯ ПАРА КАРТОЧЕК =====
+// Одна и та же клиника может быть двумя записями, связанными linked_clinic_id (рабочая карточка
+// в «Клиниках» + справочная запись в «Гос/Частных»). Общие данные (люди, продажи, «связаться»)
+// показываем по всей паре, но закрытую часть — только ту, что сервер отдал этому пользователю.
+const PAIR_KIND_RU = { hospital: 'Клиники', ref_gos: 'Государственные', ref_priv: 'Частные', distributor: 'Партнёры', ref_firm: 'Компании' };
+async function linkedPairInfo(c) {
+  if (!c || !c.id) return { ids: [], cards: [], others: [], moneyCard: c, linked: null };
+  const selfId = Number(c.id);
+  const ids = [selfId];
+  const cards = [c];
+  let linked = null;
+  if (c.linkedClinicId && Number(c.linkedClinicId) !== selfId) {
+    try { linked = await getClinic(Number(c.linkedClinicId)); } catch (_) { linked = null; }
+    if (linked) { ids.push(Number(linked.id)); cards.push(linked); }
+  }
+  let partners = [];
+  try {
+    const { data } = await sb.from('clinics').select(CLINIC_COLS).eq('linked_clinic_id', selfId);
+    partners = (data || []).map(fromClinic).filter(r => r && r.id);
+  } catch (_) { partners = []; }
+  try { await mergeClinicPrivate(partners); } catch (_) {}
+  partners.forEach(r => { if (!ids.includes(Number(r.id))) { ids.push(Number(r.id)); cards.push(r); } });
+  // продажи/«связаться» берём из записи с закрытой частью (её отдал сервер) — иначе из своей
+  const moneyCard = (c.hasPrivate ? c : null) || cards.find(x => x && x.hasPrivate) || c;
+  const others = cards.filter(x => x && Number(x.id) !== selfId);
+  return { ids, cards, others, moneyCard, linked: linked || partners[0] || null, selfId };
+}
+// компактный блок «Связанная запись»: ссылка на парную карточку + её признаки (только для справки)
+function pairBlockHtml(pair) {
+  if (!pair || !pair.others || !pair.others.length) return '';
+  const rows = pair.others.map(o => {
+    const t = cardType(o);
+    const kindRu = PAIR_KIND_RU[o.kind || 'hospital'] || '';
+    const chips = cardProducts(o).map(v => `<span class="pchip pchip-prod">${esc(v)}</span>`).join('')
+      + cardSources(o).map(v => `<span class="pchip pchip-src">${esc(v)}</span>`).join('')
+      + otherTagsOnly(o.tags).map(v => `<span class="tag">${esc(v)}</span>`).join('');
+    return `<div class="pair-row"><span class="org-link" data-clinic="${o.id}">${esc(o.name)}</span>
+        <span class="pair-sub">${t ? esc(t) + ' · ' : ''}${esc(kindRu)}${o.manager ? ' · ' + esc(o.manager) : ''}</span>
+        ${chips ? `<span class="pair-chips" title="Признаки связанной записи — для справки, назначения не переносятся">${chips}</span>` : ''}
+      </div>`;
+  }).join('');
+  return `<div class="detail-block pair-block"><div class="k">Связанная запись</div>${rows}
+      <div class="pair-hint">Это один и тот же объект: люди и продажи — общие. Метки хранятся на своей записи и не переносятся.</div></div>`;
 }
 
 // все клиники человека: основная (clinic_id) + доп. связи многие-ко-многим
@@ -1753,7 +1805,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.35.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.36.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2811,6 +2863,9 @@ document.addEventListener('click', e => {
 });
 
 // v3.33.0: строки, по которым строится фильтр-пул ЭТОГО раздела (метки = значения фильтров)
+// v3.36.0: служебные агрегаты («ЧК ДИСТРИБЬЮТОРЫ» и т.п.) реальными компаниями не считаются —
+// один признак и для списка «Компаний», и для пула их фильтров (регион/город/менеджер/метки)
+function isServiceFirmRow(c) { return (c.kind === 'distributor') && /^\s*ЧК\s+(ДИСТРИБЬЮТОРЫ|Частное лицо)/i.test(c.name || ''); }
 async function filterRowsFor(view) {
   const all = await listClinics();
   if (view === 'distributors') return all.filter(c => (c.kind || 'hospital') === 'distributor');
@@ -2821,7 +2876,10 @@ async function filterRowsFor(view) {
     return all.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital') && cardProducts(c).includes(prod));
   }
   if (view === 'refgos' || view === 'refpriv' || view === 'reffirm') {
-    const k = view === 'refgos' ? 'ref_gos' : (view === 'refpriv' ? 'ref_priv' : 'ref_firm');
+    // v3.36.0: в «Компаниях» список = справочные фирмы + реальные дистрибьюторы (как в renderRefFirms),
+    // иначе регион/город/менеджер/метки в фильтрах этого раздела неполные
+    if (view === 'reffirm') return all.filter(c => c.kind === 'ref_firm' || (c.kind === 'distributor' && !isServiceFirmRow(c)));
+    const k = view === 'refgos' ? 'ref_gos' : 'ref_priv';
     return all.filter(c => c.kind === k);
   }
   if (view === 'refdoc') return (await listPeople()).filter(isRefDoc);
@@ -4414,7 +4472,7 @@ async function renderRefFirms() {
   const view = document.getElementById('view');
   // v3.15.0: «Компании» = полный справочник (реальные компании + партнёры),
   // но служебные агрегаты («ЧК ДИСТРИБЬЮТОРЫ» и т.п.) реальными компаниями НЕ становятся.
-  const isServiceFirm = c => c.kind === 'distributor' && /^\s*ЧК\s+(ДИСТРИБЬЮТОРЫ|Частное лицо)/i.test(c.name || '');
+  const isServiceFirm = isServiceFirmRow;   // v3.36.0: тот же признак, что в filterRowsFor
   const s = state.search;
   const [clinics, people] = await Promise.all([listClinics(), listPeople()]);
   let firms = clinics.filter(c => c.kind === 'ref_firm' || (c.kind === 'distributor' && !isServiceFirm(c)));
@@ -5388,12 +5446,14 @@ async function saveNextContact(cid, iso, mgr) {
   }
 }
 
-function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
-  MNY_ROWS[c.id] = (monthly || []).slice();
+function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly, pair) {
+  // v3.36.0: продажи и «связаться» показываем из записи пары, у которой есть закрытая часть (mc)
+  const mc = (pair && pair.moneyCard) || c;
+  MNY_ROWS[mc.id] = (monthly || []).slice();
   const canEditNow = canEditCard === undefined ? canEditCardNow() : !!canEditCard;
-  const canPriv = canSeePrivate(c);
+  const canPriv = canSeePrivate(mc);
   // v3.25.0: ПРОДАЖИ в карточке — ОДНОЙ строкой (последнее сравнение). Все данные — на отдельной странице
-  const salesBlock = canPriv ? salesLineHtml(c) : '';
+  const salesBlock = canPriv ? salesLineHtml(mc) : '';
   const peopleBlock = peopleBlockHtml(c, contacts, canEditNow);
   const relBlock = relBlockHtml(c, linked, related);
   // v3.22.1: блок «Подробнее» убран из карточки клиники (город/тип/ответственный дублируют шапку);
@@ -5401,13 +5461,14 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly) {
   const tagsBlock = cardTagsBlockHtml(c);   // v3.32.0: все метки карточки — одной строкой, клик = фильтр
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-    ${salesBlock}
-    ${privBlock(c, canEditNow)}
+    <div id="salesWrap">${salesBlock}</div>
+    <div id="privWrap">${privBlock(mc, canEditNow)}</div>
     ${workBlockHtml(c, canEditNow)}
     ${notesBlock(c, canEditNow)}
     <div id="pplWrap">${peopleBlock}</div>
     <div id="relWrap">${relBlock}</div>
     ${tagsBlock}
+    <div id="pairWrap">${pairBlockHtml(pair)}</div>
   `;
 }
 
@@ -5780,19 +5841,28 @@ async function showHoverCard(row, immediate) {
     if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
     hydrateCard(Number(c.id) || 0);
     // медленная часть — одним заходом (параллельно)
-    const [linked, contacts, relRes, monthly] = await Promise.all([
-      c.linkedClinicId ? getClinic(c.linkedClinicId) : Promise.resolve(null),
-      peopleByClinic(id),
-      sb.from('clinics').select('id,name,kind,linked_clinic_id').eq('linked_clinic_id', id).then(r => r).catch(() => ({ data: [] })),
-      listMonthly(id)
+    // v3.36.0: данные по всей связанной паре (люди + продажи + блок «Связанная запись»)
+    const pair = await linkedPairInfo(c);
+    const [contacts, monthly] = await Promise.all([
+      peopleByClinic(id, pair.ids.filter(x => Number(x) !== Number(id))),
+      listMonthly(pair.moneyCard.id)
     ]);
     if (seq !== hoverSeq) return;
-    const related = (((relRes || {}).data) || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
-    MNY_ROWS[c.id] = (monthly || []).slice();
+    const linked = pair.linked;
+    const related = (pair.others || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
+    MNY_ROWS[pair.moneyCard.id] = (monthly || []).slice();
     const pw = document.getElementById('pplWrap');
     if (pw) pw.innerHTML = peopleBlockHtml(c, contacts, canEditCardNow());
     const rw = document.getElementById('relWrap');
     if (rw) rw.innerHTML = relBlockHtml(c, linked, related);
+    const pairWrap = document.getElementById('pairWrap');
+    if (pairWrap) pairWrap.innerHTML = pairBlockHtml(pair);
+    // v3.36.0: быстрый рендер рисовал продажи по своей записи — на медленном перерисовываем по записи с закрытой частью
+    const slw = document.getElementById('salesWrap');
+    if (slw) slw.innerHTML = canSeePrivate(pair.moneyCard) ? salesLineHtml(pair.moneyCard) : '';
+    // «Связаться» — всегда на записи с закрытой частью, чтобы дата пары жила в одном месте
+    const prvw = document.getElementById('privWrap');
+    if (prvw) prvw.innerHTML = privBlock(pair.moneyCard, canEditCardNow());
     if (document.body.classList.contains('sales-open')) rerenderSalesPage();
     return;
   }
@@ -5953,12 +6023,14 @@ document.addEventListener('focusout', async e => {
 async function showClinic(id) {
   const c = await getClinic(id);
   if (!c) return;
-  const linked = c.linkedClinicId ? await getClinic(c.linkedClinicId) : null;
-  const contacts = await peopleByClinic(id);
-  const monthly = await listMonthly(id);
+  // v3.36.0: общие данные (люди, продажи) — по всей связанной паре
+  const pair = await linkedPairInfo(c);
+  const linked = pair.linked;
+  const contacts = await peopleByClinic(id, pair.ids.filter(x => Number(x) !== Number(id)));
+  const monthly = await listMonthly(pair.moneyCard.id);
   const canEdit = canEditMain() || (isRefEdit() && isRefKind(c.kind));
 
-  openModal(c.name, clinicDetailBody(c, linked, contacts, canEdit, null, monthly) + `
+  openModal(c.name, clinicDetailBody(c, linked, contacts, canEdit, null, monthly, pair) + `
     <div class="btn-row">
       ${canEdit ? '<button class="btn primary" id="d_edit">Изменить</button>' : ''}
       <button class="btn ghost" id="d_close">Закрыть</button>
