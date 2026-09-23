@@ -1752,7 +1752,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.32.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.33.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1889,9 +1889,8 @@ function typeBadge(t) { return t ? `<span class="own-badge own-${t === 'ЛПУ' 
 function chip(txt, cls) {
   // v3.32.2: метка-чип = фильтр. Клик включает фильтр по этой метке, повторный — снимает.
   const grp = cls === 'pchip-prod' ? 'prods' : ((cls === 'pchip-src' || cls === 'pchip-svc') ? 'srcs' : '');
-  const on = grp && (((state.filters || {})[grp] || [])).some(x => String(x).toLowerCase() === String(txt).toLowerCase());
-  const attrs = grp ? ` data-tagf="${esc(txt)}" data-grp="${grp}" title="Фильтр по метке «${esc(txt)}»"` : '';
-  return `<span class="pchip${cls ? ' ' + cls : ''}${grp ? ' tchip' : ''}${on ? ' on' : ''}"${attrs}>${esc(txt)}</span>`;
+  if (!grp) return `<span class="pchip${cls ? ' ' + cls : ''}">${esc(txt)}</span>`;
+  return tagChipHtml(txt, grp, 'pchip' + (cls ? ' ' + cls : ''));
 }
 function productChips(c) { return cardProducts(c).map(v => chip(v, 'pchip-prod')).join(''); }
 // v3.30.1: метки (тип + продукты) — во ВТОРОЙ строке плашки, перед городом/менеджером
@@ -1979,6 +1978,8 @@ function tagSuggestions() {
 }
 // метка-чип на карточке: клик включает/снимает фильтр
 function tagChipHtml(t, grp, cls) {
+  // v3.33.0: метка-чип кликабельна там, где у раздела есть фильтры; иначе — просто метка
+  if (!FILTER_CFG[state.view]) return `<span class="${cls}">${esc(t)}</span>`;
   const on = (((state.filters || {})[grp] || [])).some(x => String(x).toLowerCase() === String(t).toLowerCase());
   return `<span class="${cls} tchip${on ? ' on' : ''}" data-tagf="${esc(t)}" data-grp="${grp}" title="Фильтр по метке «${esc(t)}»">${esc(t)}</span>`;
 }
@@ -2419,27 +2420,36 @@ document.querySelectorAll('.tab').forEach(btn => {
 // v3.15.0: у каждого раздела — СВОИ применимые фильтры. Неприменимые не влияют на результаты
 // (пример: «Тип клиники» в «Клиниках» больше не глушит «Партнёров» и справочники).
 let filterCtx = '';
-const VIEW_FILTER_KEYS = {
-  clinics: ['region', 'city', 'manager', 'type', 'prods', 'srcs'],
-  distributors: ['region', 'city', 'manager', 'srcs'],
-  money: ['region', 'city', 'manager', 'type', 'prods', 'srcs'],
-  cns: ['region', 'city'],
-  refgos: ['region', 'city', 'tags', 'prods', 'srcs'],
-  refpriv: ['region', 'city', 'tags', 'prods', 'srcs'],
-  refdoc: ['region', 'city', 'tags', 'srcs'],
-  reffirm: ['region', 'city', 'tags', 'srcs'],
-  refcontact: ['region', 'city'],
+// v3.33.0: ЕДИНАЯ таблица фильтров раздела — одна логика для рабочих списков и справочников.
+// sel — регион/город/менеджер, type — ЛПУ/ЧК, year — год (только «Деньги»);
+// группы меток (Продукты / Источники / Метки) показываются всегда, если такие метки есть на листе.
+const FILTER_CFG = {
+  clinics:      { sel: 1, type: 1, year: 0 },
+  distributors: { sel: 1, type: 0, year: 0 },
+  money:        { sel: 1, type: 1, year: 1 },
+  refgos:       { sel: 1, type: 0, year: 0 },
+  refpriv:      { sel: 1, type: 0, year: 0 },
+  refdoc:       { sel: 1, type: 0, year: 0 },
+  reffirm:      { sel: 1, type: 0, year: 0 },
+  refcontact:   { sel: 1, type: 0, year: 0 },
+  cns:          { sel: 0, type: 0, year: 0 },
+  air:          { sel: 0, type: 0, year: 0 },
+  endo:         { sel: 0, type: 0, year: 0 },
+  nastya:       { sel: 0, type: 0, year: 0 },
+  galya:        { sel: 0, type: 0, year: 0 },
+  sasha:        { sel: 0, type: 0, year: 0 },
+  myday:        { sel: 0, type: 0, year: 0 },
+  calls:        { sel: 0, type: 0, year: 0 },
+  visits:       { sel: 0, type: 0, year: 0 },
 };
-// v3.30.0: какие группы фильтров применимы в разделе
-const FILTER_GROUPS_BY_VIEW = {
-  clinics: ['type', 'prods', 'srcs'],
-  distributors: ['srcs'],
-  money: ['type', 'prods', 'srcs'],
-  refgos: ['prods', 'srcs'],
-  refpriv: ['prods', 'srcs'],
-  refdoc: ['srcs'],
-  reffirm: ['srcs'],
-};
+const VIEW_FILTER_KEYS = {};
+Object.keys(FILTER_CFG).forEach(v => {
+  const c = FILTER_CFG[v], keys = [];
+  if (c.sel) keys.push('region', 'city', 'manager');
+  if (c.type) keys.push('type');
+  keys.push('prods', 'srcs', 'tags');
+  VIEW_FILTER_KEYS[v] = keys;
+});
 // v3.28.0: виды, где кнопка «＋» не показывается (кнопку синхронизируем и в render())
 const FAB_HIDDEN_VIEWS = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
 const EMPTY_FILTERS = { region: '', city: '', manager: '', type: '', tag: '', tags: [], prods: [], srcs: [] };
@@ -2459,25 +2469,17 @@ async function updateFiltersUI() {
   if (mainBar) mainBar.classList.toggle('hidden', inAnalysis);
   if (anBar) anBar.classList.toggle('hidden', !inAnalysis || managersZone);
   if (mgBar) mgBar.classList.toggle('hidden', !managersZone);
-  const isRef = ['refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'].includes(state.view);
-  if (state.view === 'clinics' || state.view === 'distributors' || state.view === 'money') {
+  // v3.33.0: разделы с фильтрами — по единой таблице FILTER_CFG (справочники, рабочие списки, продукты)
+  const cfg = FILTER_CFG[state.view];
+  if (cfg) {
     bar.classList.remove('hidden');
-    await populateFilters();
-    document.getElementById('f_year').classList.toggle('hidden', state.view !== 'money');
+    await populateFiltersFor(state.view);
     syncFilterGroupVisibility();
-    // у Насти/Гали фильтр «Менеджер» в «Деньгах» бесполезен — там и так только их клиники
+    // у Насти/Гали фильтр «Менеджер» бесполезен — там и так только их клиники
     if (myManagerName()) {
       document.getElementById('f_manager').classList.add('hidden');
-      if (state.view === 'money' && state.filters.manager) state.filters.manager = '';
-    } else {
-      document.getElementById('f_manager').classList.remove('hidden');
+      if (state.filters.manager) state.filters.manager = '';
     }
-  } else if (isRef) {
-    bar.classList.remove('hidden');
-    document.getElementById('f_year').classList.add('hidden');
-    document.getElementById('f_manager').classList.add('hidden');
-    await populateRefFilters();
-    syncFilterGroupVisibility();
   } else {
     bar.classList.add('hidden');
   }
@@ -2532,6 +2534,23 @@ function tagHit(f, tags) {
 function prodHit(f, c) { const sel = (f && f.prods) || []; if (!sel.length) return true; const have = cardProducts(c); return sel.some(x => have.includes(x)); }
 function srcHit(f, c) { const sel = (f && f.srcs) || []; if (!sel.length) return true; const have = cardSources(c).concat(cardService(c)); return sel.some(x => have.includes(x)); }
 function typeHit(f, c) { const sel = (f && f.type) || ''; return !sel || cardType(c) === sel; }
+// v3.33.0: ЕДИНОЕ правило отбора раздела: ИЛИ внутри группы, И между группами.
+// Одинаково работает в «Клиниках», «Партнёрах», «Деньгах», справочниках, рабочих списках и списках продуктов.
+function matchFilters(f, c, opts) {
+  opts = opts || {};
+  f = f || {};
+  c = c || {};
+  if (!opts.noSel) {
+    if (f.region && (c.region || '') !== f.region) return false;
+    if (f.city && (c.city || '') !== f.city) return false;
+    if (f.manager && (c.manager || '') !== f.manager) return false;
+  }
+  if (!opts.noType && f.type && cardType(c) !== f.type) return false;
+  if (!opts.noProd && !prodHit(f, c)) return false;
+  if (!srcHit(f, c)) return false;
+  if (!tagHit(f, c.tags)) return false;
+  return true;
+}
 function passFilters(f, c) {
   return (!f.region || c.region === f.region) && (!f.city || c.city === f.city) &&
     (!f.manager || c.manager === f.manager) &&
@@ -2637,9 +2656,15 @@ function syncAllFilterUI() {
   updateFilterChips();
 }
 function syncFilterGroupVisibility() {
-  const g = FILTER_GROUPS_BY_VIEW[state.view] || [];
+  const cfg = FILTER_CFG[state.view] || {};
   const ty = document.getElementById('f_type');
-  if (ty) ty.classList.toggle('hidden', !g.includes('type'));
+  if (ty) ty.classList.toggle('hidden', !cfg.type);
+  // v3.33.0: селекты регион/город/менеджер/год — только там, где они есть в разделе
+  ['f_region', 'f_city'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', !cfg.sel); });
+  const fm = document.getElementById('f_manager');
+  if (fm) fm.classList.toggle('hidden', !cfg.sel);
+  const fy = document.getElementById('f_year');
+  if (fy) fy.classList.toggle('hidden', !cfg.year);
   // v3.32.0: есть метка на листе = есть фильтр (пул строится из меток листа)
   const pw = document.getElementById('f_prodWrap');
   if (pw) pw.classList.toggle('hidden', !tagPool.prod.length);
@@ -2694,6 +2719,63 @@ document.addEventListener('click', e => {
   if (w && !w.contains(e.target)) w.open = false;
 });
 
+// v3.33.0: строки, по которым строится фильтр-пул ЭТОГО раздела (метки = значения фильтров)
+async function filterRowsFor(view) {
+  const all = await listClinics();
+  if (view === 'distributors') return all.filter(c => (c.kind || 'hospital') === 'distributor');
+  if (view === 'clinics') return all.filter(c => (c.kind || 'hospital') === 'hospital' || (isRefClinicCard(c) && String(c.manager || '').trim() !== ''));
+  if (view === 'money') return all.filter(c => (c.kind || 'hospital') === 'hospital');
+  if (view === 'cns' || view === 'air' || view === 'endo') {
+    const prod = view === 'cns' ? 'ЦНС' : (view === 'air' ? 'АиР' : 'Эндо');
+    return all.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital') && cardProducts(c).includes(prod));
+  }
+  if (view === 'refgos' || view === 'refpriv' || view === 'reffirm') {
+    const k = view === 'refgos' ? 'ref_gos' : (view === 'refpriv' ? 'ref_priv' : 'ref_firm');
+    return all.filter(c => c.kind === k);
+  }
+  if (view === 'refdoc') return (await listPeople()).filter(isRefDoc);
+  if (view === 'refcontact') return (await listPeople()).filter(p => !isHiddenPerson(p));
+  if (view === 'nastya' || view === 'galya' || view === 'sasha') {
+    const W = WORKLISTS[view];
+    try {
+      const { data } = await withTimeout(sb.from(W.cl).select('linked_clinic_id').not('linked_clinic_id', 'is', null), 15000, 'wl-pool');
+      const ids = new Set((data || []).map(r => Number(r.linked_clinic_id)));
+      return all.filter(c => ids.has(c.id));
+    } catch (_) { return all.filter(c => (c.kind || 'hospital') === 'hospital'); }
+  }
+  return all.filter(c => (c.kind || 'hospital') === 'hospital');   // «Мой день» / «Звонки» / «Визиты»
+}
+// v3.33.0: единая сборка фильтров: пул меток + регионы/города/менеджеры по таблице раздела
+async function populateFiltersFor(view) {
+  const cfg = FILTER_CFG[view] || {};
+  let rows = [];
+  try { rows = await filterRowsFor(view); } catch (_) {}
+  buildTagPool(rows);
+  if (cfg.sel) {
+    const orgView = ['clinics', 'distributors', 'money'].includes(view);
+    const [managers, dictRegions, dictCities] = await Promise.all([getDict('manager'), getDict('region'), getDict('city')]);
+    const regions = orgView ? dictRegions : [...new Set(rows.map(r => r.region).filter(Boolean))].sort(ruCmp);
+    const cities = orgView ? dictCities : [...new Set(rows.map(r => r.city).filter(Boolean))].sort(ruCmp);
+    locAll.regions = regions; locAll.cities = cities;
+    locMap.regionCities = {}; locMap.cityRegions = {};
+    rows.forEach(r => {
+      if (r.region && r.city) {
+        (locMap.regionCities[r.region] = locMap.regionCities[r.region] || new Set()).add(r.city);
+        (locMap.cityRegions[r.city] = locMap.cityRegions[r.city] || new Set()).add(r.region);
+      }
+    });
+    if (state.filters.region && !regions.includes(state.filters.region)) state.filters.region = '';
+    if (state.filters.city && !cities.includes(state.filters.city)) state.filters.city = '';
+    if (state.filters.manager && !managers.includes(state.filters.manager)) state.filters.manager = '';
+    fillSelect('f_region', regions, 'Регионы');
+    fillSelect('f_city', cities, 'Города');
+    fillSelect('f_manager', managers, 'Менеджеры');
+  }
+  fillSelect('f_year', YEAR_OPTIONS, 'Годы');
+  syncAllFilterUI();
+  syncRegionOptions();
+  syncCityOptions();
+}
 async function populateRefFilters() {
   let rows = [];
   if (state.view === 'refdoc') {
@@ -2994,7 +3076,7 @@ async function renderProductList(product, title) {
     (c.name || '').toLowerCase().includes(s) || (c.city || '').toLowerCase().includes(s) ||
     (c.region || '').toLowerCase().includes(s) || (c.manager || '').toLowerCase().includes(s));
   const f = state.filters;
-  clinics = clinics.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city) && typeHit(f, c) && srcHit(f, c));
+  clinics = clinics.filter(c => matchFilters(f, c));   // v3.33.0: метки в списках продуктов тоже фильтруют
   clinics.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0) || (a.name || '').localeCompare(b.name || '', 'ru'));
   view.innerHTML = `<div class="cns-head"><span>${esc(title)} · <b>${clinics.length}</b></span></div>` + (clinics.length
     ? '<div class="list">' + clinics.map(c => {
@@ -3011,7 +3093,7 @@ async function renderCns() {
   const view = document.getElementById('view');
   const s = state.search;
   let clinics = await listClinics();
-  clinics = clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС'));
+  clinics = clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС') && matchFilters(state.filters, c));
   if (s) clinics = clinics.filter(c =>
     (c.name || '').toLowerCase().includes(s) ||
     (c.city || '').toLowerCase().includes(s) ||
@@ -3177,7 +3259,10 @@ async function renderWorklist(key) {
   let all = [];
   try { all = (await listClinics()).filter(c => !c.markedDel); } catch (_) {}
   const byId = {}; all.forEach(c => { byId[c.id] = c; });
-  const linked = members.map(m => byId[m.linked_clinic_id]).filter(Boolean);
+  // v3.33.0: в рабочих списках действуют те же метки-фильтры и поиск, что и в других разделах
+  const wq = state.search || '';
+  const linked = members.map(m => byId[m.linked_clinic_id]).filter(Boolean)
+    .filter(c => (!wq || (c.name || '').toLowerCase().includes(wq) || (c.city || '').toLowerCase().includes(wq)) && matchFilters(state.filters, c));
   const unlinked = members.filter(m => !byId[m.linked_clinic_id]);
   // роль руководителя: только ему показываем конфликты назначений и записи без связи
   const isBoss = CURRENT_ROLE === 'admin' || CURRENT_EMAIL === 'abramson@crm.ru' || CURRENT_EMAIL === 'bot@crm.ru';
@@ -3559,6 +3644,7 @@ async function renderMyDay() {
   const mgrs = MGR_PICK.filter(m => clinics.some(c => (c.manager || '') === m));
   if (state.mydayMgr) clinics = clinics.filter(c => (c.manager || '') === state.mydayMgr);
   // v3.26.2: поиск работает и в «Моём дне» (раньше строка поиска здесь молчала)
+  clinics = clinics.filter(c => matchFilters(state.filters, c));   // v3.33.0: метки-фильтры и здесь
   const sMD = state.search;
   if (sMD) clinics = clinics.filter(c =>
     (c.name || '').toLowerCase().includes(sMD) ||
@@ -3700,8 +3786,7 @@ async function renderContacts() {
       org.toLowerCase().includes(s) ||
       (l.city || '').toLowerCase().includes(s) ||
       (l.region || '').toLowerCase().includes(s)) &&
-      (!f.region || l.region === f.region) &&
-      (!f.city || l.city === f.city);
+      matchFilters(f, Object.assign({}, p, { region: l.region || p.region || '', city: l.city || p.city || '' }));
   });
   rows.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
   const head = `<div class="cns-head"><span>Контакты · <b>${rows.length}</b></span></div>`;
@@ -3742,16 +3827,11 @@ async function renderOrgList(kind) {
       (c.manager || '').toLowerCase().includes(s) ||
       (c.situation || '').toLowerCase().includes(s) ||
       (c.tags || []).some(t => t.toLowerCase().includes(s))) &&
-    (!f.region || c.region === f.region) &&
-    (!f.city || c.city === f.city) &&
-    (!f.type || kind !== 'hospital' || cardType(c) === f.type) &&
-    (kind !== 'hospital' || prodHit(f, c)) &&
-    srcHit(f, c) &&
-    (kind !== 'hospital' || tagHit(f, c.tags)) &&
-    (!f.manager || c.manager === f.manager) &&
+    matchFilters(f, c) &&
     (!mineOnly || (c.manager || '').trim() === mym)
   );
-  const active = s || f.type || f.region || f.city || f.manager || mineOnly;
+  const active = s || f.type || f.region || f.city || f.manager || mineOnly ||
+    (f.prods || []).length || (f.srcs || []).length || (f.tags || []).length;
   if (!clinics.length) {
     view.innerHTML = `<div class="empty">${active ? 'Ничего не найдено' : emptyWord + ' пока нет. Нажми ＋'}</div>`;
     if (document.body.classList.contains('detail-mode') && state.selId) clearDetailPanel();   // выбранная выпала из фильтра
@@ -3880,10 +3960,7 @@ async function renderMoney() {
       (c.city || '').toLowerCase().includes(s) ||
       (c.region || '').toLowerCase().includes(s) ||
       (c.manager || '').toLowerCase().includes(s)) &&
-    (!f.region || c.region === f.region) &&
-    (!f.city || c.city === f.city) &&
-    typeHit(f, c) && prodHit(f, c) && srcHit(f, c) && tagHit(f, c.tags) &&
-    (!f.manager || c.manager === f.manager)
+    matchFilters(f, c)
   );
   // сортировка: по сумме (вверх/вниз) или по алфавиту; 0₽-бейджи — в середине (только при выбранном годе), пустые — вниз по алфавиту
   const mode = state.moneySort;  // 'desc' | 'asc' | 'name'
@@ -4192,7 +4269,7 @@ async function renderRefOrgs(kind) {
     (c.situation || '').toLowerCase().includes(s) ||
     (c.tags || []).some(t => t.toLowerCase().includes(s)));
   const f = state.filters;
-  clinics = clinics.filter(c => passFilters(f, c));
+  clinics = clinics.filter(c => matchFilters(f, c));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const head = `<div class="cns-head"><span>${esc(label)} · <b>${clinics.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (clinics.length
@@ -4223,7 +4300,7 @@ async function renderRefDoctors() {
     (p.tags || []).some(t => t.toLowerCase().includes(s)));
   docs.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
   const f = state.filters;
-  docs = docs.filter(p => (!f.region || p.region === f.region) && (!f.city || p.city === f.city) && srcHit(f, p) && (tagHit(f, p.tags)));
+  docs = docs.filter(p => matchFilters(f, p));
   const head = `<div class="cns-head"><span>Врачи · <b>${docs.length}</b></span>${canEditRef() ? '<button class="cns-add" id="refAddBtn">＋ Добавить</button>' : ''}</div>`;
   view.innerHTML = head + (docs.length
     ? '<div class="list">' + docs.map(p => {
@@ -4257,7 +4334,7 @@ async function renderRefFirms() {
     (c.situation || '').toLowerCase().includes(s) ||
     (c.tags || []).some(t => t.toLowerCase().includes(s)));
   const f = state.filters;
-  firms = firms.filter(c => (!f.region || c.region === f.region) && (!f.city || c.city === f.city) && srcHit(f, c) && tagHit(f, c.tags));
+  firms = firms.filter(c => matchFilters(f, c));
   firms.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const byClinic = {};
   people.forEach(p => { if (p.clinicId) (byClinic[p.clinicId] = byClinic[p.clinicId] || []).push(p); });
