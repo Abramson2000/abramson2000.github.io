@@ -1624,7 +1624,9 @@ async function linkedPairInfo(c) {
   partners.forEach(r => { if (!ids.includes(Number(r.id))) { ids.push(Number(r.id)); cards.push(r); } });
   // продажи/«связаться» берём из записи с закрытой частью (её отдал сервер) — иначе из своей
   const moneyCard = (c.hasPrivate ? c : null) || cards.find(x => x && x.hasPrivate) || c;
-  const others = cards.filter(x => x && Number(x.id) !== selfId);
+  // v3.37.1: в блоке «Связанная запись» показываем только живые карточки (скрытые дубли — внутренняя деталь),
+  // но id скрытых в pair.ids остаются, чтобы их люди/продажи по-прежнему находились
+  const others = cards.filter(x => x && Number(x.id) !== selfId && !x.markedDel);
   return { ids, cards, others, moneyCard, linked: linked || partners[0] || null, selfId };
 }
 // компактный блок «Связанная запись»: ссылка на парную карточку + её признаки (только для справки)
@@ -1810,7 +1812,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.37.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.37.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1856,8 +1858,8 @@ async function refreshCounts() {
         MONEY_YEARS.some(y => yearTotal(c, y) != null)
       ).length,
       cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС')).length,
-      refgos: clinics.filter(c => c.kind === 'ref_gos').length,
-      refpriv: clinics.filter(c => c.kind === 'ref_priv').length,
+      refgos: clinics.filter(c => c.kind === 'ref_gos' && !c.markedDel).length,
+      refpriv: clinics.filter(c => c.kind === 'ref_priv' && !c.markedDel).length,
       refdoc: people.filter(p => isRefDoc(p)).length,
       reffirm: clinics.filter(c => c.kind === 'ref_firm').length,
       refcontact: people.filter(p => !p.markedDel && (p.phone || p.email)).length
@@ -2886,7 +2888,7 @@ async function filterRowsFor(view) {
     // иначе регион/город/менеджер/метки в фильтрах этого раздела неполные
     if (view === 'reffirm') return all.filter(c => c.kind === 'ref_firm' || (c.kind === 'distributor' && !isServiceFirmRow(c)));
     const k = view === 'refgos' ? 'ref_gos' : 'ref_priv';
-    return all.filter(c => c.kind === k);
+    return all.filter(c => c.kind === k && !c.markedDel);
   }
   if (view === 'refdoc') return (await listPeople()).filter(isRefDoc);
   if (view === 'refcontact') return (await listPeople()).filter(p => !isHiddenPerson(p));
@@ -4416,7 +4418,8 @@ async function renderRefOrgs(kind) {
   const s = state.search;
   // v3.30.2: в справочнике — ТОЛЬКО справочные карточки (ref_gos / ref_priv).
   // Рабочие карточки (hospital) живут в разделе «Клиники»; раньше они тоже попадали сюда и счёт раздувался до 1024/245.
-  let clinics = (await listClinics()).filter(c => c.kind === kind);
+  // v3.37.1: скрытые карточки (marked_del) в справочниках не показываем — иначе сведённый дубль остаётся второй строкой
+  let clinics = (await listClinics()).filter(c => c.kind === kind && !c.markedDel);
   if (s) clinics = clinics.filter(c =>
     (c.name || '').toLowerCase().includes(s) ||
     (c.city || '').toLowerCase().includes(s) ||
