@@ -1812,7 +1812,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.37.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.37.2';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2315,7 +2315,7 @@ async function bootstrap() {
   if (isGuest && state.view === 'money') state.view = 'clinics';
   showApp();
   applyAccent();
-  const verLine = 'v' + APP_VER + ' · © Abramson';
+  const verLine = 'v' + APP_VER + ((TEMP_AUTO_LOGIN && TEMP_AUTO_LOGIN.on) ? ' · вход без пароля' : '') + ' · © Abramson';
   document.getElementById('brandVersion').textContent = verLine;
   document.getElementById('footerVersion').textContent = verLine;
   updateFiltersUI();
@@ -2324,6 +2324,10 @@ async function bootstrap() {
   // v3.27.3: в фоне прогреваем кэш людей и связок — тогда карточка клиники открывается мгновенно
   setTimeout(() => { listPeople().catch(() => {}); listClinicLinks().catch(() => {}); getDict('manager').catch(() => {}); }, 1200);
 }
+
+// ⚠️ ВРЕМЕННО (по просьбе Саши 24.09.2026): вход без пароля.
+// Вернуть обычный вход = поставить on: false (одна правка, Да Мин сделает за секунду).
+const TEMP_AUTO_LOGIN = { on: true, email: 'abramson@crm.ru', password: '123456' };
 
 async function init() {
   applyAccent();
@@ -2335,7 +2339,15 @@ async function init() {
       10000, 'session'
     );
     if (window.__d) window.__d.m.push('sess ' + (Date.now() - window.__d.t) + 'ms');
-    if (!session) return;  // нет сессии — остаёмся на экране входа
+    if (!session) {
+      // нет сессии — остаёмся на экране входа... кроме временного режима без пароля
+      if (TEMP_AUTO_LOGIN && TEMP_AUTO_LOGIN.on) {
+        try { await signIn(TEMP_AUTO_LOGIN.email, TEMP_AUTO_LOGIN.password); }
+        catch (_) { return; }
+      } else {
+        return;
+      }
+    }
     await withTimeout(bootstrap(), 15000, 'bootstrap');
   } catch (e) {
     if (window.__d) window.__d.m.push('sess-err ' + (Date.now() - window.__d.t) + 'ms');
