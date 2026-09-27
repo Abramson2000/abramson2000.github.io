@@ -1812,7 +1812,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.39.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.40.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2260,29 +2260,38 @@ async function bootstrap() {
     showLogin();
     return;
   }
-  // определяем роль текущего пользователя (таблица user_managers)
+  // Офлайн сначала доверяем локальной сохранённой сессии.
+  // getUser() требует сеть и на iOS в авиарежиме может зависать.
   CURRENT_ROLE = 'manager';
   let user = null;
   try {
-    const { data: { user: u } } = await sb.auth.getUser();
-    user = u;
+    const { data } = await sb.auth.getSession();
+    if (data && data.session && data.session.user) user = data.session.user;
   } catch (_) {}
   if (!user) {
-    // офлайн: getUser ходит в сеть и падает — берём пользователя из локальной сессии
     try {
-      const { data } = await sb.auth.getSession();
-      if (data && data.session && data.session.user) user = data.session.user;
+      const raw = localStorage.getItem('crm-offline-user');
+      const saved = raw ? JSON.parse(raw) : null;
+      if (saved && saved.email) user = { email: saved.email };
     } catch (_) {}
   }
   if (window.__d) window.__d.m.push('user ' + (Date.now() - window.__d.t) + 'ms');
   if (!user) { showLogin(); return; }  // нет валидной сессии — показываем экран входа
   try {
-    const am = await getManagerRow(user.email);
-    if (am) { CURRENT_ROLE = am.role; window.CURRENT_MANAGER = am.manager || null; try { localStorage.setItem('crm-role', am.role); } catch (e) {} }
-    else { const c = localStorage.getItem('crm-role'); if (c) CURRENT_ROLE = c; }
+    const am = await withTimeout(getManagerRow(user.email), 1200, 'manager-offline-fallback');
+    if (am) {
+      CURRENT_ROLE = am.role;
+      window.CURRENT_MANAGER = am.manager || null;
+      try { localStorage.setItem('crm-role', am.role); } catch (e) {}
+    } else {
+      const savedRole = localStorage.getItem('crm-role');
+      if (savedRole) CURRENT_ROLE = savedRole;
+    }
   } catch (_) {
-    // офлайн: роль берём из последнего успешного входа
-    try { const c = localStorage.getItem('crm-role'); if (c) CURRENT_ROLE = c; } catch (e) {}
+    try {
+      const savedRole = localStorage.getItem('crm-role');
+      if (savedRole) CURRENT_ROLE = savedRole;
+    } catch (e) {}
   }
   try { localStorage.setItem('crm-offline-user', JSON.stringify({ email: (user.email || '').toLowerCase(), role: CURRENT_ROLE, at: Date.now() })); } catch (e) {}
   CURRENT_EMAIL = user.email || null;
@@ -2340,15 +2349,21 @@ async function init() {
     );
     if (window.__d) window.__d.m.push('sess ' + (Date.now() - window.__d.t) + 'ms');
     if (!session) {
-      // нет сессии — остаёмся на экране входа... кроме временного режима без пароля
-      if (TEMP_AUTO_LOGIN && TEMP_AUTO_LOGIN.on) {
-        try { await signIn(TEMP_AUTO_LOGIN.email, TEMP_AUTO_LOGIN.password); }
-        catch (_) { return; }
-      } else {
-        return;
+      let savedOffline = null;
+      try {
+        const raw = localStorage.getItem('crm-offline-user');
+        savedOffline = raw ? JSON.parse(raw) : null;
+      } catch (_) {}
+      if (!savedOffline || !savedOffline.email) {
+        if (TEMP_AUTO_LOGIN && TEMP_AUTO_LOGIN.on) {
+          try { await withTimeout(signIn(TEMP_AUTO_LOGIN.email, TEMP_AUTO_LOGIN.password), 1500, 'signin'); }
+          catch (_) { return; }
+        } else {
+          return;
+        }
       }
     }
-    await withTimeout(bootstrap(), 15000, 'bootstrap');
+    await withTimeout(bootstrap(), 5000, 'bootstrap');
   } catch (e) {
     if (window.__d) window.__d.m.push('sess-err ' + (Date.now() - window.__d.t) + 'ms');
     toast('⚠️ База не отвечает (медленная сеть). Проверь интернет и обнови страницу.');
@@ -6300,7 +6315,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-5';
+  const SW_BUILD = 'offline-safe-6';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
