@@ -355,7 +355,7 @@ self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
     try {
       const keys = await caches.keys();
-      await Promise.all(keys.filter((k) => k.startsWith('crm-') && k !== APP_CACHE && k !== DATA_CACHE).map((k) => caches.delete(k)));
+      await Promise.all(keys.filter((k) => k !== APP_CACHE && k !== DATA_CACHE).map((k) => caches.delete(k)));
     } catch (e) {}
     try { await self.clients.claim(); } catch (e) {}
     flushQueue();
