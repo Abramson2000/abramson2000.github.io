@@ -6,20 +6,20 @@
 //   /api/* и внешние домены (supabase) — только сеть.
 // Прекэш: все файлы приложения кладутся по одному; сбой одного файла НЕ ломает установку.
 // Страница может запросить статус/скачивание: postMessage({type:'status'|'precache'}).
-const CACHE = 'spin-cache-v105';
+const CACHE = 'spin-cache-v104';
 
 const CORE = [
   './',
   './index.html',
-  './styles.css?v=crs105',
-  './app.js?v=crs105',
-  './data.js?v=crs105',
-  './meddicc-data.js?v=crs105',
-  './spiced-data.js?v=crs105',
-  './proactive-data.js?v=crs105',
-  './boss-gate.js?v=crs105',
-  './remote-sales-data.js?v=crs105',
-  './channel-sales-data.js?v=crs105',
+  './styles.css?v=crs104',
+  './app.js?v=crs104',
+  './data.js?v=crs104',
+  './meddicc-data.js?v=crs104',
+  './spiced-data.js?v=crs104',
+  './proactive-data.js?v=crs104',
+  './boss-gate.js?v=crs104',
+  './remote-sales-data.js?v=crs104',
+  './channel-sales-data.js?v=crs104',
   './supabase.min.js',
   './manifest.webmanifest',
   './emblem-np.png',
@@ -76,7 +76,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('spin-cache-') && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
