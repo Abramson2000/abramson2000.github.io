@@ -19350,6 +19350,54 @@ const IDV_UNITS = [
     ]
    },
    {
+    "id": 9,
+    "kind": "words",
+    "title": "Слова 3. Новые слова",
+    "titleZh": "生词",
+    "words": [
+     {
+      "zh": "接电话",
+      "py": "jiē diànhuà",
+      "ru": "ответить на звонок, взять трубку"
+     },
+     {
+      "zh": "要求",
+      "py": "yāoqiú",
+      "ru": "требования; быть требовательным"
+     },
+     {
+      "zh": "景点",
+      "py": "jǐngdiǎn",
+      "ru": "достопримечательность, туристическое место"
+     },
+     {
+      "zh": "展览会",
+      "py": "zhǎnlǎnhuì",
+      "ru": "выставка"
+     },
+     {
+      "zh": "签合同",
+      "py": "qiān hétong",
+      "ru": "подписать договор (контракт)"
+     },
+     {
+      "zh": "保持冷静",
+      "py": "bǎochí lěngjìng",
+      "ru": "сохранять спокойствие"
+     },
+     {
+      "zh": "冷静",
+      "py": "lěngjìng",
+      "ru": "спокойствие; спокойный, трезвый, тихий"
+     },
+     {
+      "zh": "保持",
+      "py": "bǎochí",
+      "ru": "сохранять, поддерживать"
+     }
+    ]
+   },
+   {
     "id": 7,
     "kind": "text",
     "audio": "210-ex.mp3",
@@ -22237,7 +22285,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '2.36.0';
+const APP_VER = '2.36.1';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -23532,7 +23580,7 @@ updateAppBadge();
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-7';
+  const SW_BUILD = 'offline-safe-8';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
