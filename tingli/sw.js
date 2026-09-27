@@ -1,17 +1,17 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.33.1 (2026-09-24: урок 108 «旧梦» в разделе 语法 (李老师课) — 34 слова, разбор лексики, грамматика, говорим сами, 14 упражнений, 14 ДЗ, аудио 108-w1..w4/p/g; было 2026-09-24: шрифт пересобран под урок 213 (6 иероглифов: 品并性杨略缩), font-build: simsun-subset-STSong-1475; урок 213 «介绍产品» в разделе 团队 — аудио текста 213-0t.mp3 + 10 новых слов (21–30); было 2026-09-22: названия уроков 13/14 Бизнес (313/314) — исправлен перевод и нумерация; шрифт пересобран (9 иероглифов), добавлены 才/下礼拜 в урок 212, переозвучен 212-w2; было 2026-09-19: женский голос ±3% — диалог/текст +3%, слова/примеры −3%; переозвучены уроки 10 и 面试困难 + font-build: simsun-subset-STSong-1497 — маркер прекэша
-const CACHE = 'tingli-cache-v3-safe';
+// data-build: v2.33.2 (2026-09-24: урок 108 «旧梦» в разделе 语法 (李老师课) — 34 слова, разбор лексики, грамматика, говорим сами, 14 упражнений, 14 ДЗ, аудио 108-w1..w4/p/g; было 2026-09-24: шрифт пересобран под урок 213 (6 иероглифов: 品并性杨略缩), font-build: simsun-subset-STSong-1475; урок 213 «介绍产品» в разделе 团队 — аудио текста 213-0t.mp3 + 10 новых слов (21–30); было 2026-09-22: названия уроков 13/14 Бизнес (313/314) — исправлен перевод и нумерация; шрифт пересобран (9 иероглифов), добавлены 才/下礼拜 в урок 212, переозвучен 212-w2; было 2026-09-19: женский голос ±3% — диалог/текст +3%, слова/примеры −3%; переозвучены уроки 10 и 面试困难 + font-build: simsun-subset-STSong-1497 — маркер прекэша
+const CACHE = 'tingli-cache-v4-safe';
 
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './data/units.js?v=2.33.1',
-  './data/extra.js?v=2.33.1',
-  './data/idv.js?v=2.33.1',
-  './data/biz.js?v=2.33.1',
+  './data/units.js?v=2.33.2',
+  './data/extra.js?v=2.33.2',
+  './data/idv.js?v=2.33.2',
+  './data/biz.js?v=2.33.2',
   './apple-touch-icon-v2.png',
   './apple-touch-icon.png',
   './bg.jpg',
@@ -68,7 +68,7 @@ const ASSETS = [
   './fonts/rubik-cyr-600.woff2',
   './fonts/rubik-cyr-700.woff2',
   './fonts/rubik-cyr-800.woff2',
-  './fonts/simsun-subset.woff2?v=2.33.1',
+  './fonts/simsun-subset.woff2?v=2.33.2',
   './fonts/xiaoshan-mashan.woff2',
   './fonts/xiaoshan-title.woff2?v=2.23.3',
   './fonts/xiaoshan-longcang.woff2',
@@ -132,10 +132,10 @@ self.addEventListener('install', (e) => {
     const c = await caches.open(CACHE);
     const required = [
       './index.html',
-      './data/units.js?v=2.33.1',
-      './data/extra.js?v=2.33.1',
-      './data/idv.js?v=2.33.1',
-      './data/biz.js?v=2.33.1'
+      './data/units.js?v=2.33.2',
+      './data/extra.js?v=2.33.2',
+      './data/idv.js?v=2.33.2',
+      './data/biz.js?v=2.33.2'
     ];
     for (const u of required) {
       if (!(await c.match(u))) throw new Error('Tingli precache incomplete: ' + u);
@@ -156,6 +156,13 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+function fetchNavFast(req, timeoutMs) {
+  return Promise.race([
+    fetch(req, { cache: 'no-store' }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), timeoutMs || 1200))
+  ]);
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
@@ -166,7 +173,7 @@ self.addEventListener('fetch', (e) => {
   // Навигация: сначала сеть (свежий index.html), при ошибке — кэш
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req, { cache: 'no-store' })
+      fetchNavFast(req, 1200)
         .then((r) => {
           const cp = r.clone();
           caches.open(CACHE).then((c) => c.put('./index.html', cp));

@@ -5,7 +5,7 @@
 //      сразу применяются к кэшу (оптимистично) и отправляются в базу, как только появится связь;
 //   3) локальная оболочка (index.html, supabase-js, иконки) — тоже в кэше.
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
-const APP_CACHE = 'crm-app-v3';
+const APP_CACHE = 'crm-app-v4';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
 const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
@@ -311,11 +311,17 @@ async function flushQueue() {
 }
 
 // ---------- оболочка приложения ----------
+async function fetchNavFast(req, timeoutMs) {
+  return Promise.race([
+    fetch(req, { cache: 'no-store' }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), timeoutMs || 1200))
+  ]);
+}
 async function handleShell(req) {
   const url = new URL(req.url);
   if (req.mode === 'navigate') {
     try {
-      const r = await fetch(req, { cache: 'no-store' });
+      const r = await fetchNavFast(req, 1200);
       if (r && r.ok) { const c = await caches.open(APP_CACHE); c.put('./index.html', r.clone()); }
       return r;
     } catch (e) {

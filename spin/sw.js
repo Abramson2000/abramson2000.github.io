@@ -6,20 +6,20 @@
 //   /api/* и внешние домены (supabase) — только сеть.
 // Прекэш: все файлы приложения кладутся по одному; сбой одного файла НЕ ломает установку.
 // Страница может запросить статус/скачивание: postMessage({type:'status'|'precache'}).
-const CACHE = 'spin-cache-v106-safe';
+const CACHE = 'spin-cache-v107-safe';
 
 const CORE = [
   './',
   './index.html',
-  './styles.css?v=crs106',
-  './app.js?v=crs106',
-  './data.js?v=crs106',
-  './meddicc-data.js?v=crs106',
-  './spiced-data.js?v=crs106',
-  './proactive-data.js?v=crs106',
-  './boss-gate.js?v=crs106',
-  './remote-sales-data.js?v=crs106',
-  './channel-sales-data.js?v=crs106',
+  './styles.css?v=crs107',
+  './app.js?v=crs107',
+  './data.js?v=crs107',
+  './meddicc-data.js?v=crs107',
+  './spiced-data.js?v=crs107',
+  './proactive-data.js?v=crs107',
+  './boss-gate.js?v=crs107',
+  './remote-sales-data.js?v=crs107',
+  './channel-sales-data.js?v=crs107',
   './supabase.min.js',
   './manifest.webmanifest',
   './emblem-np.png',
@@ -77,15 +77,15 @@ self.addEventListener('install', (e) => {
     // не активируем новый worker, оставляем предыдущую рабочую версию.
     const required = [
       './index.html',
-      './styles.css?v=crs106',
-      './app.js?v=crs106',
-      './data.js?v=crs106',
-      './meddicc-data.js?v=crs106',
-      './spiced-data.js?v=crs106',
-      './proactive-data.js?v=crs106',
-      './boss-gate.js?v=crs106',
-      './remote-sales-data.js?v=crs106',
-      './channel-sales-data.js?v=crs106',
+      './styles.css?v=crs107',
+      './app.js?v=crs107',
+      './data.js?v=crs107',
+      './meddicc-data.js?v=crs107',
+      './spiced-data.js?v=crs107',
+      './proactive-data.js?v=crs107',
+      './boss-gate.js?v=crs107',
+      './remote-sales-data.js?v=crs107',
+      './channel-sales-data.js?v=crs107',
       './supabase.min.js'
     ];
     for (const u of required) {
@@ -123,6 +123,13 @@ self.addEventListener('message', (e) => {
   }
 });
 
+function fetchNavFast(req, timeoutMs) {
+  return Promise.race([
+    fetch(req, { cache: 'no-store' }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), timeoutMs || 1200))
+  ]);
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
@@ -133,7 +140,7 @@ self.addEventListener('fetch', (e) => {
   // Навигация: сначала сеть (свежий index.html и новые ?v=), при ошибке — кэш
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req, { cache: 'no-store' })
+      fetchNavFast(req, 1200)
         .then((r) => {
           const cp = r.clone();
           caches.open(CACHE).then((c) => c.put('./index.html', cp));
