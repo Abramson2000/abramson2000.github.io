@@ -19452,7 +19452,7 @@ const IDV_UNITS = [
     "title": "ДЗ 3 作业",
     "titleZh": "",
     "aiCheck": false,
-    "text": "Дополни диалоги. Используй слова-подсказки в скобках. Ответы сохраняются сами; затем сформируй текст для учителя и скопируй его.",
+    "text": "Дополни диалоги. Используй слова-подсказки в скобках.",
     "questions": [
      {"q": "1. A：我想问一个问题，可以吗？\nB：当然可以，________，________。\nA：为什么咱们每天8点就上课？太早了。\nB：不早吧，中国人________。\n【问题 · 习惯】"},
      {"q": "2. A：汉娜，每天早上我都不想起床，怎么办呀？\nB：________，早睡就能早起。\nA：咱们为什么不能晚一点儿上课呢？\nB：我刚开始也不习惯。在中国生活了半年，________。\n【建议 · 觉得】"},
@@ -22313,7 +22313,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.2.1';
+const APP_VER = '3.2.2';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -22860,6 +22860,7 @@ function isChk(part) {
   return /проверь себя|проверк|练习|соедини|连线|итоговое упражн/i.test(t);
 }
 function partNum(part) {
+  if (part && part.ico) return part.ico;   // своя иконка части (напр. 音 у задания «Слушать»)
   if (part.kind === 'hw') return ICO_HW;
   if (part.kind === 'words') return partIco(part);
   if (!hasTxt(part) && part.audio) return ICO_LISTEN;   // слушать без скрипта / задание на прослушивание
