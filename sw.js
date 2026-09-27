@@ -5,7 +5,7 @@
 //      сразу применяются к кэшу (оптимистично) и отправляются в базу, как только появится связь;
 //   3) локальная оболочка (index.html, supabase-js, иконки) — тоже в кэше.
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
-const APP_CACHE = 'crm-app-v2';
+const APP_CACHE = 'crm-app-v3';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
 const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
@@ -315,7 +315,7 @@ async function handleShell(req) {
   const url = new URL(req.url);
   if (req.mode === 'navigate') {
     try {
-      const r = await fetch(req);
+      const r = await fetch(req, { cache: 'no-store' });
       if (r && r.ok) { const c = await caches.open(APP_CACHE); c.put('./index.html', r.clone()); }
       return r;
     } catch (e) {

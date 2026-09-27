@@ -6,20 +6,20 @@
 //   /api/* и внешние домены (supabase) — только сеть.
 // Прекэш: все файлы приложения кладутся по одному; сбой одного файла НЕ ломает установку.
 // Страница может запросить статус/скачивание: postMessage({type:'status'|'precache'}).
-const CACHE = 'spin-cache-v105-safe';
+const CACHE = 'spin-cache-v106-safe';
 
 const CORE = [
   './',
   './index.html',
-  './styles.css?v=crs105',
-  './app.js?v=crs105',
-  './data.js?v=crs105',
-  './meddicc-data.js?v=crs105',
-  './spiced-data.js?v=crs105',
-  './proactive-data.js?v=crs105',
-  './boss-gate.js?v=crs105',
-  './remote-sales-data.js?v=crs105',
-  './channel-sales-data.js?v=crs105',
+  './styles.css?v=crs106',
+  './app.js?v=crs106',
+  './data.js?v=crs106',
+  './meddicc-data.js?v=crs106',
+  './spiced-data.js?v=crs106',
+  './proactive-data.js?v=crs106',
+  './boss-gate.js?v=crs106',
+  './remote-sales-data.js?v=crs106',
+  './channel-sales-data.js?v=crs106',
   './supabase.min.js',
   './manifest.webmanifest',
   './emblem-np.png',
@@ -77,15 +77,15 @@ self.addEventListener('install', (e) => {
     // не активируем новый worker, оставляем предыдущую рабочую версию.
     const required = [
       './index.html',
-      './styles.css?v=crs105',
-      './app.js?v=crs105',
-      './data.js?v=crs105',
-      './meddicc-data.js?v=crs105',
-      './spiced-data.js?v=crs105',
-      './proactive-data.js?v=crs105',
-      './boss-gate.js?v=crs105',
-      './remote-sales-data.js?v=crs105',
-      './channel-sales-data.js?v=crs105',
+      './styles.css?v=crs106',
+      './app.js?v=crs106',
+      './data.js?v=crs106',
+      './meddicc-data.js?v=crs106',
+      './spiced-data.js?v=crs106',
+      './proactive-data.js?v=crs106',
+      './boss-gate.js?v=crs106',
+      './remote-sales-data.js?v=crs106',
+      './channel-sales-data.js?v=crs106',
       './supabase.min.js'
     ];
     for (const u of required) {
@@ -133,7 +133,7 @@ self.addEventListener('fetch', (e) => {
   // Навигация: сначала сеть (свежий index.html и новые ?v=), при ошибке — кэш
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-store' })
         .then((r) => {
           const cp = r.clone();
           caches.open(CACHE).then((c) => c.put('./index.html', cp));
