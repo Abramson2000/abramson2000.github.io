@@ -2,7 +2,7 @@
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
 // data-build: v2.32.0 (2026-09-24: урок 108 «旧梦» в разделе 语法 (李老师课) — 34 слова, разбор лексики, грамматика, говорим сами, 14 упражнений, 14 ДЗ, аудио 108-w1..w4/p/g; было 2026-09-24: шрифт пересобран под урок 213 (6 иероглифов: 品并性杨略缩), font-build: simsun-subset-STSong-1475; урок 213 «介绍产品» в разделе 团队 — аудио текста 213-0t.mp3 + 10 новых слов (21–30); было 2026-09-22: названия уроков 13/14 Бизнес (313/314) — исправлен перевод и нумерация; шрифт пересобран (9 иероглифов), добавлены 才/下礼拜 в урок 212, переозвучен 212-w2; было 2026-09-19: женский голос ±3% — диалог/текст +3%, слова/примеры −3%; переозвучены уроки 10 и 面试困难 + font-build: simsun-subset-STSong-1497 — маркер прекэша
-const CACHE = 'tingli-cache-v1';
+const CACHE = 'tingli-cache-v2-safe';
 
 const ASSETS = [
   './',
@@ -125,14 +125,33 @@ self.addEventListener('message', (e) => {
 });
 
 self.addEventListener('install', (e) => {
-  // cache:'reload' — тянем свежие файлы в обход HTTP-кеша (иначе после деплоя
-  // можно закешировать старые data/*.js и «потерять» новый урок)
-  e.waitUntil(precache().then(() => self.skipWaiting()).catch(() => self.skipWaiting()));
+  // Сначала полностью готовим критическую оболочку. Если она не собралась,
+  // новый worker не активируется и старая офлайн-версия остаётся рабочей.
+  e.waitUntil((async () => {
+    await precache();
+    const c = await caches.open(CACHE);
+    const required = [
+      './index.html',
+      './data/units.js?v=2.32.0',
+      './data/extra.js?v=2.32.0',
+      './data/idv.js?v=2.32.0',
+      './data/biz.js?v=2.32.0'
+    ];
+    for (const u of required) {
+      if (!(await c.match(u))) throw new Error('Tingli precache incomplete: ' + u);
+    }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys
+          .filter((k) => k.startsWith('tingli-cache-') && k !== CACHE)
+          .map((k) => caches.delete(k))
+      ))
       .then(() => self.clients.claim())
   );
 });
@@ -153,7 +172,18 @@ self.addEventListener('fetch', (e) => {
           caches.open(CACHE).then((c) => c.put('./index.html', cp));
           return r;
         })
-        .catch(() => caches.match('./index.html').then((hit) => hit || caches.match('./')))
+        .catch(async () => {
+          const c = await caches.open(CACHE);
+          let hit = (await c.match('./index.html')) || (await c.match('./'));
+          if (hit) return hit;
+          const keys = (await caches.keys()).filter((k) => k.startsWith('tingli-cache-'));
+          for (const k of keys) {
+            const old = await caches.open(k);
+            hit = (await old.match('./index.html')) || (await old.match('./'));
+            if (hit) return hit;
+          }
+          return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
+        })
     );
     return;
   }
