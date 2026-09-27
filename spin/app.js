@@ -205,7 +205,73 @@ function loadState() {
   } catch (e) {}
 }
 let _syncT = null;
-let _cloudReady = false; // облако загружено (cloudLoad завершён) — только после этого шлём save
+let _cloudReady = false;
+
+// Дублируем последний локальный прогресс в IndexedDB.
+// На iOS/PWA localStorage иногда временно недоступен/пуст после долгого офлайна;
+// IndexedDB служит независимой локальной страховкой до прихода облака.
+const PROGRESS_DB = 'spin-progress-v1';
+const PROGRESS_STORE = 'snapshots';
+function progressDb() {
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) return reject(new Error('indexedDB unavailable'));
+    const req = indexedDB.open(PROGRESS_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(PROGRESS_STORE)) db.createObjectStore(PROGRESS_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error('indexedDB open failed'));
+  });
+}
+async function durableGet(userId) {
+  try {
+    const db = await progressDb();
+    const val = await new Promise((resolve, reject) => {
+      const tx = db.transaction(PROGRESS_STORE, 'readonly');
+      const req = tx.objectStore(PROGRESS_STORE).get(String(userId));
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error || new Error('indexedDB read failed'));
+    });
+    db.close();
+    return val;
+  } catch (e) { return null; }
+}
+async function durablePut(userId, payload) {
+  try {
+    const db = await progressDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(PROGRESS_STORE, 'readwrite');
+      tx.objectStore(PROGRESS_STORE).put(payload, String(userId));
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error || new Error('indexedDB write failed'));
+      tx.onabort = () => reject(tx.error || new Error('indexedDB write aborted'));
+    });
+    db.close();
+  } catch (e) {}
+}
+function mergeSnapshot(src) {
+  if (!src || typeof src !== 'object') return;
+  S.lesson = Math.max(Number(S.lesson) || 0, Number(src.lesson) || 0);
+  S.done = uniArr(S.done, src.done);
+  S.practiced = uniArr(S.practiced, src.practiced);
+  S.spPracticed = uniArr(S.spPracticed, src.spPracticed);
+  S.medPracticed = uniArr(S.medPracticed, src.medPracticed);
+  S.proPracticed = uniArr(S.proPracticed, src.proPracticed);
+  S.spicedDone = uniArr(S.spicedDone, src.spicedDone);
+  S.medDone = uniArr(S.medDone, src.medDone);
+  S.proDone = uniArr(S.proDone, src.proDone);
+  S.cDone = uniArr(S.cDone, src.cDone);
+  S.xDone = mergeXDone(S.xDone, src.xd);
+  S.scStat = mergeScs(S.scStat, src.scs);
+  S.trn = mergeTrn(S.trn, src.trn);
+  S.xp = Math.max(Number(S.xp) || 0, Number(src.xp) || 0);
+  S.correct = Math.max(Number(S.correct) || 0, Number(src.correct) || 0);
+  S.attempts = Math.max(Number(S.attempts) || 0, Number(src.attempts) || 0);
+  if (curExtra == null && typeof src.extra === 'number' && src.extra >= 0) curExtra = src.extra;
+  if (typeof src.xb === 'number' && src.xb >= 0) curXb = Math.max(curXb || 0, src.xb);
+}
+ // облако загружено (cloudLoad завершён) — только после этого шлём save
 S.sync = 'off';        // 'off' | 'saving' | 'saved' | 'error'
 S.syncAt = null;       // время последней успешной синхронизации
 S.dirty = false;       // есть несохранённые изменения
@@ -216,7 +282,9 @@ function syncPayload() {
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
   if (!USER) return;
-  try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
+  const payload = syncPayload();
+  try { localStorage.setItem(LS_KEY, JSON.stringify(payload)); } catch (e) {}
+  durablePut(USER.id, payload);
   S.dirty = true;
   if (S.sync !== 'saving') setSync('saving');
   clearTimeout(_syncT);
@@ -561,7 +629,9 @@ async function cloudLoad() {
       curMed = null; curSpiced = null; curPro = null;
       S.scStat = mergeScs(local.scs, cloud.scs);
       S.trn = mergeTrn(local.trn, cloud.trn);
-      try { localStorage.setItem(LS_KEY, JSON.stringify(syncPayload())); } catch (e) {}
+      const mergedPayload = syncPayload();
+      try { localStorage.setItem(LS_KEY, JSON.stringify(mergedPayload)); } catch (e) {}
+      durablePut(USER.id, mergedPayload);
       syncChrome();
       if (cx > lx) toast('Прогресс подтянут с сервера: ' + cx + ' XP' + (lx && lx !== cx ? ' (было ' + lx + ')' : ''));
       else if (lx > cx) toast('Прогресс этого устройства (' + lx + ' XP) отправлен на сервер');
@@ -598,7 +668,7 @@ function userName(user) {
   if (ru) return ru;
   return raw[0].toUpperCase() + raw.slice(1);
 }
-function boot(user) {
+async function boot(user) {
   USER = { id: user.id, email: user.email || '', name: userName(user) };
   LS_KEY = 'spin-lab-v1:' + USER.id;
   try { localStorage.setItem('spin-user', JSON.stringify(USER)); } catch (e) {} // для офлайн-входа (авиарежим)
@@ -609,6 +679,16 @@ function boot(user) {
   loadSpiced();
   loadPro();
   loadXDone();
+
+  // До первого рендера восстанавливаем независимый локальный слепок.
+  // Поэтому кратковременный пустой localStorage больше не покажет ложный «0».
+  const durable = await durableGet(USER.id);
+  if (durable) {
+    mergeSnapshot(durable);
+    const restored = syncPayload();
+    try { localStorage.setItem(LS_KEY, JSON.stringify(restored)); } catch (e) {}
+  }
+
   scBackfill();
   $('loginScreen').classList.add('hidden');
   $('appShell').style.display = '';
@@ -638,7 +718,7 @@ async function initAuth() {
   // нет сети/сессии — пробуем офлайн-вход последнего пользователя этого устройства (авиарежим)
   try {
     const saved = JSON.parse(localStorage.getItem('spin-user'));
-    if (saved && saved.id && !navigator.onLine) { boot(saved); return; }
+    if (saved && saved.id) { boot(saved); return; }
   } catch (e) {}
   $('loginScreen').classList.remove('hidden');
   $('appShell').style.display = 'none';
