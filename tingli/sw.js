@@ -1,17 +1,17 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v2.33.2 (2026-09-24: урок 108 «旧梦» в разделе 语法 (李老师课) — 34 слова, разбор лексики, грамматика, говорим сами, 14 упражнений, 14 ДЗ, аудио 108-w1..w4/p/g; было 2026-09-24: шрифт пересобран под урок 213 (6 иероглифов: 品并性杨略缩), font-build: simsun-subset-STSong-1475; урок 213 «介绍产品» в разделе 团队 — аудио текста 213-0t.mp3 + 10 новых слов (21–30); было 2026-09-22: названия уроков 13/14 Бизнес (313/314) — исправлен перевод и нумерация; шрифт пересобран (9 иероглифов), добавлены 才/下礼拜 в урок 212, переозвучен 212-w2; было 2026-09-19: женский голос ±3% — диалог/текст +3%, слова/примеры −3%; переозвучены уроки 10 и 面试困难 + font-build: simsun-subset-STSong-1497 — маркер прекэша
-const CACHE = 'tingli-cache-v4-safe';
+// data-build: v2.33.3 (2026-09-24: урок 108 «旧梦» в разделе 语法 (李老师课) — 34 слова, разбор лексики, грамматика, говорим сами, 14 упражнений, 14 ДЗ, аудио 108-w1..w4/p/g; было 2026-09-24: шрифт пересобран под урок 213 (6 иероглифов: 品并性杨略缩), font-build: simsun-subset-STSong-1475; урок 213 «介绍产品» в разделе 团队 — аудио текста 213-0t.mp3 + 10 новых слов (21–30); было 2026-09-22: названия уроков 13/14 Бизнес (313/314) — исправлен перевод и нумерация; шрифт пересобран (9 иероглифов), добавлены 才/下礼拜 в урок 212, переозвучен 212-w2; было 2026-09-19: женский голос ±3% — диалог/текст +3%, слова/примеры −3%; переозвучены уроки 10 и 面试困难 + font-build: simsun-subset-STSong-1497 — маркер прекэша
+const CACHE = 'tingli-cache-v5-safe';
 
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './data/units.js?v=2.33.2',
-  './data/extra.js?v=2.33.2',
-  './data/idv.js?v=2.33.2',
-  './data/biz.js?v=2.33.2',
+  './data/units.js?v=2.33.3',
+  './data/extra.js?v=2.33.3',
+  './data/idv.js?v=2.33.3',
+  './data/biz.js?v=2.33.3',
   './apple-touch-icon-v2.png',
   './apple-touch-icon.png',
   './bg.jpg',
@@ -68,7 +68,7 @@ const ASSETS = [
   './fonts/rubik-cyr-600.woff2',
   './fonts/rubik-cyr-700.woff2',
   './fonts/rubik-cyr-800.woff2',
-  './fonts/simsun-subset.woff2?v=2.33.2',
+  './fonts/simsun-subset.woff2?v=2.33.3',
   './fonts/xiaoshan-mashan.woff2',
   './fonts/xiaoshan-title.woff2?v=2.23.3',
   './fonts/xiaoshan-longcang.woff2',
@@ -132,10 +132,10 @@ self.addEventListener('install', (e) => {
     const c = await caches.open(CACHE);
     const required = [
       './index.html',
-      './data/units.js?v=2.33.2',
-      './data/extra.js?v=2.33.2',
-      './data/idv.js?v=2.33.2',
-      './data/biz.js?v=2.33.2'
+      './data/units.js?v=2.33.3',
+      './data/extra.js?v=2.33.3',
+      './data/idv.js?v=2.33.3',
+      './data/biz.js?v=2.33.3'
     ];
     for (const u of required) {
       if (!(await c.match(u))) throw new Error('Tingli precache incomplete: ' + u);
@@ -146,13 +146,7 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(
-        keys
-          .filter((k) => k.startsWith('tingli-cache-') && k !== CACHE)
-          .map((k) => caches.delete(k))
-      ))
-      .then(() => self.clients.claim())
+    Promise.resolve().then(() => self.clients.claim())
   );
 });
 
@@ -170,28 +164,33 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.indexOf('/api/') !== -1) return; // бэкап — только сеть
 
-  // Навигация: сначала сеть (свежий index.html), при ошибке — кэш
+  // Навигация: кэш сначала. Это надёжнее для iOS/авиарежима.
   if (req.mode === 'navigate') {
-    e.respondWith(
-      fetchNavFast(req, 1200)
-        .then((r) => {
-          const cp = r.clone();
-          caches.open(CACHE).then((c) => c.put('./index.html', cp));
-          return r;
-        })
-        .catch(async () => {
-          const c = await caches.open(CACHE);
-          let hit = (await c.match('./index.html')) || (await c.match('./'));
-          if (hit) return hit;
-          const keys = (await caches.keys()).filter((k) => k.startsWith('tingli-cache-'));
-          for (const k of keys) {
-            const old = await caches.open(k);
-            hit = (await old.match('./index.html')) || (await old.match('./'));
-            if (hit) return hit;
-          }
-          return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
-        })
-    );
+    e.respondWith((async () => {
+      const c = await caches.open(CACHE);
+      let hit = (await c.match('./index.html')) || (await c.match('./'));
+      if (!hit) {
+        const keys = (await caches.keys()).filter((k) => k.startsWith('tingli-cache-') && k !== CACHE).reverse();
+        for (const k of keys) {
+          const old = await caches.open(k);
+          hit = (await old.match('./index.html')) || (await old.match('./'));
+          if (hit) break;
+        }
+      }
+      if (hit) {
+        fetch(req, { cache: 'no-store' }).then((r) => {
+          if (r && r.ok) c.put('./index.html', r.clone());
+        }).catch(() => {});
+        return hit;
+      }
+      try {
+        const r = await fetchNavFast(req, 1200);
+        if (r && r.ok) await c.put('./index.html', r.clone());
+        return r;
+      } catch (e) {
+        return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
+      }
+    })());
     return;
   }
 

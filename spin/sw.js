@@ -6,20 +6,20 @@
 //   /api/* и внешние домены (supabase) — только сеть.
 // Прекэш: все файлы приложения кладутся по одному; сбой одного файла НЕ ломает установку.
 // Страница может запросить статус/скачивание: postMessage({type:'status'|'precache'}).
-const CACHE = 'spin-cache-v107-safe';
+const CACHE = 'spin-cache-v108-safe';
 
 const CORE = [
   './',
   './index.html',
-  './styles.css?v=crs107',
-  './app.js?v=crs107',
-  './data.js?v=crs107',
-  './meddicc-data.js?v=crs107',
-  './spiced-data.js?v=crs107',
-  './proactive-data.js?v=crs107',
-  './boss-gate.js?v=crs107',
-  './remote-sales-data.js?v=crs107',
-  './channel-sales-data.js?v=crs107',
+  './styles.css?v=crs108',
+  './app.js?v=crs108',
+  './data.js?v=crs108',
+  './meddicc-data.js?v=crs108',
+  './spiced-data.js?v=crs108',
+  './proactive-data.js?v=crs108',
+  './boss-gate.js?v=crs108',
+  './remote-sales-data.js?v=crs108',
+  './channel-sales-data.js?v=crs108',
   './supabase.min.js',
   './manifest.webmanifest',
   './emblem-np.png',
@@ -77,15 +77,15 @@ self.addEventListener('install', (e) => {
     // не активируем новый worker, оставляем предыдущую рабочую версию.
     const required = [
       './index.html',
-      './styles.css?v=crs107',
-      './app.js?v=crs107',
-      './data.js?v=crs107',
-      './meddicc-data.js?v=crs107',
-      './spiced-data.js?v=crs107',
-      './proactive-data.js?v=crs107',
-      './boss-gate.js?v=crs107',
-      './remote-sales-data.js?v=crs107',
-      './channel-sales-data.js?v=crs107',
+      './styles.css?v=crs108',
+      './app.js?v=crs108',
+      './data.js?v=crs108',
+      './meddicc-data.js?v=crs108',
+      './spiced-data.js?v=crs108',
+      './proactive-data.js?v=crs108',
+      './boss-gate.js?v=crs108',
+      './remote-sales-data.js?v=crs108',
+      './channel-sales-data.js?v=crs108',
       './supabase.min.js'
     ];
     for (const u of required) {
@@ -98,11 +98,6 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(
-        keys
-          .filter((k) => k.startsWith('spin-cache-') && k !== CACHE)
-          .map((k) => caches.delete(k))
-      ))
       .then(() => self.clients.claim())
   );
 });
@@ -137,28 +132,33 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== self.location.origin) return; // supabase и чужие домены — мимо SW
   if (url.pathname.indexOf('/api/') !== -1) return; // API прогресса — только сеть
 
-  // Навигация: сначала сеть (свежий index.html и новые ?v=), при ошибке — кэш
+  // Навигация: кэш сначала. Это надёжнее для iOS/авиарежима.
   if (req.mode === 'navigate') {
-    e.respondWith(
-      fetchNavFast(req, 1200)
-        .then((r) => {
-          const cp = r.clone();
-          caches.open(CACHE).then((c) => c.put('./index.html', cp));
-          return r;
-        })
-        .catch(async () => {
-          const c = await caches.open(CACHE);
-          let hit = (await c.match('./index.html')) || (await c.match('./'));
-          if (hit) return hit;
-          const keys = (await caches.keys()).filter((k) => k.startsWith('spin-cache-'));
-          for (const k of keys) {
-            const old = await caches.open(k);
-            hit = (await old.match('./index.html')) || (await old.match('./'));
-            if (hit) return hit;
-          }
-          return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
-        })
-    );
+    e.respondWith((async () => {
+      const c = await caches.open(CACHE);
+      let hit = (await c.match('./index.html')) || (await c.match('./'));
+      if (!hit) {
+        const keys = (await caches.keys()).filter((k) => k.startsWith('spin-cache-') && k !== CACHE).reverse();
+        for (const k of keys) {
+          const old = await caches.open(k);
+          hit = (await old.match('./index.html')) || (await old.match('./'));
+          if (hit) break;
+        }
+      }
+      if (hit) {
+        fetch(req, { cache: 'no-store' }).then((r) => {
+          if (r && r.ok) c.put('./index.html', r.clone());
+        }).catch(() => {});
+        return hit;
+      }
+      try {
+        const r = await fetchNavFast(req, 1200);
+        if (r && r.ok) await c.put('./index.html', r.clone());
+        return r;
+      } catch (e) {
+        return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
+      }
+    })());
     return;
   }
 

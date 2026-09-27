@@ -5,7 +5,7 @@
 //      сразу применяются к кэшу (оптимистично) и отправляются в базу, как только появится связь;
 //   3) локальная оболочка (index.html, supabase-js, иконки) — тоже в кэше.
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
-const APP_CACHE = 'crm-app-v4';
+const APP_CACHE = 'crm-app-v5';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
 const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
@@ -320,21 +320,28 @@ async function fetchNavFast(req, timeoutMs) {
 async function handleShell(req) {
   const url = new URL(req.url);
   if (req.mode === 'navigate') {
-    try {
-      const r = await fetchNavFast(req, 1200);
-      if (r && r.ok) { const c = await caches.open(APP_CACHE); c.put('./index.html', r.clone()); }
-      return r;
-    } catch (e) {
-      const c = await caches.open(APP_CACHE);
-      const hit = (await c.match('./index.html')) || (await c.match('./'));
-      if (hit) return hit;
-      // Запасной поиск только по старым CRM-кэшам, чужие приложения не трогаем.
-      const keys = (await caches.keys()).filter((k) => k.startsWith('crm-app-'));
+    const cur = await caches.open(APP_CACHE);
+    let hit = (await cur.match('./index.html')) || (await cur.match('./'));
+    if (!hit) {
+      const keys = (await caches.keys()).filter((k) => k.startsWith('crm-app-') && k !== APP_CACHE).reverse();
       for (const k of keys) {
         const old = await caches.open(k);
-        const oldHit = (await old.match('./index.html')) || (await old.match('./'));
-        if (oldHit) return oldHit;
+        hit = (await old.match('./index.html')) || (await old.match('./'));
+        if (hit) break;
       }
+    }
+    if (hit) {
+      // Отдаём рабочую оболочку сразу. Свежую копию подтягиваем в фоне.
+      fetch(req, { cache: 'no-store' }).then(async (r) => {
+        if (r && r.ok) await cur.put('./index.html', r.clone());
+      }).catch(() => {});
+      return hit;
+    }
+    try {
+      const r = await fetchNavFast(req, 1200);
+      if (r && r.ok) await cur.put('./index.html', r.clone());
+      return r;
+    } catch (e) {
       return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
     }
   }
@@ -379,11 +386,7 @@ self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
     try {
       const keys = await caches.keys();
-      await Promise.all(
-        keys
-          .filter((k) => k.startsWith('crm-app-') && k !== APP_CACHE)
-          .map((k) => caches.delete(k))
-      );
+      // Старые CRM-кэши не удаляем автоматически: они служат офлайн-резервом на iOS.
     } catch (e) {}
     try { await self.clients.claim(); } catch (e) {}
     flushQueue();
