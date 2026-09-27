@@ -1269,7 +1269,7 @@ if (window.__d) window.__d.m.push('db ' + (Date.now() - window.__d.t) + 'ms');
 // если SDK не загрузился (плохая сеть / кеш) — не падаем, а показываем понятную ошибку
 const sb = (window.supabase && window.supabase.createClient)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-      auth: { persistSession: true, autoRefreshToken: true }
+      auth: { persistSession: true, autoRefreshToken: navigator.onLine !== false }
     })
   : null;
 
@@ -1812,7 +1812,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '3.40.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '3.41.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2405,7 +2405,18 @@ if (document.getElementById('loginBtn')) {
 if (sb) {
   sb.auth.onAuthStateChange((event) => {
     if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') { bootstrap(); }
-    else if (event === 'SIGNED_OUT') { showLogin(); }
+    else if (event === 'SIGNED_OUT') {
+      let hasOfflineUser = false;
+      try {
+        const raw = localStorage.getItem('crm-offline-user');
+        const saved = raw ? JSON.parse(raw) : null;
+        hasOfflineUser = !!(saved && saved.email);
+      } catch (_) {}
+      // В авиарежиме Supabase может сообщить SIGNED_OUT из-за невозможности обновить токен.
+      // Это не должно выбрасывать из локальной CRM.
+      if (navigator.onLine === false && hasOfflineUser) bootstrap();
+      else showLogin();
+    }
   });
 } else {
   showLogin();
@@ -6315,7 +6326,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-6';
+  const SW_BUILD = 'offline-safe-7';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
