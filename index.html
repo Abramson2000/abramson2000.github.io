@@ -1694,12 +1694,34 @@ function withTimeout(promise, ms, what) {
   ]);
 }
 
+async function offlineLoginHash(email, password) {
+  const src = new TextEncoder().encode((email || '').toLowerCase() + '\n' + (password || ''));
+  const buf = await crypto.subtle.digest('SHA-256', src);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function rememberOfflineLogin(email, password) {
+  try {
+    const h = await offlineLoginHash(email, password);
+    localStorage.setItem('crm-offline-login:' + email.toLowerCase(), h);
+  } catch (_) {}
+}
+async function canOfflineLogin(email, password) {
+  try {
+    const raw = localStorage.getItem('crm-offline-user');
+    const saved = raw ? JSON.parse(raw) : null;
+    if (!saved || (saved.email || '').toLowerCase() !== email.toLowerCase()) return false;
+    const expected = localStorage.getItem('crm-offline-login:' + email.toLowerCase());
+    if (!expected) return false;
+    return expected === await offlineLoginHash(email, password);
+  } catch (_) { return false; }
+}
 async function signIn(email, password) {
   const { data, error } = await withTimeout(
     sb.auth.signInWithPassword({ email, password }),
     20000, 'login'
   );
   if (error) throw error;
+  await rememberOfflineLogin(email, password);
   return data.user;
 }
 async function signOut() { await sb.auth.signOut(); }
@@ -1812,7 +1834,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.0.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.0.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2356,8 +2378,10 @@ async function init() {
       } catch (_) {}
       if (!savedOffline || !savedOffline.email) {
         if (TEMP_AUTO_LOGIN && TEMP_AUTO_LOGIN.on) {
-          try { await withTimeout(signIn(TEMP_AUTO_LOGIN.email, TEMP_AUTO_LOGIN.password), 1500, 'signin'); }
-          catch (_) { return; }
+          try {
+            await withTimeout(signIn(TEMP_AUTO_LOGIN.email, TEMP_AUTO_LOGIN.password), 1500, 'signin');
+            await rememberOfflineLogin(TEMP_AUTO_LOGIN.email, TEMP_AUTO_LOGIN.password);
+          } catch (_) { return; }
         } else {
           return;
         }
@@ -2383,12 +2407,18 @@ async function doLogin() {
     await signIn(email, password);
     await bootstrap();
   } catch (e) {
-    // различаем «нет сети» и «неверные данные» — раньше всё выглядело как «неверный пароль»
+    // При отсутствии сети разрешаем вход только ранее подтверждённому на этом устройстве пользователю
+    // и только если введённый пароль совпадает с локальным SHA-256 проверочным значением.
     const msg = (e && e.message) || String(e);
     const isNet = /fetch|network|Failed to fetch|load failed|ECONN|socket|timed out|timeout/i.test(msg);
-    err.textContent = isNet
-      ? 'Нет связи с базой данных. Проверь интернет и попробуй ещё раз.'
-      : 'Неверный email или пароль';
+    if (isNet && await canOfflineLogin(email, password)) {
+      await bootstrap();
+      err.textContent = '';
+    } else {
+      err.textContent = isNet
+        ? 'Офлайн-вход ещё не подготовлен на этом устройстве. Один раз войди с интернетом.'
+        : 'Неверный email или пароль';
+    }
   } finally {
     btn.disabled = false; btn.textContent = 'Войти';
   }
@@ -6326,7 +6356,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-8';
+  const SW_BUILD = 'offline-safe-9';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
