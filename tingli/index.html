@@ -22313,7 +22313,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.2.0';
+const APP_VER = '3.2.1';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -22814,12 +22814,17 @@ function dictCopyText(txt, btnSelector) {
   else fallback();
 }
 function dictCopyExcel() {
+  // Формат для Excel (по просьбе Саши, 27.09.2026): две колонки.
+  // A = иероглифы слова, B = «(пиньинь) перевод». Табуляция = разделитель колонок, перевод строки = новая строка.
   const d = dictLoad();
   if (!d.length) return;
-  const rows = [['汉字','Pinyin','Перевод','Источник']].concat(d.map(w => [
-    w.zh || '', w.py || '', w.ru || '', w.src || ''
-  ]));
-  const txt = rows.map(r => r.map(v => String(v).replace(/\t/g,' ').replace(/\r?\n/g,' ')).join('\t')).join('\n');
+  const clean = (v) => String(v == null ? '' : v).replace(/\t/g, ' ').replace(/\r?\n/g, ' ').trim();
+  const txt = d.map(w => {
+    const zh = clean(w.zh);
+    const py = clean(w.py);
+    const ru = clean(w.ru);
+    return zh + '\t' + (py ? '(' + py + ') ' : '') + ru;
+  }).join('\n');
   dictCopyText(txt, '.dict-export .btn.ghost');
 }
 function dictCopyTeacher() {
