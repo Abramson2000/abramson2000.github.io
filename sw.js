@@ -432,7 +432,7 @@ self.addEventListener('fetch', (e) => {
     return;   // auth и остальное — напрямую
   }
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.indexOf('/spin/') === 0 || url.pathname.indexOf('/tingli/') === 0) return;
+  if (url.pathname.indexOf('/spin/') === 0 || url.pathname.indexOf('/tingli/') === 0 || url.pathname.indexOf('/cidian/') === 0) return;
   if (req.method !== 'GET') return;
   if (url.pathname.indexOf('/api/') === 0) return;   // функции CF — только сеть
   e.respondWith(handleShell(req));

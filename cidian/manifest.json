@@ -1,0 +1,12 @@
+{
+  "name": "Мои слова · 我的生词",
+  "short_name": "Мои слова",
+  "start_url": "/cidian/",
+  "scope": "/cidian/",
+  "display": "standalone",
+  "background_color": "#f7f2eb",
+  "theme_color": "#a97955",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}
+  ]
+}
