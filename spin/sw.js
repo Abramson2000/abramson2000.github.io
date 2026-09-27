@@ -6,20 +6,20 @@
 //   /api/* и внешние домены (supabase) — только сеть.
 // Прекэш: все файлы приложения кладутся по одному; сбой одного файла НЕ ломает установку.
 // Страница может запросить статус/скачивание: postMessage({type:'status'|'precache'}).
-const CACHE = 'spin-cache-v108-safe';
+const CACHE = 'spin-cache-v109-safe';
 
 const CORE = [
   './',
   './index.html',
-  './styles.css?v=crs108',
-  './app.js?v=crs108',
-  './data.js?v=crs108',
-  './meddicc-data.js?v=crs108',
-  './spiced-data.js?v=crs108',
-  './proactive-data.js?v=crs108',
-  './boss-gate.js?v=crs108',
-  './remote-sales-data.js?v=crs108',
-  './channel-sales-data.js?v=crs108',
+  './styles.css?v=crs109',
+  './app.js?v=crs109',
+  './data.js?v=crs109',
+  './meddicc-data.js?v=crs109',
+  './spiced-data.js?v=crs109',
+  './proactive-data.js?v=crs109',
+  './boss-gate.js?v=crs109',
+  './remote-sales-data.js?v=crs109',
+  './channel-sales-data.js?v=crs109',
   './supabase.min.js',
   './manifest.webmanifest',
   './emblem-np.png',
@@ -77,15 +77,15 @@ self.addEventListener('install', (e) => {
     // не активируем новый worker, оставляем предыдущую рабочую версию.
     const required = [
       './index.html',
-      './styles.css?v=crs108',
-      './app.js?v=crs108',
-      './data.js?v=crs108',
-      './meddicc-data.js?v=crs108',
-      './spiced-data.js?v=crs108',
-      './proactive-data.js?v=crs108',
-      './boss-gate.js?v=crs108',
-      './remote-sales-data.js?v=crs108',
-      './channel-sales-data.js?v=crs108',
+      './styles.css?v=crs109',
+      './app.js?v=crs109',
+      './data.js?v=crs109',
+      './meddicc-data.js?v=crs109',
+      './spiced-data.js?v=crs109',
+      './proactive-data.js?v=crs109',
+      './boss-gate.js?v=crs109',
+      './remote-sales-data.js?v=crs109',
+      './channel-sales-data.js?v=crs109',
       './supabase.min.js'
     ];
     for (const u of required) {
