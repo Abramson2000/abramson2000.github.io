@@ -5,7 +5,7 @@
 //      сразу применяются к кэшу (оптимистично) и отправляются в базу, как только появится связь;
 //   3) локальная оболочка (index.html, supabase-js, иконки) — тоже в кэше.
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
-const APP_CACHE = 'crm-app-v1';
+const APP_CACHE = 'crm-app-v2';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
 const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
@@ -319,8 +319,17 @@ async function handleShell(req) {
       if (r && r.ok) { const c = await caches.open(APP_CACHE); c.put('./index.html', r.clone()); }
       return r;
     } catch (e) {
-      const hit = (await caches.match('./index.html')) || (await caches.match('./'));
-      return hit || new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
+      const c = await caches.open(APP_CACHE);
+      const hit = (await c.match('./index.html')) || (await c.match('./'));
+      if (hit) return hit;
+      // Запасной поиск только по старым CRM-кэшам, чужие приложения не трогаем.
+      const keys = (await caches.keys()).filter((k) => k.startsWith('crm-app-'));
+      for (const k of keys) {
+        const old = await caches.open(k);
+        const oldHit = (await old.match('./index.html')) || (await old.match('./'));
+        if (oldHit) return oldHit;
+      }
+      return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
     }
   }
   const hit = await caches.match(req);
@@ -341,13 +350,22 @@ async function notifyQueue(flushed) {
 
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
-    try {
-      const c = await caches.open(APP_CACHE);
-      for (const u of SHELL) {
-        try { const r = await fetch(u, { cache: 'reload' }); if (r && r.ok) await c.put(u, r.clone()); } catch (err) {}
-      }
-    } catch (e) {}
-    try { await self.skipWaiting(); } catch (e) {}
+    const c = await caches.open(APP_CACHE);
+    const failed = [];
+    for (const u of SHELL) {
+      try {
+        const r = await fetch(u, { cache: 'reload' });
+        if (!r || !r.ok) throw new Error(String(r && r.status));
+        await c.put(u, r.clone());
+      } catch (err) { failed.push(u); }
+    }
+    // Не активируем новую версию, если нет критической оболочки.
+    // Старый service worker продолжит работать и не даст белый экран.
+    for (const u of ['./index.html', './supabase.v139.min.js']) {
+      const hit = await c.match(u);
+      if (!hit) throw new Error('CRM precache incomplete: ' + u);
+    }
+    await self.skipWaiting();
   })());
 });
 
@@ -355,7 +373,11 @@ self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
     try {
       const keys = await caches.keys();
-      await Promise.all(keys.filter((k) => k !== APP_CACHE && k !== DATA_CACHE).map((k) => caches.delete(k)));
+      await Promise.all(
+        keys
+          .filter((k) => k.startsWith('crm-app-') && k !== APP_CACHE)
+          .map((k) => caches.delete(k))
+      );
     } catch (e) {}
     try { await self.clients.claim(); } catch (e) {}
     flushQueue();
