@@ -205,6 +205,17 @@
   .dict-ru { font-size: 14px; color: var(--text); text-align: left; }
   .dict-src { font-size: 11px; color: #b3b3b8; margin-top: 2px; }
   .dict-del { border: none; background: #f2f1ee; color: #99999f; width: 29px; height: 29px; border-radius: 50%; font-size: 14px; cursor: pointer; flex-shrink: 0; }
+  .dict-edit { border: none; background: #f2f1ee; color: #66666d; width: 29px; height: 29px; border-radius: 50%; font-size: 14px; cursor: pointer; flex-shrink: 0; }
+  .dict-actions { display:flex; flex-direction:column; gap:7px; flex-shrink:0; }
+  .dict-export { display:flex; gap:9px; margin:0 16px 12px; }
+  .dict-export .btn { padding:12px 14px; font-size:13.5px; }
+  .dict-editbox { flex:1; min-width:0; display:grid; gap:7px; }
+  .dict-editbox input { width:100%; box-sizing:border-box; border:1.5px solid #e4e3df; border-radius:11px; padding:9px 10px; font:inherit; font-size:14px; background:#fff; color:var(--text); outline:none; }
+  .dict-editbox input:focus { border-color:var(--red); box-shadow:0 0 0 3px rgba(198,55,23,.10); }
+  .dict-editbtns { display:flex; gap:7px; margin-top:2px; }
+  .dict-editbtns button { flex:1; border:none; border-radius:999px; padding:8px 10px; font-size:12.5px; font-weight:700; cursor:pointer; }
+  .dict-save { background:var(--text); color:#fff; }
+  .dict-cancel { background:#f2f1ee; color:var(--text); }
   .dict-clear { border: 1.5px solid #e8e3e0; background: #fff; color: var(--red); border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
   /* Плеер */
@@ -22302,7 +22313,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.0.0';
+const APP_VER = '3.1.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -22694,15 +22705,22 @@ function renderDict() {
       <div class="top-title">词典</div><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
+    ${d.length ? `<div class="dict-export">
+      <button class="btn ghost" onclick="dictCopyExcel()">📊 В Excel</button>
+      <button class="btn" onclick="dictCopyTeacher()">📋 Учителю</button>
+    </div>` : ''}
     ${d.length ? d.map((w, i) => `
-      <div class="dict-item">
+      <div class="dict-item" id="dictItem-${i}">
         <div class="dict-zh zh-opt">${esc(w.zh)}</div>
         <div class="dict-body">
           <div class="dict-py">${esc(w.py)}</div>
           <div class="dict-ru">${esc(w.ru)}</div>
           ${w.src ? `<div class="dict-src">${esc(w.src)}</div>` : ''}
         </div>
-        <button class="dict-del" onclick="dictRemove(${i})" title="Удалить">✕</button>
+        <div class="dict-actions">
+          <button class="dict-edit" onclick="dictEdit(${i})" title="Редактировать">✎</button>
+          <button class="dict-del" onclick="dictRemove(${i})" title="Удалить">✕</button>
+        </div>
       </div>`).join('')
       : '<div class="empty">Словарь пуст.<br>Открой список слов, выдели слово и нажми «📖 Отправить в словарь».</div>'}
 `;
@@ -22738,6 +22756,70 @@ function sendToDict() {
   if (bar) bar.style.display = 'none';
   const btn = document.querySelector('#dictBar .btn');
   if (btn && added) { const old = btn.textContent; btn.textContent = '✅ Добавлено: ' + added + (dup ? ' (повтор: ' + dup + ')' : ''); setTimeout(() => { btn.textContent = old; }, 1600); }
+}
+function dictEdit(i) {
+  const d = dictLoad(), w = d[i];
+  const el = document.getElementById('dictItem-' + i);
+  if (!w || !el) return;
+  el.innerHTML = `
+    <div class="dict-zh zh-opt">${esc(w.zh)}</div>
+    <div class="dict-editbox">
+      <input id="dictPy-${i}" value="${esc(w.py || '')}" placeholder="Pinyin">
+      <input id="dictRu-${i}" value="${esc(w.ru || '')}" placeholder="Перевод">
+      <div class="dict-editbtns">
+        <button class="dict-cancel" onclick="renderDict()">Отмена</button>
+        <button class="dict-save" onclick="dictEditSave(${i})">Сохранить</button>
+      </div>
+    </div>`;
+  const inp = document.getElementById('dictPy-' + i);
+  if (inp) { inp.focus(); try { inp.select(); } catch(e){} }
+}
+function dictEditSave(i) {
+  const d = dictLoad(), w = d[i];
+  if (!w) return;
+  const py = document.getElementById('dictPy-' + i);
+  const ru = document.getElementById('dictRu-' + i);
+  w.py = py ? py.value.trim() : w.py;
+  w.ru = ru ? ru.value.trim() : w.ru;
+  w.edited = Date.now();
+  d[i] = w;
+  dictSave(d);
+  renderDict();
+}
+function dictCopyText(txt, btnSelector) {
+  const done = () => {
+    const b = document.querySelector(btnSelector);
+    if (!b) return;
+    const old = b.textContent;
+    b.textContent = '✅ Скопировано';
+    setTimeout(() => { b.textContent = old; }, 1500);
+  };
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); done(); } catch(e) { alert('Не удалось скопировать.'); }
+    ta.remove();
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fallback);
+  else fallback();
+}
+function dictCopyExcel() {
+  const d = dictLoad();
+  if (!d.length) return;
+  const rows = [['汉字','Pinyin','Перевод','Источник']].concat(d.map(w => [
+    w.zh || '', w.py || '', w.ru || '', w.src || ''
+  ]));
+  const txt = rows.map(r => r.map(v => String(v).replace(/\t/g,' ').replace(/\r?\n/g,' ')).join('\t')).join('\n');
+  dictCopyText(txt, '.dict-export .btn.ghost');
+}
+function dictCopyTeacher() {
+  const d = dictLoad();
+  if (!d.length) return;
+  const txt = 'Мои слова Tingli\n\n' + d.map((w,i) =>
+    (i+1) + '. ' + (w.zh || '') + ' — ' + (w.py || '') + ' — ' + (w.ru || '')
+  ).join('\n');
+  dictCopyText(txt, '.dict-export .btn:not(.ghost)');
 }
 function dictRemove(i) {
   const d = dictLoad();
