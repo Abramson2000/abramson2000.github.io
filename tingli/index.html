@@ -19471,6 +19471,25 @@ const IDV_UNITS = [
      {"q": "6. A：看什么书呢，这么吸引你？\nB：________。\nA：汉语书？能看懂吗？\nB：一边查词典，一边看，________。\nA：________。\n【本 · 差不多 · 进步】"},
      {"q": "7. A：明天星期六，8点不上课，能好好儿睡一觉了。\nB：太好了，我________。\nA：对了，你明天去银行，别忘了叫我一起去。\nB：好啊，不过，________。\nA：你别上午去了，________怎么样？\nB：下午去也行。\n【晚点儿 · 怕 · 下午】"}
     ]
+   },
+   {
+    "id": 12,
+    "kind": "hw",
+    "title": "ДЗ 4",
+    "titleZh": "作业",
+    "aiCheck": false,
+    "audio": "210-hw4.mp3",
+    "text": "Переведи с русского на китайский. Слушай запись и сверяйся.",
+    "questions": [
+      {"q": "Мне кажется, эта еда выглядит неплохо."},
+      {"q": "У меня в полдень два урока китайского, поэтому я не смогу взять трубку."},
+      {"q": "Через некоторое время мы собираемся поехать к морю и посмотреть морские пейзажи."},
+      {"q": "Мои дорогие друзья."},
+      {"q": "Многие говорят по-французски."},
+      {"q": "Требования профессора для меня очень высоки."},
+      {"q": "Мы вместе поедем смотреть морские пейзажи."},
+      {"q": "Хотя он выглядит очень напряжённым, он всё же сохраняет спокойствие."}
+    ]
    }
   ]
  },
@@ -22322,7 +22341,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.2.5';
+const APP_VER = '3.2.6';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -23416,7 +23435,7 @@ function hwCopy(withQ) {
   else fallback();
 }
 function renderHw(u, part) {
-  showTabbar(false); showPlayer(false);
+  showTabbar(false); showPlayer(!!(part && part.audio));
   curUnit = u; curPart = part;
   const aiCheck = part.aiCheck !== false;
   app.innerHTML = `
