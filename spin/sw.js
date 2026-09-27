@@ -6,7 +6,7 @@
 //   /api/* и внешние домены (supabase) — только сеть.
 // Прекэш: все файлы приложения кладутся по одному; сбой одного файла НЕ ломает установку.
 // Страница может запросить статус/скачивание: postMessage({type:'status'|'precache'}).
-const CACHE = 'spin-cache-v104';
+const CACHE = 'spin-cache-v105-safe';
 
 const CORE = [
   './',
@@ -70,13 +70,39 @@ async function cacheStatus() {
 }
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(precache().then(() => self.skipWaiting()).catch(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const r = await precache();
+    const c = await caches.open(CACHE);
+    // Без этих файлов приложение не запускается. Если они не скачались —
+    // не активируем новый worker, оставляем предыдущую рабочую версию.
+    const required = [
+      './index.html',
+      './styles.css?v=crs104',
+      './app.js?v=crs104',
+      './data.js?v=crs104',
+      './meddicc-data.js?v=crs104',
+      './spiced-data.js?v=crs104',
+      './proactive-data.js?v=crs104',
+      './boss-gate.js?v=crs104',
+      './remote-sales-data.js?v=crs104',
+      './channel-sales-data.js?v=crs104',
+      './supabase.min.js'
+    ];
+    for (const u of required) {
+      if (!(await c.match(u))) throw new Error('SPIN precache incomplete: ' + u);
+    }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(
+        keys
+          .filter((k) => k.startsWith('spin-cache-') && k !== CACHE)
+          .map((k) => caches.delete(k))
+      ))
       .then(() => self.clients.claim())
   );
 });
@@ -113,7 +139,18 @@ self.addEventListener('fetch', (e) => {
           caches.open(CACHE).then((c) => c.put('./index.html', cp));
           return r;
         })
-        .catch(() => caches.match('./index.html').then((hit) => hit || caches.match('./')))
+        .catch(async () => {
+          const c = await caches.open(CACHE);
+          let hit = (await c.match('./index.html')) || (await c.match('./'));
+          if (hit) return hit;
+          const keys = (await caches.keys()).filter((k) => k.startsWith('spin-cache-'));
+          for (const k of keys) {
+            const old = await caches.open(k);
+            hit = (await old.match('./index.html')) || (await old.match('./'));
+            if (hit) return hit;
+          }
+          return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
+        })
     );
     return;
   }
