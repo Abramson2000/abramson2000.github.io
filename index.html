@@ -1834,7 +1834,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.1.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.1.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2358,7 +2358,7 @@ async function bootstrap() {
 
 // ⚠️ ВРЕМЕННО (по просьбе Саши 24.09.2026): вход без пароля.
 // Вернуть обычный вход = поставить on: false (одна правка, Да Мин сделает за секунду).
-const TEMP_AUTO_LOGIN = { on: true, email: 'abramson@crm.ru', password: '123456' };
+const TEMP_AUTO_LOGIN = { on: false, email: 'abramson@crm.ru', password: '123456' };  // 27.09.2026 — временный вход без пароля выключен по просьбе Саши (вход только по паролю)
 
 async function init() {
   applyAccent();
