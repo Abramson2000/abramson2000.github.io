@@ -22313,7 +22313,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.1.0';
+const APP_VER = '3.2.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -22342,9 +22342,12 @@ async function getAudioUrl(name) {
   audioBlobCache[name] = url;
   return url;
 }
+function audioUnitKey(u) {
+  return (u && u.src ? u.src : 'main') + ':' + (u ? u.unit : '');
+}
 function setPartAudio(u, part) {
   if (!part.audio) { partAudioKey = null; showPlayer(false); return; }
-  const key = u.unit + '-' + part.id;
+  const key = audioUnitKey(u) + ':' + part.id + ':' + part.audio;
   if (partAudioKey === key) return; // тот же файл — не прерываем
   partAudioKey = key;
   audio.loop = true;
@@ -22367,10 +22370,16 @@ function showPlayer(show) {
 function ensureLessonAudio(u, part) {
   const ap = (part && part.audio) ? part : null;
   if (ap) { setPartAudio(u, ap); showPlayer(true); return; }
-  if (!partAudioKey) {
+  const prefix = audioUnitKey(u) + ':';
+  if (!partAudioKey || !partAudioKey.startsWith(prefix)) {
     const first = u && u.parts && u.parts.find(p => p.audio);
     if (first) { setPartAudio(u, first); showPlayer(true); return; }
-    showPlayer(false); return;
+    partAudioKey = null;
+    audio.pause();
+    audio.removeAttribute('src');
+    audio.load();
+    showPlayer(false);
+    return;
   }
   showPlayer(true);
 }
@@ -22867,7 +22876,14 @@ function openUnit(n) {
   curUnit = u; curPart = null;
   if (fromList) originTab = tab || 'lessons';
   showTabbar(false);
-  if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u); else showPlayer(!!partAudioKey);
+  const audioPrefix = audioUnitKey(u) + ':';
+  if (partAudioKey && !partAudioKey.startsWith(audioPrefix)) {
+    partAudioKey = null;
+    audio.pause();
+    audio.removeAttribute('src');
+    audio.load();
+  }
+  if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u); else showPlayer(false);
   const uStat = unitStats(u), uMan = manUnit(u);
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
