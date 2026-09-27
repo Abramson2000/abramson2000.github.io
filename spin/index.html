@@ -131,7 +131,7 @@
   <div class="toast hidden" id="toast" role="status">Прогресс сохранён</div>
   <script>
     // PWA: регистрация service worker — офлайн-режим (авиарежим)
-    var SW_VER = 'crs104'; // ⚠️ при каждом деплое менять вместе с ?v= в тегах ниже
+    var SW_VER = 'offline-safe-2'; // ⚠️ при каждом деплое менять вместе с ?v= в тегах ниже
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
         navigator.serviceWorker.register('./sw.js?v=' + SW_VER).catch(function () {});
