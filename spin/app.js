@@ -250,6 +250,9 @@ async function durablePut(userId, payload) {
     db.close();
   } catch (e) {}
 }
+function durablePayload() {
+  return Object.assign({}, syncPayload(), { ed: S.extraDone });
+}
 function mergeSnapshot(src) {
   if (!src || typeof src !== 'object') return;
   S.lesson = Math.max(Number(S.lesson) || 0, Number(src.lesson) || 0);
@@ -262,6 +265,7 @@ function mergeSnapshot(src) {
   S.medDone = uniArr(S.medDone, src.medDone);
   S.proDone = uniArr(S.proDone, src.proDone);
   S.cDone = uniArr(S.cDone, src.cDone);
+  S.extraDone = uniArr(S.extraDone, src.ed);
   S.xDone = mergeXDone(S.xDone, src.xd);
   S.scStat = mergeScs(S.scStat, src.scs);
   S.trn = mergeTrn(S.trn, src.trn);
@@ -284,7 +288,7 @@ function save() {
   if (!USER) return;
   const payload = syncPayload();
   try { localStorage.setItem(LS_KEY, JSON.stringify(payload)); } catch (e) {}
-  durablePut(USER.id, payload);
+  durablePut(USER.id, durablePayload());
   S.dirty = true;
   if (S.sync !== 'saving') setSync('saving');
   clearTimeout(_syncT);
@@ -631,7 +635,7 @@ async function cloudLoad() {
       S.trn = mergeTrn(local.trn, cloud.trn);
       const mergedPayload = syncPayload();
       try { localStorage.setItem(LS_KEY, JSON.stringify(mergedPayload)); } catch (e) {}
-      durablePut(USER.id, mergedPayload);
+      durablePut(USER.id, durablePayload());
       syncChrome();
       if (cx > lx) toast('Прогресс подтянут с сервера: ' + cx + ' XP' + (lx && lx !== cx ? ' (было ' + lx + ')' : ''));
       else if (lx > cx) toast('Прогресс этого устройства (' + lx + ' XP) отправлен на сервер');
@@ -688,6 +692,8 @@ async function boot(user) {
     const restored = syncPayload();
     try { localStorage.setItem(LS_KEY, JSON.stringify(restored)); } catch (e) {}
   }
+  // Засеваем резерв сразу даже на первом запуске новой версии.
+  durablePut(USER.id, durablePayload());
 
   scBackfill();
   $('loginScreen').classList.add('hidden');
