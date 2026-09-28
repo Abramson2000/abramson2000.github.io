@@ -7,7 +7,7 @@ const LAOSHI_SET=new Set(LAOSHI_NEW);
 const KMAP={};KINDS.forEach(x=>KMAP[x.k]=x);
 function mkBase(r,i){const t=String(r[3]||'').trim();const hz=r[0]||'';return{id:i+1,order:i+1,kind:'word',hanzi:hz,pinyin:r[1]||'',translation:r[2]||'',tags:t?[t]:[],comment:'',laoshi:!LAOSHI_SET.has(String(hz).trim()),favorite:false,createdAt:'',updatedAt:''};}
 const BASE_WORDS=(window.CIDIAN_BASE||[]).map(mkBase);
-const STORAGE='cidian-data-v1',VERSION='2.0.2',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.1.0',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -57,4 +57,4 @@ function resetBase(){if(confirm('Вернуть исходные 3913 слов �
 $$('.tab').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;if(t==='words')renderWords();if(t==='add')renderAdd();if(t==='more')renderMore();});
 $('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 renderWords();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=2.0.2',{updateViaCache:'none'}).catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=2.1.0',{updateViaCache:'none'}).catch(()=>{});
