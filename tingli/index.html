@@ -207,6 +207,12 @@
   .dict-del { border: none; background: #f2f1ee; color: #99999f; width: 29px; height: 29px; border-radius: 50%; font-size: 14px; cursor: pointer; flex-shrink: 0; }
   .dict-edit { border: none; background: #f2f1ee; color: #66666d; width: 29px; height: 29px; border-radius: 50%; font-size: 14px; cursor: pointer; flex-shrink: 0; }
   .dict-actions { display:flex; flex-direction:column; gap:7px; flex-shrink:0; }
+  .word .w-add { cursor:pointer; }
+  .dict-send { border:none; background:#f2f1ee; color:#66666d; width:29px; height:29px; border-radius:50%; font-size:14px; cursor:pointer; flex-shrink:0; }
+  .tl-toast { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(84px + env(safe-area-inset-bottom)); max-width:min(600px,92vw); background:#2a2a2e; color:#fff; border-radius:14px; padding:12px 15px; display:flex; flex-direction:column; gap:7px; font-size:14px; line-height:1.35; box-shadow:0 10px 30px rgba(0,0,0,.28); z-index:60; animation:tlToastIn .18s ease-out; }
+  .tl-toast a { color:#ffd9a0; font-weight:600; }
+  .tl-toast .tl-x { align-self:flex-end; color:#bbb; font-size:12px; }
+  @keyframes tlToastIn { from{opacity:0; transform:translate(-50%,8px);} to{opacity:1; transform:translate(-50%,0);} }
   .dict-export { display:flex; gap:9px; margin:0 16px 12px; }
   .dict-export .btn { padding:12px 14px; font-size:13.5px; }
   .dict-editbox { flex:1; min-width:0; display:grid; gap:7px; }
@@ -22341,7 +22347,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.2.7';
+const APP_VER = '3.3.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -22745,6 +22751,7 @@ function renderDict() {
     ${d.length ? `<div class="dict-export">
       <button class="btn ghost" onclick="dictCopyExcel()">📊 В Excel</button>
       <button class="btn" onclick="dictCopyTeacher()">📋 Учителю</button>
+      <button class="btn" onclick="dictSendAll()">📖 В «Мои слова»</button>
     </div>` : ''}
     ${d.length ? d.map((w, i) => `
       <div class="dict-item" id="dictItem-${i}">
@@ -22755,6 +22762,7 @@ function renderDict() {
           ${w.src ? `<div class="dict-src">${esc(w.src)}</div>` : ''}
         </div>
         <div class="dict-actions">
+          <button class="dict-send" onclick="dictSendOne(${i})" title="Отправить в «Мои слова»">📖</button>
           <button class="dict-edit" onclick="dictEdit(${i})" title="Редактировать">✎</button>
           <button class="dict-del" onclick="dictRemove(${i})" title="Удалить">✕</button>
         </div>
@@ -22768,6 +22776,63 @@ const DICT_KEY = 'tingli-dict-v1';
 function dictLoad() { try { return JSON.parse(localStorage.getItem(DICT_KEY)) || []; } catch (e) { return []; } }
 function dictSave(d) { try { saveLocal(DICT_KEY, JSON.stringify(d)); } catch (e) {} }
 function dictHas(zh) { return dictLoad().some(w => w.zh === zh); }
+
+/* ===== мост в приложение «Мои слова» (cidian) =====
+   Оба приложения живут на одном адресе, поэтому передаём через localStorage:
+   кладём слова в очередь cidian-inbox-v1, а «Мои слова» при открытии их забирает. */
+const CIDIAN_INBOX = 'cidian-inbox-v1';
+function cidianQueue() { try { return JSON.parse(localStorage.getItem(CIDIAN_INBOX)) || []; } catch (e) { return []; } }
+function cidianSend(items, label) {
+  const q = cidianQueue(); let added = 0, dup = 0;
+  items.forEach(it => {
+    const h = String(it.zh || it.hanzi || '').trim(); if (!h) return;
+    if (q.some(x => x.hanzi === h)) { dup++; return; }
+    q.push({ hanzi: h, pinyin: String(it.py || it.pinyin || '').trim(), ru: String(it.ru || it.translation || '').trim(), src: label || '', ts: Date.now() });
+    added++;
+  });
+  try { localStorage.setItem(CIDIAN_INBOX, JSON.stringify(q)); } catch (e) {}
+  return { added: added, dup: dup, total: q.length };
+}
+function cidianToast(msg) {
+  const old = document.getElementById('tlToast'); if (old) old.remove();
+  const d = document.createElement('div'); d.id = 'tlToast'; d.className = 'tl-toast';
+  d.innerHTML = '<div>' + esc(msg) + '</div><div><a href="/cidian/" target="_self">Открыть «Мои слова» →</a></div>';
+  const t = setTimeout(() => d.remove(), 7000);
+  d.onclick = () => { clearTimeout(t); d.remove(); };
+  document.body.appendChild(d);
+}
+function dictSrcLabel() { try { return (typeof unitLabel === 'function' && curUnit ? unitLabel(curUnit) : '') + (curPart ? ' · ' + curPart.title : ''); } catch (e) { return 'Тингли'; } }
+function sendWordOne(el) {
+  const row = el.closest('.word'); if (!row || !curPart) return;
+  const w = curPart.words[Number(row.dataset.i)]; if (!w) return;
+  const label = dictSrcLabel();
+  const res = cidianSend([w], label);
+  if (!dictHas(w.zh)) { const d = dictLoad(); d.push({ zh: w.zh, py: w.py, ru: w.ru, src: label, ts: Date.now() }); dictSave(d); }
+  row.classList.add('indict'); el.textContent = '✓';
+  cidianToast(res.added ? ('В «Мои слова» отправлено: ' + w.zh) : ('В «Мои слова» уже есть: ' + w.zh));
+}
+function sendAllWords() {
+  if (!curPart || !curPart.words || !curPart.words.length) return;
+  const label = dictSrcLabel();
+  const items = curPart.words.map(w => ({ zh: w.zh, py: w.py, ru: w.ru }));
+  const res = cidianSend(items, label);
+  const d = dictLoad(); let addedT = 0;
+  items.forEach(it => { if (!d.some(x => x.zh === it.zh)) { d.push({ zh: it.zh, py: it.py, ru: it.ru, src: label, ts: Date.now() }); addedT++; } });
+  dictSave(d);
+  document.querySelectorAll('#wordList .word').forEach(el => { el.classList.add('indict'); const a = el.querySelector('.w-add'); if (a) a.textContent = '✓'; });
+  cidianToast('Отправлен весь список (' + items.length + ') · новых в словаре: ' + res.added);
+}
+function dictSendOne(i) {
+  const d = dictLoad(); const w = d[i]; if (!w) return;
+  const res = cidianSend([w], w.src || 'Тингли');
+  if (res.added) { const b = document.getElementById('dictItem-' + i); if (b) b.classList.add('sent'); }
+  cidianToast(res.added ? ('В «Мои слова» отправлено: ' + w.zh) : ('В «Мои слова» уже есть: ' + w.zh));
+}
+function dictSendAll() {
+  const d = dictLoad(); if (!d.length) return;
+  const res = cidianSend(d, 'Тингли · словарь');
+  cidianToast('В «Мои слова» отправлено ' + d.length + ' · новых: ' + res.added);
+}
 function selWord(el) {
   el.classList.toggle('sel');
   const n = document.querySelectorAll('#wordList .word.sel').length;
@@ -22778,9 +22843,11 @@ function sendToDict() {
   const part = curPart;
   const d = dictLoad();
   let added = 0, dup = 0;
+  const picked = [];
   document.querySelectorAll('#wordList .word.sel').forEach(el => {
     const w = part.words[Number(el.dataset.i)];
     if (!w) return;
+    picked.push({ zh: w.zh, py: w.py, ru: w.ru });
     if (d.some(x => x.zh === w.zh)) { dup++; return; }
     d.push({ zh: w.zh, py: w.py, ru: w.ru, src: unitLabel(curUnit) + ' · ' + part.title, ts: Date.now() });
     added++;
@@ -22789,8 +22856,10 @@ function sendToDict() {
     const a = el.querySelector('.w-add'); if (a) a.textContent = '✓';
   });
   dictSave(d);
+  const res = cidianSend(picked, dictSrcLabel());
   const bar = document.getElementById('dictBar');
   if (bar) bar.style.display = 'none';
+  if (res.added) cidianToast('В «Мои слова» отправлено: ' + res.added + (res.dup ? ' · уже было: ' + res.dup : ''));
   const btn = document.querySelector('#dictBar .btn');
   if (btn && added) { const old = btn.textContent; btn.textContent = '✅ Добавлено: ' + added + (dup ? ' (повтор: ' + dup + ')' : ''); setTimeout(() => { btn.textContent = old; }, 1600); }
 }
@@ -22985,12 +23054,15 @@ function renderWords(u, part) {
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div>
       <button class="fav-btn ${isFavPart(u, part) ? 'on' : ''}" onclick="toggleFavPart()" title="В избранное">${isFavPart(u, part) ? '⭐' : '☆'}</button></div>
-    <div style="padding:0 16px 4px"><div class="hw-hint" style="color:#999">Нажми на слово, чтобы выделить → «Отправить в словарь»</div></div>
+    <div style="padding:0 16px 8px">
+      <div class="hw-hint" style="color:#999;margin-bottom:8px">Нажми на слово, чтобы выделить несколько, или на «+» у слова — отправить одно</div>
+      <button class="btn" onclick="sendAllWords()">📖 Весь список в «Мои слова» (${part.words.length})</button>
+    </div>
     <div class="part" style="cursor:default;padding:6px 16px" id="wordList">
       ${part.words.map((w, i) => `
         <div class="word${dictHas(w.zh) ? ' indict' : ''}" data-i="${i}" onclick="selWord(this)">
           <span class="zh">${esc(w.zh)}</span><span class="py">${esc(w.py)}</span><span class="ru">${esc(w.ru)}</span>
-          <span class="w-add">${dictHas(w.zh) ? '✓' : '+'}</span>
+          <span class="w-add" onclick="event.stopPropagation();sendWordOne(this)" title="Отправить это слово в «Мои слова»">${dictHas(w.zh) ? '✓' : '+'}</span>
           ${w.ex ? `<span class="word-ex">${esc(w.ex)}</span>` : ''}
         </div>`).join('')}
     </div>
