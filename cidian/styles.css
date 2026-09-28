@@ -42,3 +42,38 @@ button:focus-visible{outline:2px solid var(--brand);outline-offset:3px}.form inp
 .toast-act{border:0;background:rgba(255,255,255,.16);color:#fff8f2;font-weight:600;font-size:14px;padding:8px 12px;border-radius:10px}
 .toast-act:active{background:rgba(255,255,255,.28)}
 @keyframes toastIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* ================= v2.0.0: разделы, тэги, статус Лаоши, одинаковые карточки ================= */
+.title-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.ver{font-size:13px;color:var(--muted);white-space:nowrap;letter-spacing:.3px}
+.kinds{display:flex;gap:8px;margin:4px 0 14px;flex-wrap:wrap}
+.kindbtn{flex:1 1 140px;min-width:120px;border:1px solid var(--line);background:rgba(255,252,247,.86);border-radius:15px;padding:10px 12px;color:var(--ink);display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left}
+.kindbtn b{font-size:15px;font-weight:650}
+.kindbtn .zh{font-family:"Songti SC",Georgia,serif;font-weight:400;opacity:.75}
+.kindbtn small{color:var(--muted);font-size:11px}
+.kindbtn.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.kindbtn.on small{color:rgba(255,255,255,.82)}
+.kindbtn.on .zh{opacity:.9}
+.tg{display:inline-block;margin:7px 6px 0 0;font-size:11px;color:#6E503B;background:#EFE3D4;border-radius:999px;padding:3px 9px}
+.tg .tgx{border:0;background:transparent;color:#9c7a5d;font-size:11px;padding:0 0 0 4px}
+.tagleline{margin-top:2px}
+.tagadd{display:flex;gap:8px;margin-top:12px}
+.tagadd input{flex:1;border:1px solid var(--line);background:var(--card);border-radius:13px;padding:10px 12px;color:var(--ink);outline:none;min-width:0}
+.small-btn{border:1px solid var(--brand2);background:transparent;color:var(--brand);border-radius:13px;padding:10px 14px;font-weight:650}
+.tagnote{font-size:12px;color:var(--muted);margin:-4px 0 10px}
+.tagrow{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden}
+.tagname{flex:1;text-align:left;border:0;background:transparent;padding:13px 14px;color:var(--ink)}
+.tagdel{border:0;background:transparent;color:#b08a72;font-size:15px;padding:13px 16px}
+.dkind{font-size:12px;color:var(--muted)}
+.muted{color:var(--muted);font-size:13px}
+.word.fresh{background:#FFFBEC;border-color:#EFE0B4}
+.word.done{background:#F6FBF2;border-color:#D6E7CC}
+.ck{border:0;background:transparent;font-size:20px;line-height:1;color:#c3ab8e;padding:2px 4px;border-radius:50%}
+.ck.on{color:#5d8f4a}
+.bulkbar{width:100%;border:1px dashed var(--brand2);background:rgba(255,252,247,.75);color:var(--brand);border-radius:15px;padding:12px;font-weight:650;margin-bottom:10px}
+/* одинаковые карточки на десктопе: равная высота в ряду и одинаковая колонка иероглифов */
+@media(min-width:521px){.hanzi{min-width:148px}}
+@media(min-width:900px){.list{align-items:stretch}.word{height:100%}.hanzi{min-width:158px}}
+@media(max-width:520px){.kindbtn{flex:1 1 30%;min-width:0;padding:9px 10px}.kindbtn b{font-size:13px}.kindbtn small{font-size:10px}.ver{font-size:12px}}
+
+.word{min-height:84px}
