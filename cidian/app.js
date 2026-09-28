@@ -22,7 +22,7 @@ let inboxAdded=0;
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.6.0',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.6.1',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -227,4 +227,17 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#modal').class
 sheetSwipe();
 renderWords();
 if(ankiAdded||inboxAdded)setTimeout(()=>toast('Добавлено: '+(ankiAdded?(ankiAdded+' из Anki'):'')+(ankiAdded&&inboxAdded?' · ':'')+(inboxAdded?('из Тингли '+inboxAdded):'')+' — все как «не в Лаоши»'),400);
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=2.6.0',{updateViaCache:'none'}).catch(()=>{});
+if('serviceWorker' in navigator){
+  let hadController=!!navigator.serviceWorker.controller, updating=false;
+  navigator.serviceWorker.register('sw.js?v=2.6.1',{updateViaCache:'none'}).then(reg=>{
+    // самолечение: проверяем обновление при каждом возврате в приложение
+    const chk=()=>{ if(document.visibilityState!=='visible'||updating) return; updating=true;
+      reg.update().catch(()=>{}).then(()=>{ updating=false; }); };
+    document.addEventListener('visibilitychange',chk); window.addEventListener('focus',chk);
+    // если подтянулась новая версия — предложить обновление, а не молчать
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(!hadController){ hadController=true; return; }
+      try{ toast('Доступно обновление приложения','Обновить',()=>location.reload()); }catch(_){}
+    });
+  }).catch(()=>{});
+}
