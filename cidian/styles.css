@@ -101,3 +101,8 @@ button:focus-visible{outline:2px solid var(--brand);outline-offset:3px}.form inp
   .kinds{gap:7px;margin-bottom:10px}
 }
 @media(max-width:360px){ .word .hanzi{font-size:21px} .word{padding:8px 10px} }
+
+/* ручка шторки — заметнее и подсказывает свайп */
+.grab{width:44px;height:5px}
+.sheet{will-change:transform;touch-action:pan-y}
+.sheet-hint{text-align:center;color:var(--muted);font-size:12px;margin:-2px 0 10px}

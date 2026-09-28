@@ -22,7 +22,7 @@ let inboxAdded=0;
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.4.0',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.5.0',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -90,9 +90,71 @@ function saveForm(next){const h=$('#fHanzi').value.trim(),py=$('#fPy').value.tri
 function renderMore(){currentTab='more';setTabs();const sj=snapInfo();$('#content').innerHTML=`<div class="view-title">Ещё</div><div class="view-title" style="font-size:0;height:0;margin:0"></div><div class="settings-card"><div class="setting"><span>Всего записей</span><strong id="settingsCount"></strong></div>${KINDS.map(m=>`<div class="setting"><span>${m.ru} <span style="color:var(--muted)">${m.zh}</span></span><small>${countOf(m.k).toLocaleString('ru-RU')} · не в Лаоши: ${newOf(m.k).toLocaleString('ru-RU')}</small></div>`).join('')}</div><div class="settings-card"><button class="setting" id="tagManage"><span>Тэги словаря</span><small>${tagPool().length} шт. ›</small></button>${sj?`<button class="setting" id="snapRestore"><span>Автоснимок перед правками</span><small>${snapDate(sj.ts)} ›</small></button>`:''}</div><div class="settings-card"><button class="setting" id="exportCsv"><span>Экспорт для Excel</span><small>CSV ›</small></button><button class="setting" id="backup"><span>Резервная копия</span><small>JSON ›</small></button><button class="setting" id="restore"><span>Восстановить из копии</span><small>‹ JSON</small></button><input type="file" id="restoreFile" accept="application/json,.json" class="hidden"></div><div class="settings-card"><button class="setting" id="reset"><span>Вернуть исходный список из Excel</span><small>3913 слов</small></button></div><div class="settings-card"><div class="setting"><span>Мои слова</span><small>v${VERSION}</small></div></div>`;updateCounts();$('#tagManage').onclick=manageTags;const sr=$('#snapRestore');if(sr)sr.onclick=snapRestore;$('#exportCsv').onclick=exportCsv;$('#backup').onclick=backupJson;$('#restore').onclick=()=>$('#restoreFile').click();$('#restoreFile').onchange=restoreJson;$('#reset').onclick=resetBase;}
 function showTags(){const pool=tagPool();$('#modal').innerHTML=`<div class="sheet"><div class="grab"></div><div class="sheet-title">Отбор по тэгам</div>${pool.length?pool.map(([t,n])=>`<button class="sortopt ${tagFilter.includes(t)?'on':''}" data-t="${esc(t)}">#${esc(t)} <span style="color:var(--muted);font-size:12px"> · ${n}</span></button>`).join(''):'<div class="empty">Тэгов пока нет</div>'}<div class="actions"><button class="secondary" id="tagClear">Сбросить отбор</button><button class="primary" id="tagDone" style="margin-top:0">Готово</button></div></div>`;$('#modal').classList.remove('hidden');$$('.sortopt[data-t]').forEach(b=>b.onclick=()=>{const t=b.dataset.t;tagFilter.includes(t)?tagFilter=tagFilter.filter(x=>x!==t):tagFilter.push(t);b.classList.toggle('on');});$('#tagClear').onclick=()=>{tagFilter=[];closeModal();visible=120;renderWords();};$('#tagDone').onclick=()=>{closeModal();visible=120;renderWords();};$('#modal').onclick=e=>{if(e.target.id==='modal')$('#tagDone').click();};}
 function manageTags(){const pool=tagPool();$('#modal').innerHTML=`<div class="sheet"><div class="grab"></div><div class="sheet-title">Тэги словаря</div><div class="tagnote">Нажмите на тэг, чтобы переименовать. Крестик — удалить тэг у всех записей.</div>${pool.length?pool.map(([t,n])=>`<div class="tagrow"><button class="tagname" data-ren="${esc(t)}">#${esc(t)} <span style="color:var(--muted);font-size:12px">· ${n}</span></button><button class="tagdel" data-del="${esc(t)}" aria-label="Удалить тэг">✕</button></div>`).join(''):'<div class="empty">Тэгов пока нет</div>'}<div class="actions"><button class="primary" id="tagDone" style="margin-top:0">Готово</button></div></div>`;$('#modal').classList.remove('hidden');$$('[data-ren]').forEach(b=>b.onclick=()=>{const old=b.dataset.ren;const nv=prompt('Новое название тэга (пусто — удалить тэг):',old);if(nv===null)return;const t=nv.trim();snapMake('перед переименованием тэга');if(!t){words.forEach(w=>w.tags=(w.tags||[]).filter(x=>x!==old));}else{words.forEach(w=>{w.tags=(w.tags||[]).map(x=>x===old?t:x);});}tagFilter=tagFilter.map(x=>x===old?t:x).filter((x,i,a)=>x&&a.indexOf(x)===i);saveWords();manageTags();});$$('[data-del]').forEach(b=>b.onclick=()=>{const t=b.dataset.del;const n=(tagPool().find(x=>x[0]===t)||[t,0])[1];if(!confirm('Удалить тэг «'+t+'» у '+n+' записей?'))return;snapMake('перед удалением тэга «'+t+'»');words.forEach(w=>w.tags=(w.tags||[]).filter(x=>x!==t));tagFilter=tagFilter.filter(x=>x!==t);saveWords();manageTags();});$('#tagDone').onclick=()=>{closeModal();renderWords();};$('#modal').onclick=e=>{if(e.target.id==='modal')$('#tagDone').click();};}
-function openDetail(id){const w=words.find(x=>x.id===id);if(!w)return;const k=KMAP[w.kind]||KMAP.word;$('#modal').innerHTML=`<div class="sheet"><div class="grab"></div><div class="detail-head"><button class="back" id="closeModal">Назад</button><span class="dkind">${k.ru} · ${k.zh}</span></div><div class="big-hanzi">${esc(w.hanzi)}</div><div class="big-py">${esc(w.pinyin||'')}</div><div class="big-tr">${esc(w.translation||'')}</div><div class="info"><div class="k">Тэги</div><div class="tagline">${(w.tags||[]).length?(w.tags||[]).map(t=>`<span class="tg">#${esc(t)} <button class="tgx" data-rm="${esc(t)}" aria-label="Убрать">✕</button></span>`).join(''):'<span class="muted">пока нет</span>'}</div><div class="tagadd"><input id="newTag" placeholder="новый тэг" autocomplete="off" list="tagList"><button class="small-btn" id="addTag">Добавить</button></div></div>${w.comment?`<div class="info"><div class="k">Заметка</div>${esc(w.comment)}</div>`:''}<div class="info"><div class="k">Раздел — переложить в…</div><div class="kindmove">${KINDS.map(m=>`<button class="kindbtn ${w.kind===m.k?'on':''}" data-move="${m.k}"><b>${m.ru} <span class="zh">${m.zh}</span></b></button>`).join('')}</div></div><div class="info"><div class="k">Статус</div>${w.laoshi?'Уже в Лаоши ✓':'Ещё не внесено в Лаоши'}</div><div class="info"><div class="k">Порядок в словаре</div>№ ${w.order}</div><datalist id="tagList">${tagPool().map(t=>`<option value="${esc(t[0])}"></option>`).join('')}</datalist><div class="actions"><button class="primary" id="laoshiBtn" style="margin-top:0">${w.laoshi?'Снять отметку «в Лаоши»':'✓ Внести в Лаоши'}</button><button class="secondary" id="editWord" style="margin-top:0">Редактировать</button><button class="danger" id="deleteWord">Удалить</button></div></div>`;$('#modal').classList.remove('hidden');$('#closeModal').onclick=closeModal;$('#laoshiBtn').onclick=()=>toggleLaoshi(id);$('#editWord').onclick=()=>{closeModal();renderAdd(id);};$$('[data-move]').forEach(b=>b.onclick=()=>{const k=b.dataset.move;if(!KMAP[k]||k===w.kind)return;snapMake('перед переносом «'+w.hanzi+'»');const from=(KMAP[w.kind]||KMAP.word).ru;w.kind=k;w.updatedAt=new Date().toISOString();saveWords();openDetail(id);toast('«'+w.hanzi+'»: '+from+' → '+KMAP[k].ru);});$('#addTag').onclick=()=>{const t=$('#newTag').value.trim();if(!t)return;const add=parseTags(t);add.forEach(x=>{if(!(w.tags||[]).includes(x))w.tags.push(x);});w.updatedAt=new Date().toISOString();saveWords();openDetail(id);};$$('[data-rm]').forEach(b=>b.onclick=()=>{const t=b.dataset.rm;w.tags=(w.tags||[]).filter(x=>x!==t);w.updatedAt=new Date().toISOString();saveWords();openDetail(id);});$('#deleteWord').onclick=()=>{const nm=w.hanzi;if(confirm('Удалить «'+nm+'»?')){snapMake('перед удалением «'+nm+'»');const before=words.slice();words=words.filter(x=>x.id!==id);saveWords();closeModal();renderWords();toast('Удалено: '+nm,'Вернуть',()=>{words=before;saveWords();renderWords();},'Восстановлено: '+nm);}};}
+function openDetail(id){const w=words.find(x=>x.id===id);if(!w)return;const k=KMAP[w.kind]||KMAP.word;$('#modal').innerHTML=`<div class="sheet"><div class="grab"></div><div class="sheet-hint">смахните вниз или вправо, чтобы закрыть</div><div class="detail-head"><button class="back" id="closeModal">Назад</button><span class="dkind">${k.ru} · ${k.zh}</span></div><div class="big-hanzi">${esc(w.hanzi)}</div><div class="big-py">${esc(w.pinyin||'')}</div><div class="big-tr">${esc(w.translation||'')}</div><div class="info"><div class="k">Тэги</div><div class="tagline">${(w.tags||[]).length?(w.tags||[]).map(t=>`<span class="tg">#${esc(t)} <button class="tgx" data-rm="${esc(t)}" aria-label="Убрать">✕</button></span>`).join(''):'<span class="muted">пока нет</span>'}</div><div class="tagadd"><input id="newTag" placeholder="новый тэг" autocomplete="off" list="tagList"><button class="small-btn" id="addTag">Добавить</button></div></div>${w.comment?`<div class="info"><div class="k">Заметка</div>${esc(w.comment)}</div>`:''}<div class="info"><div class="k">Раздел — переложить в…</div><div class="kindmove">${KINDS.map(m=>`<button class="kindbtn ${w.kind===m.k?'on':''}" data-move="${m.k}"><b>${m.ru} <span class="zh">${m.zh}</span></b></button>`).join('')}</div></div><div class="info"><div class="k">Статус</div>${w.laoshi?'Уже в Лаоши ✓':'Ещё не внесено в Лаоши'}</div><div class="info"><div class="k">Порядок в словаре</div>№ ${w.order}</div><datalist id="tagList">${tagPool().map(t=>`<option value="${esc(t[0])}"></option>`).join('')}</datalist><div class="actions"><button class="primary" id="laoshiBtn" style="margin-top:0">${w.laoshi?'Снять отметку «в Лаоши»':'✓ Внести в Лаоши'}</button><button class="secondary" id="editWord" style="margin-top:0">Редактировать</button><button class="danger" id="deleteWord">Удалить</button></div></div>`;$('#modal').classList.remove('hidden');$('#closeModal').onclick=closeModal;$('#laoshiBtn').onclick=()=>toggleLaoshi(id);$('#editWord').onclick=()=>{closeModal();renderAdd(id);};$$('[data-move]').forEach(b=>b.onclick=()=>{const k=b.dataset.move;if(!KMAP[k]||k===w.kind)return;snapMake('перед переносом «'+w.hanzi+'»');const from=(KMAP[w.kind]||KMAP.word).ru;w.kind=k;w.updatedAt=new Date().toISOString();saveWords();openDetail(id);toast('«'+w.hanzi+'»: '+from+' → '+KMAP[k].ru);});$('#addTag').onclick=()=>{const t=$('#newTag').value.trim();if(!t)return;const add=parseTags(t);add.forEach(x=>{if(!(w.tags||[]).includes(x))w.tags.push(x);});w.updatedAt=new Date().toISOString();saveWords();openDetail(id);};$$('[data-rm]').forEach(b=>b.onclick=()=>{const t=b.dataset.rm;w.tags=(w.tags||[]).filter(x=>x!==t);w.updatedAt=new Date().toISOString();saveWords();openDetail(id);});$('#deleteWord').onclick=()=>{const nm=w.hanzi;if(confirm('Удалить «'+nm+'»?')){snapMake('перед удалением «'+nm+'»');const before=words.slice();words=words.filter(x=>x.id!==id);saveWords();closeModal();renderWords();toast('Удалено: '+nm,'Вернуть',()=>{words=before;saveWords();renderWords();},'Восстановлено: '+nm);}};}
 function closeModal(){$('#modal').classList.add('hidden');$('#modal').innerHTML='';}
-function showSort(){$('#modal').innerHTML=`<div class="sheet"><div class="grab"></div><div class="sheet-title">Сортировка</div><button class="sortopt ${sortMode==='order'?'on':''}" data-sort="order">По мере добавления — основной</button><button class="sortopt ${sortMode==='new'?'on':''}" data-sort="new">Последние добавленные сверху</button><button class="sortopt ${sortMode==='hanzi'?'on':''}" data-sort="hanzi">По китайскому алфавиту</button></div>`;$('#modal').classList.remove('hidden');$$('.sortopt').forEach(b=>b.onclick=()=>{sortMode=b.dataset.sort;closeModal();visible=120;renderList();});$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};}
+function showSort(){$('#modal').innerHTML=`<div class="sheet"><div class="grab"></div><div class="sheet-title">Сортировка</div><button class="sortopt ${sortMode==='order'?'on':''}" data-sort="order">По мере добавления — основной</button><button class="sortopt ${sortMode==='new'?'on':''}" data-sort="new">Последние добавленные сверху</button><button class="sortopt ${sortMode==='hanzi'?'on':''}" data-sort="hanzi">По китайскому алфавиту</button></div>`;$('#modal').classList.remove('hidden');$$('.sortopt').forEach(b=>b.onclick=()=>{sortMode=b.dataset.sort;closeModal();visible=120;renderList();});$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
+// ===== шторки: смахнуть за левый край (вправо) или за верхний (вниз) + анимация =====
+function sheetSwipe(){
+  const modal=$('#modal'); if(!modal) return;
+  let sheet=null,edgeX=false,edgeY=false,sx=0,sy=0,dx=0,dy=0,mode=0,busy=false;
+  const clear=el=>{ if(!el)return; el.style.transition=''; el.style.transform=''; el.style.opacity=''; };
+  const reset=()=>{ clear(sheet); sheet=null; mode=0; sx=sy=dx=dy=0; edgeX=edgeY=false; busy=false; };
+  new MutationObserver(()=>{
+    const s=modal.querySelector('.sheet');
+    if(s&&s!==sheet){ reset(); sheet=s;
+      if(!modal.classList.contains('hidden')){
+        s.style.transition='none'; s.style.transform='translateY(22px)'; s.style.opacity='.55';
+        requestAnimationFrame(()=>{ if(!sheet)return;
+          s.style.transition='transform .26s cubic-bezier(.22,.9,.3,1),opacity .18s ease-out';
+          s.style.transform='translateY(0)'; s.style.opacity='1'; });
+      }
+    }
+    if(!s) reset();
+  }).observe(modal,{childList:true});
+  const start=e=>{
+    if(!sheet||busy||modal.classList.contains('hidden')||e.touches.length!==1) return;
+    const t=e.touches[0], r=sheet.getBoundingClientRect();
+    edgeX=(t.clientX<=r.left+40);
+    edgeY=(t.clientY<=r.top+66)&&sheet.scrollTop<=0;
+    if(!edgeX&&!edgeY) return;
+    sx=t.clientX; sy=t.clientY; dx=dy=0; mode=0; sheet.style.transition='none';
+  };
+  const move=e=>{
+    if(!sheet||busy||!sx||e.touches.length!==1) return;
+    const t=e.touches[0]; dx=t.clientX-sx; dy=t.clientY-sy;
+    if(!mode){
+      if(Math.abs(dx)<7&&Math.abs(dy)<7) return;
+      if(Math.abs(dy)>=Math.abs(dx)) mode=edgeY?1:(edgeX&&dy>0?1:0);
+      else mode=(edgeX&&dx>0)?2:0;
+      if(!mode) return;
+    }
+    if(mode===1){ dy=Math.max(0,dy); if(dy>0){ e.preventDefault(); sheet.style.transform='translateY('+dy+'px)'; sheet.style.opacity=String(Math.max(.35,1-dy/(sheet.clientHeight||600)));} }
+    if(mode===2){ dx=Math.max(0,dx); if(dx>0){ e.preventDefault(); sheet.style.transform='translateX('+dx+'px)'; sheet.style.opacity=String(Math.max(.35,1-dx/(sheet.clientWidth||400)));} }
+  };
+  const end=()=>{
+    if(!sheet||busy) return;
+    const s=sheet, m=mode, vx=dx, vy=dy; mode=0; sx=sy=0;
+    if(m===1&&vy>Math.min(120,(s.clientHeight||600)*0.28)){
+      busy=true; s.style.transition='transform .26s cubic-bezier(.4,0,.7,.2),opacity .22s ease-out';
+      s.style.transform='translateY('+(s.clientHeight+40)+'px)'; s.style.opacity='0';
+      setTimeout(()=>{ busy=false; closeModal(); },240);
+    } else if(m===2&&vx>Math.min(110,(s.clientWidth||400)*0.3)){
+      busy=true; s.style.transition='transform .26s cubic-bezier(.4,0,.7,.2),opacity .22s ease-out';
+      s.style.transform='translateX('+(s.clientWidth+40)+'px)'; s.style.opacity='0';
+      setTimeout(()=>{ busy=false; closeModal(); },240);
+    } else {
+      s.style.transition='transform .22s cubic-bezier(.3,1.2,.5,1),opacity .18s ease-out';
+      s.style.transform='translate3d(0,0,0)'; s.style.opacity='1';
+    }
+    dx=dy=0;
+  };
+  modal.addEventListener('touchstart',start,{passive:true});
+  modal.addEventListener('touchmove',move,{passive:false});
+  modal.addEventListener('touchend',end,{passive:true});
+  modal.addEventListener('touchcancel',end,{passive:true});
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#modal').classList.contains('hidden')) closeModal(); });
+sheetSwipe();}
 function dl(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 function csvCell(s){s=String(s??'');return /[",\r\n;]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
 function exportCsv(){const rows=[['№','раздел','слово','pinyin','перевод','тэги','в Лаоши','заметка']];words.slice().sort((a,b)=>(a.order||0)-(b.order||0)).forEach(w=>rows.push([w.order,(KMAP[w.kind]||KMAP.word).ru,w.hanzi,w.pinyin,w.translation,(w.tags||[]).join(', '),w.laoshi?'да':'',w.comment]));dl('cidian-'+new Date().toISOString().slice(0,10)+'.csv','﻿'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n'),'text/csv;charset=utf-8');}
@@ -101,6 +163,68 @@ function restoreJson(e){const f=e.target.files&&e.target.files[0];if(!f)return;c
 function resetBase(){if(confirm('Вернуть исходные 3913 слов из первого листа Excel? Все локальные изменения (тэги и отметки Лаоши) будут удалены.')){snapMake('перед возвратом исходного списка');words=BASE_WORDS.map(x=>({...x}));applyContent(words,true);applyNewFix(words,true);applyAnki(words,true);applyAnkiFive(words,true);saveWords();renderMore();}}
 $$('.tab').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;if(t==='words')renderWords();if(t==='add')renderAdd();if(t==='more')renderMore();});
 $('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
+// ===== шторки: смахнуть за левый край (вправо) или за верхний (вниз) + анимация =====
+function sheetSwipe(){
+  const modal=$('#modal'); if(!modal) return;
+  let sheet=null,edgeX=false,edgeY=false,sx=0,sy=0,dx=0,dy=0,mode=0,busy=false;
+  const clear=el=>{ if(!el)return; el.style.transition=''; el.style.transform=''; el.style.opacity=''; };
+  const reset=()=>{ clear(sheet); sheet=null; mode=0; sx=sy=dx=dy=0; edgeX=edgeY=false; busy=false; };
+  new MutationObserver(()=>{
+    const s=modal.querySelector('.sheet');
+    if(s&&s!==sheet){ reset(); sheet=s;
+      if(!modal.classList.contains('hidden')){
+        s.style.transition='none'; s.style.transform='translateY(22px)'; s.style.opacity='.55';
+        requestAnimationFrame(()=>{ if(!sheet)return;
+          s.style.transition='transform .26s cubic-bezier(.22,.9,.3,1),opacity .18s ease-out';
+          s.style.transform='translateY(0)'; s.style.opacity='1'; });
+      }
+    }
+    if(!s) reset();
+  }).observe(modal,{childList:true});
+  const start=e=>{
+    if(!sheet||busy||modal.classList.contains('hidden')||e.touches.length!==1) return;
+    const t=e.touches[0], r=sheet.getBoundingClientRect();
+    edgeX=(t.clientX<=r.left+40);
+    edgeY=(t.clientY<=r.top+66)&&sheet.scrollTop<=0;
+    if(!edgeX&&!edgeY) return;
+    sx=t.clientX; sy=t.clientY; dx=dy=0; mode=0; sheet.style.transition='none';
+  };
+  const move=e=>{
+    if(!sheet||busy||!sx||e.touches.length!==1) return;
+    const t=e.touches[0]; dx=t.clientX-sx; dy=t.clientY-sy;
+    if(!mode){
+      if(Math.abs(dx)<7&&Math.abs(dy)<7) return;
+      if(Math.abs(dy)>=Math.abs(dx)) mode=edgeY?1:(edgeX&&dy>0?1:0);
+      else mode=(edgeX&&dx>0)?2:0;
+      if(!mode) return;
+    }
+    if(mode===1){ dy=Math.max(0,dy); if(dy>0){ e.preventDefault(); sheet.style.transform='translateY('+dy+'px)'; sheet.style.opacity=String(Math.max(.35,1-dy/(sheet.clientHeight||600)));} }
+    if(mode===2){ dx=Math.max(0,dx); if(dx>0){ e.preventDefault(); sheet.style.transform='translateX('+dx+'px)'; sheet.style.opacity=String(Math.max(.35,1-dx/(sheet.clientWidth||400)));} }
+  };
+  const end=()=>{
+    if(!sheet||busy) return;
+    const s=sheet, m=mode, vx=dx, vy=dy; mode=0; sx=sy=0;
+    if(m===1&&vy>Math.min(120,(s.clientHeight||600)*0.28)){
+      busy=true; s.style.transition='transform .26s cubic-bezier(.4,0,.7,.2),opacity .22s ease-out';
+      s.style.transform='translateY('+(s.clientHeight+40)+'px)'; s.style.opacity='0';
+      setTimeout(()=>{ busy=false; closeModal(); },240);
+    } else if(m===2&&vx>Math.min(110,(s.clientWidth||400)*0.3)){
+      busy=true; s.style.transition='transform .26s cubic-bezier(.4,0,.7,.2),opacity .22s ease-out';
+      s.style.transform='translateX('+(s.clientWidth+40)+'px)'; s.style.opacity='0';
+      setTimeout(()=>{ busy=false; closeModal(); },240);
+    } else {
+      s.style.transition='transform .22s cubic-bezier(.3,1.2,.5,1),opacity .18s ease-out';
+      s.style.transform='translate3d(0,0,0)'; s.style.opacity='1';
+    }
+    dx=dy=0;
+  };
+  modal.addEventListener('touchstart',start,{passive:true});
+  modal.addEventListener('touchmove',move,{passive:false});
+  modal.addEventListener('touchend',end,{passive:true});
+  modal.addEventListener('touchcancel',end,{passive:true});
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#modal').classList.contains('hidden')) closeModal(); });
+sheetSwipe();
 renderWords();
 if(ankiAdded||inboxAdded)setTimeout(()=>toast('Добавлено: '+(ankiAdded?(ankiAdded+' из Anki'):'')+(ankiAdded&&inboxAdded?' · ':'')+(inboxAdded?('из Тингли '+inboxAdded):'')+' — все как «не в Лаоши»'),400);
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=2.4.0',{updateViaCache:'none'}).catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=2.5.0',{updateViaCache:'none'}).catch(()=>{});
