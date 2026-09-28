@@ -1,9 +1,11 @@
 {
   "name": "Мои слова · 我的生词",
   "short_name": "Мои слова",
+  "id": "/cidian/",
   "start_url": "/cidian/",
   "scope": "/cidian/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#fbf7f0",
   "theme_color": "#fbf7f0",
   "icons": [

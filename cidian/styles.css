@@ -33,3 +33,10 @@ button:focus-visible{outline:2px solid var(--brand);outline-offset:3px}.form inp
 @media(min-width:900px){.shell{padding-top:48px}.head{margin-bottom:32px}.landscape{background-size:cover}.word{background:rgba(255,252,247,.9)}}
 @media(max-width:520px){.shell{padding:calc(20px + env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom))}.head{gap:13px;min-height:106px;margin-bottom:20px}.app-icon{width:94px;height:94px}.title{font-size:34px;letter-spacing:-.7px}.subtitle{font-size:22px}.count{font-size:12px}.word{padding:14px 12px;gap:10px;grid-template-columns:76px 1fr auto}.landscape{background-size:auto 100%;background-position:70% center}}
 @media(max-width:360px){.app-icon{width:78px;height:78px}.title{font-size:29px}.subtitle{font-size:20px}.head{gap:10px}.word{grid-template-columns:66px 1fr auto}}
+
+/* подтверждение действия (отмена удаления и т.п.) */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));max-width:min(560px,92vw);background:var(--ink);color:#fff8f2;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;font-size:14px;line-height:1.3;box-shadow:0 10px 30px rgba(62,44,33,.28);z-index:40;animation:toastIn .18s ease-out}
+.toast span{flex:1;min-width:0}
+.toast-act{border:0;background:rgba(255,255,255,.16);color:#fff8f2;font-weight:600;font-size:14px;padding:8px 12px;border-radius:10px}
+.toast-act:active{background:rgba(255,255,255,.28)}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
