@@ -8,11 +8,12 @@ const KMAP={};KINDS.forEach(x=>KMAP[x.k]=x);
 function mkBase(r,i){const t=String(r[3]||'').trim();const hz=r[0]||'';return{id:i+1,order:i+1,kind:'word',hanzi:hz,pinyin:r[1]||'',translation:r[2]||'',tags:t?[t]:[],comment:'',laoshi:!LAOSHI_SET.has(String(hz).trim()),favorite:false,createdAt:'',updatedAt:''};}
 const BASE_WORDS=(window.CIDIAN_BASE||[]).map(mkBase);
 const CONTENT_KEY='cidian-migr-content',CONTENT_TAG='content-2026-09-28';
+const FIX_KEY='cidian-migr-content-fix',FIX_TAG='fix-2026-09-28',FIX_NEW=['鲁菜','苏菜','粤菜','闽菜'];
 /* контент из снимка базы Саши (28.09.2026): ярко-жёлтое — фразы, светло-жёлтое — названия */
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
-const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня'},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня'},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня'},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня'}];
-const STORAGE='cidian-data-v1',VERSION='2.1.1',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
+const STORAGE='cidian-data-v1',VERSION='2.1.2',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -22,8 +23,10 @@ if(!arr)arr=BASE_WORDS.map(x=>({...x}));
 /* одноразовая разметка статуса Лаоши (28.09.2026): всё внесено, кроме 尽量 и 澡堂 */
 try{if(localStorage.getItem(MIGR_KEY)!==MIGR_TAG){snapStore('перед разметкой «в Лаоши» (28.09.2026)',arr.map(w=>({...w})));arr.forEach(w=>{w.laoshi=!LAOSHI_SET.has(String(w.hanzi).trim());});localStorage.setItem(MIGR_KEY,MIGR_TAG);localStorage.setItem(STORAGE,JSON.stringify(arr));}}catch(e){}
 applyContent(arr);
+applyNewFix(arr);
 return arr;}
-function applyContent(arr){try{if(localStorage.getItem(CONTENT_KEY)===CONTENT_TAG)return;const before=arr.map(w=>({...w}));const P=new Set(CONTENT_PHRASES),N=new Set(CONTENT_NAMES);arr.forEach(w=>{const hz=String(w.hanzi||'').trim();if(P.has(hz))w.kind='phrase';else if(N.has(hz))w.kind='name';});let id=Math.max(0,...arr.map(w=>+w.id||0)),ord=Math.max(0,...arr.map(w=>+w.order||0));CONTENT_NEW.forEach(n=>{if(!arr.some(w=>String(w.hanzi||'').trim()===n.hanzi)){id++;ord++;arr.push({id,order:ord,kind:'name',hanzi:n.hanzi,pinyin:n.pinyin,translation:n.translation,tags:[],comment:'',laoshi:true,favorite:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});}});snapStore('перед добавлением фраз и названий (28.09.2026)',before);localStorage.setItem(CONTENT_KEY,CONTENT_TAG);localStorage.setItem(STORAGE,JSON.stringify(arr));}catch(e){}}
+function applyNewFix(arr){try{if(localStorage.getItem(FIX_KEY)===FIX_TAG)return;const S=new Set(FIX_NEW);snapStore('перед отметкой «не в Лаоши» для новых записей',arr.map(w=>({...w})));arr.forEach(w=>{if(S.has(String(w.hanzi||'').trim()))w.laoshi=false;});localStorage.setItem(FIX_KEY,FIX_TAG);localStorage.setItem(STORAGE,JSON.stringify(arr));}catch(e){}}
+function applyContent(arr){try{if(localStorage.getItem(CONTENT_KEY)===CONTENT_TAG)return;const before=arr.map(w=>({...w}));const P=new Set(CONTENT_PHRASES),N=new Set(CONTENT_NAMES);arr.forEach(w=>{const hz=String(w.hanzi||'').trim();if(P.has(hz))w.kind='phrase';else if(N.has(hz))w.kind='name';});let id=Math.max(0,...arr.map(w=>+w.id||0)),ord=Math.max(0,...arr.map(w=>+w.order||0));CONTENT_NEW.forEach(n=>{if(!arr.some(w=>String(w.hanzi||'').trim()===n.hanzi)){id++;ord++;arr.push({id,order:ord,kind:'name',hanzi:n.hanzi,pinyin:n.pinyin,translation:n.translation,tags:[],comment:'',laoshi:n.laoshi!==false?false:n.laoshi,favorite:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});}});snapStore('перед добавлением фраз и названий (28.09.2026)',before);localStorage.setItem(CONTENT_KEY,CONTENT_TAG);localStorage.setItem(STORAGE,JSON.stringify(arr));}catch(e){}}
 function saveWords(){const blob=JSON.stringify(words);if(blob.length>MAX_BYTES&&!saveWords.warned){saveWords.warned=true;alert('Словарь занимает '+Math.round(blob.length/1024)+' КБ из ~5000 КБ. Сделайте резервную копию (Ещё → Резервная копия): при переполнении браузер может стереть данные.');}try{localStorage.setItem(STORAGE,blob);}catch(e){alert('Не удалось сохранить словарь на устройстве.');}updateCounts();}
 function snapInfo(){try{const j=JSON.parse(localStorage.getItem(SNAP)||'null');return j&&j.words?j:null;}catch(e){return null;}}
 function snapStore(reason,arr){try{localStorage.setItem(SNAP,JSON.stringify({ts:new Date().toISOString(),reason,words:arr}));}catch(e){}}
@@ -65,4 +68,4 @@ function resetBase(){if(confirm('Вернуть исходные 3913 слов �
 $$('.tab').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;if(t==='words')renderWords();if(t==='add')renderAdd();if(t==='more')renderMore();});
 $('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 renderWords();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=2.1.1',{updateViaCache:'none'}).catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=2.1.2',{updateViaCache:'none'}).catch(()=>{});
