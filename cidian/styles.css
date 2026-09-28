@@ -30,7 +30,9 @@ html{background:var(--bg)}body{background:transparent;isolation:isolate}
 .list{gap:10px}.py{color:#8b6045}.star.on{color:#936342}.tabbar{background:rgba(252,247,239,.96)}
 .tab{min-height:48px}.tab b{height:27px;line-height:27px;font-family:"Songti SC",Georgia,serif}.tab.on{color:#71472c}.tab.on b{font-weight:700}
 button:focus-visible{outline:2px solid var(--brand);outline-offset:3px}.form input,.form textarea{font-size:16px}
-@media(min-width:900px){.shell{padding-top:48px}.head{margin-bottom:32px}.landscape{background-size:cover}.word{background:rgba(255,252,247,.9)}}
+@media(min-width:900px){.shell{max-width:1120px;padding-top:48px}.head{margin-bottom:32px}.landscape{background-size:cover}.word{background:rgba(255,252,247,.9)}.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:10px 14px;align-items:start}}
+/* от планшета и шире: колонка под иероглифы тянется по содержимому — слова не рвутся на две строки */
+@media(min-width:521px){.word{grid-template-columns:auto minmax(0,1fr) auto}.hanzi{white-space:nowrap;word-break:keep-all}}
 @media(max-width:520px){.shell{padding:calc(20px + env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom))}.head{gap:13px;min-height:106px;margin-bottom:20px}.app-icon{width:94px;height:94px}.title{font-size:34px;letter-spacing:-.7px}.subtitle{font-size:22px}.count{font-size:12px}.word{padding:14px 12px;gap:10px;grid-template-columns:76px 1fr auto}.landscape{background-size:auto 100%;background-position:70% center}}
 @media(max-width:360px){.app-icon{width:78px;height:78px}.title{font-size:29px}.subtitle{font-size:20px}.head{gap:10px}.word{grid-template-columns:66px 1fr auto}}
 
