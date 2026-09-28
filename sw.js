@@ -10,6 +10,15 @@ const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
 const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
 
+// Под-приложения на том же домене (/tingli, /spin, /cidian) — у каждого свой
+// сервис-воркер. CRM не должна подменять их своим «shell»: раньше проверка была
+// только на '/cidian/' со слэшем, и адрес '/cidian' без слэша открывал Базу.
+const SUBAPPS = ['/spin', '/tingli', '/cidian'];
+function isSubAppPath(p) {
+  for (const s of SUBAPPS) { if (p === s || p.indexOf(s + '/') === 0) return true; }
+  return false;
+}
+
 const DB_NAME = 'crm-offline';
 const DB_VER = 1;
 const STORE = 'queue';
@@ -320,6 +329,9 @@ async function fetchNavFast(req, timeoutMs) {
 async function handleShell(req) {
   const url = new URL(req.url);
   if (req.mode === 'navigate') {
+    // Оболочкой CRM закрываем только её собственные адреса; всё остальное — в сеть
+    const path = url.pathname;
+    if (path !== '/' && path !== '/index.html') return fetch(req);
     const cur = await caches.open(APP_CACHE);
     let hit = (await cur.match('./index.html')) || (await cur.match('./'));
     if (!hit) {
@@ -432,7 +444,7 @@ self.addEventListener('fetch', (e) => {
     return;   // auth и остальное — напрямую
   }
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.indexOf('/spin/') === 0 || url.pathname.indexOf('/tingli/') === 0 || url.pathname.indexOf('/cidian/') === 0) return;
+  if (isSubAppPath(url.pathname)) return;
   if (req.method !== 'GET') return;
   if (url.pathname.indexOf('/api/') === 0) return;   // функции CF — только сеть
   e.respondWith(handleShell(req));
