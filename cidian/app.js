@@ -1,5 +1,5 @@
 const BASE_WORDS=(window.CIDIAN_BASE||[]).map((r,i)=>({id:i+1,order:i+1,hanzi:r[0]||'',pinyin:r[1]||'',translation:r[2]||'',note:r[3]||'',comment:'',favorite:false,createdAt:'',updatedAt:''}));
-const STORAGE='cidian-data-v1', VERSION='1.1.4', SNAP='cidian-backup-auto', MAX_BYTES=4200000;
+const STORAGE='cidian-data-v1', VERSION='1.1.5', SNAP='cidian-backup-auto', MAX_BYTES=4200000;
 let words=loadWords(), currentTab='words', sortMode='order', filter='all', query='', visible=120, editingId=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -32,4 +32,4 @@ function restoreJson(e){const f=e.target.files&&e.target.files[0];if(!f)return;c
 function resetBase(){if(confirm('Вернуть исходные 3913 слов из первого листа Excel? Все локальные изменения будут удалены.')){snapMake('перед возвратом исходного списка');words=BASE_WORDS.map(x=>({...x}));saveWords();renderMore();}}
 $$('.tab').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;if(t==='words')renderWords();if(t==='add')renderAdd();if(t==='more')renderMore();});$('#fab').onclick=()=>renderAdd();$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 renderWords();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=1.1.4',{updateViaCache:'none'}).catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=1.1.5',{updateViaCache:'none'}).catch(()=>{});
