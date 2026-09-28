@@ -6,20 +6,37 @@
 //   /api/* и внешние домены (supabase) — только сеть.
 // Прекэш: все файлы приложения кладутся по одному; сбой одного файла НЕ ломает установку.
 // Страница может запросить статус/скачивание: postMessage({type:'status'|'precache'}).
-const CACHE = 'spin-cache-v111-safe';
+const CACHE = 'spin-cache-v112-safe';
+
+// Cloudflare отдаёт файлы сжатыми (content-encoding: br), а Cache API хранит уже
+// распакованное тело: если отдать такую запись на НАВИГАЦИЮ, браузер пытается
+// распаковать её второй раз и падает с net::ERR_FAILED. Поэтому перед записью
+// в кэш снимаем заголовки сжатия и длину.
+async function putClean(cache, key, res) {
+  try {
+    if (!res || !res.ok) return;
+    let out = res;
+    if (res.headers.get('content-encoding') || res.headers.get('content-length')) {
+      const h = new Headers(res.headers);
+      h.delete('content-encoding'); h.delete('content-length'); h.delete('content-range');
+      out = new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: h });
+    }
+    await cache.put(key, out);
+  } catch (e) {}
+}
 
 const CORE = [
   './',
   './index.html',
-  './styles.css?v=crs111',
-  './app.js?v=crs111',
-  './data.js?v=crs111',
-  './meddicc-data.js?v=crs111',
-  './spiced-data.js?v=crs111',
-  './proactive-data.js?v=crs111',
-  './boss-gate.js?v=crs111',
-  './remote-sales-data.js?v=crs111',
-  './channel-sales-data.js?v=crs111',
+  './styles.css?v=crs112',
+  './app.js?v=crs112',
+  './data.js?v=crs112',
+  './meddicc-data.js?v=crs112',
+  './spiced-data.js?v=crs112',
+  './proactive-data.js?v=crs112',
+  './boss-gate.js?v=crs112',
+  './remote-sales-data.js?v=crs112',
+  './channel-sales-data.js?v=crs112',
   './supabase.min.js',
   './manifest.webmanifest',
   './emblem-np.png',
@@ -45,7 +62,7 @@ async function precache(onProgress) {
     try {
       const r = await fetch(u, { cache: 'reload' });
       if (!r || !r.ok) throw new Error(String(r && r.status));
-      await c.put(u, r.clone());
+      await putClean(c, u, r.clone());
     } catch (e) {
       failed.push(u);
     }
@@ -77,15 +94,15 @@ self.addEventListener('install', (e) => {
     // не активируем новый worker, оставляем предыдущую рабочую версию.
     const required = [
       './index.html',
-      './styles.css?v=crs111',
-      './app.js?v=crs111',
-      './data.js?v=crs111',
-      './meddicc-data.js?v=crs111',
-      './spiced-data.js?v=crs111',
-      './proactive-data.js?v=crs111',
-      './boss-gate.js?v=crs111',
-      './remote-sales-data.js?v=crs111',
-      './channel-sales-data.js?v=crs111',
+      './styles.css?v=crs112',
+      './app.js?v=crs112',
+      './data.js?v=crs112',
+      './meddicc-data.js?v=crs112',
+      './spiced-data.js?v=crs112',
+      './proactive-data.js?v=crs112',
+      './boss-gate.js?v=crs112',
+      './remote-sales-data.js?v=crs112',
+      './channel-sales-data.js?v=crs112',
       './supabase.min.js'
     ];
     for (const u of required) {
@@ -147,13 +164,13 @@ self.addEventListener('fetch', (e) => {
       }
       if (hit) {
         fetch(req, { cache: 'no-store' }).then((r) => {
-          if (r && r.ok) c.put('./index.html', r.clone());
+          if (r && r.ok) putClean(c, './index.html', r.clone());
         }).catch(() => {});
         return hit;
       }
       try {
         const r = await fetchNavFast(req, 1200);
-        if (r && r.ok) await c.put('./index.html', r.clone());
+        if (r && r.ok) await putClean(c, './index.html', r.clone());
         return r;
       } catch (e) {
         return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
@@ -170,7 +187,7 @@ self.addEventListener('fetch', (e) => {
       const r = await fetch(req);
       if (r && r.ok) {
         const cp = r.clone();
-        caches.open(CACHE).then((c) => c.put(req, cp));
+        caches.open(CACHE).then((c) => putClean(c, req, cp));
       }
       return r;
     } catch (err) {

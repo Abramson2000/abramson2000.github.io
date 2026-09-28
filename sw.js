@@ -175,8 +175,24 @@ function dataKey(req) {
   const range = req.headers.get('range');
   return '/rest/v1/' + url.pathname.split('/rest/v1/')[1] + url.search + (range ? '|r=' + range : '');
 }
+// Cloudflare отдаёт файлы сжатыми (content-encoding: br), а Cache API хранит уже
+// распакованное тело: если отдать такую запись на НАВИГАЦИЮ, браузер пытается
+// распаковать её второй раз и падает с net::ERR_FAILED (белый экран на повторном
+// входе). Поэтому перед записью в кэш снимаем заголовки сжатия и длину.
+async function putClean(cache, key, res) {
+  try {
+    if (!res || !res.ok) return;
+    let out = res;
+    if (res.headers.get('content-encoding') || res.headers.get('content-length')) {
+      const h = new Headers(res.headers);
+      h.delete('content-encoding'); h.delete('content-length'); h.delete('content-range');
+      out = new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: h });
+    }
+    await cache.put(key, out);
+  } catch (e) {}
+}
 async function cachePut(key, resp) {
-  try { const c = await caches.open(DATA_CACHE); await c.put(new Request(key), resp); } catch (e) {}
+  try { const c = await caches.open(DATA_CACHE); await putClean(c, new Request(key), resp); } catch (e) {}
 }
 async function cacheGet(key) {
   try { const c = await caches.open(DATA_CACHE); const r = await c.match(new Request(key)); return r || null; } catch (e) { return null; }
@@ -345,13 +361,13 @@ async function handleShell(req) {
     if (hit) {
       // Отдаём рабочую оболочку сразу. Свежую копию подтягиваем в фоне.
       fetch(req, { cache: 'no-store' }).then(async (r) => {
-        if (r && r.ok) await cur.put('./index.html', r.clone());
+        if (r && r.ok) await putClean(cur, './index.html', r.clone());
       }).catch(() => {});
       return hit;
     }
     try {
       const r = await fetchNavFast(req, 1200);
-      if (r && r.ok) await cur.put('./index.html', r.clone());
+      if (r && r.ok) await putClean(cur, './index.html', r.clone());
       return r;
     } catch (e) {
       return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
@@ -360,7 +376,7 @@ async function handleShell(req) {
   const hit = await caches.match(req);
   if (hit) return hit;
   const r = await fetch(req);
-  if (r && r.ok && url.origin === self.location.origin) { const c = await caches.open(APP_CACHE); c.put(req, r.clone()); }
+  if (r && r.ok && url.origin === self.location.origin) { const c = await caches.open(APP_CACHE); await putClean(c, req, r.clone()); }
   return r;
 }
 
@@ -381,7 +397,7 @@ self.addEventListener('install', (e) => {
       try {
         const r = await fetch(u, { cache: 'reload' });
         if (!r || !r.ok) throw new Error(String(r && r.status));
-        await c.put(u, r.clone());
+        await putClean(c, u, r.clone());
       } catch (err) { failed.push(u); }
     }
     // Не активируем новую версию, если нет критической оболочки.
@@ -426,7 +442,7 @@ self.addEventListener('message', (e) => {
       const c = await caches.open(APP_CACHE);
       let ok = 0, total = SHELL.length;
       for (const u of SHELL) {
-        try { const r = await fetch(u, { cache: 'reload' }); if (r && r.ok) { await c.put(u, r.clone()); ok++; } if (port) port.postMessage({ type: 'progress', done: ok, total: total }); } catch (err) {}
+        try { const r = await fetch(u, { cache: 'reload' }); if (r && r.ok) { await putClean(c, u, r.clone()); ok++; } if (port) port.postMessage({ type: 'progress', done: ok, total: total }); } catch (err) {}
       }
       reply({ type: 'precache-done', ok: ok, total: total });
     })();

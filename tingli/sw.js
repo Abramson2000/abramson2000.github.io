@@ -1,8 +1,25 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v3.2.6 (2026-09-27: урок 10 — «Слушать» = только 111 (58,6 с); новое «ДЗ 4» (8 фраз, аудио 222=210-hw4.mp3, 75,8 с) с полем под перевод, плеер показывается и на ДЗ; было: v3.2.5 (2026-09-27: урок 10 — «Слушать»: обрезаны хвосты тишины (111: 2 с, 222: 5,4 с), итог 135,6 с; было: v3.2.4 (2026-09-27: урок 10 — задание «Слушать» (иконка 音): склеены два аудио 111+222 → 210-l.mp3 (142,8 с); было: v3.2.3 (2026-09-27: урок 10 — новое задание «Слушать» (иконка 音, аудио 210-l.mp3, без текста) после «Примеры», перед ДЗ; было: v3.2.2 (2026-09-27: урок 10 — у ДЗ 3 сокращена инструкция; у частей появилась своя иконка (поле ico, напр. 音 у «Слушать»); кнопка «📊 В Excel» — две колонки; было v3.2.0 (2026-09-24: урок 108 «旧梦» в разделе 语法 (李老师课) — 34 слова, разбор лексики, грамматика, говорим сами, 14 упражнений, 14 ДЗ, аудио 108-w1..w4/p/g; было 2026-09-24: шрифт пересобран под урок 213 (6 иероглифов: 品并性杨略缩), font-build: simsun-subset-STSong-1475; урок 213 «介绍产品» в разделе 团队 — аудио текста 213-0t.mp3 + 10 новых слов (21–30); было 2026-09-22: названия уроков 13/14 Бизнес (313/314) — исправлен перевод и нумерация; шрифт пересобран (9 иероглифов), добавлены 才/下礼拜 в урок 212, переозвучен 212-w2; было 2026-09-19: женский голос ±3% — диалог/текст +3%, слова/примеры −3%; переозвучены уроки 10 и 面试困难 + font-build: simsun-subset-STSong-1497 — маркер прекэша
+// data-build: v3.2.7 (2026-09-28: фикс кэша — снимаем content-encoding перед записью в Cache API, иначе на Cloudflare вторая загрузка падала в белый экран; было: v3.2.6 (2026-09-27: урок 10 — «Слушать» = только 111 (58,6 с); новое «ДЗ 4» (8 фраз, аудио 222=210-hw4.mp3, 75,8 с) с полем под перевод, плеер показывается и на ДЗ; было: v3.2.5 (2026-09-27: урок 10 — «Слушать»: обрезаны хвосты тишины (111: 2 с, 222: 5,4 с), итог 135,6 с; было: v3.2.4 (2026-09-27: урок 10 — задание «Слушать» (иконка 音): склеены два аудио 111+222 → 210-l.mp3 (142,8 с); было: v3.2.3 (2026-09-27: урок 10 — новое задание «Слушать» (иконка 音, аудио 210-l.mp3, без текста) после «Примеры», перед ДЗ; было: v3.2.2 (2026-09-27: урок 10 — у ДЗ 3 сокращена инструкция; у частей появилась своя иконка (поле ico, напр. 音 у «Слушать»); кнопка «📊 В Excel» — две колонки; было v3.2.0 (2026-09-24: урок 108 «旧梦» в разделе 语法 (李老师课) — 34 слова, разбор лексики, грамматика, говорим сами, 14 упражнений, 14 ДЗ, аудио 108-w1..w4/p/g; было 2026-09-24: шрифт пересобран под урок 213 (6 иероглифов: 品并性杨略缩), font-build: simsun-subset-STSong-1475; урок 213 «介绍产品» в разделе 团队 — аудио текста 213-0t.mp3 + 10 новых слов (21–30); было 2026-09-22: названия уроков 13/14 Бизнес (313/314) — исправлен перевод и нумерация; шрифт пересобран (9 иероглифов), добавлены 才/下礼拜 в урок 212, переозвучен 212-w2; было 2026-09-19: женский голос ±3% — диалог/текст +3%, слова/примеры −3%; переозвучены уроки 10 и 面试困难 + font-build: simsun-subset-STSong-1497 — маркер прекэша
 const CACHE = 'tingli-cache-v12-safe';
+
+// Cloudflare отдаёт файлы сжатыми (content-encoding: br), а Cache API хранит уже
+// распакованное тело: если отдать такую запись на НАВИГАЦИЮ, браузер пытается
+// распаковать её второй раз и падает с net::ERR_FAILED. Поэтому перед записью
+// в кэш снимаем заголовки сжатия и длину.
+async function putClean(cache, key, res) {
+  try {
+    if (!res || !res.ok) return;
+    let out = res;
+    if (res.headers.get('content-encoding') || res.headers.get('content-length')) {
+      const h = new Headers(res.headers);
+      h.delete('content-encoding'); h.delete('content-length'); h.delete('content-range');
+      out = new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: h });
+    }
+    await cache.put(key, out);
+  } catch (e) {}
+}
 
 const ASSETS = [
   './',
@@ -80,7 +97,7 @@ async function precache(onProgress) {
     try {
       const r = await fetch(u, { cache: 'reload' });
       if (!r || !r.ok) throw new Error(String(r && r.status));
-      await c.put(u, r.clone());
+      await putClean(c, u, r.clone());
     } catch (e) {
       failed.push(u);
     }
@@ -125,7 +142,7 @@ async function precacheCritical() {
   for (const u of ['./index.html', './']) {
     const r = await fetch(u, { cache: 'reload' });
     if (!r || !r.ok) throw new Error('critical ' + u);
-    await cache.put(u, r.clone());
+    await putClean(cache, u, r.clone());
   }
 }
 
@@ -172,13 +189,13 @@ self.addEventListener('fetch', (e) => {
       }
       if (hit) {
         fetch(req, { cache: 'no-store' }).then((r) => {
-          if (r && r.ok) c.put('./index.html', r.clone());
+          if (r && r.ok) putClean(c, './index.html', r.clone());
         }).catch(() => {});
         return hit;
       }
       try {
         const r = await fetchNavFast(req, 1200);
-        if (r && r.ok) await c.put('./index.html', r.clone());
+        if (r && r.ok) await putClean(c, './index.html', r.clone());
         return r;
       } catch (e) {
         return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
@@ -195,7 +212,7 @@ self.addEventListener('fetch', (e) => {
     caches.match(req).then((hit) => hit || fetch(req, isAudio ? { cache: 'no-store' } : {}).then((r) => {
       if (r.ok) {
         const cp = r.clone();
-        caches.open(CACHE).then((c) => c.put(req, cp));
+        caches.open(CACHE).then((c) => putClean(c, req, cp));
       }
       return r;
     }).catch(() => caches.match(req, { ignoreSearch: true }).then((loose) => loose || hit)))
