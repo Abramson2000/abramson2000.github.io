@@ -1,7 +1,7 @@
 // Сервис-воркер словаря /cidian/.
 // Версию приложения (V) синхронно проставляет scripts/cidian_bump.py:
 // из неё собираются и ссылки ?v=, и имя кэша — так обновления доезжают до телефона.
-const V = '2.2.0';
+const V = '2.3.0';
 const CACHE = 'cidian-cache-v' + V;
 
 // ВАЖНО: Cloudflare (и иногда GitHub) отдают файлы сжатыми (content-encoding: br/gzip),
@@ -33,6 +33,8 @@ const ASSETS = [
   './icon-512-maskable-v4.png',
   './apple-touch-icon-v4.png',
   './landscape-v3.webp',
+  './fonts/noto-serif-sc-reg.woff2',
+  './fonts/noto-serif-sc-bold.woff2',
 ];
 const DATA_FILES = Array.from({ length: 18 }, (_, i) => './data-' + String(i + 1).padStart(2, '0') + '.js?v=' + V);
 const CORE = ASSETS.concat(DATA_FILES);
