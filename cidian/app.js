@@ -1,15 +1,22 @@
 /* Мои слова · 我的生词 — v2.0.0
    Разделы (Слова/Фразы/Названия), тэги вместо «пометок», статус Лаоши, версия в шапке. */
 const KINDS=[{k:'word',ru:'Слова',zh:'词',forms:['слово','слова','слов']},{k:'phrase',ru:'Фразы',zh:'短语',forms:['фраза','фразы','фраз']},{k:'name',ru:'Названия',zh:'名称',forms:['название','названия','названий']}];
+/* слова, которых ещё нет в Лаоши (всё остальное считается внесённым) */
+const LAOSHI_NEW=['尽量','澡堂'];
+const LAOSHI_SET=new Set(LAOSHI_NEW);
 const KMAP={};KINDS.forEach(x=>KMAP[x.k]=x);
-function mkBase(r,i){const t=String(r[3]||'').trim();return{id:i+1,order:i+1,kind:'word',hanzi:r[0]||'',pinyin:r[1]||'',translation:r[2]||'',tags:t?[t]:[],comment:'',laoshi:false,favorite:false,createdAt:'',updatedAt:''};}
+function mkBase(r,i){const t=String(r[3]||'').trim();const hz=r[0]||'';return{id:i+1,order:i+1,kind:'word',hanzi:hz,pinyin:r[1]||'',translation:r[2]||'',tags:t?[t]:[],comment:'',laoshi:!LAOSHI_SET.has(String(hz).trim()),favorite:false,createdAt:'',updatedAt:''};}
 const BASE_WORDS=(window.CIDIAN_BASE||[]).map(mkBase);
-const STORAGE='cidian-data-v1',VERSION='2.0.0',SNAP='cidian-backup-auto',MAX_BYTES=4200000;
+const STORAGE='cidian-data-v1',VERSION='2.0.1',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function migrate(w){const o={...w};if(!Array.isArray(o.tags))o.tags=String(o.note||'').trim()?[String(o.note).trim()]:[];o.tags=o.tags.map(t=>String(t).trim()).filter(Boolean);delete o.note;if(o.kind!=='phrase'&&o.kind!=='name')o.kind='word';o.laoshi=!!o.laoshi;o.favorite=!!o.favorite;o.comment=o.comment||'';return o;}
-function loadWords(){try{const x=JSON.parse(localStorage.getItem(STORAGE)||'null');if(Array.isArray(x)&&x.length)return x.map(migrate);}catch(e){}return BASE_WORDS.map(x=>({...x}));}
+function loadWords(){let arr=null;try{const x=JSON.parse(localStorage.getItem(STORAGE)||'null');if(Array.isArray(x)&&x.length)arr=x.map(migrate);}catch(e){}
+if(!arr)arr=BASE_WORDS.map(x=>({...x}));
+/* одноразовая разметка статуса Лаоши (28.09.2026): всё внесено, кроме 尽量 и 澡堂 */
+try{if(localStorage.getItem(MIGR_KEY)!==MIGR_TAG){snapMake('перед разметкой «в Лаоши» (28.09.2026)');arr.forEach(w=>{w.laoshi=!LAOSHI_SET.has(String(w.hanzi).trim());});localStorage.setItem(MIGR_KEY,MIGR_TAG);localStorage.setItem(STORAGE,JSON.stringify(arr));}}catch(e){}
+return arr;}
 function saveWords(){const blob=JSON.stringify(words);if(blob.length>MAX_BYTES&&!saveWords.warned){saveWords.warned=true;alert('Словарь занимает '+Math.round(blob.length/1024)+' КБ из ~5000 КБ. Сделайте резервную копию (Ещё → Резервная копия): при переполнении браузер может стереть данные.');}try{localStorage.setItem(STORAGE,blob);}catch(e){alert('Не удалось сохранить словарь на устройстве.');}updateCounts();}
 function snapInfo(){try{const j=JSON.parse(localStorage.getItem(SNAP)||'null');return j&&j.words?j:null;}catch(e){return null;}}
 function snapMake(reason){try{localStorage.setItem(SNAP,JSON.stringify({ts:new Date().toISOString(),reason,words}));}catch(e){}}
@@ -50,4 +57,4 @@ function resetBase(){if(confirm('Вернуть исходные 3913 слов �
 $$('.tab').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;if(t==='words')renderWords();if(t==='add')renderAdd();if(t==='more')renderMore();});
 $('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 renderWords();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=2.0.0',{updateViaCache:'none'}).catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=2.0.1',{updateViaCache:'none'}).catch(()=>{});
