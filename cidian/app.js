@@ -16,13 +16,30 @@ const ANKI_FIVE=['一般来说','总的来说','无论如何','得','误会'];
 const ANKI5_KEY='cidian-migr-anki5',ANKI5_TAG='anki-2026-09-28-five';
 const ANKI_PHRASE_ALL=["一路平安", "一路顺风", "不知不觉", "不管怎么说", "人山人海", "入乡随俗", "欲速不达", "恭喜发财", "万事如意", "早日康复", "带点儿什么", "空着手", "过意不去", "轮到你了", "通知大家", "在这儿集合", "我建议", "吸引注意力"];
 let ankiAdded=0;
+const NAMES_KEY='cidian-migr-names',NAMES_TAG='names-2026-09-28';
+const NAMES_LIST=[["辽宁","liáo níng","провинция Ляонин"],["沈阳","shěn yáng","город Шэньян"],["仙居","xiān jū","Сяньцзюй"],["神仙居","shén xiān jū","горы Шэньсяньцзюй"],["大同","dà tóng","город Датун"],["平遥","píng yáo","город Пинъяо"],["太原","tài yuán","Тайюань"],["天津","tiān jīn","Тяньцзинь"],["山西","shān xī","провинция Шаньси"],["张家界","zhāng jiā jiè","Чжанцзяцзе"],["芙蓉","fú róng","город Фужун/Фуронг"],["长沙","cháng shā","город Чанша"],["湖南","hú nán","провинция Хунань"],["长春","cháng chūn","город Чанчунь"],["吉林","jí lín","провинция Цзилинь"],["泰安","tài ān","город Тайань"],["济南","jǐ nán","город Цзинань"],["山东","shān dōng","провинция Шаньдун"],["台北","tái běi","Тайбэй"],["纽约","niǔ yuē","Нью-Йорк"],["拉萨","lā sà","город Лхаса"],["西藏","xī zàng","Тибет"],["黄河","huáng hé","река Хуанхэ"],["长江","cháng jiāng","река Янцзы"],["张掖","zhāng yè","Чжанъе"],["内蒙古","nèi měng gǔ","Внутренняя Монголия"],["呼和浩特","hū hé hào tè","Хух-Хото"],["西宁","xī níng","Синин"],["兰州","lán zhōu","Ланьчжоу"],["敦煌","dūn huáng","Дуньхуан"],["银川","yín chuān","Иньчуань"],["乌鲁木齐","wū lǔ mù qí","Урумчи"],["青海","qīng hǎi","провинция Цинхай"],["甘肃","gān sù","провинция Ганьсу"],["宁夏","níng xià","Нинся автономный район"],["新疆","xīn jiāng","Синьцзян"],["冥王星","míng wáng xīng","Плутон"],["海王星","hǎi wáng xīng","Нептун"],["天王星","tiān wáng xīng","Уран"],["土星","tǔ xīng","Сатурн"],["木星","mù xīng","Юпитер"],["火星","huǒ xīng","Марс"],["地球","dì qiú","Земля"],["金星","jīn xīng","Венера"],["水星","shuǐ xīng","Меркурий"],["湖北","hú běi","провинция Хубэй"],["武汉","wǔ hàn","Ухань"],["重庆","chóng qìng","Чунцин"],["深圳","shēn zhèn","Шэньчжэнь"],["支付宝","zhī fù bǎo","Alipay"],["石家庄","shí jiā zhuāng","Шицзячжуан"],["山海关","shān hǎi guān","Шаньхайгуань"],["北戴河","běi dài hé","Бэйдайхэ"],["秦皇岛","qín huáng dǎo","Циньхуандао"],["河北","hé běi","провинция Хэбэй"],["南昌","nán chāng","Наньчан"],["江西","jiāng xī","провинция Цзянси"],["广州","guǎng zhōu","Гуанчжоу"],["广东","guǎng dōng","провинция Гуандун"],["福州","fú zhōu","Фучжоу"],["福建","fú jiàn","провинция Фуцзянь"],["浙江","zhè jiāng","провинция Чжэцзян"],["南京","nán jīng","Нанкин"],["苏州","sū zhōu","Сучжоу"],["江苏","jiāng sū","провинция Цзянсу"],["陕西","shǎn xī","провинция Шэньси"],["郑州","zhèng zhōu","Чжэнчжоу"],["洛阳","luò yáng","Лоян"],["河南","hé nán","провинция Хэнань"],["哈尔滨","hā ěr bīn","Харбин"],["黑龙江","hēi lóng jiāng","провинция Хэйлунцзян"],["南宁","nán níng","Наньнин"],["广西","guǎng xī","провинция Гуанси"],["杭州","háng zhōu","Ханчжоу"],["滇菜","diān cài","юньнаньская кухня"],["津菜","jīn cài","тяньцзиньская кухня"],["楚菜","chǔ cài","хубэйская кухня"],["沪菜","hù cài","шанхайская кухня"],["豫菜","yù cài","хэнаньская кухня"],["京菜","jīng cài","пекинская кухня"],["东北菜","dōng běi cài","дунбэйская кухня"],["秦菜","qín cài","шаньсинская кухня"],["徽菜","huī cài","аньхойская кухня"],["湘菜","xiāng cài","хунаньская кухня"],["闽菜","mǐn cài","фуцзяньская кухня"],["浙菜","zhè cài","чжэцзянская кухня"],["粤菜","yuè cài","кантонская кухня"],["苏菜","sū cài","кухня Цзянсу"],["鲁菜","lǔ cài","шаньдунская кухня"],["川菜","chuān cài","сычуаньская кухня"],["麦当劳","mài dāng láo","Макдоналдс"],["肯德基","kěn dé jī","KFC"],["埃及","āi jí","Египет"],["泰国","tài guó","Таиланд"],["唐人街","táng rén jiē","чайна-таун"],["成都","chéng dū","Чэнду"],["德国","dé guó","Германия"],["乌克兰","wū kè lán","Украина"],["香港","xiāng gǎng","Гонконг"],["澳门","ào mén","Макао"],["奥地利","ào dì lì","Австрия"],["亚","yà","Азия"],["土耳其","tǔ ěr qí","Турция"],["长城","cháng chéng","Великая Китайская стена"],["台湾","tái wān","Тайвань"],["上海","shàng hǎi","Шанхай"],["四川","sì chuān","провинция Сычуань"],["非洲","fēi zhōu","Африка"],["故宫","gù gōng","Гугун, Запретный город"],["大雁塔","dà yàn tǎ","Большая пагода диких гусей"],["兵马俑","bīng mǎ yǒng","Терракотовая армия"]];
+let namesAdded=0;
+function applyNames(arr,force){try{
+  if(!force && localStorage.getItem(NAMES_KEY)===NAMES_TAG) return 0;
+  const S=new Map(NAMES_LIST.map(r=>[r[0],r]));
+  const have=new Map(arr.map(w=>[String(w.hanzi||'').trim(),w]));
+  let id=Math.max(0,...arr.map(w=>+w.id||0)),ord=Math.max(0,...arr.map(w=>+w.order||0)),added=0;
+  S.forEach((r,h)=>{const w=have.get(h);
+    if(w){ try{ if(w.kind!=='name') w.kind='name'; if(w.laoshi!==false) w.laoshi=false; if(!w.pinyin) w.pinyin=r[1]; w.updatedAt=new Date().toISOString(); }catch(_){} }
+    else { id++; ord++;
+      const nw={id,order:ord,kind:'name',hanzi:h,pinyin:r[1],translation:r[2],tags:[],comment:'',laoshi:false,favorite:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+      arr.push(nw); have.set(h,nw); added++; } });
+  localStorage.setItem(NAMES_KEY,NAMES_TAG);
+  snapStore('перед добавлением названий из прописей (28.09.2026)',arr.map(w=>({...w})));
+  localStorage.setItem(STORAGE,JSON.stringify(arr));
+  return added;}catch(e){return 0;}}
 const CIDIAN_INBOX='cidian-inbox-v1';
 let inboxAdded=0;
 /* контент из снимка базы Саши (28.09.2026): ярко-жёлтое — фразы, светло-жёлтое — названия */
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.6.1',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.6.2',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -34,6 +51,7 @@ try{if(localStorage.getItem(MIGR_KEY)!==MIGR_TAG){snapStore('перед разм
 applyContent(arr);
 applyNewFix(arr);
 ankiAdded=applyAnki(arr)+applyAnkiFive(arr);
+namesAdded=applyNames(arr);
 inboxAdded=applyInbox(arr);
 return arr;}
 /* приём слов из Тингли: она кладёт их в очередь cidian-inbox-v1 (тот же localStorage) */
@@ -160,7 +178,7 @@ function csvCell(s){s=String(s??'');return /[",\r\n;]/.test(s)?'"'+s.replace(/"/
 function exportCsv(){const rows=[['№','раздел','слово','pinyin','перевод','тэги','в Лаоши','заметка']];words.slice().sort((a,b)=>(a.order||0)-(b.order||0)).forEach(w=>rows.push([w.order,(KMAP[w.kind]||KMAP.word).ru,w.hanzi,w.pinyin,w.translation,(w.tags||[]).join(', '),w.laoshi?'да':'',w.comment]));dl('cidian-'+new Date().toISOString().slice(0,10)+'.csv','﻿'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n'),'text/csv;charset=utf-8');}
 function backupJson(){dl('cidian-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({version:VERSION,words},null,2),'application/json');}
 function restoreJson(e){const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);const a=Array.isArray(j)?j:j.words;if(!Array.isArray(a)||!a.length)throw 0;if(confirm('Заменить текущий словарь данными из резервной копии?')){snapMake('перед восстановлением из файла');words=a.map(migrate);saveWords();renderMore();}}catch(_){alert('Не удалось прочитать резервную копию.');}};r.readAsText(f);}
-function resetBase(){if(confirm('Вернуть исходные 3913 слов из первого листа Excel? Все локальные изменения (тэги и отметки Лаоши) будут удалены.')){snapMake('перед возвратом исходного списка');words=BASE_WORDS.map(x=>({...x}));applyContent(words,true);applyNewFix(words,true);applyAnki(words,true);applyAnkiFive(words,true);saveWords();renderMore();}}
+function resetBase(){if(confirm('Вернуть исходные 3913 слов из первого листа Excel? Все локальные изменения (тэги и отметки Лаоши) будут удалены.')){snapMake('перед возвратом исходного списка');words=BASE_WORDS.map(x=>({...x}));applyContent(words,true);applyNewFix(words,true);applyAnki(words,true);applyAnkiFive(words,true);applyNames(words,true);saveWords();renderMore();}}
 $$('.tab').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;if(t==='words')renderWords();if(t==='add')renderAdd();if(t==='more')renderMore();});
 $('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 // ===== шторки: смахнуть за левый край (вправо) или за верхний (вниз) + анимация =====
@@ -226,10 +244,10 @@ function sheetSwipe(){
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#modal').classList.contains('hidden')) closeModal(); });
 sheetSwipe();
 renderWords();
-if(ankiAdded||inboxAdded)setTimeout(()=>toast('Добавлено: '+(ankiAdded?(ankiAdded+' из Anki'):'')+(ankiAdded&&inboxAdded?' · ':'')+(inboxAdded?('из Тингли '+inboxAdded):'')+' — все как «не в Лаоши»'),400);
+if(ankiAdded||inboxAdded||namesAdded)setTimeout(()=>toast('Добавлено: '+(ankiAdded?(ankiAdded+' из Anki'):'')+(ankiAdded&&inboxAdded?' · ':'')+(inboxAdded?('из Тингли '+inboxAdded):'')+(namesAdded?((ankiAdded||inboxAdded?' · ':'')+'названий из прописей '+namesAdded):'')+' — все как «не в Лаоши»'),400);
 if('serviceWorker' in navigator){
   let hadController=!!navigator.serviceWorker.controller, updating=false;
-  navigator.serviceWorker.register('sw.js?v=2.6.1',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=2.6.2',{updateViaCache:'none'}).then(reg=>{
     // самолечение: проверяем обновление при каждом возврате в приложение
     const chk=()=>{ if(document.visibilityState!=='visible'||updating) return; updating=true;
       reg.update().catch(()=>{}).then(()=>{ updating=false; }); };
