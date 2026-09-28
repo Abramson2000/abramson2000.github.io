@@ -1,5 +1,5 @@
 const BASE_WORDS=(window.CIDIAN_BASE||[]).map((r,i)=>({id:i+1,order:i+1,hanzi:r[0]||'',pinyin:r[1]||'',translation:r[2]||'',note:r[3]||'',comment:'',favorite:false,createdAt:'',updatedAt:''}));
-const STORAGE='cidian-data-v1', VERSION='1.1.2', SNAP='cidian-backup-auto', MAX_BYTES=4200000;
+const STORAGE='cidian-data-v1', VERSION='1.1.3', SNAP='cidian-backup-auto', MAX_BYTES=4200000;
 let words=loadWords(), currentTab='words', sortMode='order', filter='all', query='', visible=120, editingId=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
