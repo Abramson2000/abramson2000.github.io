@@ -721,11 +721,12 @@ input[type=search]::-webkit-search-cancel-button { display: none; }
   text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .site-chip:hover { border-color: var(--brand); }
-/* v4.2.0: карточки открываются без мерцающего скелетона — данные спокойно дорисовываются */
+/* v3.27.0: скелет карточки — панель открывается мгновенно, данные догоняются */
 .card-skel { padding: 6px 0 2px; }
-.skel-line { height: 11px; border-radius: 6px; background: #ececeb; margin: 8px 0; opacity: .55; }
+.skel-line { height: 11px; border-radius: 6px; background: linear-gradient(90deg, #ececec 25%, #f6f6f6 37%, #ececec 63%); background-size: 400% 100%; animation: skel 1.2s ease-in-out infinite; margin: 8px 0; }
 .skel-line.short { width: 55%; }
-.skel-block { height: 76px; border-radius: 12px; background: #ececeb; margin: 12px 0; opacity: .45; }
+.skel-block { height: 76px; border-radius: 12px; background: linear-gradient(90deg, #ececec 25%, #f6f6f6 37%, #ececec 63%); background-size: 400% 100%; animation: skel 1.2s ease-in-out infinite; margin: 12px 0; }
+@keyframes skel { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
 .add-btn {
   flex: none; width: 42px; height: 42px; border-radius: 12px;
   background: var(--brand); color: #fff; border: none; font-size: 22px; line-height: 1;
@@ -6418,7 +6419,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-13';
+  const SW_BUILD = 'offline-safe-12';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
