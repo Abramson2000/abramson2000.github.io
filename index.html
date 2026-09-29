@@ -340,6 +340,13 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
   .modal-card { max-height: 100dvh; padding-bottom: calc(14px + env(safe-area-inset-bottom)); scroll-padding-bottom: 96px; }
   .modal-card .btn { position: sticky; bottom: 0; z-index: 3; box-shadow: 0 -8px 16px rgba(245,245,244,.95); }
   .modal-card .btn-row .btn { box-shadow: none; }
+  .relogin-box { position: fixed; inset: 0; background: rgba(20,18,16,.55); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 18px; }
+  .relogin-card { background: #fff; border-radius: 20px; padding: 22px 18px 14px; max-width: 420px; width: 100%; box-shadow: 0 18px 50px rgba(0,0,0,.28); position: relative; text-align: center; }
+  .relogin-x { position: absolute; top: 8px; right: 10px; border: 0; background: none; font-size: 18px; color: #9b9894; cursor: pointer; }
+  .relogin-ico { font-size: 30px; line-height: 1; }
+  .relogin-title { font-size: 19px; font-weight: 700; margin: 8px 0 8px; }
+  .relogin-text { font-size: 15px; line-height: 1.55; color: #57575f; margin-bottom: 14px; }
+  .relogin-card .btn { width: 100%; margin-bottom: 8px; }
 }
 .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .modal-head h2 { margin: 0; font-size: 18px; }
@@ -1834,7 +1841,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.1.3';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.1.4';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2275,6 +2282,61 @@ function showApp() {
   document.body.classList.remove('logged-out');
 }
 
+/* ===== Самолечение входа: если приложение открылось «из памяти», а не по токену ===== */
+let SESSION_FROM_STORAGE = false;
+const RELOGIN_SNOOZE_KEY = 'crm-relogin-snooze-v1';
+
+function reloginSnoozed() {
+  try {
+    const v = localStorage.getItem(RELOGIN_SNOOZE_KEY);
+    return !!(v && Date.now() - Number(v) < 6 * 3600 * 1000);
+  } catch (e) { return false; }
+}
+
+async function healSession(silent) {
+  if (!SESSION_FROM_STORAGE) return;   // сессия живая — не мешаем
+  if (!navigator.onLine) return;       // без сети не дёргаем
+  if (!sb || !sb.auth) return;
+  // сначала пробуем молча восстановить сессию по refresh-токену
+  try {
+    const r = await withTimeout(sb.auth.refreshSession(), 8000, 'relogin-refresh');
+    const s2 = r && r.data && r.data.session;
+    if (s2 && s2.user) { try { localStorage.removeItem(RELOGIN_SNOOZE_KEY); } catch (e) {} location.reload(); return; }
+  } catch (e) {}
+  if (reloginSnoozed()) return;        // уже просили недавно
+  showReLogin();
+}
+
+function showReLogin() {
+  if (document.getElementById('reloginBox')) return;
+  const box = document.createElement('div');
+  box.id = 'reloginBox';
+  box.className = 'relogin-box';
+  box.innerHTML = `
+    <div class="relogin-card">
+      <button class="relogin-x" onclick="hideReLogin(true)">✕</button>
+      <div class="relogin-ico">🔒</div>
+      <div class="relogin-title">Сессия истекла</div>
+      <div class="relogin-text">Приложение открылось без свежего входа, поэтому данные не подтягиваются — списки выглядят пустыми. База цела: нажми «Войти заново», и всё вернётся.</div>
+      <button class="btn" onclick="crmReLogin()">Войти заново</button>
+      <button class="btn ghost" onclick="hideReLogin(true)">Позже</button>
+    </div>`;
+  box.addEventListener('click', (e) => { if (e.target === box) hideReLogin(true); });
+  document.body.appendChild(box);
+}
+
+function hideReLogin(snooze) {
+  if (snooze) { try { localStorage.setItem(RELOGIN_SNOOZE_KEY, String(Date.now())); } catch (e) {} }
+  const b = document.getElementById('reloginBox');
+  if (b) b.remove();
+}
+
+async function crmReLogin() {
+  try { if (sb && sb.auth) await sb.auth.signOut(); } catch (e) {}
+  try { localStorage.removeItem('crm-offline-user'); } catch (e) {}
+  location.reload();
+}
+
 async function bootstrap() {
   if (window.__d) window.__d.m.push('boot ' + (Date.now() - window.__d.t) + 'ms');
   if (!sb) {  // SDK не загрузился — понятное сообщение вместо краха
@@ -2294,7 +2356,7 @@ async function bootstrap() {
     try {
       const raw = localStorage.getItem('crm-offline-user');
       const saved = raw ? JSON.parse(raw) : null;
-      if (saved && saved.email) user = { email: saved.email };
+      if (saved && saved.email) { user = { email: saved.email }; SESSION_FROM_STORAGE = true; }
     } catch (_) {}
   }
   if (window.__d) window.__d.m.push('user ' + (Date.now() - window.__d.t) + 'ms');
@@ -2345,6 +2407,7 @@ async function bootstrap() {
   }
   if (isGuest && state.view === 'money') state.view = 'clinics';
   showApp();
+  try { healSession(true); } catch (e) {}
   applyAccent();
   const verLine = 'v' + APP_VER + ' · © Abramson';
   document.getElementById('brandVersion').textContent = verLine;
@@ -6356,7 +6419,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-11';
+  const SW_BUILD = 'offline-safe-12';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
