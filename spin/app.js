@@ -778,11 +778,20 @@ function userName(user) {
   if (ru) return ru;
   return raw[0].toUpperCase() + raw.slice(1);
 }
+function stampVersion() {
+  // единая точка: номер сборки во всех «названиях» приложения
+  try {
+    const txt = 'v.' + APP_VER + ' · © Abramson';
+    const s = document.getElementById('sideVer'); if (s) s.textContent = txt;
+    const m = document.getElementById('mobVer'); if (m) m.textContent = txt;
+  } catch (e) {}
+}
 async function boot(user) {
   USER = { id: user.id, email: user.email || '', name: userName(user) };
   LS_KEY = 'spin-lab-v1:' + USER.id;
   try { localStorage.setItem('spin-user', JSON.stringify(USER)); } catch (e) {} // для офлайн-входа (авиарежим)
   try { if (USER.email) localStorage.setItem('spin-last-email', USER.email); } catch (e) {} // экран входа знает логин
+  stampVersion();
   refreshExtra();
   loadState();
   loadExtra();
