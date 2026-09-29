@@ -2095,57 +2095,57 @@ const UNITS = [
     "words": [
      {
       "zh": "耳机",
-      "py": "er ji",
+      "py": "ěrjī",
       "ru": "наушники"
      },
      {
       "zh": "放假",
-      "py": "fang jia",
+      "py": "fàngjià",
       "ru": "каникулы"
      },
      {
       "zh": "旅游",
-      "py": "lv you",
+      "py": "lǚyóu",
       "ru": "путешествовать"
      },
      {
       "zh": "听力",
-      "py": "ting li",
+      "py": "tīnglì",
       "ru": "аудирование"
      },
      {
       "zh": "高级",
-      "py": "gao ji",
+      "py": "gāojí",
       "ru": "продвинутый"
      },
      {
       "zh": "中级",
-      "py": "zhong ji",
+      "py": "zhōngjí",
       "ru": "средний"
      },
      {
       "zh": "放",
-      "py": "fang",
+      "py": "fàng",
       "ru": "ставить"
      },
      {
       "zh": "摘",
-      "py": "zhai",
+      "py": "zhāi",
       "ru": "снимать"
      },
      {
       "zh": "首",
-      "py": "shou",
+      "py": "shǒu",
       "ru": "первый"
      },
      {
       "zh": "好听",
-      "py": "hao ting",
+      "py": "hǎotīng",
       "ru": "приятный"
      },
      {
       "zh": "按",
-      "py": "an",
+      "py": "àn",
       "ru": "нажимать"
      }
     ]
@@ -2159,12 +2159,12 @@ const UNITS = [
     "words": [
      {
       "zh": "西班牙",
-      "py": "xi ban ya",
+      "py": "xībānyá",
       "ru": "Испания"
      },
      {
       "zh": "罗宾",
-      "py": "luo bin",
+      "py": "luóbīn",
       "ru": "Робин"
      }
     ]
@@ -2178,27 +2178,27 @@ const UNITS = [
     "words": [
      {
       "zh": "戴上耳机",
-      "py": "dai shang er ji",
+      "py": "dàishàng ěrjī",
       "ru": "надеть наушники"
      },
      {
       "zh": "放暑假",
-      "py": "fang shu jia",
+      "py": "fàngshǔjià",
       "ru": "летние каникулы"
      },
      {
       "zh": "去外国旅游",
-      "py": "qu wai guo lv you",
+      "py": "qùwài guólǚ yóu",
       "ru": "путешествовать за границу"
      },
      {
       "zh": "初级、中级和高级",
-      "py": "chu ji 、 zhong ji he gao ji",
+      "py": "chūjí、zhōngjí hégāo jí",
       "ru": "начальный, средний и продвинутый"
      },
      {
       "zh": "上听力课",
-      "py": "shang ting li ke",
+      "py": "shàngtīng lìkè",
       "ru": "ходить на аудирование"
      }
     ]
@@ -2576,77 +2576,77 @@ const UNITS = [
     "words": [
      {
       "zh": "自助餐",
-      "py": "zi zhu can",
+      "py": "zìzhùcān",
       "ru": "шведский стол"
      },
      {
       "zh": "中餐",
-      "py": "zhong can",
+      "py": "zhōngcān",
       "ru": "китайская кухня"
      },
      {
       "zh": "西餐",
-      "py": "xi can",
+      "py": "xīcān",
       "ru": "западная кухня"
      },
      {
       "zh": "炒饭",
-      "py": "chao fan",
+      "py": "chǎofàn",
       "ru": "жареный рис"
      },
      {
       "zh": "炒菜",
-      "py": "chao cai",
+      "py": "chǎocài",
       "ru": "жареные овощи"
      },
      {
       "zh": "饭卡",
-      "py": "fan ka",
+      "py": "fànkǎ",
       "ru": "карта питания"
      },
      {
       "zh": "充",
-      "py": "chong",
+      "py": "chōng",
       "ru": "пополнять"
      },
      {
       "zh": "好几",
-      "py": "hao ji",
+      "py": "hǎojǐ",
       "ru": "несколько"
      },
      {
       "zh": "座位",
-      "py": "zuo wei",
+      "py": "zuòwèi",
       "ru": "место"
      },
      {
       "zh": "排队",
-      "py": "pai dui",
+      "py": "páiduì",
       "ru": "стоять в очереди"
      },
      {
       "zh": "速度",
-      "py": "su du",
+      "py": "sùdù",
       "ru": "скорость"
      },
      {
       "zh": "挑",
-      "py": "tiao",
+      "py": "tiāo",
       "ru": "выбирать"
      },
      {
       "zh": "刷卡",
-      "py": "shua ka",
+      "py": "shuākǎ",
       "ru": "оплачивать картой"
      },
      {
       "zh": "叉子",
-      "py": "cha zi",
+      "py": "chāzi",
       "ru": "вилка"
      },
      {
       "zh": "筷子",
-      "py": "kuai zi",
+      "py": "kuàizi",
       "ru": "палочки"
      }
     ]
@@ -2660,17 +2660,17 @@ const UNITS = [
     "words": [
      {
       "zh": "苏珊",
-      "py": "su shan",
+      "py": "sūshān",
       "ru": "Сьюзан"
      },
      {
       "zh": "卡琳",
-      "py": "ka lin",
+      "py": "kǎlín",
       "ru": "Карин"
      },
      {
       "zh": "意大利",
-      "py": "yi da li",
+      "py": "yìdàlì",
       "ru": "Италия"
      }
     ]
@@ -2684,32 +2684,32 @@ const UNITS = [
     "words": [
      {
       "zh": "吃自助餐",
-      "py": "chi zi zhu can",
+      "py": "chīzì zhùcān",
       "ru": "есть шведский стол"
      },
      {
       "zh": "中餐和西餐",
-      "py": "zhong can he xi can",
+      "py": "zhōngcān héxī cān",
       "ru": "китайская и западная кухня"
      },
      {
       "zh": "一碗炒饭和一盘炒菜",
-      "py": "yi wan chao fan he yi pan chao cai",
+      "py": "yīwǎn chǎofàn héyī pánchǎo cài",
       "ru": "миска жареного риса и тарелка жареного блюда"
      },
      {
       "zh": "用饭卡买饭",
-      "py": "yong fan ka mai fan",
+      "py": "yòngfàn kǎmǎi fàn",
       "ru": "покупать еду по карточке питания"
      },
      {
       "zh": "给饭卡充值",
-      "py": "gei fan ka chong zhi",
+      "py": "gěifàn kǎchōng zhí",
       "ru": "пополнять карточку питания"
      },
      {
       "zh": "排队刷卡",
-      "py": "pai dui shua ka",
+      "py": "páiduì shuākǎ",
       "ru": "стоять в очереди и оплачивать картой"
      }
     ]
@@ -3087,87 +3087,87 @@ const UNITS = [
     "words": [
      {
       "zh": "鱼香肉丝",
-      "py": "yu xiang rou si",
+      "py": "yúxiāng ròusī",
       "ru": "свинина по-сычуаньски"
      },
      {
       "zh": "尝",
-      "py": "chang",
+      "py": "cháng",
       "ru": "пробовать"
      },
      {
       "zh": "味道",
-      "py": "wei dao",
+      "py": "wèidào",
       "ru": "вкус"
      },
      {
       "zh": "递",
-      "py": "di",
+      "py": "dì",
       "ru": "передавать"
      },
      {
       "zh": "双",
-      "py": "shuang",
+      "py": "shuāng",
       "ru": "пара"
      },
      {
       "zh": "咸",
-      "py": "xian",
+      "py": "xián",
       "ru": "соленый"
      },
      {
       "zh": "欢迎光临",
-      "py": "huan ying guang lin",
+      "py": "huānyíng guānglín",
       "ru": "добро пожаловать"
      },
      {
       "zh": "菜单",
-      "py": "cai dan",
+      "py": "càidān",
       "ru": "меню"
      },
      {
       "zh": "点菜",
-      "py": "dian cai",
+      "py": "diǎncài",
       "ru": "заказывать блюда"
      },
      {
       "zh": "麻婆豆腐",
-      "py": "ma po dou fu",
+      "py": "mápó dòufǔ",
       "ru": "мапо тофу"
      },
      {
       "zh": "西红柿炒鸡蛋",
-      "py": "xi hong shi chao ji dan",
+      "py": "xīhóngshì chǎojī dàn",
       "ru": "помидоры с яйцом"
      },
      {
       "zh": "买单",
-      "py": "mai dan",
+      "py": "mǎidān",
       "ru": "оплатить счет"
      },
      {
       "zh": "关于",
-      "py": "guan yu",
+      "py": "guānyú",
       "ru": "о"
      },
      {
       "zh": "专家",
-      "py": "zhuan jia",
+      "py": "zhuānjiā",
       "ru": "эксперт"
      },
      {
       "zh": "辣",
-      "py": "la",
+      "py": "là",
       "ru": "острый"
      },
      {
       "zh": "麻",
-      "py": "ma",
+      "py": "má",
       "ru": "пряный, онемение"
      },
      {
       "zh": "甜",
-      "py": "tian",
+      "py": "tián",
       "ru": "сладкий"
      }
     ]
@@ -3181,7 +3181,7 @@ const UNITS = [
     "words": [
      {
       "zh": "四川",
-      "py": "si chuan",
+      "py": "sìchuān",
       "ru": "Сычуань"
      }
     ]
@@ -3195,50 +3195,50 @@ const UNITS = [
     "words": [
      {
       "zh": "尝一下这个菜",
-      "py": "chang yi xia zhe ge cai",
+      "py": "chángyī xiàzhè gècài",
       "ru": "попробуй это блюдо"
      },
      {
-      "zh": "味道好极了", "py": "wei dao hao jile",
+      "zh": "味道好极了", "py": "wèidào hǎojí le",
       "ru": "вкус отличный"
      },
      {
       "zh": "递给我一双筷子",
-      "py": "di gei wo yi shuang kuai zi",
+      "py": "dìgěi wǒyī shuāngkuài zi",
       "ru": "передай мне пару палочек"
      },
      {
       "zh": "很好吃",
-      "py": "hen hao chi",
+      "py": "hěnhǎochī",
       "ru": "очень вкусно"
      },
      {
-      "zh": "太咸了", "py": "tai xianle",
+      "zh": "太咸了", "py": "tàixiánle",
       "ru": "слишком соленый"
      },
      {
       "zh": "饭馆的菜单",
-      "py": "fan guan de cai dan",
+      "py": "fànguǎn decài dān",
       "ru": "меню ресторана"
      },
      {
       "zh": "在饭馆点菜",
-      "py": "zai fan guan dian cai",
+      "py": "zàifàn guǎndiǎn cài",
       "ru": "заказывать блюда в ресторане"
      },
      {
       "zh": "关于菜名的研究",
-      "py": "guan yu cai ming de yan jiu",
+      "py": "guānyú càimíng deyán jiū",
       "ru": "исследование названий блюд"
      },
      {
       "zh": "吃完饭买单",
-      "py": "chi wan fan mai dan",
+      "py": "chīwán fànmǎi dān",
       "ru": "оплатить счет после еды"
      },
      {
       "zh": "又辣又麻又甜",
-      "py": "you la you ma you tian",
+      "py": "yòulà yòumá yòutián",
       "ru": "и острый, и пряный, и сладкий"
      }
     ]
@@ -3522,67 +3522,67 @@ const UNITS = [
     "words": [
      {
       "zh": "搬家",
-      "py": "ban jia",
+      "py": "bānjiā",
       "ru": "25. 对话1 我又搬家了"
      },
      {
       "zh": "租",
-      "py": "zu",
+      "py": "zū",
       "ru": "我们还没想好租不租呢"
      },
      {
       "zh": "套",
-      "py": "tao",
+      "py": "tào",
       "ru": "套"
      },
      {
       "zh": "公寓",
-      "py": "gong yu",
+      "py": "gōngyù",
       "ru": "公寓"
      },
      {
       "zh": "卧室",
-      "py": "wo shi",
+      "py": "wòshì",
       "ru": "卧室和客厅"
      },
      {
       "zh": "客厅",
-      "py": "ke ting",
+      "py": "kètīng",
       "ru": "客厅"
      },
      {
       "zh": "房租",
-      "py": "fang zu",
+      "py": "fángzū",
       "ru": "арендная плата"
      },
      {
       "zh": "中介公司",
-      "py": "zhong jie gong si",
+      "py": "zhōngjiè gōngsī",
       "ru": "中介公司"
      },
      {
       "zh": "房东",
-      "py": "fang dong",
+      "py": "fángdōng",
       "ru": "房东"
      },
      {
       "zh": "于是",
-      "py": "yu shi",
+      "py": "yúshì",
       "ru": "于是"
      },
      {
       "zh": "出租",
-      "py": "chu zu",
+      "py": "chūzū",
       "ru": "сдаётся в аренду"
      },
      {
       "zh": "位置",
-      "py": "wei zhi",
+      "py": "wèizhì",
       "ru": "位置"
      },
      {
       "zh": "交通",
-      "py": "jiao tong",
+      "py": "jiāotōng",
       "ru": "交通"
      }
     ]
@@ -3596,7 +3596,7 @@ const UNITS = [
     "words": [
      {
       "zh": "爱云",
-      "py": "ai yun",
+      "py": "àiyún",
       "ru": "爱云"
      }
     ]
@@ -3610,27 +3610,27 @@ const UNITS = [
     "words": [
      {
       "zh": "下个月搬家",
-      "py": "xia ge yue ban jia",
+      "py": "xiàgè yuèbān jiā",
       "ru": "переезд в следующем месяце"
      },
      {
       "zh": "租一套公寓",
-      "py": "zu yi tao gong yu",
+      "py": "zūyī tàogōng yù",
       "ru": "снять квартиру"
      },
      {
       "zh": "卧室和客厅",
-      "py": "wo shi he ke ting",
+      "py": "wòshì hékè tīng",
       "ru": "спальня и гостиная"
      },
      {
       "zh": "一室一厅",
-      "py": "yi shi yi ting",
+      "py": "yīshì yītīng",
       "ru": "一室一厅"
      },
      {
       "zh": "房租很贵",
-      "py": "fang zu hen gui",
+      "py": "fángzū hěnguì",
       "ru": "аренда дорогая"
      }
     ]
@@ -3934,72 +3934,72 @@ const UNITS = [
     "words": [
      {
       "zh": "葡萄",
-      "py": "pu tao",
+      "py": "pútáo",
       "ru": "葡萄"
      },
      {
       "zh": "样",
-      "py": "yang",
+      "py": "yàng",
       "ru": "样"
      },
      {
       "zh": "找",
-      "py": "zhao",
+      "py": "zhǎo",
       "ru": "找"
      },
      {
       "zh": "猪肉",
-      "py": "zhu rou",
+      "py": "zhūròu",
       "ru": "猪肉"
      },
      {
       "zh": "称",
-      "py": "cheng",
+      "py": "chēng",
       "ru": "称"
      },
      {
       "zh": "牛肉",
-      "py": "niu rou",
+      "py": "niúròu",
       "ru": "牛肉"
      },
      {
       "zh": "说法",
-      "py": "shuo fa",
+      "py": "shuōfǎ",
       "ru": "说法"
      },
      {
       "zh": "比如",
-      "py": "bi ru",
+      "py": "bǐrú",
       "ru": "比如"
      },
      {
       "zh": "价格",
-      "py": "jia ge",
+      "py": "jiàgé",
       "ru": "价格"
      },
      {
       "zh": "而",
-      "py": "er",
+      "py": "ér",
       "ru": "而"
      },
      {
       "zh": "农贸市场",
-      "py": "nong mao shi chang",
+      "py": "nóngmào shìchǎng",
       "ru": "农贸市场"
      },
      {
       "zh": "蔬菜",
-      "py": "shu cai",
+      "py": "shūcài",
       "ru": "овощи"
      },
      {
       "zh": "够",
-      "py": "gou",
+      "py": "gòu",
       "ru": "достаточно"
      },
      {
       "zh": "秤",
-      "py": "cheng",
+      "py": "chèng",
       "ru": "весы"
      }
     ]
@@ -4013,12 +4013,12 @@ const UNITS = [
     "words": [
      {
       "zh": "山东",
-      "py": "shan dong",
+      "py": "shāndōng",
       "ru": "Шаньдун"
      },
      {
       "zh": "新疆",
-      "py": "xin jiang",
+      "py": "xīnjiāng",
       "ru": "Синьцзян"
      }
     ]
@@ -4322,82 +4322,82 @@ const UNITS = [
     "words": [
      {
       "zh": "电梯",
-      "py": "dian ti",
+      "py": "diàntī",
       "ru": "лифт"
      },
      {
       "zh": "钥匙",
-      "py": "yao shi",
+      "py": "yàoshi",
       "ru": "ключ"
      },
      {
       "zh": "就",
-      "py": "jiu",
+      "py": "jiù",
       "ru": "именно; тогда"
      },
      {
       "zh": "楼梯",
-      "py": "lou ti",
+      "py": "lóutī",
       "ru": "лестница"
      },
      {
       "zh": "怎么办",
-      "py": "zen me ban",
+      "py": "zěnmebàn",
       "ru": "что делать"
      },
      {
       "zh": "睡过头",
-      "py": "shui guo tou",
+      "py": "shuìguòtóu",
       "ru": "проспать"
      },
      {
       "zh": "司机",
-      "py": "si ji",
+      "py": "sījī",
       "ru": "водитель"
      },
      {
       "zh": "警察",
-      "py": "jing cha",
+      "py": "jǐngchá",
       "ru": "полиция"
      },
      {
       "zh": "大声",
-      "py": "da sheng",
+      "py": "dàshēng",
       "ru": "громко"
      },
      {
       "zh": "按时",
-      "py": "an shi",
+      "py": "ànshí",
       "ru": "вовремя"
      },
      {
       "zh": "刷牙",
-      "py": "shua ya",
+      "py": "shuāyá",
       "ru": "чистить зубы"
      },
      {
       "zh": "背",
-      "py": "bei",
+      "py": "bèi",
       "ru": "спина; носить за спиной"
      },
      {
       "zh": "书包",
-      "py": "shu bao",
+      "py": "shūbāo",
       "ru": "рюкзак"
      },
      {
       "zh": "打车",
-      "py": "da che",
+      "py": "dǎchē",
       "ru": "взять такси"
      },
      {
       "zh": "多……啊",
-      "py": "duo …… a",
+      "py": "duō… …a",
       "ru": "какой...!"
      },
      {
       "zh": "不好意思",
-      "py": "bu hao yi si",
+      "py": "bùhǎoyìsī",
       "ru": "извините"
      }
     ]
@@ -4411,7 +4411,7 @@ const UNITS = [
     "words": [
      {
       "zh": "罗卫平",
-      "py": "luo wei ping",
+      "py": "luówèipíng",
       "ru": "Ло Вэйпин"
      }
     ]
@@ -4679,72 +4679,72 @@ const UNITS = [
     "words": [
      {
       "zh": "短信",
-      "py": "duan xin",
+      "py": "duǎnxìn",
       "ru": "СМС"
      },
      {
       "zh": "开机",
-      "py": "kai ji",
+      "py": "kāijī",
       "ru": "включить"
      },
      {
       "zh": "挂",
-      "py": "gua",
+      "py": "guà",
       "ru": "вешать; повесить трубку"
      },
      {
       "zh": "拼音",
-      "py": "pin yin",
+      "py": "pīnyīn",
       "ru": "пиньинь"
      },
      {
       "zh": "替",
-      "py": "ti",
+      "py": "tì",
       "ru": "заменять; вместо"
      },
      {
       "zh": "打电话",
-      "py": "da dian hua",
+      "py": "dǎdiànhuà",
       "ru": "звонить по телефону"
      },
      {
       "zh": "通",
-      "py": "tong",
+      "py": "tōng",
       "ru": "соединить; пройти"
      },
      {
       "zh": "怎么回事儿",
-      "py": "zen me hui shi er",
+      "py": "zěnmehuíshì ér",
       "ru": "в чем дело?"
      },
      {
       "zh": "保存",
-      "py": "bao cun",
+      "py": "bǎocún",
       "ru": "сохранить"
      },
      {
       "zh": "男朋友",
-      "py": "nan peng you",
+      "py": "nánpéngyǒu",
       "ru": "парень"
      },
      {
       "zh": "关机",
-      "py": "guan ji",
+      "py": "guānjī",
       "ru": "выключен (о телефоне); выключить"
      },
      {
       "zh": "开会",
-      "py": "kai hui",
+      "py": "kāihuì",
       "ru": "быть на совещании"
      },
      {
       "zh": "占线",
-      "py": "zhan xian",
+      "py": "zhànxiàn",
       "ru": "занято (о линии)"
      },
      {
       "zh": "不是……就是……",
-      "py": "bu shi……jiu shi……",
+      "py": "búshì …… jiùshì ……",
       "ru": "то ли…, то ли…"
      }
     ]
@@ -4758,12 +4758,12 @@ const UNITS = [
     "words": [
      {
       "zh": "志华",
-      "py": "zhi hua",
+      "py": "zhìhuá",
       "ru": "Чжихуа"
      },
      {
       "zh": "南京",
-      "py": "nan jing",
+      "py": "nánjīng",
       "ru": "Нанкин"
      }
     ]
@@ -5067,82 +5067,82 @@ const UNITS = [
     "words": [
      {
       "zh": "奶奶",
-      "py": "nai nai",
+      "py": "nǎinǎi",
       "ru": "бабушка"
      },
      {
       "zh": "放学",
-      "py": "fang xue",
+      "py": "fàngxué",
       "ru": "после уроков"
      },
      {
       "zh": "打字",
-      "py": "da zi",
+      "py": "dǎzì",
       "ru": "печатать"
      },
      {
       "zh": "想起来",
-      "py": "xiang qi lai",
+      "py": "xiǎngqǐlái",
       "ru": "вспомнить"
      },
      {
       "zh": "邮件",
-      "py": "you jian",
+      "py": "yóujiàn",
       "ru": "письмо"
      },
      {
       "zh": "电子邮件",
-      "py": "dian zi you jian",
+      "py": "diànziyóujiàn",
       "ru": "электронное письмо"
      },
      {
       "zh": "邮箱",
-      "py": "you xiang",
+      "py": "yóuxiāng",
       "ru": "почтовый ящик"
      },
      {
       "zh": "电子邮箱",
-      "py": "dian zi you xiang",
+      "py": "diànziyóuxiāng",
       "ru": "электронный почтовый ящик"
      },
      {
       "zh": "上网",
-      "py": "shang wang",
+      "py": "shàngwǎng",
       "ru": "выходить в интернет"
      },
      {
       "zh": "网站",
-      "py": "wang zhan",
+      "py": "wǎngzhàn",
       "ru": "сайт"
      },
      {
       "zh": "输入",
-      "py": "shu ru",
+      "py": "shūrù",
       "ru": "вводить"
      },
      {
       "zh": "密码",
-      "py": "mi ma",
+      "py": "mìmǎ",
       "ru": "пароль"
      },
      {
       "zh": "孙子",
-      "py": "sun zi",
+      "py": "sūnzi",
       "ru": "внук"
      },
      {
       "zh": "附件",
-      "py": "fu jian",
+      "py": "fùjiàn",
       "ru": "вложение"
      },
      {
       "zh": "记得",
-      "py": "ji de",
+      "py": "jìde",
       "ru": "помнить"
      },
      {
       "zh": "网址",
-      "py": "wang zhi",
+      "py": "wǎngzhǐ",
       "ru": "адрес сайта"
      }
     ]
@@ -5156,7 +5156,7 @@ const UNITS = [
     "words": [
      {
       "zh": "雅虎网站",
-      "py": "ya hu wang zhan",
+      "py": "yǎhǔ wǎngzhàn",
       "ru": "сайт Yahoo"
      }
     ]
@@ -5170,32 +5170,32 @@ const UNITS = [
     "words": [
      {
       "zh": "一封电子邮件",
-      "py": "yi feng dian zi you jian",
+      "py": "yīfēng diànziyóujiàn",
       "ru": "электронное письмо"
      },
      {
       "zh": "奶奶和孙子",
-      "py": "nai nai he sun zi",
+      "py": "nǎinǎi hésūn zi",
       "ru": "бабушка и внук"
      },
      {
       "zh": "用电脑打字",
-      "py": "yong dian nao da zi",
+      "py": "yòngdiàn nǎodǎ zì",
       "ru": "печатать на компьютере"
      },
      {
       "zh": "放学以后",
-      "py": "fang xue yi hou",
+      "py": "fàngxué yǐhòu",
       "ru": "после уроков"
      },
      {
       "zh": "上网看新闻",
-      "py": "shang wang kan xin wen",
+      "py": "shàngwǎng kànxīn wén",
       "ru": "смотреть новости в интернете"
      },
      {
       "zh": "输入邮箱的密码",
-      "py": "shu ru you xiang de mi ma",
+      "py": "shūrù yóuxiāng demì mǎ",
       "ru": "ввести пароль от почты"
      }
     ]
@@ -5499,77 +5499,77 @@ const UNITS = [
     "words": [
      {
       "zh": "让",
-      "py": "rang",
+      "py": "ràng",
       "ru": "позволять"
      },
      {
       "zh": "摔",
-      "py": "shuai",
+      "py": "shuāi",
       "ru": "упасть"
      },
      {
       "zh": "批评",
-      "py": "pi ping",
+      "py": "pīpíng",
       "ru": "критиковать"
      },
      {
       "zh": "修",
-      "py": "xiu",
+      "py": "xiū",
       "ru": "чинить"
      },
      {
       "zh": "修理",
-      "py": "xiu li",
+      "py": "xiūlǐ",
       "ru": "ремонтировать"
      },
      {
       "zh": "洗衣机",
-      "py": "xi yi ji",
+      "py": "xǐyījī",
       "ru": "стиральная машина"
      },
      {
       "zh": "叫",
-      "py": "jiao",
+      "py": "jiào",
       "ru": "звать"
      },
      {
       "zh": "随时",
-      "py": "sui shi",
+      "py": "suíshí",
       "ru": "随时"
      },
      {
       "zh": "倒霉",
-      "py": "dao mei",
+      "py": "dǎoméi",
       "ru": "倒霉"
      },
      {
       "zh": "雨伞",
-      "py": "yu san",
+      "py": "yǔsǎn",
       "ru": "雨伞"
      },
      {
       "zh": "淋湿",
-      "py": "lin shi",
+      "py": "línshī",
       "ru": "淋湿"
      },
      {
       "zh": "捡",
-      "py": "jian",
+      "py": "jiǎn",
       "ru": "捡"
      },
      {
       "zh": "电子词典",
-      "py": "dian zi ci dian",
+      "py": "diànzi cídiǎn",
       "ru": "电子词典"
      },
      {
       "zh": "厕所",
-      "py": "ce suo",
+      "py": "cèsuǒ",
       "ru": "厕所"
      },
      {
       "zh": "铃",
-      "py": "ling",
+      "py": "líng",
       "ru": "铃"
      }
     ]
@@ -5583,12 +5583,12 @@ const UNITS = [
     "words": [
      {
       "zh": "杭州",
-      "py": "hang zhou",
+      "py": "hángzhōu",
       "ru": "杭州"
      },
      {
       "zh": "印度尼西亚",
-      "py": "yin du ni xi ya",
+      "py": "yìndù níxī yà",
       "ru": "印度尼西亚"
      }
     ]
@@ -5883,67 +5883,67 @@ const UNITS = [
     "words": [
      {
       "zh": "行",
-      "py": "xing",
+      "py": "xíng",
       "ru": "行"
      },
      {
       "zh": "倒数",
-      "py": "dao shu",
+      "py": "dàoshǔ",
       "ru": "倒数"
      },
      {
       "zh": "马虎",
-      "py": "ma hu",
+      "py": "mǎhǔ",
       "ru": "马虎"
      },
      {
       "zh": "复印",
-      "py": "fu yin",
+      "py": "fùyìn",
       "ru": "复印"
      },
      {
       "zh": "落",
-      "py": "luo",
+      "py": "luò",
       "ru": "落"
      },
      {
       "zh": "U盘",
-      "py": "U pan",
+      "py": "Upán",
       "ru": "U盘"
      },
      {
       "zh": "打印",
-      "py": "da yin",
+      "py": "dǎyìn",
       "ru": "打印"
      },
      {
       "zh": "困",
-      "py": "kun",
+      "py": "kùn",
       "ru": "困"
      },
      {
       "zh": "卫生间",
-      "py": "wei sheng jian",
+      "py": "wèishēngjiān",
       "ru": "卫生间"
      },
      {
       "zh": "同屋",
-      "py": "tong wu",
+      "py": "tóngwū",
       "ru": "同屋"
      },
      {
       "zh": "隔壁",
-      "py": "ge bi",
+      "py": "gébì",
       "ru": "隔壁"
      },
      {
       "zh": "留",
-      "py": "liu",
+      "py": "liú",
       "ru": "留"
      },
      {
       "zh": "打印机",
-      "py": "da yin ji",
+      "py": "dǎyìnjī",
       "ru": "打印机"
      }
     ]
@@ -5957,7 +5957,7 @@ const UNITS = [
     "words": [
      {
       "zh": "珍妮",
-      "py": "zhen ni",
+      "py": "zhēnnī",
       "ru": "珍妮"
      }
     ]
@@ -5971,30 +5971,30 @@ const UNITS = [
     "words": [
      {
       "zh": "留作业",
-      "py": "liu zuo ye",
+      "py": "liúzuòyè",
       "ru": "留作业"
      },
      {
-      "zh": "把手机落在家里了", "py": "ba shou ji luo zai jia lile",
+      "zh": "把手机落在家里了", "py": "bǎshǒu jīluò zàijiā lǐle",
       "ru": "把手机落在家里了"
      },
      {
       "zh": "第三页第一行",
-      "py": "di san ye di yi xing",
+      "py": "dìsān yèdì yīxíng",
       "ru": "第三页第一行"
      },
      {
       "zh": "一个U盘",
-      "py": "yi ge U pan",
+      "py": "yígè Upán",
       "ru": "一个U盘"
      },
      {
-      "zh": "太马虎了", "py": "tai ma hule",
+      "zh": "太马虎了", "py": "tàimǎ hǔle",
       "ru": "太马虎了"
      },
      {
       "zh": "打印一份，复印两份",
-      "py": "da yin yi fen ， fu yin liang fen",
+      "py": "dǎyìn yīfèn，fùyìn liǎngfèn",
       "ru": "打印一份，复印两份"
      }
     ]
@@ -6246,87 +6246,87 @@ const UNITS = [
     "words": [
      {
       "zh": "就要……了",
-      "py": "jiu yao……le",
+      "py": "jiùyào …… le",
       "ru": "вот-вот (собираться сделать)"
      },
      {
       "zh": "快要……了",
-      "py": "kuai yao……le",
+      "py": "kuàiyào …… le",
       "ru": "скоро, вот-вот"
      },
      {
       "zh": "结束",
-      "py": "jie shu",
+      "py": "jiéshù",
       "ru": "结束"
      },
      {
       "zh": "卷子",
-      "py": "juan zi",
+      "py": "juǎnzi",
       "ru": "试卷"
      },
      {
       "zh": "得",
-      "py": "de",
+      "py": "dé",
       "ru": "得到"
      },
      {
       "zh": "分",
-      "py": "fen",
+      "py": "fēn",
       "ru": "分数"
      },
      {
       "zh": "学期",
-      "py": "xue qi",
+      "py": "xuéqī",
       "ru": "学期"
      },
      {
       "zh": "期末考试",
-      "py": "qi mo kao shi",
+      "py": "qīmò kǎoshì",
       "ru": "期末考试"
      },
      {
       "zh": "以上",
-      "py": "yi shang",
+      "py": "yǐshàng",
       "ru": "以上"
      },
      {
       "zh": "期中考试",
-      "py": "qi zhong kao shi",
+      "py": "qīzhōng kǎoshì",
       "ru": "期中考试"
      },
      {
       "zh": "及格",
-      "py": "ji ge",
+      "py": "jígé",
       "ru": "及格"
      },
      {
       "zh": "圆珠笔",
-      "py": "yuan zhu bi",
+      "py": "yuánzhūbǐ",
       "ru": "圆珠笔"
      },
      {
       "zh": "奖学金",
-      "py": "jiang xue jin",
+      "py": "jiǎngxuéjīn",
       "ru": "奖学金"
      },
      {
       "zh": "笔试",
-      "py": "bi shi",
+      "py": "bǐshì",
       "ru": "笔试"
      },
      {
       "zh": "口试",
-      "py": "kou shi",
+      "py": "kǒushì",
       "ru": "口试"
      },
      {
       "zh": "部分",
-      "py": "bu fen",
+      "py": "bùfèn",
       "ru": "部分"
      },
      {
       "zh": "话题",
-      "py": "hua ti",
+      "py": "huàtí",
       "ru": "话题"
      }
     ]
@@ -6340,12 +6340,12 @@ const UNITS = [
     "words": [
      {
       "zh": "非洲",
-      "py": "fei zhou",
+      "py": "fēizhōu",
       "ru": "非洲"
      },
      {
       "zh": "兰花",
-      "py": "lan hua",
+      "py": "lánhuā",
       "ru": "兰花"
      }
     ]
@@ -6358,27 +6358,27 @@ const UNITS = [
     "kind": "words",
     "words": [
      {
-      "zh": "期中考试就要到了", "py": "qi zhong kao shi jiu yao daole",
+      "zh": "期中考试就要到了", "py": "qīzhōng kǎoshì jiùyào dàole",
       "ru": "期中考试就要到了"
      },
      {
       "zh": "考试卷子",
-      "py": "kao shi juan zi",
+      "py": "kǎoshì juǎnzi",
       "ru": "考试试卷"
      },
      {
       "zh": "这个学期",
-      "py": "zhe ge xue qi",
+      "py": "zhège xuéqī",
       "ru": "这个学期"
      },
      {
       "zh": "期末考试",
-      "py": "qi mo kao shi",
+      "py": "qīmò kǎoshì",
       "ru": "期末考试"
      },
      {
       "zh": "一年有两个学期",
-      "py": "yi nian you liang ge xue qi",
+      "py": "yīnián yǒuliǎng gèxué qī",
       "ru": "一年有两个学期"
      }
     ]
@@ -6682,77 +6682,77 @@ const UNITS = [
     "words": [
      {
       "zh": "约",
-      "py": "yue",
+      "py": "yuē",
       "ru": "大约"
      },
      {
       "zh": "郊外",
-      "py": "jiao wai",
+      "py": "jiāowài",
       "ru": "郊外"
      },
      {
       "zh": "风景",
-      "py": "feng jing",
+      "py": "fēngjǐng",
       "ru": "风景"
      },
      {
       "zh": "照相机",
-      "py": "zhao xiang ji",
+      "py": "zhàoxiàngjī",
       "ru": "照相机"
      },
      {
       "zh": "份",
-      "py": "fen",
+      "py": "fèn",
       "ru": "份"
      },
      {
       "zh": "套餐",
-      "py": "tao can",
+      "py": "tàocān",
       "ru": "套餐"
      },
      {
       "zh": "汉堡包",
-      "py": "han bao bao",
+      "py": "hànbǎobāo",
       "ru": "汉堡包"
      },
      {
       "zh": "包",
-      "py": "bao",
+      "py": "bāo",
       "ru": "包"
      },
      {
       "zh": "炸薯条",
-      "py": "zha shu tiao",
+      "py": "zhàshǔtiáo",
       "ru": "炸薯条"
      },
      {
       "zh": "摄影",
-      "py": "she ying",
+      "py": "shèyǐng",
       "ru": "摄影"
      },
      {
       "zh": "爱好",
-      "py": "ai hao",
+      "py": "àihào",
       "ru": "爱好"
      },
      {
       "zh": "其中",
-      "py": "qi zhong",
+      "py": "qízhōng",
       "ru": "其中"
      },
      {
       "zh": "奖",
-      "py": "jiang",
+      "py": "jiǎng",
       "ru": "奖"
      },
      {
       "zh": "照相馆",
-      "py": "zhao xiang guan",
+      "py": "zhàoxiàngguǎn",
       "ru": "фотоателье"
      },
      {
       "zh": "洗照片",
-      "py": "xi zhao pian",
+      "py": "xǐzhàopiān",
       "ru": "проявлять фотографии"
      }
     ]
@@ -6766,12 +6766,12 @@ const UNITS = [
     "words": [
      {
       "zh": "约翰",
-      "py": "yue han",
+      "py": "yuēhàn",
       "ru": "Джон"
      },
      {
       "zh": "加拿大",
-      "py": "jia na da",
+      "py": "jiānádà",
       "ru": "Канада"
      }
     ]
@@ -6785,27 +6785,27 @@ const UNITS = [
     "words": [
      {
       "zh": "约朋友见面",
-      "py": "yue peng you jian mian",
+      "py": "yuēpéng yǒujiàn miàn",
       "ru": "договориться о встрече с другом"
      },
      {
       "zh": "到郊外玩儿",
-      "py": "dao jiao wai wan er",
+      "py": "dàojiāo wàiwán ér",
       "ru": "поехать за город развлекаться"
      },
      {
       "zh": "风景很漂亮",
-      "py": "feng jing hen piao liang",
+      "py": "fēngjǐng hěnpiāo liàng",
       "ru": "пейзаж очень красивый"
      },
      {
       "zh": "用照相机照相",
-      "py": "yong zhao xiang ji zhao xiang",
+      "py": "yòngzhào xiàngjī zhàoxiàng",
       "ru": "фотографировать фотоаппаратом"
      },
      {
       "zh": "去麦当劳吃汉堡包",
-      "py": "qu mai dang lao chi han bao bao",
+      "py": "qùmài dāngláo chīhàn bǎobāo",
       "ru": "пойти в McDonald's есть гамбургер"
      }
     ]
@@ -7109,77 +7109,77 @@ const UNITS = [
     "words": [
      {
       "zh": "该",
-      "py": "gai",
+      "py": "gāi",
       "ru": "следует"
      },
      {
       "zh": "超市",
-      "py": "chao shi",
+      "py": "chāoshì",
       "ru": "супермаркет"
      },
      {
       "zh": "冰箱",
-      "py": "bing xiang",
+      "py": "bīngxiāng",
       "ru": "холодильник"
      },
      {
       "zh": "出口",
-      "py": "chu kou",
+      "py": "chūkǒu",
       "ru": "выход"
      },
      {
       "zh": "入口",
-      "py": "ru kou",
+      "py": "rùkǒu",
       "ru": "вход"
      },
      {
       "zh": "洗发水",
-      "py": "xi fa shui",
+      "py": "xǐfàshuǐ",
       "ru": "шампунь"
      },
      {
       "zh": "袋",
-      "py": "dai",
+      "py": "dài",
       "ru": "пакет"
      },
      {
       "zh": "洗衣粉",
-      "py": "xi yi fen",
+      "py": "xǐyīfěn",
       "ru": "стиральный порошок"
      },
      {
       "zh": "教授",
-      "py": "jiao shou",
+      "py": "jiàoshòu",
       "ru": "профессор"
      },
      {
       "zh": "工程师",
-      "py": "gong cheng shi",
+      "py": "gōngchéngshī",
       "ru": "инженер"
      },
      {
       "zh": "平时",
-      "py": "ping shi",
+      "py": "píngshí",
       "ru": "обычно"
      },
      {
       "zh": "商量",
-      "py": "shang liang",
+      "py": "shāngliáng",
       "ru": "обсуждать"
      },
      {
       "zh": "纸条儿",
-      "py": "zhi tiao er",
+      "py": "zhǐtiáor",
       "ru": "записка"
      },
      {
       "zh": "贴",
-      "py": "tie",
+      "py": "tiē",
       "ru": "клеить"
      },
      {
       "zh": "酸奶",
-      "py": "suan nai",
+      "py": "suānnǎi",
       "ru": "йогурт"
      }
     ]
@@ -7193,7 +7193,7 @@ const UNITS = [
     "words": [
      {
       "zh": "李",
-      "py": "li",
+      "py": "lǐ",
       "ru": "Ли"
      }
     ]
@@ -7207,35 +7207,35 @@ const UNITS = [
     "words": [
      {
       "zh": "打开冰箱",
-      "py": "da kai bing xiang",
+      "py": "dǎkāi bīngxiāng",
       "ru": "открыть холодильник"
      },
      {
       "zh": "去超市里买东西",
-      "py": "qu chao shi li mai dong xi",
+      "py": "qùchāo shìlǐ mǎidōng xī",
       "ru": "пойти в супермаркет за покупками"
      },
      {
-      "zh": "该去上课了", "py": "gai qu shang kele",
+      "zh": "该去上课了", "py": "gāiqù shàngkè le",
       "ru": "пора идти на занятия"
      },
      {
       "zh": "入口和出口",
-      "py": "ru kou he chu kou",
+      "py": "rùkǒu héchū kǒu",
       "ru": "вход и выход"
      },
      {
       "zh": "一瓶洗发水",
-      "py": "yi ping xi fa shui",
+      "py": "yīpíng xǐfàshuǐ",
       "ru": "бутылка шампуня"
      },
      {
       "zh": "一袋洗衣粉",
-      "py": "yi dai xi yi fen",
+      "py": "yīdài xǐyī fěn",
       "ru": "пакет стирального порошка"
      },
      {
-      "zh": "一张纸条", "py": "yizhang zhi tiao",
+      "zh": "一张纸条", "py": "yīzhāng zhǐtiáo",
       "ru": "записка"
      }
     ]
@@ -7539,77 +7539,77 @@ const UNITS = [
     "words": [
      {
       "zh": "身高",
-      "py": "shen gao",
+      "py": "shēngāo",
       "ru": "身高"
      },
      {
       "zh": "量",
-      "py": "liang",
+      "py": "liàng",
       "ru": "量"
      },
      {
       "zh": "矮",
-      "py": "ai",
+      "py": "ǎi",
       "ru": "矮"
      },
      {
       "zh": "减",
-      "py": "jian",
+      "py": "jiǎn",
       "ru": "减"
      },
      {
       "zh": "差不多",
-      "py": "cha bu duo",
+      "py": "chàbuduō",
       "ru": "差不多"
      },
      {
       "zh": "体重",
-      "py": "ti zhong",
+      "py": "tǐzhòng",
       "ru": "体重"
      },
      {
       "zh": "减肥",
-      "py": "jian fei",
+      "py": "jiǎnféi",
       "ru": "减肥"
      },
      {
       "zh": "身材",
-      "py": "shen cai",
+      "py": "shēncái",
       "ru": "身材"
      },
      {
       "zh": "厘米",
-      "py": "li mi",
+      "py": "límǐ",
       "ru": "厘米"
      },
      {
       "zh": "厨房",
-      "py": "chu fang",
+      "py": "chúfáng",
       "ru": "厨房"
      },
      {
       "zh": "下决心",
-      "py": "xia jue xin",
+      "py": "xiàjuéxīn",
       "ru": "下决心"
      },
      {
       "zh": "亲爱的",
-      "py": "qin ai de",
+      "py": "qīnàide",
       "ru": "亲爱的"
      },
      {
       "zh": "越来越",
-      "py": "yue lai yue",
+      "py": "yuèláiyuè",
       "ru": "越来越"
      },
      {
       "zh": "难看",
-      "py": "nan kan",
+      "py": "nánkàn",
       "ru": "难看"
      },
      {
       "zh": "面前",
-      "py": "mian qian",
+      "py": "miànqián",
       "ru": "面前"
      }
     ]
@@ -7623,7 +7623,7 @@ const UNITS = [
     "words": [
      {
       "zh": "刘一山",
-      "py": "liu yi shan",
+      "py": "liúyīshān",
       "ru": "刘一山"
      }
     ]
@@ -7637,27 +7637,27 @@ const UNITS = [
     "words": [
      {
       "zh": "姐姐比妹妹矮",
-      "py": "jie jie bi mei mei ai",
+      "py": "jiějiě bǐmèi mèiǎi",
       "ru": "姐姐比妹妹矮"
      },
      {
       "zh": "姐姐很胖",
-      "py": "jie jie hen pang",
+      "py": "jiějiě hěnpàng",
       "ru": "姐姐很胖"
      },
      {
       "zh": "量身高",
-      "py": "liang shen gao",
+      "py": "liàngshēngāo",
       "ru": "量身高"
      },
      {
       "zh": "下决心减肥",
-      "py": "xia jue xin jian fei",
+      "py": "xiàjué xīnjiǎn féi",
       "ru": "下决心减肥"
      },
      {
       "zh": "身材很好",
-      "py": "shen cai hen hao",
+      "py": "shēncái hěnhǎo",
       "ru": "身材很好"
      }
     ]
@@ -7961,77 +7961,77 @@ const UNITS = [
     "words": [
      {
       "zh": "剪",
-      "py": "jian",
+      "py": "jiǎn",
       "ru": "剪"
      },
      {
       "zh": "小姐",
-      "py": "xiao jie",
+      "py": "xiǎojiě",
       "ru": "小姐"
      },
      {
       "zh": "发型",
-      "py": "fa xing",
+      "py": "fàxíng",
       "ru": "发型"
      },
      {
       "zh": "留",
-      "py": "liu",
+      "py": "liú",
       "ru": "留"
      },
      {
       "zh": "好看",
-      "py": "hao kan",
+      "py": "hǎokàn",
       "ru": "好看"
      },
      {
       "zh": "照",
-      "py": "zhao",
+      "py": "zhào",
       "ru": "照"
      },
      {
       "zh": "镜子",
-      "py": "jing zi",
+      "py": "jìngzi",
       "ru": "镜子"
      },
      {
       "zh": "博物馆",
-      "py": "bo wu guan",
+      "py": "bówùguǎn",
       "ru": "博物馆"
      },
      {
       "zh": "天气预报",
-      "py": "tian qi yu bao",
+      "py": "tiānqìyùbào",
       "ru": "天气预报"
      },
      {
       "zh": "零下",
-      "py": "ling xia",
+      "py": "língxià",
       "ru": "零下"
      },
      {
       "zh": "度",
-      "py": "du",
+      "py": "dù",
       "ru": "度"
      },
      {
       "zh": "理发店",
-      "py": "li fa dian",
+      "py": "lǐfàdiàn",
       "ru": "理发店"
      },
      {
       "zh": "理发",
-      "py": "li fa",
+      "py": "lǐfà",
       "ru": "стричься (в парикмахерской)"
      },
      {
       "zh": "打扮",
-      "py": "da ban",
+      "py": "dǎbàn",
       "ru": "наряжаться, прихорашиваться"
      },
      {
       "zh": "搭配",
-      "py": "da pei",
+      "py": "dāpèi",
       "ru": "сочетать, подбирать (одежду)"
      }
     ]
@@ -8045,7 +8045,7 @@ const UNITS = [
     "words": [
      {
       "zh": "罗小玲",
-      "py": "luo xiao ling",
+      "py": "luóxiǎolíng",
       "ru": "罗小玲"
      }
     ]
@@ -8059,32 +8059,32 @@ const UNITS = [
     "words": [
      {
       "zh": "去理发店理发",
-      "py": "qu li fa dian li fa",
+      "py": "qùlǐ fādiàn lǐfà",
       "ru": "去理发店理发"
      },
      {
       "zh": "剪头发",
-      "py": "jian tou fa",
+      "py": "jiǎntóufà",
       "ru": "剪头发"
      },
      {
       "zh": "留长头发",
-      "py": "liu zhang tou fa",
+      "py": "liúzhǎng tóufà",
       "ru": "留长发"
      },
      {
       "zh": "按这个发型剪",
-      "py": "an zhe ge fa xing jian",
+      "py": "ànzhè gèfā xíngjiǎn",
       "ru": "按这个发型剪"
      },
      {
       "zh": "这个发型很好看",
-      "py": "zhe ge fa xing hen hao kan",
+      "py": "zhège fàxíng hěnhǎo kàn",
       "ru": "这个发型很好看"
      },
      {
       "zh": "照镜子",
-      "py": "zhao jing zi",
+      "py": "zhàojìngzi",
       "ru": "照镜子"
      }
     ]
@@ -8378,82 +8378,82 @@ const UNITS = [
     "words": [
      {
       "zh": "退烧",
-      "py": "tui shao",
+      "py": "tuìshāo",
       "ru": "退烧"
      },
      {
       "zh": "流鼻涕",
-      "py": "liu bi ti",
+      "py": "liúbítì",
       "ru": "流鼻涕"
      },
      {
       "zh": "内科",
-      "py": "nei ke",
+      "py": "nèikē",
       "ru": "内科"
      },
      {
       "zh": "挂号",
-      "py": "gua hao",
+      "py": "guàhào",
       "ru": "挂号"
      },
      {
       "zh": "拉肚子",
-      "py": "la du zi",
+      "py": "lādùzi",
       "ru": "拉肚子"
      },
      {
       "zh": "化验",
-      "py": "hua yan",
+      "py": "huàyàn",
       "ru": "化验"
      },
      {
       "zh": "开",
-      "py": "kai",
+      "py": "kāi",
       "ru": "开"
      },
      {
       "zh": "得病",
-      "py": "de bing",
+      "py": "débìng",
       "ru": "得病"
      },
      {
       "zh": "扭",
-      "py": "niu",
+      "py": "niǔ",
       "ru": "扭"
      },
      {
       "zh": "厉害",
-      "py": "li hai",
+      "py": "lìhài",
       "ru": "厉害"
      },
      {
       "zh": "外科",
-      "py": "wai ke",
+      "py": "wàikē",
       "ru": "外科"
      },
      {
       "zh": "肿",
-      "py": "zhong",
+      "py": "zhǒng",
       "ru": "肿"
      },
      {
       "zh": "嗓子",
-      "py": "sang zi",
+      "py": "sǎngzi",
       "ru": "嗓子"
      },
      {
       "zh": "打喷嚏",
-      "py": "da pen ti",
+      "py": "dǎpēntì",
       "ru": "打喷嚏"
      },
      {
       "zh": "鼻子",
-      "py": "bi zi",
+      "py": "bízi",
       "ru": "鼻子"
      },
      {
       "zh": "通气",
-      "py": "tong qi",
+      "py": "tōngqì",
       "ru": "通气"
      }
     ]
@@ -8467,7 +8467,7 @@ const UNITS = [
     "words": [
      {
       "zh": "大成",
-      "py": "da cheng",
+      "py": "dàchéng",
       "ru": "大成"
      }
     ]
@@ -8481,32 +8481,32 @@ const UNITS = [
     "words": [
      {
       "zh": "拉肚子",
-      "py": "la du zi",
+      "py": "lādùzi",
       "ru": "拉肚子"
      },
      {
       "zh": "流鼻涕",
-      "py": "liu bi ti",
+      "py": "liúbítì",
       "ru": "流鼻涕"
      },
      {
       "zh": "看病以前先挂号",
-      "py": "kan bing yi qian xian gua hao",
+      "py": "kànbìng yǐqián xiānguà hào",
       "ru": "看病以前先挂号"
      },
      {
       "zh": "内科和外科",
-      "py": "nei ke he wai ke",
+      "py": "nèikē héwài kē",
       "ru": "内科和外科"
      },
      {
       "zh": "先化验，后开药",
-      "py": "xian hua yan ， hou kai yao",
+      "py": "xiānhuàyàn，hòukāiyào",
       "ru": "先化验，后开药"
      },
      {
       "zh": "肿得厉害",
-      "py": "zhong de li hai",
+      "py": "zhǒngdé lìhài",
       "ru": "肿得厉害"
      }
     ]
@@ -8810,87 +8810,87 @@ const UNITS = [
     "words": [
      {
       "zh": "存",
-      "py": "cun",
+      "py": "cún",
       "ru": "класть (деньги на счёт)"
      },
      {
       "zh": "存钱",
-      "py": "cun qian",
+      "py": "cúnqián",
       "ru": "класть деньги (в банк)"
      },
      {
       "zh": "定期",
-      "py": "ding qi",
+      "py": "dìngqī",
       "ru": "定期"
      },
      {
       "zh": "活期",
-      "py": "huo qi",
+      "py": "huóqī",
       "ru": "活期"
      },
      {
       "zh": "身份证",
-      "py": "shen fen zheng",
+      "py": "shēnfènzhèng",
       "ru": "身份证"
      },
      {
       "zh": "美元",
-      "py": "mei yuan",
+      "py": "měiyuán",
       "ru": "美元"
      },
      {
       "zh": "汇率",
-      "py": "hui lv",
+      "py": "huìlǜ",
       "ru": "汇率"
      },
      {
       "zh": "生活费",
-      "py": "sheng huo fei",
+      "py": "shēnghuófèi",
       "ru": "生活费"
      },
      {
       "zh": "工资",
-      "py": "gong zi",
+      "py": "gōngzī",
       "ru": "工资"
      },
      {
       "zh": "一半",
-      "py": "yi ban",
+      "py": "yíbàn",
       "ru": "一半"
      },
      {
       "zh": "请假",
-      "py": "qing jia",
+      "py": "qǐngjià",
       "ru": "请假"
      },
      {
       "zh": "保险",
-      "py": "bao xian",
+      "py": "bǎoxiǎn",
       "ru": "保险"
      },
      {
       "zh": "取",
-      "py": "qu",
+      "py": "qǔ",
       "ru": "снимать (деньги)"
      },
      {
       "zh": "取钱",
-      "py": "qu qian",
+      "py": "qǔqián",
       "ru": "снимать деньги"
      },
      {
       "zh": "取款机",
-      "py": "qu kuan ji",
+      "py": "qǔkuǎnjī",
       "ru": "取款机"
      },
      {
       "zh": "到期",
-      "py": "dao qi",
+      "py": "dàoqī",
       "ru": "到期"
      },
      {
       "zh": "银行卡",
-      "py": "yin hang ka",
+      "py": "yínhángkǎ",
       "ru": "银行卡"
      }
     ]
@@ -8904,12 +8904,12 @@ const UNITS = [
     "words": [
      {
       "zh": "来福",
-      "py": "lai fu",
+      "py": "láifú",
       "ru": "来福"
      },
      {
       "zh": "重庆",
-      "py": "chong qing",
+      "py": "chóngqìng",
       "ru": "重庆"
      }
     ]
@@ -8923,32 +8923,32 @@ const UNITS = [
     "words": [
      {
       "zh": "去银行存钱",
-      "py": "qu yin hang cun qian",
+      "py": "qùyín xíngcún qián",
       "ru": "去银行存钱"
      },
      {
       "zh": "去银行取钱",
-      "py": "qu yin hang qu qian",
+      "py": "qùyín xíngqǔ qián",
       "ru": "去银行取钱"
      },
      {
       "zh": "活期和定期",
-      "py": "huo qi he ding qi",
+      "py": "huóqī hédìng qī",
       "ru": "活期和定期"
      },
      {
       "zh": "他的身份证",
-      "py": "ta de shen fen zheng",
+      "py": "tāde shēnfènzhèng",
       "ru": "他的身份证"
      },
      {
       "zh": "在取款机里取钱",
-      "py": "zai qu kuan ji li qu qian",
+      "py": "zàiqǔ kuǎnjī lǐqǔ qián",
       "ru": "在取款机里取钱"
      },
      {
       "zh": "美元和人民币的汇率",
-      "py": "mei yuan he ren min bi de hui lv",
+      "py": "měiyuán hérén mínbì dehuì lǜ",
       "ru": "美元和人民币的汇率"
      }
     ]
@@ -9216,72 +9216,72 @@ const UNITS = [
     "words": [
      {
       "zh": "乘客",
-      "py": "cheng ke",
+      "py": "chéngkè",
       "ru": "乘客"
      },
      {
       "zh": "动物园",
-      "py": "dong wu yuan",
+      "py": "dòngwùyuán",
       "ru": "动物园"
      },
      {
       "zh": "交通卡",
-      "py": "jiao tong ka",
+      "py": "jiāotōngkǎ",
       "ru": "交通卡"
      },
      {
       "zh": "无论",
-      "py": "wu lun",
+      "py": "wúlùn",
       "ru": "无论"
      },
      {
       "zh": "大部分",
-      "py": "da bu fen",
+      "py": "dàbùfèn",
       "ru": "大部分"
      },
      {
       "zh": "播放",
-      "py": "bo fang",
+      "py": "bōfàng",
       "ru": "播放"
      },
      {
       "zh": "原因",
-      "py": "yuan yin",
+      "py": "yuányīn",
       "ru": "原因"
      },
      {
       "zh": "堵车",
-      "py": "du che",
+      "py": "dǔchē",
       "ru": "堵车"
      },
      {
       "zh": "大使馆",
-      "py": "da shi guan",
+      "py": "dàshǐguǎn",
       "ru": "大使馆"
      },
      {
       "zh": "本科生",
-      "py": "ben ke sheng",
+      "py": "běnkēshēng",
       "ru": "本科生"
      },
      {
       "zh": "研究生",
-      "py": "yan jiu sheng",
+      "py": "yánjiūshēng",
       "ru": "研究生"
      },
      {
       "zh": "想法",
-      "py": "xiang fa",
+      "py": "xiǎngfǎ",
       "ru": "想法"
      },
      {
       "zh": "小伙子",
-      "py": "xiao huo zi",
+      "py": "xiǎohuǒzi",
       "ru": "小伙子"
      },
      {
       "zh": "运动员",
-      "py": "yun dong yuan",
+      "py": "yùndòngyuán",
       "ru": "运动员"
      }
     ]
@@ -9295,7 +9295,7 @@ const UNITS = [
     "words": [
      {
       "zh": "巴西",
-      "py": "ba xi",
+      "py": "bāxī",
       "ru": "巴西"
      }
     ]
@@ -9309,31 +9309,31 @@ const UNITS = [
     "words": [
      {
       "zh": "公共汽车上的乘客",
-      "py": "gong gong qi che shang de cheng ke",
+      "py": "gōnggòngqìchē shàngde chéngkè",
       "ru": "公交车上的乘客"
      },
      {
       "zh": "去动物园",
-      "py": "qu dong wu yuan",
+      "py": "qùdòng wùyuán",
       "ru": "去动物园"
      },
      {
-      "zh": "一张交通卡", "py": "yizhang jiao tong ka",
+      "zh": "一张交通卡", "py": "yīzhāng jiāotōng kǎ",
       "ru": "一张交通卡"
      },
      {
       "zh": "大部分人",
-      "py": "da bu fen ren",
+      "py": "dàbù fēnrén",
       "ru": "大部分人"
      },
      {
       "zh": "播放音乐",
-      "py": "bo fang yin yue",
+      "py": "bōfàng yīnyuè",
       "ru": "播放音乐"
      },
      {
       "zh": "不知道是什么原因",
-      "py": "bu zhi dao shi shen me yuan yin",
+      "py": "bùzhī dàoshì shénme yuányīn",
       "ru": "不知道是什么原因"
      }
     ]
@@ -9637,72 +9637,72 @@ const UNITS = [
     "words": [
      {
       "zh": "皮鞋",
-      "py": "pi xie",
+      "py": "píxié",
       "ru": "皮鞋"
      },
      {
       "zh": "打折",
-      "py": "da zhe",
+      "py": "dǎzhé",
       "ru": "打折"
      },
      {
       "zh": "原价",
-      "py": "yuan jia",
+      "py": "yuánjià",
       "ru": "原价"
      },
      {
       "zh": "收款台",
-      "py": "shou kuan tai",
+      "py": "shōukuǎntái",
       "ru": "收款台"
      },
      {
       "zh": "顶",
-      "py": "ding",
+      "py": "dǐng",
       "ru": "顶"
      },
      {
       "zh": "围",
-      "py": "wei",
+      "py": "wéi",
       "ru": "围"
      },
      {
       "zh": "围巾",
-      "py": "wei jin",
+      "py": "wéijīn",
       "ru": "围巾"
      },
      {
       "zh": "羽绒服",
-      "py": "yu rong fu",
+      "py": "yǔróngfú",
       "ru": "羽绒服"
      },
      {
       "zh": "牛仔裤",
-      "py": "niu zai ku",
+      "py": "niúzǎikù",
       "ru": "牛仔裤"
      },
      {
       "zh": "T恤",
-      "py": "T xu",
+      "py": "Txù",
       "ru": "T恤"
      },
      {
       "zh": "商场",
-      "py": "shang chang",
+      "py": "shāngchǎng",
       "ru": "商场"
      },
      {
       "zh": "逛",
-      "py": "guang",
+      "py": "guàng",
       "ru": "逛"
      },
      {
       "zh": "没错儿",
-      "py": "mei cuo er",
+      "py": "méicuòr",
       "ru": "没错儿"
      },
      {
       "zh": "一生",
-      "py": "yi sheng",
+      "py": "yīshēng",
       "ru": "一生"
      }
     ]
@@ -9716,32 +9716,32 @@ const UNITS = [
     "words": [
      {
       "zh": "陪太太逛商场",
-      "py": "pei tai tai guang shang chang",
+      "py": "péitài tàiguàng shāngchǎng",
       "ru": "陪太太逛商场"
      },
      {
       "zh": "一双皮鞋",
-      "py": "yi shuang pi xie",
+      "py": "yīshuāng píxié",
       "ru": "一双皮鞋"
      },
      {
       "zh": "打五折",
-      "py": "da wu zhe",
+      "py": "dǎwǔzhé",
       "ru": "打五折"
      },
      {
       "zh": "原价200块",
-      "py": "yuan jia 200 kuai",
+      "py": "yuánjià 20 0kuài",
       "ru": "原价200块"
      },
      {
       "zh": "到收款台交钱",
-      "py": "dao shou kuan tai jiao qian",
+      "py": "dàoshōu kuǎntái jiāoqián",
       "ru": "到收款台交钱"
      },
      {
       "zh": "一顶帽子",
-      "py": "yi ding mao zi",
+      "py": "yīdǐng màozi",
       "ru": "一顶帽子"
      }
     ]
@@ -10045,72 +10045,72 @@ const UNITS = [
     "words": [
      {
       "zh": "从来",
-      "py": "cong lai",
+      "py": "cónglái",
       "ru": "从来"
      },
      {
       "zh": "过年",
-      "py": "guo nian",
+      "py": "guònián",
       "ru": "过年"
      },
      {
       "zh": "预订",
-      "py": "yu ding",
+      "py": "yùdìng",
       "ru": "预订"
      },
      {
       "zh": "机场大巴",
-      "py": "ji chang da ba",
+      "py": "jīchǎng dàbā",
       "ru": "机场大巴"
      },
      {
       "zh": "航班",
-      "py": "hang ban",
+      "py": "hángbān",
       "ru": "航班"
      },
      {
       "zh": "起飞",
-      "py": "qi fei",
+      "py": "qǐfēi",
       "ru": "起飞"
      },
      {
       "zh": "父母",
-      "py": "fu mu",
+      "py": "fùmǔ",
       "ru": "父母"
      },
      {
       "zh": "往返票",
-      "py": "wang fan piao",
+      "py": "wǎngfǎnpiào",
       "ru": "往返票"
      },
      {
       "zh": "头等舱",
-      "py": "tou deng cang",
+      "py": "tóuděngcāng",
       "ru": "头等舱"
      },
      {
       "zh": "单程票",
-      "py": "dan cheng piao",
+      "py": "dānchéngpiào",
       "ru": "单程票"
      },
      {
       "zh": "经济舱",
-      "py": "jing ji cang",
+      "py": "jīngjìcāng",
       "ru": "经济舱"
      },
      {
       "zh": "提前",
-      "py": "ti qian",
+      "py": "tíqián",
       "ru": "提前"
      },
      {
       "zh": "爷爷",
-      "py": "ye ye",
+      "py": "yéyé",
       "ru": "爷爷"
      },
      {
       "zh": "路过",
-      "py": "lu guo",
+      "py": "lùguò",
       "ru": "路过"
      }
     ]
@@ -10124,22 +10124,22 @@ const UNITS = [
     "words": [
      {
       "zh": "武汉",
-      "py": "wu han",
+      "py": "wǔhàn",
       "ru": "武汉"
      },
      {
       "zh": "香港",
-      "py": "xiang gang",
+      "py": "xiānggǎng",
       "ru": "香港"
      },
      {
       "zh": "哈尔滨",
-      "py": "ha er bin",
+      "py": "hāěrbīn",
       "ru": "哈尔滨"
      },
      {
       "zh": "长江",
-      "py": "chang jiang",
+      "py": "chángjiāng",
       "ru": "长江"
      }
     ]
@@ -10153,30 +10153,30 @@ const UNITS = [
     "words": [
      {
       "zh": "我的父母",
-      "py": "wo de fu mu",
+      "py": "wǒde fùmǔ",
       "ru": "我的父母"
      },
      {
       "zh": "从来没出过国",
-      "py": "cong lai mei chu guo guo",
+      "py": "cónglái méichū guòguó",
       "ru": "从来没出过国"
      },
      {
-      "zh": "飞机起飞了", "py": "fei ji qi feile",
+      "zh": "飞机起飞了", "py": "fēijī qǐfēi le",
       "ru": "飞机起飞了"
      },
      {
       "zh": "跟家里人一起过年",
-      "py": "gen jia li ren yi qi guo nian",
+      "py": "gēnjiā lǐrén yìqǐ guònián",
       "ru": "跟家里人一起过年"
      },
      {
-      "zh": "预订了两张飞机票", "py": "yu dingle liangzhang fei ji piao",
+      "zh": "预订了两张飞机票", "py": "yùdìng leliǎng zhāngfēi jīpiào",
       "ru": "预订了两张飞机票"
      },
      {
       "zh": "坐机场大巴去机场",
-      "py": "zuo ji chang da ba qu ji chang",
+      "py": "zuòjī chǎngdà bāqù jīchǎng",
       "ru": "坐机场大巴去机场"
      }
     ]
@@ -10480,77 +10480,77 @@ const UNITS = [
     "words": [
      {
       "zh": "软座票",
-      "py": "ruan zuo piao",
+      "py": "ruǎnzuòpiào",
       "ru": "软座票"
      },
      {
       "zh": "列车",
-      "py": "lie che",
+      "py": "lièchē",
       "ru": "列车"
      },
      {
       "zh": "发车",
-      "py": "fa che",
+      "py": "fāchē",
       "ru": "发车"
      },
      {
       "zh": "后天",
-      "py": "hou tian",
+      "py": "hòutiān",
       "ru": "后天"
      },
      {
       "zh": "卧铺票",
-      "py": "wo pu piao",
+      "py": "wòpùpiào",
       "ru": "卧铺票"
      },
      {
       "zh": "退票",
-      "py": "tui piao",
+      "py": "tuìpiào",
       "ru": "退票"
      },
      {
       "zh": "来得及",
-      "py": "lai de ji",
+      "py": "láidejí",
       "ru": "来得及"
      },
      {
       "zh": "餐车",
-      "py": "can che",
+      "py": "cānchē",
       "ru": "餐车"
      },
      {
       "zh": "车厢",
-      "py": "che xiang",
+      "py": "chēxiāng",
       "ru": "车厢"
      },
      {
       "zh": "来不及",
-      "py": "lai bu ji",
+      "py": "láibùjí",
       "ru": "来不及"
      },
      {
       "zh": "售票员",
-      "py": "shou piao yuan",
+      "py": "shòupiàoyuán",
       "ru": "售票员"
      },
      {
       "zh": "开往",
-      "py": "kai wang",
+      "py": "kāiwǎng",
       "ru": "开往"
      },
      {
       "zh": "环境",
-      "py": "huan jing",
+      "py": "huánjìng",
       "ru": "环境"
      },
      {
       "zh": "环保",
-      "py": "huan bao",
+      "py": "huánbǎo",
       "ru": "环保"
      },
      {
       "zh": "古迹",
-      "py": "gu ji",
+      "py": "gǔjì",
       "ru": "古迹"
      }
     ]
@@ -10564,22 +10564,22 @@ const UNITS = [
     "words": [
      {
       "zh": "西安",
-      "py": "xi an",
+      "py": "xīān",
       "ru": "西安"
      },
      {
       "zh": "西藏",
-      "py": "xi zang",
+      "py": "xīzàng",
       "ru": "西藏"
      },
      {
       "zh": "拉萨",
-      "py": "la sa",
+      "py": "lāsà",
       "ru": "拉萨"
      },
      {
       "zh": "布达拉宫",
-      "py": "bu da la gong",
+      "py": "bùdá lāgōng",
       "ru": "布达拉宫"
      }
     ]
@@ -10593,35 +10593,35 @@ const UNITS = [
     "words": [
      {
       "zh": "开往拉萨的列车",
-      "py": "kai wang la sa de lie che",
+      "py": "kāiwǎng lāsà deliè chē",
       "ru": "开往拉萨的列车"
      },
      {
       "zh": "10号车厢",
-      "py": "10 hao che xiang",
+      "py": "10 hàochē xiāng",
       "ru": "10号车厢"
      },
      {
-      "zh": "一张卧铺票", "py": "yizhang wo pu piao",
+      "zh": "一张卧铺票", "py": "yīzhāng wòpù piào",
       "ru": "一张卧铺票"
      },
      {
-      "zh": "两张软座票", "py": "liangzhang ruan zuo piao",
+      "zh": "两张软座票", "py": "liǎngzhāng ruǎnzuò piào",
       "ru": "两张软座票"
      },
      {
       "zh": "后天发车",
-      "py": "hou tian fa che",
+      "py": "hòutiān fāchē",
       "ru": "后天发车"
      },
      {
       "zh": "打算退票",
-      "py": "da suan tui piao",
+      "py": "dǎsuàn tuìpiào",
       "ru": "打算退票"
      },
      {
       "zh": "发车时间",
-      "py": "fa che shi jian",
+      "py": "fāchē shíjiān",
       "ru": "发车时间"
      }
     ]
@@ -10898,77 +10898,77 @@ const UNITS = [
     "words": [
      {
       "zh": "空",
-      "py": "kong",
+      "py": "kōng",
       "ru": "空"
      },
      {
       "zh": "客人",
-      "py": "ke ren",
+      "py": "kèrén",
       "ru": "客人"
      },
      {
       "zh": "稍等",
-      "py": "shao deng",
+      "py": "shāoděng",
       "ru": "稍等"
      },
      {
       "zh": "单人间",
-      "py": "dan ren jian",
+      "py": "dānrénjiān",
       "ru": "单人间"
      },
      {
       "zh": "帮忙",
-      "py": "bang mang",
+      "py": "bāngmáng",
       "ru": "帮忙"
      },
      {
       "zh": "结账",
-      "py": "jie zhang",
+      "py": "jiézhàng",
       "ru": "结账"
      },
      {
       "zh": "手续",
-      "py": "shou xu",
+      "py": "shǒuxù",
       "ru": "手续"
      },
      {
       "zh": "青年旅馆",
-      "py": "qing nian lv guan",
+      "py": "qīngnián lǚguǎn",
       "ru": "青年旅馆"
      },
      {
       "zh": "旅行社",
-      "py": "lv xing she",
+      "py": "lǚxíngshè",
       "ru": "旅行社"
      },
      {
       "zh": "半天",
-      "py": "ban tian",
+      "py": "bàntiān",
       "ru": "半天"
      },
      {
       "zh": "广告",
-      "py": "guang gao",
+      "py": "guǎnggào",
       "ru": "广告"
      },
      {
       "zh": "终于",
-      "py": "zhong yu",
+      "py": "zhōngyú",
       "ru": "终于"
      },
      {
       "zh": "双人间",
-      "py": "shuang ren jian",
+      "py": "shuāngrénjiān",
       "ru": "双人间"
      },
      {
       "zh": "证件",
-      "py": "zheng jian",
+      "py": "zhèngjiàn",
       "ru": "证件"
      },
      {
       "zh": "发票",
-      "py": "fa piao",
+      "py": "fāpiào",
       "ru": "发票"
      }
     ]
@@ -10982,17 +10982,17 @@ const UNITS = [
     "words": [
      {
       "zh": "万东民",
-      "py": "wan dong min",
+      "py": "wàndōngmín",
       "ru": "万东民"
      },
      {
       "zh": "桂林",
-      "py": "gui lin",
+      "py": "guìlín",
       "ru": "桂林"
      },
      {
       "zh": "澳大利亚",
-      "py": "ao da li ya",
+      "py": "àodà lìyà",
       "ru": "澳大利亚"
      }
     ]
@@ -11005,56 +11005,56 @@ const UNITS = [
     "kind": "words",
     "words": [
      {
-      "zh": "找了半天也没有", "py": "zhaole ban tian ye mei you",
+      "zh": "找了半天也没有", "py": "zhǎole bàntiān yěméi yǒu",
       "ru": "找了半天也没有"
      },
      {
       "zh": "住青年旅馆",
-      "py": "zhu qing nian lv guan",
+      "py": "zhùqīng niánlǚ guǎn",
       "ru": "住青年旅馆"
      },
      {
       "zh": "单人间和双人间",
-      "py": "dan ren jian he shuang ren jian",
+      "py": "dānrénjiān héshuāng rénjiān",
       "ru": "单人间和双人间"
      },
      {
       "zh": "空房间",
-      "py": "kong fang jian",
+      "py": "kòngfángjiān",
       "ru": "空房间"
      },
      {
       "zh": "请稍等",
-      "py": "qing shao deng",
+      "py": "qǐngshāoděng",
       "ru": "Пожалуйста, подождите"
      },
      {
       "zh": "两位客人",
-      "py": "liang wei ke ren",
+      "py": "liǎngwèi kèrén",
       "ru": "Двое гостей"
      },
      {
       "zh": "办理结账手续",
-      "py": "ban li jie zhang shou xu",
+      "py": "bànlǐ jiézhàng shǒuxù",
       "ru": "Оформить процедуру расчета"
      },
      {
       "zh": "跟旅行社旅游",
-      "py": "gen lv xing she lv you",
+      "py": "gēnlǚ xíngshè lǚyóu",
       "ru": "Путешествовать с турфирмой"
      },
      {
       "zh": "看电视广告",
-      "py": "kan dian shi guang gao",
+      "py": "kàndiàn shìguǎng gào",
       "ru": "Смотреть телерекламу"
      },
      {
-      "zh": "终于明白了", "py": "zhong yu ming baile",
+      "zh": "终于明白了", "py": "zhōngyú míngbái le",
       "ru": "Наконец понял"
      },
      {
       "zh": "护照是一种证件",
-      "py": "hu zhao shi yi zhong zheng jian",
+      "py": "hùzhào shìyī zhǒngzhèng jiàn",
       "ru": "Паспорт - это документ"
      }
     ]
@@ -11331,72 +11331,72 @@ const UNITS = [
     "words": [
      {
       "zh": "冰",
-      "py": "bing",
+      "py": "bīng",
       "ru": "Без сахара, со льдом"
      },
      {
       "zh": "餐厅",
-      "py": "can ting",
+      "py": "cāntīng",
       "ru": "Ресторан"
      },
      {
       "zh": "聚会",
-      "py": "ju hui",
+      "py": "jùhuì",
       "ru": "Пойти на вечеринку друзей"
      },
      {
       "zh": "问候",
-      "py": "wen hou",
+      "py": "wènhòu",
       "ru": "Тепло поприветствовать"
      },
      {
       "zh": "干杯",
-      "py": "gan bei",
+      "py": "gānbēi",
       "ru": "За здоровье"
      },
      {
       "zh": "抢",
-      "py": "qiang",
+      "py": "qiǎng",
       "ru": "Все наперебой платят"
      },
      {
       "zh": "付钱",
-      "py": "fu qian",
+      "py": "fùqián",
       "ru": "Платить"
      },
      {
       "zh": "建议",
-      "py": "jian yi",
+      "py": "jiànyì",
       "ru": "Предложение"
      },
      {
       "zh": "AA制",
-      "py": "AA zhi",
+      "py": "AAzhì",
       "ru": "Раздельная оплата"
      },
      {
       "zh": "请客",
-      "py": "qing ke",
+      "py": "qǐngkè",
       "ru": "Я угощаю"
      },
      {
       "zh": "招待",
-      "py": "zhao dai",
+      "py": "zhāodài",
       "ru": "Принимать"
      },
      {
       "zh": "凉菜",
-      "py": "liang cai",
+      "py": "liángcài",
       "ru": "Холодное блюдо"
      },
      {
       "zh": "热菜",
-      "py": "re cai",
+      "py": "rècài",
       "ru": "Горячее блюдо"
      },
      {
       "zh": "撑",
-      "py": "cheng",
+      "py": "chēng",
       "ru": "Переесть"
      }
     ]
@@ -11410,17 +11410,17 @@ const UNITS = [
     "words": [
      {
       "zh": "陈",
-      "py": "chen",
+      "py": "chén",
       "ru": "Чэнь"
      },
      {
       "zh": "汉林",
-      "py": "han lin",
+      "py": "hànlín",
       "ru": "Ханьлинь"
      },
      {
       "zh": "荷兰",
-      "py": "he lan",
+      "py": "hélán",
       "ru": "Нидерланды"
      }
     ]
@@ -11434,32 +11434,32 @@ const UNITS = [
     "words": [
      {
       "zh": "我请客",
-      "py": "wo qing ke",
+      "py": "wǒqǐngkè",
       "ru": "я угощаю"
      },
      {
       "zh": "各付各的钱",
-      "py": "ge fu ge de qian",
+      "py": "gèfù gède qián",
       "ru": "Каждый платит за себя"
      },
      {
       "zh": "不加糖，加冰",
-      "py": "bu jia tang ， jia bing",
+      "py": "bùjiātáng，jiābīng",
       "ru": "без сахара, со льдом"
      },
      {
       "zh": "去参加朋友聚会",
-      "py": "qu can jia peng you ju hui",
+      "py": "qùcān jiāpéng yǒujù huì",
       "ru": "пойти на встречу с друзьями"
      },
      {
       "zh": "热情地问候",
-      "py": "re qing di wen hou",
+      "py": "rèqíng dìwèn hòu",
       "ru": "горячо приветствовать"
      },
      {
       "zh": "大家抢着付钱",
-      "py": "da jia qiang zhe fu qian",
+      "py": "dàjiā qiǎngzhe fùqián",
       "ru": "все наперебой платят"
      }
     ]
@@ -11727,77 +11727,77 @@ const UNITS = [
     "words": [
      {
       "zh": "都",
-      "py": "dou",
+      "py": "dōu",
       "ru": "都"
      },
      {
       "zh": "电视剧",
-      "py": "dian shi ju",
+      "py": "diànshìjù",
       "ru": "电视剧"
      },
      {
       "zh": "集",
-      "py": "ji",
+      "py": "jí",
       "ru": "集"
      },
      {
       "zh": "遥控器",
-      "py": "yao kong qi",
+      "py": "yáokòngqì",
       "ru": "遥控器"
      },
      {
       "zh": "频道",
-      "py": "pin dao",
+      "py": "píndào",
       "ru": "频道"
      },
      {
       "zh": "输",
-      "py": "shu",
+      "py": "shū",
       "ru": "输"
      },
      {
       "zh": "结婚",
-      "py": "jie hun",
+      "py": "jiéhūn",
       "ru": "结婚"
      },
      {
       "zh": "离婚",
-      "py": "li hun",
+      "py": "líhūn",
       "ru": "离婚"
      },
      {
       "zh": "爱情",
-      "py": "ai qing",
+      "py": "àiqíng",
       "ru": "爱情"
      },
      {
       "zh": "争",
-      "py": "zheng",
+      "py": "zhēng",
       "ru": "спорить, бороться"
      },
      {
       "zh": "争论",
-      "py": "zheng lun",
+      "py": "zhēnglùn",
       "ru": "полемика, спор"
      },
      {
       "zh": "看法",
-      "py": "kan fa",
+      "py": "kànfǎ",
       "ru": "看法"
      },
      {
       "zh": "可",
-      "py": "ke",
+      "py": "kě",
       "ru": "可"
      },
      {
       "zh": "生气",
-      "py": "sheng qi",
+      "py": "shēngqì",
       "ru": "生气"
      },
      {
       "zh": "报警",
-      "py": "bao jing",
+      "py": "bàojǐng",
       "ru": "报警"
      }
     ]
@@ -11811,22 +11811,22 @@ const UNITS = [
     "words": [
      {
       "zh": "中央电视台",
-      "py": "zhong yang dian shi tai",
+      "py": "zhōngyāng diànshì tái",
       "ru": "中央电视台"
      },
      {
       "zh": "马",
-      "py": "ma",
+      "py": "mǎ",
       "ru": "马"
      },
      {
       "zh": "赵",
-      "py": "zhao",
+      "py": "zhào",
       "ru": "赵"
      },
      {
       "zh": "中央音乐学院",
-      "py": "zhong yang yin yue xue yuan",
+      "py": "zhōngyāng yīnyuè xuéyuàn",
       "ru": "中央音乐学院"
      }
     ]
@@ -11840,25 +11840,25 @@ const UNITS = [
     "words": [
      {
       "zh": "30集电视剧",
-      "py": "30 ji dian shi ju",
+      "py": "30 jídiàn shìjù",
       "ru": "30集电视剧"
      },
      {
-      "zh": "可生气了", "py": "ke sheng qile",
+      "zh": "可生气了", "py": "kěshēng qìle",
       "ru": "可生气了"
      },
      {
       "zh": "电视遥控器",
-      "py": "dian shi yao kong qi",
+      "py": "diànshì yáokòng qì",
       "ru": "电视遥控器"
      },
      {
       "zh": "中央电视台第8频道",
-      "py": "zhong yang dian shi tai di 8 pin dao",
+      "py": "zhōngyāng diànshì táidì 8pín dào",
       "ru": "中央电视台第8频道"
      },
      {
-      "zh": "北京队输了", "py": "bei jing dui shule",
+      "zh": "北京队输了", "py": "běijīng duìshū le",
       "ru": "北京队输了"
      }
     ]
@@ -12153,72 +12153,72 @@ const UNITS = [
     "words": [
      {
       "zh": "没问题",
-      "py": "mei wen ti",
+      "py": "méiwèntí",
       "ru": "没问题"
      },
      {
       "zh": "丝绸",
-      "py": "si chou",
+      "py": "sīchóu",
       "ru": "丝绸"
      },
      {
       "zh": "单位",
-      "py": "dan wei",
+      "py": "dānwèi",
       "ru": "单位"
      },
      {
       "zh": "包裹",
-      "py": "bao guo",
+      "py": "bāoguǒ",
       "ru": "包裹"
      },
      {
       "zh": "放心",
-      "py": "fang xin",
+      "py": "fàngxīn",
       "ru": "放心"
      },
      {
       "zh": "代",
-      "py": "dai",
+      "py": "dài",
       "ru": "за, от имени"
      },
      {
       "zh": "向",
-      "py": "xiang",
+      "py": "xiàng",
       "ru": "к (кому-либо)"
      },
      {
       "zh": "问好",
-      "py": "wen hao",
+      "py": "wènhǎo",
       "ru": "передавать привет"
      },
      {
       "zh": "灰色",
-      "py": "hui se",
+      "py": "huīsè",
       "ru": "灰色"
      },
      {
       "zh": "贺卡",
-      "py": "he ka",
+      "py": "hèkǎ",
       "ru": "贺卡"
      },
      {
       "zh": "热闹",
-      "py": "re nao",
+      "py": "rènào",
       "ru": "热闹"
      },
      {
       "zh": "蛋糕",
-      "py": "dan gao",
+      "py": "dàngāo",
       "ru": "蛋糕"
      },
      {
       "zh": "快乐",
-      "py": "kuai le",
+      "py": "kuàilè",
       "ru": "快乐"
      },
      {
       "zh": "红灯笼",
-      "py": "hong deng long",
+      "py": "hóngdēnglóng",
       "ru": "红灯笼"
      }
     ]
@@ -12232,22 +12232,22 @@ const UNITS = [
     "words": [
      {
       "zh": "圣诞节",
-      "py": "sheng dan jie",
+      "py": "shèngdànjié",
       "ru": "Рождество"
      },
      {
       "zh": "春节",
-      "py": "chun jie",
+      "py": "chūnjié",
       "ru": "Праздник весны"
      },
      {
       "zh": "乌鲁木齐",
-      "py": "wu lu mu qi",
+      "py": "wūlǔ mùqí",
       "ru": "Урумчи"
      },
      {
       "zh": "阿依古丽",
-      "py": "a yi gu li",
+      "py": "āyī gǔlì",
       "ru": "Айгуль"
      }
     ]
@@ -12261,32 +12261,32 @@ const UNITS = [
     "words": [
      {
       "zh": "没问题",
-      "py": "mei wen ti",
+      "py": "méiwèntí",
       "ru": "没问题"
      },
      {
       "zh": "丝绸衣服",
-      "py": "si chou yi fu",
+      "py": "sīchóu yīfú",
       "ru": "шёлковая одежда"
      },
      {
       "zh": "工作单位",
-      "py": "gong zuo dan wei",
+      "py": "gōngzuò dānwèi",
       "ru": "место работы"
      },
      {
       "zh": "寄包裹",
-      "py": "ji bao guo",
+      "py": "jìbāoguǒ",
       "ru": "отправить посылку"
      },
      {
       "zh": "请放心",
-      "py": "qing fang xin",
+      "py": "qǐngfàngxīn",
       "ru": "не беспокойтесь"
      },
      {
       "zh": "代我向你妈妈问好",
-      "py": "dai wo xiang ni ma ma wen hao",
+      "py": "dàiwǒ xiàngnǐ māmā wènhǎo",
       "ru": "передай привет твоей маме от меня"
      }
     ]
@@ -12590,77 +12590,77 @@ const UNITS = [
     "words": [
      {
       "zh": "录取",
-      "py": "lu qu",
+      "py": "lùqǔ",
       "ru": "зачисление"
      },
      {
       "zh": "经济管理",
-      "py": "jing ji guan li",
+      "py": "jīngjì guǎnlǐ",
       "ru": "экономика и управление"
      },
      {
       "zh": "申请",
-      "py": "shen qing",
+      "py": "shēnqǐng",
       "ru": "подать заявление"
      },
      {
       "zh": "转学",
-      "py": "zhuan xue",
+      "py": "zhuǎnxué",
       "ru": "перевод в другую школу"
      },
      {
       "zh": "针灸",
-      "py": "zhen jiu",
+      "py": "zhēnjiǔ",
       "ru": "иглоукалывание"
      },
      {
       "zh": "哦",
-      "py": "o",
+      "py": "ó",
       "ru": "о"
      },
      {
       "zh": "祝贺",
-      "py": "zhu he",
+      "py": "zhùhè",
       "ru": "поздравление"
      },
      {
       "zh": "进修",
-      "py": "jin xiu",
+      "py": "jìnxiū",
       "ru": "повышение квалификации"
      },
      {
       "zh": "鼓励",
-      "py": "gu li",
+      "py": "gǔlì",
       "ru": "поощрять, поддерживать"
      },
      {
       "zh": "学费",
-      "py": "xue fei",
+      "py": "xuéfèi",
       "ru": "плата за обучение"
      },
      {
       "zh": "对……感兴趣",
-      "py": "dui……gan xing qu",
+      "py": "duì… …gǎn xìngqù",
       "ru": "интересоваться чем-либо"
      },
      {
       "zh": "签证",
-      "py": "qian zheng",
+      "py": "qiānzhèng",
       "ru": "виза"
      },
      {
       "zh": "向……学习",
-      "py": "xiang……xue xi",
+      "py": "xiàng… …xué xí",
       "ru": "учиться у кого-либо"
      },
      {
       "zh": "检票",
-      "py": "jian piao",
+      "py": "jiǎnpiào",
       "ru": "проверка билетов"
      },
      {
       "zh": "一路平安",
-      "py": "yi lu ping an",
+      "py": "yílùpíngān",
       "ru": "счастливого пути"
      },
 
@@ -12675,22 +12675,22 @@ const UNITS = [
     "words": [
      {
       "zh": "香草",
-      "py": "xiang cao",
+      "py": "xiāngcǎo",
       "ru": "ваниль"
      },
      {
       "zh": "上海中医药大学",
-      "py": "shang hai zhong yi yao da xue",
+      "py": "shànghǎi zhōngyī yàodà xué",
       "ru": "Шанхайский университет традиционной китайской медицины"
      },
      {
       "zh": "越南",
-      "py": "yue nan",
+      "py": "yuènán",
       "ru": "Вьетнам"
      },
      {
       "zh": "芝加哥大学",
-      "py": "zhi jia ge da xue",
+      "py": "zhījiā gēdà xué",
       "ru": "Чикагский университет"
      }
     ]
