@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#173e2d" />
   <meta name="description" content="Учебная лаборатория навыков продаж: теория, практика, разборы и контроль прогресса." />
-  <title>Навыки продаж — учебная лаборатория</title>
-  <link rel="stylesheet" href="./styles.css?v=crs114" />
+  <title>Навыки продаж 3.0.1 — учебная лаборатория</title>
+  <link rel="stylesheet" href="./styles.css?v=3.0.1" />
   <link rel="icon" type="image/png" sizes="512x512" href="./emblem-np-solid.png?v=2" />
   <link rel="apple-touch-icon" href="./emblem-np-solid.png?v=2" />
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -16,14 +16,14 @@
   <div id="loginScreen" class="login-screen hidden">
     <div class="login-card">
       <img class="login-logo" src="./emblem-np-solid.png" alt="" />
-      <h1>Навыки продаж</h1>
+      <h1>Навыки продаж <span class="login-ver-num">3.0.1</span></h1>
       <p class="login-sub">Учебная лаборатория · частная территория</p>
       <div class="field"><label>Логин</label><input id="loginEmail" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="напр. Козлов" /></div>
       <div class="field"><label>Пароль</label><input id="loginPass" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" /></div>
       <div id="loginErr" class="login-err"></div>
       <button class="primary-button login-btn" id="loginBtn">Войти</button>
       <button class="offline-hint" id="offlineHintBtn">✈️ Работает в полёте</button>
-      <p class="login-ver">версия модуля <b>crs114</b> · прогресс уходит в облако</p>
+      <p class="login-ver">версия <b>3.0.1</b> · прогресс уходит в облако</p>
     </div>
   </div>
 
@@ -65,7 +65,7 @@
       <div class="brand">
         <img class="brand-mark" src="./emblem-np.png" width="48" height="48" alt="" />
         <div>
-          <strong>Навыки продаж</strong>
+          <strong>Навыки продаж <i class="brand-ver">3.0.1</i></strong>
           <span>учебная лаборатория</span>
         </div>
       </div>
@@ -99,7 +99,7 @@
 
     <main class="main">
       <header class="topbar">
-        <div class="mobile-brand"><img class="brand-mark" src="./emblem-np.png" width="34" height="34" alt="" /><div class="mb-text"><strong>Навыки продаж</strong><small>v.3.0.0 · © Abramson</small></div></div>
+        <div class="mobile-brand"><img class="brand-mark" src="./emblem-np.png" width="34" height="34" alt="" /><div class="mb-text"><strong>Навыки продаж <i class="brand-ver">3.0.1</i></strong><small>v.3.0.0 · © Abramson</small></div></div>
         <div class="topbar-right">
           <div class="xp-pill"><span>⚡</span><strong id="xpValue">0</strong><span>XP</span></div>
           <button class="offline-pill" id="offlinePill" title="Работает в полёте — как установить" aria-label="Работает в полёте">✈️</button>
@@ -146,7 +146,7 @@
   <div class="toast hidden" id="toast" role="status">Прогресс сохранён</div>
   <script>
     // PWA: регистрация service worker — офлайн-режим (авиарежим)
-    var SW_VER = 'crs114'; // ⚠️ при каждом деплое менять вместе с ?v= в тегах ниже
+    var SW_VER = '3.0.1'; // ⚠️ при каждом деплое менять вместе с ?v= в тегах ниже
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
         navigator.serviceWorker.register('./sw.js?v=' + SW_VER, { updateViaCache: 'none' }).catch(function () {});
@@ -154,9 +154,9 @@
         (function () {
           function check() {
             fetch('./sw.js?probe=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
-              var m = t.match(/spin-cache-v(\d+)/);
+              var m = t.match(/spin-cache-v?([0-9.]+)/);
               if (!m) return;
-              var srv = 'crs' + m[1];
+              var srv = m[1];
               if (srv === SW_VER) return;
               var k = 'spin-autoupd-' + srv;
               try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, '1'); } catch (e) {}
@@ -171,13 +171,13 @@
     }
   </script>
   <script defer src="./supabase.min.js"></script>
-  <script defer src="./data.js?v=crs114"></script>
-  <script defer src="./meddicc-data.js?v=crs114"></script>
-  <script defer src="./spiced-data.js?v=crs114"></script>
-  <script defer src="./proactive-data.js?v=crs114"></script>
-  <script defer src="./boss-gate.js?v=crs114"></script>
-  <script defer src="./remote-sales-data.js?v=crs114"></script>
-  <script defer src="./channel-sales-data.js?v=crs114"></script>
-  <script defer src="./app.js?v=crs114"></script>
+  <script defer src="./data.js?v=3.0.1"></script>
+  <script defer src="./meddicc-data.js?v=3.0.1"></script>
+  <script defer src="./spiced-data.js?v=3.0.1"></script>
+  <script defer src="./proactive-data.js?v=3.0.1"></script>
+  <script defer src="./boss-gate.js?v=3.0.1"></script>
+  <script defer src="./remote-sales-data.js?v=3.0.1"></script>
+  <script defer src="./channel-sales-data.js?v=3.0.1"></script>
+  <script defer src="./app.js?v=3.0.1"></script>
 </body>
 </html>
