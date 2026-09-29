@@ -1,8 +1,8 @@
 
 /* Шрифт иероглифов вшит в приложение (подмножество Noto Serif SC / Noto Serif CJK SC).
    Иначе на устройстве, где нет Noto/Songti, браузер подставляет системный «гладкий» PingFang. */
-@font-face{font-family:'CidianSerif';src:url('fonts/noto-serif-sc-reg.woff2?v=2.8.12') format('woff2');font-weight:400;font-style:normal;font-display:swap}
-@font-face{font-family:'CidianSerif';src:url('fonts/noto-serif-sc-bold.woff2?v=2.8.12') format('woff2');font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:'CidianSerif';src:url('fonts/noto-serif-sc-reg.woff2?v=2.8.13') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'CidianSerif';src:url('fonts/noto-serif-sc-bold.woff2?v=2.8.13') format('woff2');font-weight:700;font-style:normal;font-display:swap}
 :root{--bg:#F8F3EC;--card:#FFFCF7;--ink:#3E2C21;--muted:#806E62;--line:#E7D9CB;--brand:#8B6B4F;--brand2:#DCC8B4;--brand3:#B99A7F;--danger:#d64a40;--shadow:0 8px 26px rgba(87,54,31,.08);--radius:20px}
 *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
 .unused-background{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 85% 0%,rgba(201,169,141,.18),transparent 30%),linear-gradient(180deg,rgba(255,255,255,.4),transparent 40%);z-index:-1}
