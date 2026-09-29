@@ -1,7 +1,7 @@
 // Сервис-воркер словаря /cidian/.
 // Версию приложения (V) синхронно проставляет scripts/cidian_bump.py:
 // из неё собираются и ссылки ?v=, и имя кэша — так обновления доезжают до телефона.
-const V = '2.8.17';
+const V = '2.8.18';
 const CACHE = 'cidian-cache-v' + V;
 
 // ВАЖНО: Cloudflare (и иногда GitHub) отдают файлы сжатыми (content-encoding: br/gzip),
@@ -27,6 +27,7 @@ const ASSETS = [
   './index.html',
   './styles.css?v=' + V,
   './app.js?v=' + V,
+  './data-bkrs.js?v=' + V,
   './manifest.json',
   './icon-192-v4.png',
   './icon-512-v4.png',
