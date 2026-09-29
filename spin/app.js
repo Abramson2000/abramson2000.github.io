@@ -684,6 +684,9 @@ async function cloudSave() {
 // XP ПО СОСТОЯНИЮ: считаем награды из фактических данных, а не «накопительно».
 // Причина (29.09.2026): разовая компенсация xpBackfill была помечена по УСТРОЙСТВУ, поэтому на каждом
 // новом браузере/после чистки кэша она начислялась заново и XP распухал (у Саши 9595 при честных ~2600).
+// Поправка на награды, которые формула по состоянию не видит (разборы встреч, тренажёры,
+// начисления старых версий). Заполняется точечно по e-mail — иначе честный XP срезается.
+const XP_LEGACY = { 'abramson@crm.ru': 2270 };
 function xpFromState() {
   try {
     let xp = 0;
@@ -699,6 +702,7 @@ function xpFromState() {
       const r = S.trn[k];
       if (r && r.sc) xp += 20 * Number(r.sc || 0);
     });
+    xp += XP_LEGACY[(USER && USER.email) || ''] || 0;
     return xp;
   } catch (e) { return 0; }
 }
@@ -707,8 +711,8 @@ function xpRepair(force) {
     if (!USER) return 0;
     const fair = xpFromState();
     const cur = Number(S.xp) || 0;
-    if (!force && cur <= fair * 1.3 + 200) return 0;          // всё в пределах разумного — не трогаем
     if (cur === fair) return 0;
+    if (!force && Math.abs(cur - fair) <= Math.max(200, fair * 0.3)) return 0; // в пределах разумного — не трогаем
     S.xp = fair;
     save();
     return fair;

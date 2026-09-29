@@ -6,7 +6,7 @@
 //   /api/* и внешние домены (supabase) — только сеть.
 // Прекэш: все файлы приложения кладутся по одному; сбой одного файла НЕ ломает установку.
 // Страница может запросить статус/скачивание: postMessage({type:'status'|'precache'}).
-const CACHE = 'spin-cache-3.0.1.2-safe';
+const CACHE = 'spin-cache-3.0.1.4-safe';
 
 // Cloudflare отдаёт файлы сжатыми (content-encoding: br), а Cache API хранит уже
 // распакованное тело: если отдать такую запись на НАВИГАЦИЮ, браузер пытается
@@ -28,15 +28,15 @@ async function putClean(cache, key, res) {
 const CORE = [
   './',
   './index.html',
-  './styles.css?v=3.0.1.2',
-  './app.js?v=3.0.1.2',
-  './data.js?v=3.0.1.2',
-  './meddicc-data.js?v=3.0.1.2',
-  './spiced-data.js?v=3.0.1.2',
-  './proactive-data.js?v=3.0.1.2',
-  './boss-gate.js?v=3.0.1.2',
-  './remote-sales-data.js?v=3.0.1.2',
-  './channel-sales-data.js?v=3.0.1.2',
+  './styles.css?v=3.0.1.4',
+  './app.js?v=3.0.1.4',
+  './data.js?v=3.0.1.4',
+  './meddicc-data.js?v=3.0.1.4',
+  './spiced-data.js?v=3.0.1.4',
+  './proactive-data.js?v=3.0.1.4',
+  './boss-gate.js?v=3.0.1.4',
+  './remote-sales-data.js?v=3.0.1.4',
+  './channel-sales-data.js?v=3.0.1.4',
   './supabase.min.js',
   './manifest.webmanifest',
   './emblem-np.png',
@@ -94,15 +94,15 @@ self.addEventListener('install', (e) => {
     // не активируем новый worker, оставляем предыдущую рабочую версию.
     const required = [
       './index.html',
-      './styles.css?v=3.0.1.2',
-      './app.js?v=3.0.1.2',
-      './data.js?v=3.0.1.2',
-      './meddicc-data.js?v=3.0.1.2',
-      './spiced-data.js?v=3.0.1.2',
-      './proactive-data.js?v=3.0.1.2',
-      './boss-gate.js?v=3.0.1.2',
-      './remote-sales-data.js?v=3.0.1.2',
-      './channel-sales-data.js?v=3.0.1.2',
+      './styles.css?v=3.0.1.4',
+      './app.js?v=3.0.1.4',
+      './data.js?v=3.0.1.4',
+      './meddicc-data.js?v=3.0.1.4',
+      './spiced-data.js?v=3.0.1.4',
+      './proactive-data.js?v=3.0.1.4',
+      './boss-gate.js?v=3.0.1.4',
+      './remote-sales-data.js?v=3.0.1.4',
+      './channel-sales-data.js?v=3.0.1.4',
       './supabase.min.js'
     ];
     for (const u of required) {
