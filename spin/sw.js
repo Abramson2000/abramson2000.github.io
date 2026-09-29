@@ -6,7 +6,7 @@
 //   /api/* и внешние домены (supabase) — только сеть.
 // Прекэш: все файлы приложения кладутся по одному; сбой одного файла НЕ ломает установку.
 // Страница может запросить статус/скачивание: postMessage({type:'status'|'precache'}).
-const CACHE = 'spin-cache-v112-safe';
+const CACHE = 'spin-cache-v113-safe';
 
 // Cloudflare отдаёт файлы сжатыми (content-encoding: br), а Cache API хранит уже
 // распакованное тело: если отдать такую запись на НАВИГАЦИЮ, браузер пытается
@@ -28,15 +28,15 @@ async function putClean(cache, key, res) {
 const CORE = [
   './',
   './index.html',
-  './styles.css?v=crs112',
-  './app.js?v=crs112',
-  './data.js?v=crs112',
-  './meddicc-data.js?v=crs112',
-  './spiced-data.js?v=crs112',
-  './proactive-data.js?v=crs112',
-  './boss-gate.js?v=crs112',
-  './remote-sales-data.js?v=crs112',
-  './channel-sales-data.js?v=crs112',
+  './styles.css?v=crs113',
+  './app.js?v=crs113',
+  './data.js?v=crs113',
+  './meddicc-data.js?v=crs113',
+  './spiced-data.js?v=crs113',
+  './proactive-data.js?v=crs113',
+  './boss-gate.js?v=crs113',
+  './remote-sales-data.js?v=crs113',
+  './channel-sales-data.js?v=crs113',
   './supabase.min.js',
   './manifest.webmanifest',
   './emblem-np.png',
@@ -94,15 +94,15 @@ self.addEventListener('install', (e) => {
     // не активируем новый worker, оставляем предыдущую рабочую версию.
     const required = [
       './index.html',
-      './styles.css?v=crs112',
-      './app.js?v=crs112',
-      './data.js?v=crs112',
-      './meddicc-data.js?v=crs112',
-      './spiced-data.js?v=crs112',
-      './proactive-data.js?v=crs112',
-      './boss-gate.js?v=crs112',
-      './remote-sales-data.js?v=crs112',
-      './channel-sales-data.js?v=crs112',
+      './styles.css?v=crs113',
+      './app.js?v=crs113',
+      './data.js?v=crs113',
+      './meddicc-data.js?v=crs113',
+      './spiced-data.js?v=crs113',
+      './proactive-data.js?v=crs113',
+      './boss-gate.js?v=crs113',
+      './remote-sales-data.js?v=crs113',
+      './channel-sales-data.js?v=crs113',
       './supabase.min.js'
     ];
     for (const u of required) {

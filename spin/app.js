@@ -482,6 +482,43 @@ function mergeTrn(x, y) { // прогресс тренажёра: берём б�
   return canonTrn(out);
 }
 function uniArr(a, b) { return Array.from(new Set([].concat(a || [], b || []).map(Number))).sort((x, y) => x - y); }
+// ============ сессия не активна: прогресс копится только на устройстве ============
+// Случай Бебишевой (29.09.2026): курс проходится локально, а на сервер ничего не уходит,
+// потому что вход давно истёк. Раньше об этом говорила только тихая плашка — её не замечают.
+const RELOGIN_SNOOZE = 'spin-relogin-snooze-v1';
+let _reloginShown = false;
+function maybeShowReLogin() {
+  try {
+    if (!USER || _reloginShown) return;
+    const m = document.getElementById('reloginModal');
+    if (!m || !m.classList.contains('hidden')) return;
+    const t = Number(localStorage.getItem(RELOGIN_SNOOZE)) || 0;
+    if (Date.now() - t < 12 * 3600 * 1000) return; // не чаще раза в 12 часов
+    _reloginShown = true;
+    m.classList.remove('hidden');
+  } catch (e) {}
+}
+function bindReLogin() {
+  const m = document.getElementById('reloginModal');
+  if (!m) return;
+  const hide = (snooze) => {
+    m.classList.add('hidden');
+    if (snooze) { try { localStorage.setItem(RELOGIN_SNOOZE, String(Date.now())); } catch (e) {} }
+  };
+  const c = document.getElementById('reloginClose'); if (c) c.addEventListener('click', () => hide(true));
+  const l = document.getElementById('reloginLater'); if (l) l.addEventListener('click', () => hide(true));
+  m.addEventListener('click', (e) => { if (e.target === m) hide(true); });
+  const g = document.getElementById('reloginGo');
+  if (g) g.addEventListener('click', async () => {
+    hide(false);
+    try { if (USER && USER.email) localStorage.setItem('spin-last-email', USER.email); } catch (e) {}
+    try { localStorage.removeItem(RELOGIN_SNOOZE); } catch (e) {}
+    flushSave();
+    try { if (SB) await SB.auth.signOut(); } catch (e) {}
+    try { localStorage.removeItem('spin-user'); } catch (e) {} // иначе снова войдём «офлайн» и не увидим экран входа
+    location.reload();
+  });
+}
 function updateSyncUI() {
   const el = document.getElementById('syncStatus');
   if (el) {
@@ -497,6 +534,7 @@ function updateSyncUI() {
     const bad = !!USER && (S.sync === 'noauth' || S.sync === 'error');
     al.classList.toggle('hidden', !bad);
     if (bad) {
+      if (S.sync === 'noauth') maybeShowReLogin();
       if (S.sync === 'noauth') {
         al.innerHTML = '<span><b>Синхронизация не работает: вход истёк.</b> Прогресс пока пишется только в это устройство. Войдите заново — и всё сольётся с облаком.</span><button class="sync-alert-btn" id="syncFix">Войти заново</button>';
       } else {
@@ -676,6 +714,7 @@ async function boot(user) {
   USER = { id: user.id, email: user.email || '', name: userName(user) };
   LS_KEY = 'spin-lab-v1:' + USER.id;
   try { localStorage.setItem('spin-user', JSON.stringify(USER)); } catch (e) {} // для офлайн-входа (авиарежим)
+  try { if (USER.email) localStorage.setItem('spin-last-email', USER.email); } catch (e) {} // экран входа знает логин
   refreshExtra();
   loadState();
   loadExtra();
@@ -725,6 +764,17 @@ async function initAuth() {
   try {
     const saved = JSON.parse(localStorage.getItem('spin-user'));
     if (saved && saved.id) { boot(saved); return; }
+  } catch (e) {}
+  // подставляем логин последнего пользователя этого устройства — останется ввести только пароль
+  try {
+    const inp = $('loginEmail');
+    if (inp && !inp.value) {
+      let em = localStorage.getItem('spin-last-email') || '';
+      if (!em) { try { const su = JSON.parse(localStorage.getItem('spin-user')); em = (su && su.email) || ''; } catch (e) {} }
+      if (em) inp.value = String(em).split('@')[0];
+      const pe = $('loginErr');
+      if (pe && em) pe.textContent = 'Вход на этом устройстве не активен — введите пароль, чтобы прогресс снова шёл в общую статистику.';
+    }
   } catch (e) {}
   $('loginScreen').classList.remove('hidden');
   $('appShell').style.display = 'none';
@@ -2230,7 +2280,7 @@ async function loadTeam() {
           <span>уроков · уровень ${lvl}</span>
           <span>${m.xp || 0} XP</span>
           <span>${pracN ? 'практика: ' + pracN + ' уроков' : 'практика: —'}</span>
-          ${act ? `<span>${act}</span>` : ''}
+          ${act ? `<span>${act}</span>` : '<span class="team-warn">⚠ с устройства ничего не приходило</span>'}
         </div>
       </article>`;
     }).join('');
@@ -2504,4 +2554,5 @@ function renderProgress() {
 
 // ============ Старт ============
 bindLogin();
+bindReLogin();
 initAuth();

@@ -431,3 +431,8 @@ button { color: inherit; }
 .sync-alert-btn { flex: 0 0 auto; border: 0; border-radius: 999px; padding: 8px 16px; background: #c63717; color: #fff; font-weight: 800; font-size: 12px; letter-spacing: .04em; cursor: pointer; font-family: inherit; }
 @media (max-width: 760px) { .sync-alert { flex-direction: column; align-items: stretch; } }
 .lesson-complete-early { margin: 24px 0 6px; }
+
+/* ⚠️ метка у начальника: у участника нет ни одной синхронизации с сервером */
+.team-warn { display: inline-block; margin-top: 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .01em;
+  color: #a04c00; background: #fff3e0; border: 1px solid #ffd8a8; border-radius: 7px; padding: 2px 7px; }
+.relogin-note { border-left: 3px solid var(--green); background: #eef7f0; padding: 10px 12px; border-radius: 10px; color: var(--ink, #14301f); }

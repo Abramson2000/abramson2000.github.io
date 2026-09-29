@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#173e2d" />
   <meta name="description" content="Учебная лаборатория навыков продаж: теория, практика, разборы и контроль прогресса." />
   <title>Навыки продаж — учебная лаборатория</title>
-  <link rel="stylesheet" href="./styles.css?v=crs112" />
+  <link rel="stylesheet" href="./styles.css?v=crs113" />
   <link rel="icon" type="image/png" sizes="512x512" href="./emblem-np-solid.png?v=2" />
   <link rel="apple-touch-icon" href="./emblem-np-solid.png?v=2" />
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -45,6 +45,20 @@
       <button class="primary-button modal-ok" id="offlineModalOk">Понятно</button>
     </div>
   </div>
+  <!-- Модалка: сессия истекла — прогресс копится только на устройстве -->
+  <div class="modal-overlay hidden" id="reloginModal">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="reloginTitle">
+      <button class="modal-close" id="reloginClose" aria-label="Закрыть">✕</button>
+      <h2 id="reloginTitle">⚠️ Прогресс не уходит на сервер</h2>
+      <p>Вы занимаетесь, но <b>вход в аккаунт не активен</b> — поэтому уроки, практики и XP остаются только на этом устройстве и не попадают в общую статистику.</p>
+      <p class="relogin-note">Войдите заново — и всё, что уже пройдено здесь, сольётся с сервером автоматически. Ничего не потеряется.</p>
+      <div class="feedback-actions">
+        <button class="primary-button" id="reloginGo">Войти заново</button>
+        <button class="secondary-button" id="reloginLater">Позже</button>
+      </div>
+    </div>
+  </div>
+
   <div class="app-shell" id="appShell">
     <aside class="sidebar" aria-label="Основная навигация">
       <div class="brand">
@@ -131,7 +145,7 @@
   <div class="toast hidden" id="toast" role="status">Прогресс сохранён</div>
   <script>
     // PWA: регистрация service worker — офлайн-режим (авиарежим)
-    var SW_VER = 'crs112'; // ⚠️ при каждом деплое менять вместе с ?v= в тегах ниже
+    var SW_VER = 'crs113'; // ⚠️ при каждом деплое менять вместе с ?v= в тегах ниже
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
         navigator.serviceWorker.register('./sw.js?v=' + SW_VER, { updateViaCache: 'none' }).catch(function () {});
@@ -156,13 +170,13 @@
     }
   </script>
   <script defer src="./supabase.min.js"></script>
-  <script defer src="./data.js?v=crs112"></script>
-  <script defer src="./meddicc-data.js?v=crs112"></script>
-  <script defer src="./spiced-data.js?v=crs112"></script>
-  <script defer src="./proactive-data.js?v=crs112"></script>
-  <script defer src="./boss-gate.js?v=crs112"></script>
-  <script defer src="./remote-sales-data.js?v=crs112"></script>
-  <script defer src="./channel-sales-data.js?v=crs112"></script>
-  <script defer src="./app.js?v=crs112"></script>
+  <script defer src="./data.js?v=crs113"></script>
+  <script defer src="./meddicc-data.js?v=crs113"></script>
+  <script defer src="./spiced-data.js?v=crs113"></script>
+  <script defer src="./proactive-data.js?v=crs113"></script>
+  <script defer src="./boss-gate.js?v=crs113"></script>
+  <script defer src="./remote-sales-data.js?v=crs113"></script>
+  <script defer src="./channel-sales-data.js?v=crs113"></script>
+  <script defer src="./app.js?v=crs113"></script>
 </body>
 </html>
