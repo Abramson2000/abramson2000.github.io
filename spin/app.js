@@ -681,9 +681,43 @@ async function cloudSave() {
     setTimeout(() => { if (S.dirty) cloudSave(); }, 4000);
   }
 }
-function xpBackfill() { // одноразовая компенсация XP за пройденное до введения наград за практики/отметки
+// XP ПО СОСТОЯНИЮ: считаем награды из фактических данных, а не «накопительно».
+// Причина (29.09.2026): разовая компенсация xpBackfill была помечена по УСТРОЙСТВУ, поэтому на каждом
+// новом браузере/после чистки кэша она начислялась заново и XP распухал (у Саши 9595 при честных ~2600).
+function xpFromState() {
+  try {
+    let xp = 0;
+    xp += 30 * ((S.done || []).length + (S.spicedDone || []).length + (S.medDone || []).length
+      + (S.proDone || []).length + (S.cDone || []).length + (S.extraDone || []).length);
+    xp += 5 * (Number(S.correct) || 0);                       // верные ответы в квизах/практиках
+    xp += 5 * ((S.practiced || []).length + (S.spPracticed || []).length + (S.medPracticed || []).length + (S.proPracticed || []).length);
+    (S.extraDone || []).forEach((ei) => {                     // практики внутри книг-выжимок
+      const x = (typeof EXTRA_ALL !== 'undefined' && EXTRA_ALL) ? EXTRA_ALL[ei] : null;
+      if (x && x.practice) xp += x.practice.length * 5;
+    });
+    Object.keys(S.trn || {}).forEach((k) => {                 // тренажёр: 20 XP за верный ход
+      const r = S.trn[k];
+      if (r && r.sc) xp += 20 * Number(r.sc || 0);
+    });
+    return xp;
+  } catch (e) { return 0; }
+}
+function xpRepair(force) {
+  try {
+    if (!USER) return 0;
+    const fair = xpFromState();
+    const cur = Number(S.xp) || 0;
+    if (!force && cur <= fair * 1.3 + 200) return 0;          // всё в пределах разумного — не трогаем
+    if (cur === fair) return 0;
+    S.xp = fair;
+    save();
+    return fair;
+  } catch (e) { return 0; }
+}
+function xpBackfill(hadCloud) { // одноразовая компенсация — только если облака ещё нет (иначе уже начислено)
   try {
     if (!USER) return;
+    if (hadCloud) return;                                      // запись в облаке уже есть — начислять повторно нельзя
     const KEY = 'spin-xp-backfill:' + USER.id;
     if (localStorage.getItem(KEY)) return;
     let bonus = 0;
@@ -710,6 +744,7 @@ function xpBackfill() { // одноразовая компенсация XP за
 async function cloudLoad() {
   if (!USER || !SB) return;
   let loadErr = 0;
+  let cloud = null;
   try {
     const { data: s } = await SB.auth.getSession();
     const token = s && s.session && s.session.access_token;
@@ -717,7 +752,7 @@ async function cloudLoad() {
     const r = await spinApi({ action: 'get', token });
     const j = await r.json().catch(() => null);
     const local = syncPayload();
-    const cloud = j && j.data;
+    cloud = j && j.data;
     if (cloud) {
       const cx = Number(cloud.xp) || 0, lx = Number(local.xp) || 0;
       // ВСЕГДА объединяем оба источника — ничего не теряем ни здесь, ни на сервере
@@ -758,7 +793,9 @@ async function cloudLoad() {
     updateSyncUI();
   } catch (e) { loadErr = (e && e.status) || -1; } finally {
     _cloudReady = true;
-    xpBackfill();
+    xpBackfill(!!cloud);
+    const fairXp = xpRepair(false);
+    if (fairXp) toast('XP пересчитан по факту пройденного: ' + fairXp + ' XP');
     if (hasPending()) S.dirty = true;
     if (S.dirty) cloudSave();
     else if (loadErr === 401 || loadErr === 403) setSync('noauth');
