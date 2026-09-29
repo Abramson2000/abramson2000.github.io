@@ -188,7 +188,7 @@
   .nav-btn:not(:disabled):active { transform: scale(.98); }
 
   /* Слова */
-  .word { display: grid; grid-template-columns: 1fr 1fr 1.1fr auto; gap: 8px; padding: 12px 0; border-bottom: 1px solid #f1f0ec; align-items: baseline; cursor: pointer; border-radius: 12px; }
+  .word { display: grid; grid-template-columns: 1fr 1fr 1.1fr auto; gap: 8px; padding: 12px 0; border-bottom: 1px solid #f1f0ec; align-items: baseline; cursor: default; border-radius: 12px; }
   .word:last-child { border-bottom: none; }
   .word .zh { font-size: 19.5px; font-weight: 500; }
   .word .py { color: var(--muted); font-size: 14px; }
@@ -22347,7 +22347,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.4.5';
+const APP_VER = '3.4.6';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -23055,20 +23055,14 @@ function renderWords(u, part) {
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div>
       <button class="fav-btn ${isFavPart(u, part) ? 'on' : ''}" onclick="toggleFavPart()" title="В избранное">${isFavPart(u, part) ? '⭐' : '☆'}</button></div>
-    <div style="padding:0 16px 8px">
-      <div class="hw-hint" style="color:#999;margin-bottom:8px">Нажми на слово, чтобы выделить несколько, или на «+» у слова — отправить одно</div>
-    </div>
     <div class="part" style="cursor:default;padding:6px 16px" id="wordList">
       ${part.words.map((w, i) => `
-        <div class="word${dictHas(w.zh) ? ' indict' : ''}" data-i="${i}" onclick="selWord(this)">
+        <div class="word" data-i="${i}">
           <span class="zh">${esc(w.zh)}</span><span class="py">${esc(w.py)}</span><span class="ru">${esc(w.ru)}</span>
-          <span class="w-add" onclick="event.stopPropagation();sendWordOne(this)" title="Отправить это слово в «Мои слова»">${dictHas(w.zh) ? '✓' : '+'}</span>
           ${w.ex ? `<span class="word-ex">${esc(w.ex)}</span>` : ''}
         </div>`).join('')}
     </div>
-    <div class="dict-send-bar" id="dictBar" style="display:none">
-      <button class="btn" onclick="sendToDict()">📖 Отправить в словарь (<span id="dictCnt">0</span>)</button>
-    </div>`;
+    `;
 }
 function toggleFavPart() {
   const k = favKeyPart(curUnit, curPart);
