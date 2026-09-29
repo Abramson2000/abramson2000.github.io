@@ -1,8 +1,8 @@
 
 /* Шрифт иероглифов вшит в приложение (подмножество Noto Serif SC / Noto Serif CJK SC).
    Иначе на устройстве, где нет Noto/Songti, браузер подставляет системный «гладкий» PingFang. */
-@font-face{font-family:'CidianSerif';src:url('fonts/noto-serif-sc-reg.woff2?v=2.6.3') format('woff2');font-weight:400;font-style:normal;font-display:swap}
-@font-face{font-family:'CidianSerif';src:url('fonts/noto-serif-sc-bold.woff2?v=2.6.3') format('woff2');font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:'CidianSerif';src:url('fonts/noto-serif-sc-reg.woff2?v=2.7.0') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'CidianSerif';src:url('fonts/noto-serif-sc-bold.woff2?v=2.7.0') format('woff2');font-weight:700;font-style:normal;font-display:swap}
 :root{--bg:#F8F3EC;--card:#FFFCF7;--ink:#3E2C21;--muted:#806E62;--line:#E7D9CB;--brand:#8B6B4F;--brand2:#DCC8B4;--brand3:#B99A7F;--danger:#d64a40;--shadow:0 8px 26px rgba(87,54,31,.08);--radius:20px}
 *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
 .unused-background{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 85% 0%,rgba(201,169,141,.18),transparent 30%),linear-gradient(180deg,rgba(255,255,255,.4),transparent 40%);z-index:-1}
@@ -104,5 +104,27 @@ button:focus-visible{outline:2px solid var(--brand);outline-offset:3px}.form inp
 
 /* ручка шторки — заметнее и подсказывает свайп */
 .grab{width:44px;height:5px}
+
+/* ── режим «как в Excel»: простой просмотр списком (без правок) ── */
+.xlhead,.xlt{display:grid;grid-template-columns:minmax(84px,32%) minmax(0,1fr);align-items:start}
+.xlhead{position:sticky;top:0;z-index:6;background:rgba(251,247,240,.97);border-bottom:2px solid rgba(147,107,78,.35);font-size:12px;font-weight:650;color:var(--muted);letter-spacing:.3px}
+.xlhead>div{padding:9px 10px}
+.xlwrap{border:1px solid rgba(185,154,127,.45);border-radius:12px;overflow:hidden;background:rgba(255,252,247,.75)}
+.xlt{border-bottom:1px solid rgba(120,99,84,.16)}
+.xlt:last-child{border-bottom:0}
+.xlt>div{padding:6px 10px;line-height:1.28}
+.xlt .xlh{font-family:'CidianSerif',"Noto Serif CJK SC","Songti SC","STSong",serif;font-size:18px;font-weight:600;white-space:nowrap;word-break:keep-all;overflow:hidden;text-overflow:ellipsis;border-right:1px solid rgba(120,99,84,.16)}
+.xlt .xlr{font-size:14px;color:#4a3426;min-width:0;overflow-wrap:anywhere}
+.xlw{background:#C6DEB5}
+.xln{background:#FFF2CC}
+.xlp{background:#FFFF00}
+.xlnote{font-size:12px;color:var(--muted);margin:10px 2px 0}
+@media(max-width:520px){
+  .xlhead,.xlt{grid-template-columns:minmax(74px,34%) minmax(0,1fr)}
+  .xlt>div{padding:5px 8px}
+  .xlt .xlh{font-size:17px}
+  .xlt .xlr{font-size:13px}
+}
+
 .sheet{will-change:transform;touch-action:pan-y}
 
