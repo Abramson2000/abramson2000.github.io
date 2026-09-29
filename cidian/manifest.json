@@ -1,6 +1,6 @@
 {
-  "name": "Мои слова · 我的生词",
-  "short_name": "Мои слова",
+  "name": "Мой словарь · 我的生词",
+  "short_name": "Мой словарь",
   "id": "/cidian/",
   "start_url": "/cidian/",
   "scope": "/cidian/",
