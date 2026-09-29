@@ -290,7 +290,7 @@ function localForeignProgress() {
       const k = localStorage.key(i);
       if (!k || k.indexOf('spin-lab-v1:') !== 0) continue;
       const id = k.slice('spin-lab-v1:'.length);
-      if (id === USER.id || id === 'reviewer') continue;
+      if (id === USER.id) continue;
       let o = null; try { o = JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { o = null; }
       if (!o) continue;
       const xp = Number(o.xp) || 0, n = (o.done || []).length + (o.spicedDone || []).length + (o.medDone || []).length + (o.proDone || []).length;
@@ -317,7 +317,7 @@ function adoptLocalProgress() {
       const k = localStorage.key(i);
       if (!k || k.indexOf('spin-lab-v1:') !== 0) continue;
       const id = k.slice('spin-lab-v1:'.length);
-      if (id === USER.id || id === 'reviewer') continue;
+      if (id === USER.id) continue;
       let o = null; try { o = JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { o = null; }
       if (!o) continue;
       if (!(Number(o.xp) || 0) && !(o.done || []).length && !(o.practiced || []).length) continue;
@@ -2357,8 +2357,8 @@ async function loadTeam() {
           <span>уроков · уровень ${lvl}</span>
           <span>${m.xp || 0} XP</span>
           <span>${pracN ? 'практика: ' + pracN + ' уроков' : 'практика: —'}</span>
-          <span class="team-ver">модуль ${m.ver ? String(m.ver) : 'не сообщён'}</span>
-          ${act ? `<span>${act}</span>` : '<span class="team-warn">⚠ с устройства ничего не приходило</span>'}
+          ${act ? `<span>${act}</span>` : ''}
+          ${m.ver ? `<span class="team-ver">модуль ${String(m.ver)}</span>` : ''}
         </div>
       </article>`;
     }).join('');
