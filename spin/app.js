@@ -820,7 +820,7 @@ function userName(user) {
   return raw[0].toUpperCase() + raw.slice(1);
 }
 function stampVersion() {
-  // единая точка: номер сборки во всех «названиях» приложения
+  // единая точка: номер сборки в подписи (название всегда «Навыки продаж»)
   try {
     const txt = 'v.' + APP_VER + ' · © Abramson';
     const s = document.getElementById('sideVer'); if (s) s.textContent = txt;
