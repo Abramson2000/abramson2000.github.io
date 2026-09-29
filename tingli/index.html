@@ -10,9 +10,9 @@
 <link rel="manifest" href="manifest.json">
 <style>
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=2.23.3') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.4.2') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.4.7') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.4.2') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.4.7') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -19794,6 +19794,25 @@ const IDV_UNITS = [
       "ru": "сразу, моментально; разок"
      }
     ]
+   },
+   {
+    "id": 2,
+    "kind": "hw",
+    "title": "Пересказ с пропусками",
+    "titleZh": "复述课文 · 填空",
+    "ico": "述",
+    "text": "前段时间，杨同乐的同事⋯⋯。刚开始，这位同事也⋯⋯。拿⋯⋯来说，虽然她能⋯⋯，但实际效果⋯⋯。杨同乐告诉她，这是因为⋯⋯。其实，不同年龄、不同性别的客户⋯⋯。\\n\\n于是，这位同事⋯⋯，了解⋯⋯。后来她在面对不同客户时，能⋯⋯，效果⋯⋯。\\n\\n小语助力：“优缺点”是“优点和缺点”的缩略形式。",
+    "questions": [
+     "前段时间，杨同乐的同事________。",
+     "刚开始，这位同事也________。",
+     "拿________来说，她能把产品的优缺点说得很清楚。",
+     "虽然她能把产品的优缺点说得很清楚，但实际效果________。",
+     "杨同乐告诉她，这是因为________。",
+     "其实，不同年龄、不同性别的客户________。",
+     "于是，这位同事________，了解不同客户的想法。",
+     "后来她在面对不同客户时，能________，效果一下就好了很多。"
+    ],
+    "fullText": "Оригинал текста (урок 213 · 介绍产品): 前段时间，杨同乐的同事谈成了一笔不错的生意。刚开始，这位同事也遇到了一些困难。拿和客户交流来说，虽然她能把产品的优缺点说得很清楚，但实际效果并不理想。杨同乐告诉她，这是因为她介绍的方式都一样。其实，不同年龄、不同性别的客户对产品的关注点是不一样的。于是，这位同事又认真地进行了几次市场调查，了解不同客户的想法。后来她在面对不同客户时，能根据他们的情况介绍产品，效果一下就好了很多。\\nПо-русски: недавно коллега Ян Тунлэ заключила выгодную сделку. Сначала у неё тоже были трудности. Возьмём общение с клиентами: она умела подробно объяснить плюсы и минусы продукта, но результат был неудачный. Ян Тунлэ сказала, что причина в том, что она представляла продукт всегда одинаково. На самом деле клиенты разного возраста и пола обращают внимание на разное. Тогда коллега провела несколько опросов рынка и поняла, что думают разные клиенты. Позже, общаясь с разными клиентами, она представляла продукт с учётом их ситуации, и результат сразу стал намного лучше."
    }
   ]
  }
@@ -22347,7 +22366,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.4.6';
+const APP_VER = '3.4.7';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
