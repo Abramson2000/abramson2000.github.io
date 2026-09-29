@@ -1841,7 +1841,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.2.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.2.5';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2416,7 +2416,7 @@ async function bootstrap() {
   render();
   refreshCounts();
   // v3.27.3: в фоне прогреваем кэш людей и связок — тогда карточка клиники открывается мгновенно
-  setTimeout(() => { listPeople().catch(() => {}); listClinicLinks().catch(() => {}); getDict('manager').catch(() => {}); }, 1200);
+  setTimeout(() => { listPeople().catch(() => {}); listClinicLinks().catch(() => {}); getDict('manager').catch(() => {}); allNotesByClinic().catch(() => {}); }, 1200);
 }
 
 // ⚠️ ВРЕМЕННО (по просьбе Саши 24.09.2026): вход без пароля.
@@ -5740,20 +5740,9 @@ function notesBlock(c, canEditNow) {
 function fillNotesBlock(cid) {
   return fillNotesBlock0(cid);
 }
-async function fillNotesBlock0(cid) {
-  const box = document.querySelector('#notesList[data-cid="' + cid + '"]');
-  if (!box) return;
+// v4.2.3: отрисовка заметок — отдельно, чтобы показать их сразу из кэша и не менять карточку потом
+function renderNotesBox(box, list, canEdit) {
   const blk = box.closest('.notes-block');
-  const canEdit = !!(blk && blk.getAttribute('data-canedit') === '1');
-  let list = [];
-  try {
-    const { data, error } = await sb.from('notes')
-      .select('id,text,author_email,author_name,created_at')
-      .eq('clinic_id', cid).order('created_at', { ascending: false });
-    if (error) throw error;
-    list = data || [];
-  } catch (_) { list = []; box.classList.remove('hidden'); box.innerHTML = '<span style="color:var(--muted)">нет доступа к заметкам</span>'; return; }
-  // v3.16.2: пустую историю и счётчик не показываем; у записи — дата и автор (если известны)
   box.classList.toggle('hidden', !list.length);
   if (!list.length && blk && !canEdit) {
     const st = blk.querySelector('.note-situation .note-text');
@@ -5766,6 +5755,60 @@ async function fillNotesBlock0(cid) {
         return `<div class="note-item" data-note="${n.id}">${pencil ? `<span class="note-tools">${pencil}</span>` : ''}${meta ? `<div class="note-meta">${esc(meta)}</div>` : ''}<div class="note-text">${esc(n.text)}</div></div>`;
       }).join('')
     : '';
+}
+// v4.2.4: все заметки одной загрузкой (их всего несколько десятков) — любой карточке сразу,
+// слоями по клинике. Так блок истории не «доезжает» после открытия карточки.
+async function allNotesByClinic() {
+  return rcLoad('nt:all', async () => {
+    try {
+      const { data } = await sb.from('notes').select('id,clinic_id,text,author_email,author_name,created_at')
+        .order('created_at', { ascending: false });
+      const map = {};
+      (data || []).forEach(n => { const k = Number(n.clinic_id); (map[k] = map[k] || []).push(n); });
+      return map;
+    } catch (_) { return {}; }
+  });
+}
+function notesCachedFor(cid) {
+  try {
+    if (rcHas('nt:all') && RC.data['nt:all']) return RC.data['nt:all'][Number(cid)] || [];
+    if (rcHas('nt:' + cid)) return RC.data['nt:' + cid];
+  } catch (_) {}
+  return null;
+}
+// v4.2.3: заметки из кэша — карточка открывается уже с историей, без «загрузка…»
+function fillNotesBlockCached(cid) {
+  try {
+    const list = notesCachedFor(cid);
+    if (list === null) return false;
+    const box = document.querySelector('#notesList[data-cid="' + cid + '"]');
+    if (!box) return false;
+    const blk = box.closest('.notes-block');
+    renderNotesBox(box, list, !!(blk && blk.getAttribute('data-canedit') === '1'));
+    return true;
+  } catch (_) { return false; }
+}
+async function fillNotesBlock0(cid) {
+  const box = document.querySelector('#notesList[data-cid="' + cid + '"]');
+  if (!box) return;
+  const blk = box.closest('.notes-block');
+  const canEdit = !!(blk && blk.getAttribute('data-canedit') === '1');
+  let list = [];
+  try {
+    const cached = notesCachedFor(cid);
+    if (cached !== null) { list = cached; }
+    else {
+      list = await rcLoad('nt:' + cid, async () => {
+        const { data, error } = await sb.from('notes')
+          .select('id,text,author_email,author_name,created_at')
+          .eq('clinic_id', cid).order('created_at', { ascending: false });
+        if (error) throw error;
+        return data || [];
+      });
+    }
+  } catch (_) { list = []; box.classList.remove('hidden'); box.innerHTML = '<span style="color:var(--muted)">нет доступа к заметкам</span>'; return; }
+  // v3.16.2: пустую историю и счётчик не показываем; у записи — дата и автор (если известны)
+  renderNotesBox(box, list || [], canEdit);
 }
 // v3.16.2: правка ранее записанного (карандаш → текст → «Сохранить»/«Отмена»)
 // v3.17.0: рядом с карандашом — удаление записи (с подтверждением в самой строке)
@@ -5978,12 +6021,22 @@ async function showHoverCard(row, immediate) {
   // и без ожидания сети (раньше был серый «скелетон», он и мерцал). Заглушка — только когда кэша нет.
   let instant = false;
   if (kind !== 'person' && kind !== 'refdoc') {
-    const fast = clinicFromCache(id);
+    const fastRow = clinicFromCache(id);
+    const fast = fastRow ? withPrivateFromCache(fastRow) : null;
     if (fast) {
       const canEditFast = canEditMain() || (isRefEdit() && isRefKind(fast.kind));
-      panel.innerHTML = clinicHeadHtml(fast, canEditFast) + clinicDetailBody(fast, null, [], undefined, [], null);
+      // v4.2.2: пара, контакты и продажи берём из кэша сразу — карточка появляется уже наполненной,
+      // после ответа сети ничего не «дорисовывается» и не прыгает.
+      const pairFast = pairFromCache(fast);
+      const mcId = (pairFast && pairFast.moneyCard) ? Number(pairFast.moneyCard.id) : Number(fast.id);
+      const monthlyFast = rcGet('sm:' + mcId) || undefined;
+      const contactsFast = peopleByClinicCached(fast.id, pairFast ? pairFast.ids.filter(x => Number(x) !== Number(fast.id)) : []);
+      const relatedFast = pairFast ? pairFast.others.map(o => ({ id: o.id, name: o.name, kind: o.kind })) : [];
+      panel.innerHTML = clinicHeadHtml(fast, canEditFast)
+        + clinicDetailBody(fast, pairFast ? pairFast.linked : null, contactsFast || [], undefined, relatedFast, monthlyFast, pairFast);
       if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
       hydrateCard(Number(fast.id) || 0);
+      fillNotesBlockCached(Number(fast.id) || 0);
       instant = true;
     } else {
       panel.innerHTML = CARD_SKEL_HTML;
@@ -6046,17 +6099,17 @@ async function showHoverCard(row, immediate) {
     const related = (pair.others || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
     MNY_ROWS[pair.moneyCard.id] = (monthly || []).slice();
     const pw = document.getElementById('pplWrap');
-    if (pw) pw.innerHTML = peopleBlockHtml(c, contacts, canEditCardNow());
+    if (pw) setHtmlIfChanged(pw, peopleBlockHtml(c, contacts, canEditCardNow()));
     const rw = document.getElementById('relWrap');
-    if (rw) rw.innerHTML = relBlockHtml(c, linked, related);
+    if (rw) setHtmlIfChanged(rw, relBlockHtml(c, linked, related));
     const pairWrap = document.getElementById('pairWrap');
-    if (pairWrap) pairWrap.innerHTML = pairBlockHtml(pair);
+    if (pairWrap) setHtmlIfChanged(pairWrap, pairBlockHtml(pair));
     // v3.36.0: быстрый рендер рисовал продажи по своей записи — на медленном перерисовываем по записи с закрытой частью
     const slw = document.getElementById('salesWrap');
-    if (slw) slw.innerHTML = canSeePrivate(pair.moneyCard) ? salesLineHtml(pair.moneyCard) : '';
+    if (slw) setHtmlIfChanged(slw, canSeePrivate(pair.moneyCard) ? salesLineHtml(pair.moneyCard) : '');
     // «Связаться» — всегда на записи с закрытой частью, чтобы дата пары жила в одном месте
     const prvw = document.getElementById('privWrap');
-    if (prvw) prvw.innerHTML = privBlock(pair.moneyCard, canEditCardNow());
+    if (prvw) setHtmlIfChanged(prvw, privBlock(pair.moneyCard, canEditCardNow()));
     if (document.body.classList.contains('sales-open')) rerenderSalesPage();
     return;
   }
@@ -6087,6 +6140,73 @@ function clinicSubLine(c) {
   const own = ownershipOf(c);
   const ownShort = own === 'state' ? 'ЛПУ' : (own === 'private' ? 'ЧК' : '');
   return [c.city, ownShort, (c.manager && !isFirmKind(c.kind)) ? c.manager : ''].filter(Boolean).join(' · ');
+}
+// v4.2.2: закрытая часть (деньги/след. контакт) из локального кэша — карточка сразу с цифрами
+function withPrivateFromCache(c) {
+  try {
+    if (!c || !rcHas('cp')) return c;
+    const p = (RC.data['cp'] || []).find(x => Number(x.clinic_id) === Number(c.id));
+    MONEY_COLS.forEach(k => { c[k] = p ? p[k] : null; });
+    [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026].forEach(y => { c['sales' + y] = c['sales_' + y]; });
+    [2025, 2026].forEach(y => { c['hugemed' + y] = c['hugemed_' + y]; });
+    c.nextContact = p ? p.next_contact : null;
+    c.actionType = p ? (p.action_type || null) : null;
+    c.privateNote = p ? p.note : null;
+    c.hasPrivate = !!p;
+  } catch (_) {}
+  return c;
+}
+// v4.2.2: id связанной пары (сама запись + обе стороны связки) — только из кэша, без сети
+function pairIdsFromCache(c) {
+  try {
+    const arr = Array.isArray(RC.data['t:clinics']) ? RC.data['t:clinics'] : [];
+    const selfId = Number(c.id);
+    const ids = [selfId];
+    if (c.linkedClinicId) ids.push(Number(c.linkedClinicId));
+    arr.forEach(r => { if (Number(r.linked_clinic_id) === selfId) ids.push(Number(r.id)); });
+    return ids.filter((v, i, a) => a.indexOf(v) === i);
+  } catch (_) { return [Number(c.id)]; }
+}
+// v4.2.2: пара (связанные карточки) из кэша — блок «Связанная запись» тоже появляется сразу.
+// Логика выбора записи с закрытой частью — та же, что в linkedPairInfo(), только без сети.
+function pairFromCache(c) {
+  try {
+    const raw = Array.isArray(RC.data['t:clinics']) ? RC.data['t:clinics'] : null;
+    if (!raw || !c) return null;
+    const selfId = Number(c.id);
+    const cards = [withPrivateFromCache(c)];
+    let linked = null;
+    if (c.linkedClinicId && Number(c.linkedClinicId) !== selfId) {
+      const lr = raw.find(r => Number(r.id) === Number(c.linkedClinicId));
+      if (lr) { linked = withPrivateFromCache(fromClinic(lr)); cards.push(linked); }
+    }
+    raw.forEach(r => {
+      if (Number(r.linked_clinic_id) === selfId && !cards.some(x => Number(x.id) === Number(r.id))) {
+        cards.push(withPrivateFromCache(fromClinic(r)));
+      }
+    });
+    const ids = cards.map(x => Number(x.id));
+    const moneyCard = cards.find(x => x && x.hasPrivate) || cards[0];
+    const others = cards.filter(x => x && Number(x.id) !== selfId && !x.markedDel);
+    return { ids, cards, others, moneyCard, linked: linked || others[0] || null, selfId };
+  } catch (_) { return null; }
+}
+// v4.2.2: люди клиники из кэша (без сети) — блок «Контакты» появляется вместе с карточкой.
+// null означает «кэша нет» — тогда ждём сеть, как раньше.
+function peopleByClinicCached(clinicId, alsoIds) {
+  try {
+    if (!rcHas('t:people') || !rcHas('cpl')) return null;
+    const all = RC.data['t:people'].map(fromPerson);
+    const links = RC.data['cpl'] || [];
+    const ids = [Number(clinicId)].concat((alsoIds || []).map(Number));
+    const extraIds = new Set(links.filter(l => ids.includes(Number(l.clinic_id))).map(l => l.person_id));
+    return all.filter(p => ids.includes(Number(p.clinicId)) || extraIds.has(p.id))
+      .sort((a, b) => String(a.fullName || '').localeCompare(String(b.fullName || ''), 'ru'));
+  } catch (_) { return null; }
+}
+// v4.2.2: меняем HTML блока только если он реально отличается — иначе ничего не «дёргается»
+function setHtmlIfChanged(el, html) {
+  if (el && typeof html === 'string' && el.innerHTML !== html) el.innerHTML = html;
 }
 // v4.2.1: карточка человека из локального кэша — открывается без заглушки и без ожидания сети
 function personFromCache(id) {
@@ -6483,7 +6603,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-14';
+  const SW_BUILD = 'offline-safe-18';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
