@@ -1841,7 +1841,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.2.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.2.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5974,16 +5974,33 @@ async function showHoverCard(row, immediate) {
   if (!panel) return;
   panel.classList.remove('hidden');
   panel.classList.remove('panel-empty');   // v3.16.1: карточка выбрана — пустое место занимать не нужно
-  // v3.27.0: панель открывается МГНОВЕННО — сначала шапка из кэша + скелет, затем полная карточка
+  // v4.2.1: если запись есть в локальном кэше — рисуем ПОЛНУЮ карточку сразу, без заглушки
+  // и без ожидания сети (раньше был серый «скелетон», он и мерцал). Заглушка — только когда кэша нет.
+  let instant = false;
   if (kind !== 'person' && kind !== 'refdoc') {
     const fast = clinicFromCache(id);
-    panel.innerHTML = (fast
-      ? `<div class="card-head"><div class="card-head-txt"><h3>${esc(fast.name)}</h3>${clinicSubLine(fast) ? `<div class="card-top">${esc(clinicSubLine(fast))}</div>` : ''}</div><div class="card-head-acts">${siteChipHtml(fast.situation)}</div></div>`
-      : '') + `<div class="card-skel"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-block"></div></div>`;
+    if (fast) {
+      const canEditFast = canEditMain() || (isRefEdit() && isRefKind(fast.kind));
+      panel.innerHTML = clinicHeadHtml(fast, canEditFast) + clinicDetailBody(fast, null, [], undefined, [], null);
+      if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
+      hydrateCard(Number(fast.id) || 0);
+      instant = true;
+    } else {
+      panel.innerHTML = CARD_SKEL_HTML;
+    }
   } else {
-    panel.innerHTML = `<div class="card-skel"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-block"></div></div>`;
+    const pf = personFromCache(id);
+    if (pf) {
+      const canEditFastP = canEditMain() || (isRefEdit() && isRefDoc(pf));
+      panel.innerHTML = `<h3>${esc(pf.fullName)}</h3>` + personDetailBody(pf, personClinicsFromCache(pf))
+        + `<div class="pane-actions">${canEditFastP ? `<button class="pane-btn primary" id="panePersonEdit" data-id="${pf.id}">Изменить</button>` : ''}${siteChipHtml(pf.situation)}</div>`;
+      instant = true;
+    } else {
+      panel.innerHTML = CARD_SKEL_HTML;
+    }
   }
   let inner;
+  let instantPerson = null, instantCanEditPerson = false;   // v4.2.1: что уже нарисовано из кэша
   if (kind === 'person' || kind === 'refdoc') {
     state.selKind = kind;
     const p = await getPerson(id);
@@ -5991,6 +6008,7 @@ async function showHoverCard(row, immediate) {
     const clinics = await personAllClinics(p);
     if (seq !== hoverSeq) return;
     const canEditP = canEditMain() || (isRefEdit() && (isRefDoc(p) || (clinics || []).some(c => c && isRefKind(c.kind))));
+    instantPerson = p; instantCanEditPerson = canEditP;
     inner = `<h3>${esc(p.fullName)}</h3>` + personDetailBody(p, clinics)
       + `<div class="pane-actions">${canEditP ? `<button class="pane-btn primary" id="panePersonEdit" data-id="${p.id}">Изменить</button>` : ''}${siteChipHtml(p.situation)}</div>`;
   } else {
@@ -6000,11 +6018,22 @@ async function showHoverCard(row, immediate) {
     const canEditC = canEditMain() || (isRefEdit() && isRefKind(c.kind));
     // v3.27.2: карточка рисуется СРАЗУ после ответа по клинике — без медленных блоков
     // (люди / партнёры / помесячные продажи). Они досыпаются ниже, введённое не перерисовывается.
-    const cardHead = `<div class="card-head"><div class="card-head-txt"><h3>${esc(c.name)}</h3>${clinicSubLine(c) ? `<div class="card-top">${esc(clinicSubLine(c))}</div>` : ''}</div>`
-      + `<div class="card-head-acts">${canEditC ? `<button class="pane-btn primary" id="paneEditClinic" data-id="${c.id}">Изменить</button>` : ''}${siteChipHtml(c.situation)}</div></div>`;
-    panel.innerHTML = cardHead + clinicDetailBody(c, null, [], undefined, [], null);
-    if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
-    hydrateCard(Number(c.id) || 0);
+    // v4.2.1: карточка уже нарисована из кэша — не перерисовываем целиком (не даём ей «прыгнуть»),
+    // только тихо поправляем шапку, если на сервере изменились название/строка/сайт/право правки.
+    const cardHead = clinicHeadHtml(c, canEditC);
+    if (!instant) {
+      panel.innerHTML = cardHead + clinicDetailBody(c, null, [], undefined, [], null);
+      if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
+      hydrateCard(Number(c.id) || 0);
+    } else {
+      const h3 = panel.querySelector('.card-head h3');
+      if (h3 && h3.textContent.trim() !== String(c.name || '').trim()) h3.textContent = c.name;
+      const sub = panel.querySelector('.card-head .card-top');
+      const wantSub = clinicSubLine(c);
+      if (sub && wantSub && sub.textContent !== wantSub) sub.textContent = wantSub;
+      const acts = panel.querySelector('.card-head-acts');
+      if (acts) acts.innerHTML = `${canEditC ? `<button class="pane-btn primary" id="paneEditClinic" data-id="${c.id}">Изменить</button>` : ''}${siteChipHtml(c.situation)}`;
+    }
     // медленная часть — одним заходом (параллельно)
     // v3.36.0: данные по всей связанной паре (люди + продажи + блок «Связанная запись»)
     const pair = await linkedPairInfo(c);
@@ -6031,7 +6060,15 @@ async function showHoverCard(row, immediate) {
     if (document.body.classList.contains('sales-open')) rerenderSalesPage();
     return;
   }
-  panel.innerHTML = inner;
+  if (!instant) panel.innerHTML = inner;
+  else if (instantPerson) {
+    // v4.2.1: человек уже нарисован из кэша — поправляем только шапку и кнопки
+    const pp = instantPerson;
+    const h3 = panel.querySelector('h3');
+    if (h3 && h3.textContent.trim() !== String(pp.fullName || '').trim()) h3.textContent = pp.fullName;
+    const acts = panel.querySelector('.pane-actions');
+    if (acts) acts.innerHTML = `${instantCanEditPerson ? `<button class="pane-btn primary" id="panePersonEdit" data-id="${pp.id}">Изменить</button>` : ''}${siteChipHtml(pp.situation)}`;
+  }
   hydrateCard(document.querySelector('#notesList[data-cid]') ? Number(document.querySelector('#notesList[data-cid]').dataset.cid) : 0);
   if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
 }
@@ -6051,6 +6088,33 @@ function clinicSubLine(c) {
   const ownShort = own === 'state' ? 'ЛПУ' : (own === 'private' ? 'ЧК' : '');
   return [c.city, ownShort, (c.manager && !isFirmKind(c.kind)) ? c.manager : ''].filter(Boolean).join(' · ');
 }
+// v4.2.1: карточка человека из локального кэша — открывается без заглушки и без ожидания сети
+function personFromCache(id) {
+  try {
+    const v = (rcHas('t:people') && Array.isArray(RC.data['t:people'])) ? RC.data['t:people'] : null;
+    if (!v) return null;
+    const r = v.find(x => Number(x.id) === Number(id));
+    return r ? fromPerson(r) : null;
+  } catch (_) { return null; }
+}
+// v4.2.1: учреждения человека из кэша связок (без сети)
+function personClinicsFromCache(p) {
+  try {
+    const links = (rcHas('cpl') && Array.isArray(RC.data['cpl'])) ? RC.data['cpl'] : [];
+    const clinics = (rcHas('t:clinics') && Array.isArray(RC.data['t:clinics'])) ? RC.data['t:clinics'] : [];
+    const map = {}; clinics.forEach(r => { map[Number(r.id)] = { id: Number(r.id), name: r.name }; });
+    const ids = [];
+    if (p.clinicId) ids.push(Number(p.clinicId));
+    links.filter(l => Number(l.person_id) === Number(p.id)).forEach(l => { if (!ids.includes(Number(l.clinic_id))) ids.push(Number(l.clinic_id)); });
+    return ids.map(i => map[i]).filter(Boolean);
+  } catch (_) { return []; }
+}
+// v4.2.1: шапка карточки клиники — одной функцией, чтобы не дублировать разметку
+function clinicHeadHtml(c, canEditC) {
+  return `<div class="card-head"><div class="card-head-txt"><h3>${esc(c.name)}</h3>${clinicSubLine(c) ? `<div class="card-top">${esc(clinicSubLine(c))}</div>` : ''}</div>`
+    + `<div class="card-head-acts">${canEditC ? `<button class="pane-btn primary" id="paneEditClinic" data-id="${c.id}">Изменить</button>` : ''}${siteChipHtml(c.situation)}</div></div>`;
+}
+const CARD_SKEL_HTML = `<div class="card-skel"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-block"></div></div>`;
 // v3.27.0: быстрый доступ к карточке из кэша — чтобы панель открывалась без ожидания сети
 function clinicFromCache(id) {
   try {
@@ -6419,7 +6483,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-13';
+  const SW_BUILD = 'offline-safe-14';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
