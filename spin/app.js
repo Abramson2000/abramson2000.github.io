@@ -160,6 +160,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
+const APP_VER = 'crs114'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -280,8 +281,75 @@ S.sync = 'off';        // 'off' | 'saving' | 'saved' | 'error'
 S.syncAt = null;       // время последней успешной синхронизации
 S.dirty = false;       // есть несохранённые изменения
 
+// прогресс, накопленный на этом устройстве под ДРУГИМ аккаунтом (или без входа):
+// не переносим сам, но предлагаем кнопкой — иначе можно случайно влить чужой прогресс.
+function localForeignProgress() {
+  try {
+    if (!USER) return null;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || k.indexOf('spin-lab-v1:') !== 0) continue;
+      const id = k.slice('spin-lab-v1:'.length);
+      if (id === USER.id || id === 'reviewer') continue;
+      let o = null; try { o = JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { o = null; }
+      if (!o) continue;
+      const xp = Number(o.xp) || 0, n = (o.done || []).length + (o.spicedDone || []).length + (o.medDone || []).length + (o.proDone || []).length;
+      if (!xp && !n) continue;
+      return { id: id, xp: xp, lessons: n, email: o.email || '' };
+    }
+  } catch (e) {}
+  return null;
+}
+function canAdoptLocal() {
+  try {
+    if (!USER) return null;
+    const cur = syncPayload();
+    const empty = !(Number(cur.xp) || 0) && !(cur.done || []).length && !(cur.practiced || []).length && !(cur.spicedDone || []).length && !(cur.medDone || []).length && !(cur.proDone || []).length;
+    if (!empty) return null;
+    return localForeignProgress();
+  } catch (e) { return null; }
+}
+function adoptLocalProgress() {
+  try {
+    if (!USER) return 0;
+    let gained = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || k.indexOf('spin-lab-v1:') !== 0) continue;
+      const id = k.slice('spin-lab-v1:'.length);
+      if (id === USER.id || id === 'reviewer') continue;
+      let o = null; try { o = JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { o = null; }
+      if (!o) continue;
+      if (!(Number(o.xp) || 0) && !(o.done || []).length && !(o.practiced || []).length) continue;
+      S.lesson = Math.max(Number(S.lesson) || 0, Number(o.lesson) || 0);
+      S.done = uniArr(S.done, o.done);
+      S.practiced = uniArr(S.practiced, o.practiced);
+      S.spPracticed = uniArr(S.spPracticed, o.spPracticed);
+      S.medPracticed = uniArr(S.medPracticed, o.medPracticed);
+      S.proPracticed = uniArr(S.proPracticed, o.proPracticed);
+      S.spicedDone = uniArr(S.spicedDone, o.spicedDone);
+      S.medDone = uniArr(S.medDone, o.medDone);
+      S.proDone = uniArr(S.proDone, o.proDone);
+      S.cDone = uniArr(S.cDone, o.cDone);
+      S.xp = Math.max(Number(S.xp) || 0, Number(o.xp) || 0);
+      S.correct = Math.max(Number(S.correct) || 0, Number(o.correct) || 0);
+      S.attempts = Math.max(Number(S.attempts) || 0, Number(o.attempts) || 0);
+      try { S.extraDone = uniArr(S.extraDone, JSON.parse(localStorage.getItem('spin-extra:' + id)) || []); } catch (e) {}
+      try { S.medDone = uniArr(S.medDone, JSON.parse(localStorage.getItem('spin-med:' + id)) || []); } catch (e) {}
+      try { S.spicedDone = uniArr(S.spicedDone, JSON.parse(localStorage.getItem('spin-spiced:' + id)) || []); } catch (e) {}
+      try { S.proDone = uniArr(S.proDone, JSON.parse(localStorage.getItem('spin-pro:' + id)) || []); } catch (e) {}
+      gained = 1;
+    }
+    if (gained) {
+      save();
+      try { saveExtra(); saveMed(); saveSpiced(); savePro(); } catch (e) {}
+      toast('Прогресс с этого устройства перенесён в аккаунт');
+    }
+    return gained;
+  } catch (e) { return 0; }
+}
 function syncPayload() {
-  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xd: S.xDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, scs: S.scStat, trn: S.trn, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
+  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xd: S.xDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, scs: S.scStat, trn: S.trn, ver: APP_VER, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
 }
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
@@ -2280,6 +2348,7 @@ async function loadTeam() {
           <span>уроков · уровень ${lvl}</span>
           <span>${m.xp || 0} XP</span>
           <span>${pracN ? 'практика: ' + pracN + ' уроков' : 'практика: —'}</span>
+          <span class="team-ver">модуль ${m.ver ? String(m.ver) : 'не сообщён'}</span>
           ${act ? `<span>${act}</span>` : '<span class="team-warn">⚠ с устройства ничего не приходило</span>'}
         </div>
       </article>`;
@@ -2349,6 +2418,7 @@ function renderProgress() {
   const proN = PRO.filter((x, k) => S.proDone.includes(k)).length; // курс 5 ProActive — в общем счёте
   const totalAll = L.length + SPICED.length + MED.length + PRO.length;
   const boss = isBoss();
+  const adoptInfo = canAdoptLocal();
   const pct = S.attempts ? Math.round((S.correct / S.attempts) * 100) : 0;
   const xp = S.xp;
   const lvl = level();
@@ -2458,7 +2528,7 @@ function renderProgress() {
     </div>
     <div class="progress-lower">
       <article class="account-card">
-        <div class="card-heading"><div><span class="eyebrow">АККАУНТ И СИНХРОНИЗАЦИЯ</span><h2 id="accName">${USER ? esc(USER.name) : 'Гость'}</h2></div></div>
+        <div class="card-heading"><div><span class="eyebrow">АККАУНТ И СИНХРОНИЗАЦИЯ</span><h2 id="accName">${USER ? esc(USER.name) : 'Гость'}</h2></div><span class="updated">модуль ${APP_VER}</span></div>
         <div class="account-row">
           <span class="avatar large" id="accAvatar">${USER ? esc(USER.name.slice(0, 1).toUpperCase()) : '?'}</span>
           <div class="account-info">
@@ -2466,10 +2536,11 @@ function renderProgress() {
             <span class="sync-chip off" id="syncStatus" role="button" tabindex="0" title="Нажмите, чтобы сверить прогресс с сервером" style="cursor:pointer">…</span>
           </div>
         </div>
-        <p class="account-hint">Прогресс привязан к аккаунту и хранится на сервере: откройте курс с любого устройства под тем же логином — всё на месте. Гостевой режим прогресс не сохраняет.</p>
+        <p class="account-hint">Прогресс привязан к аккаунту и хранится на сервере: откройте курс с любого устройства под тем же логином — всё на месте. Гостевой режим прогресс не сохраняет. Версия приложения: <b>${APP_VER}</b>.</p>
         <div class="feedback-actions">
           <button class="primary-button" id="accSwitch">Сменить аккаунт <span>↗</span></button>
           <button class="secondary-button" id="accRefresh">Обновить с сервера</button>
+          ${adoptInfo ? `<button class="secondary-button" id="accAdopt">Перенести прогресс с устройства (${adoptInfo.lessons} ${pluralN(adoptInfo.lessons, ['урок','урока','уроков'])})</button>` : ''}
           <button class="secondary-button" id="accLogout">Выйти</button>
         </div>
       </article>
@@ -2540,6 +2611,14 @@ function renderProgress() {
     try { if (S.dirty) await cloudSave(); await cloudLoad(); } catch (e) {}
     accRefresh.disabled = false;
     accRefresh.textContent = was;
+    renderProgress();
+  });
+  const accAdopt = $('accAdopt');
+  if (accAdopt) accAdopt.addEventListener('click', async () => {
+    accAdopt.disabled = true;
+    const n = adoptLocalProgress();
+    if (!n) { accAdopt.disabled = false; toast('Нечего переносить'); return; }
+    try { if (S.dirty) await cloudSave(); } catch (e) {}
     renderProgress();
   });
   if (accSwitch) accSwitch.addEventListener('click', doLogout);

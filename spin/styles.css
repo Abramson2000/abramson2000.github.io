@@ -436,3 +436,7 @@ button { color: inherit; }
 .team-warn { display: inline-block; margin-top: 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .01em;
   color: #a04c00; background: #fff3e0; border: 1px solid #ffd8a8; border-radius: 7px; padding: 2px 7px; }
 .relogin-note { border-left: 3px solid var(--green); background: #eef7f0; padding: 10px 12px; border-radius: 10px; color: var(--ink, #14301f); }
+
+.login-ver { margin: 14px 0 0; font-size: 12px; letter-spacing: .02em; color: var(--muted); text-align: center; }
+.login-ver b { color: var(--ink); }
+.team-ver { color: var(--muted); font-size: 11.5px; }
