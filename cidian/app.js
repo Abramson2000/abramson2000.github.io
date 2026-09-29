@@ -73,7 +73,7 @@ let inboxAdded=0;
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.7.0',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.7.1',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -133,11 +133,10 @@ function headHtml(){return `<div class="head"><img src="icon-192-v4.png" class="
 function kindsHtml(){return `<div class="kinds">${KINDS.map(m=>`<button class="kindbtn ${kind===m.k?'on':''}" data-kind="${m.k}"><b>${m.ru} <span class="zh">${m.zh}</span></b><small>${countOf(m.k).toLocaleString('ru-RU')}</small></button>`).join('')}</div>`;}
 function tagsBarHtml(){return (tagFilter.length?tagFilter.map(t=>`<button class="chip tag on" data-untag="${esc(t)}">#${esc(t)} ✕</button>`).join(''):'')+`<button class="chip" id="tagBtn"># тэги${tagFilter.length?' ('+tagFilter.length+')':''}</button>`;}
 /* ── режим «как в Excel»: просмотр списком, две колонки, только чтение ── */
-function xlRowHtml(w){const k=w.kind||'word';const cls=(k==='name')?'xln':((k==='phrase')?'xlp':'xlw');
-  const second=(w.pinyin?('('+w.pinyin+') '):'')+(w.translation||'');
-  return `<div class="xlt ${cls}"><div class="xlh">${esc(w.hanzi)}</div><div class="xlr">${esc(second)}</div></div>`;}
+function xlRowHtml(w){const second=(w.pinyin?('('+w.pinyin+') '):'')+(w.translation||'');
+  return `<div class="xlt"><div class="xlh">${esc(w.hanzi)}</div><div class="xlr">${esc(second)}</div></div>`;}
 function renderXl(){currentTab='xl';setTabs();
-  const rows=words.slice().sort((a,b)=>(+a.order||0)-(+b.order||0));
+  const rows=words.filter(w=>(w.kind||'word')==='word').slice().sort((a,b)=>(+a.order||0)-(+b.order||0));
   const box=$('#content');
   if(box)box.innerHTML=`<div class="xlwrap"><div class="xlhead"><div>Слово</div><div>(пиньинь) перевод</div></div>${rows.map(xlRowHtml).join('')}</div>`;
   requestAnimationFrame(()=>{try{window.scrollTo({top:document.documentElement.scrollHeight,behavior:'auto'});}catch(_){}});}
@@ -292,7 +291,7 @@ renderWords();
 if(ankiAdded||chengyuAdded||inboxAdded||namesAdded||zanghuaAdded)setTimeout(()=>{const pp=[];if(ankiAdded)pp.push(ankiAdded+' из Anki'); if(chengyuAdded)pp.push('成语 '+chengyuAdded); if(inboxAdded)pp.push('из Тингли '+inboxAdded); if(namesAdded)pp.push('названий из прописей '+namesAdded); if(zanghuaAdded)pp.push('脏话 '+zanghuaAdded);if(pp.length)toast('Добавлено: '+pp.join(' · ')+' — все как «не в Лаоши»')},400);
 if('serviceWorker' in navigator){
   let hadController=!!navigator.serviceWorker.controller, updating=false;
-  navigator.serviceWorker.register('sw.js?v=2.7.0',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=2.7.1',{updateViaCache:'none'}).then(reg=>{
     // самолечение: проверяем обновление при каждом возврате в приложение
     const chk=()=>{ if(document.visibilityState!=='visible'||updating) return; updating=true;
       reg.update().catch(()=>{}).then(()=>{ updating=false; }); };
