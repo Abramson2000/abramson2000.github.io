@@ -73,7 +73,7 @@ let inboxAdded=0;
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.7.3',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.7.6',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -91,7 +91,8 @@ chengyuAdded=applyChengyu(arr);
 inboxAdded=applyInbox(arr);
 return arr;}
 /* приём слов из Тингли: она кладёт их в очередь cidian-inbox-v1 (тот же localStorage) */
-function applyInbox(arr){try{const raw=localStorage.getItem(CIDIAN_INBOX);if(!raw)return 0;const q=JSON.parse(raw)||[];localStorage.removeItem(CIDIAN_INBOX);if(!q.length)return 0;const have=new Set(arr.map(w=>String(w.hanzi||'').trim()));let id=Math.max(0,...arr.map(w=>+w.id||0)),ord=Math.max(0,...arr.map(w=>+w.order||0)),added=0;q.forEach(it=>{const h=String(it.hanzi||'').trim();if(!h||have.has(h))return;id++;ord++;arr.push({id,order:ord,kind:'word',hanzi:h,pinyin:String(it.pinyin||''),translation:String(it.ru||''),tags:[],comment:it.src?('из Тингли: '+it.src):'',laoshi:false,favorite:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});have.add(h);added++;});if(added){snapStore('перед приёмом слов из Тингли',arr.map(w=>({...w})));localStorage.setItem(STORAGE,JSON.stringify(arr));}return added;}catch(e){return 0;}}
+function intakeItems(q,arr){try{if(!Array.isArray(q)||!q.length)return 0;const have=new Set(arr.map(w=>String(w.hanzi||'').trim()));let id=Math.max(0,...arr.map(w=>+w.id||0)),ord=Math.max(0,...arr.map(w=>+w.order||0)),added=0;q.forEach(it=>{const h=String(it.hanzi||'').trim();if(!h||have.has(h))return;id++;ord++;arr.push({id,order:ord,kind:'word',hanzi:h,pinyin:String(it.pinyin||''),translation:String(it.ru||''),tags:[],comment:it.src?('из Тингли: '+it.src):'',laoshi:false,favorite:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});have.add(h);added++;});if(added){snapStore('перед приёмом слов из Тингли',arr.map(w=>({...w})));localStorage.setItem(STORAGE,JSON.stringify(arr));}return added;}catch(e){return 0;}}
+function applyInbox(arr){try{const raw=localStorage.getItem(CIDIAN_INBOX);if(!raw)return 0;const q=JSON.parse(raw)||[];localStorage.removeItem(CIDIAN_INBOX);return intakeItems(q,arr);}catch(e){return 0;}}
 function applyAnkiFive(arr,force){try{
   if(!force && localStorage.getItem(ANKI5_KEY)===ANKI5_TAG) return 0;
   const S=new Set(ANKI_FIVE); let n=0;
@@ -291,15 +292,37 @@ renderWords();
 if(ankiAdded||chengyuAdded||inboxAdded||namesAdded||zanghuaAdded)setTimeout(()=>{const pp=[];if(ankiAdded)pp.push(ankiAdded+' из Anki'); if(chengyuAdded)pp.push('成语 '+chengyuAdded); if(inboxAdded)pp.push('из Тингли '+inboxAdded); if(namesAdded)pp.push('названий из прописей '+namesAdded); if(zanghuaAdded)pp.push('脏话 '+zanghuaAdded);if(pp.length)toast('Добавлено: '+pp.join(' · ')+' — все как «не в Лаоши»')},400);
 if('serviceWorker' in navigator){
   let hadController=!!navigator.serviceWorker.controller, updating=false;
-  navigator.serviceWorker.register('sw.js?v=2.7.3',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=2.7.6',{updateViaCache:'none'}).then(reg=>{
     // самолечение: проверяем обновление при каждом возврате в приложение
     const chk=()=>{ if(document.visibilityState!=='visible'||updating) return; updating=true;
       if(!reg||!reg.update){ updating=false; return; }
       reg.update().catch(()=>{}).then(()=>{ updating=false; }); };
     document.addEventListener('visibilitychange',chk); window.addEventListener('focus',chk);
 /* приём слов из Тингли «на ходу»: очередь проверяем при возврате в приложение, по storage-событию и раз в 20 с */
+
+/* облачный «почтовый ящик» Тингли → «Мои слова» (для разных доменов и устройств) */
+const CIDIAN_INBOX_API='https://abramson-crm.pages.dev/api/cidian-inbox';
+let inboxCloudTs=0,inboxCloudBusy=false;
+async function checkInboxCloud(force){try{
+  const now=Date.now();
+  if(!force && now-inboxCloudTs<15000) return 0;
+  if(inboxCloudBusy) return 0;
+  inboxCloudBusy=true; inboxCloudTs=now;
+  let list=null;
+  try{ const r=await fetch(CIDIAN_INBOX_API+'?t='+now,{cache:'no-store'}); const j=await r.json(); if(j&&Array.isArray(j.items)) list=j.items; }catch(_){}
+  let n=0;
+  if(list&&list.length){
+    n=intakeItems(list,words);
+    try{ fetch(CIDIAN_INBOX_API,{method:'DELETE'}); }catch(_){}
+    if(n>0){
+      try{ if(currentTab==='xl')renderXl(); else if(currentTab==='more')renderMore(); else if(currentTab==='words')renderWords(); }catch(_){}
+      toast('Из Тингли: +'+n+' '+pl(n,'слово','слова','слов'));
+    }
+  }
+  return n;
+}catch(e){ return 0; } finally{ inboxCloudBusy=false; }}
 function checkInboxLive(){try{
-  if(!localStorage.getItem(CIDIAN_INBOX)) return;
+  if(!localStorage.getItem(CIDIAN_INBOX)){ checkInboxCloud(true); return; }
   const n=applyInbox(words);
   if(n>0){
     try{ if(currentTab==='xl')renderXl(); else if(currentTab==='more')renderMore(); else if(currentTab==='words')renderWords(); }catch(_){}
@@ -309,7 +332,8 @@ function checkInboxLive(){try{
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkInboxLive(); });
 window.addEventListener('focus',checkInboxLive);
 window.addEventListener('storage',e=>{ if(!e.key || e.key===CIDIAN_INBOX) checkInboxLive(); });
-setInterval(checkInboxLive,20000);
+setInterval(checkInboxLive,15000);
+setTimeout(()=>{try{checkInboxLive();checkInboxCloud(true);}catch(_){}},1200);
     // если подтянулась новая версия — предложить обновление, а не молчать
     navigator.serviceWorker.addEventListener('controllerchange',()=>{
       if(!hadController){ hadController=true; return; }

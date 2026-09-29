@@ -22347,7 +22347,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.4.2';
+const APP_VER = '3.4.3';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -22750,8 +22750,8 @@ function renderDict() {
     </div>
     ${d.length ? `<div class="dict-export">
       <button class="btn ghost" onclick="dictCopyExcel()">📊 В Excel</button>
-      <button class="btn" onclick="dictCopyTeacher()">📋 Учителю</button>
-      <button class="btn" onclick="dictSendAll()">📖 В «Мои слова»</button>
+      
+      
     </div>` : ''}
     ${d.length ? d.map((w, i) => `
       <div class="dict-item" id="dictItem-${i}">
@@ -22791,6 +22791,7 @@ function cidianSend(items, label) {
     added++;
   });
   try { localStorage.setItem(CIDIAN_INBOX, JSON.stringify(q)); } catch (e) {}
+  try { fetch(API_BASE + '/api/cidian-inbox', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(q) }); } catch (e) {}
   return { added: added, dup: dup, total: q.length };
 }
 function cidianToast(msg) {
@@ -23056,7 +23057,6 @@ function renderWords(u, part) {
       <button class="fav-btn ${isFavPart(u, part) ? 'on' : ''}" onclick="toggleFavPart()" title="В избранное">${isFavPart(u, part) ? '⭐' : '☆'}</button></div>
     <div style="padding:0 16px 8px">
       <div class="hw-hint" style="color:#999;margin-bottom:8px">Нажми на слово, чтобы выделить несколько, или на «+» у слова — отправить одно</div>
-      <button class="btn" onclick="sendAllWords()">📖 Весь список в «Мои слова» (${part.words.length})</button>
     </div>
     <div class="part" style="cursor:default;padding:6px 16px" id="wordList">
       ${part.words.map((w, i) => `
