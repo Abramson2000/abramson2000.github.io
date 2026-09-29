@@ -5,3 +5,6 @@ pages_build_output_dir = "."
 [[kv_namespaces]]
 binding = "TINGLI_BACKUP"
 id = "a1a4242bc01e4141baa1511a28d142bb"
+
+[ai]
+binding = "AI"
