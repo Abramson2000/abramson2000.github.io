@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小山听力</title>
-<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v2.png">
+<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png">
 <link rel="apple-touch-icon" href="tingli-icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
@@ -22347,7 +22347,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.4.4';
+const APP_VER = '3.4.5';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
