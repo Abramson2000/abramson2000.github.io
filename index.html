@@ -723,10 +723,10 @@ input[type=search]::-webkit-search-cancel-button { display: none; }
 .site-chip:hover { border-color: var(--brand); }
 /* v3.27.0: скелет карточки — панель открывается мгновенно, данные догоняются */
 .card-skel { padding: 6px 0 2px; }
-.skel-line { height: 11px; border-radius: 6px; background: linear-gradient(90deg, #ececec 25%, #f6f6f6 37%, #ececec 63%); background-size: 400% 100%; animation: skel 1.2s ease-in-out infinite; margin: 8px 0; }
+/* v4.2.0: заглушка карточки — статичная, без мерцания и бегущих полос */
+.skel-line { height: 11px; border-radius: 6px; background: var(--line); opacity: .55; margin: 8px 0; }
 .skel-line.short { width: 55%; }
-.skel-block { height: 76px; border-radius: 12px; background: linear-gradient(90deg, #ececec 25%, #f6f6f6 37%, #ececec 63%); background-size: 400% 100%; animation: skel 1.2s ease-in-out infinite; margin: 12px 0; }
-@keyframes skel { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+.skel-block { height: 76px; border-radius: 12px; background: var(--line); opacity: .45; margin: 12px 0; }
 .add-btn {
   flex: none; width: 42px; height: 42px; border-radius: 12px;
   background: var(--brand); color: #fff; border: none; font-size: 22px; line-height: 1;
@@ -1841,7 +1841,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.1.4';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.2.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -6419,7 +6419,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-12';
+  const SW_BUILD = 'offline-safe-13';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
