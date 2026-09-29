@@ -13,3 +13,17 @@
 
 /tingli/audio/*
   Cache-Control: public, max-age=3600
+
+# Сервис-воркеры: никогда не кэшировать сам sw.js, иначе браузер держит старую
+# версию приложения и обновление не приходит (случай десктопного Safari на v1.1.1).
+/sw.js
+  Cache-Control: no-store, must-revalidate
+
+/tingli/sw.js
+  Cache-Control: no-store, must-revalidate
+
+/cidian/sw.js
+  Cache-Control: no-store, must-revalidate
+
+/spin/sw.js
+  Cache-Control: no-store, must-revalidate
