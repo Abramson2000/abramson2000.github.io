@@ -253,12 +253,16 @@ h1#pageTitle {
   padding: 4px 8px; gap: 4px; justify-content: center;
 }
 #mobBottom .mb-item {
-  flex: 0 1 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  flex: 0 1 210px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
   background: transparent; border: 0; color: var(--text-muted); font: inherit; font-size: 12px;
   padding: 6px 10px; min-height: 50px; cursor: pointer; border-radius: 8px;
 }
 #mobBottom .mb-item:hover { color: var(--brand); background: var(--page-bg); }
 #mobBottom .mb-item svg { width: 22px; height: 22px; }
+#mobBottom .mb-item img { display: block; }
+#mobBottom .mb-item b { font-weight: 600; color: var(--text); }
+.sb-actions { border-top: 1px solid var(--border); padding: 8px 10px 0; }
+.sb-actions .btn { flex: 1; }
 #mobBottom .mb-item:active, #mobBottom .mb-item.on { color: var(--brand); }
 #doc { padding-bottom: 96px; }
 

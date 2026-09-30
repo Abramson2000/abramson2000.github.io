@@ -2,9 +2,12 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.2.1';
-  const API = (location.hostname === 'abramson-crm.pages.dev' || location.hostname.endsWith('.abramson-crm.pages.dev') || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-    ? '/api/mynote' : 'https://abramson-crm.pages.dev/api/mynote';
+  const APP_VER = '1.3.0';
+  // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
+  // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
+  const API = (/^([a-z0-9-]+\.)?crmuro\.ru$/i.test(location.hostname))
+    ? 'https://mn-api.crmuro.ru/api/mynote'
+    : '/api/mynote';
 
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -1245,7 +1248,14 @@
     });
     box.appendChild(kv);
     box.appendChild(el('p', 'small muted', 'Личный блокнот. Всё хранится на сервере, доступ — с любого устройства.'));
-    modal('О программе', box, state.openLogin ? [] : [btn('Сменить пароль', 'sm', () => passwordDialog())]);
+    const ul = el('ul', 'items');
+    const mk = (label, fn) => { const li = el('li'); const b = el('button', 'btn sm', label); b.type = 'button'; b.onclick = async () => { document.querySelectorAll('.overlay').forEach(o => o.remove()); await fn(); }; li.appendChild(b); ul.appendChild(li); };
+    mk('★  Избранное', () => showFavorites().catch(e => toast(e.message, 'err')));
+    mk('Корзина', () => showTrash().catch(e => toast(e.message, 'err')));
+    box.appendChild(ul);
+    const foot = [];
+    if (!state.openLogin) foot.push(btn('Сменить пароль', 'sm', () => passwordDialog()));
+    modal('О программе', box, foot);
   }
 
   function passwordDialog() {
@@ -1444,7 +1454,7 @@
     });
     on('#btnUser', userMenu);
     on('#btnAbout', showAbout);
-    const vl = $('#verLabel'); if (vl) vl.textContent = 'v' + APP_VER;
+    ['#verLabel', '#verLabel2'].forEach(sel => { const n = $(sel); if (n) n.textContent = 'v' + APP_VER; });
     on('#btnNewNotebook', async () => {
       const box = el('div');
       const t = el('input'); t.type = 'text'; t.value = 'Новый блокнот';
@@ -1466,8 +1476,7 @@
     });
     // нижняя мобильная панель
     on('#mbSearch', searchSheet);
-    on('#mbFav', () => showFavorites().catch(e => toast(e.message, 'err')));
-    on('#mbTrash', () => showTrash().catch(e => toast(e.message, 'err')));
+    on('#mbInfo', showAbout);
     installEdgeSwipe();
 
     $('#searchInp').oninput = (e) => { state.filter = e.target.value.trim(); renderTree(); };
