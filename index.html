@@ -1830,7 +1830,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.3.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.3.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1991,7 +1991,12 @@ function setTagInGroup(tags, map, canon, on) {
 function ownBadge(c) {
   const t = ownShortLabel(c);
   if (!t) return '';
-  return `<span class="own-badge own-${t === 'ЛПУ' ? 'lpu' : 'chk'}">${t}</span>`;
+  const cls = 'own-badge own-' + (t === 'ЛПУ' ? 'lpu' : 'chk');
+  // v4.3.1: где у раздела есть фильтр «Тип» — метка кликабельна и ставит фильтр (как «ЦНС»),
+  // иначе остаётся просто меткой (в «Клиентах», карточках и т.п.)
+  const cfg = FILTER_CFG[state.view] || {};
+  if (cfg.type) return tagChipHtml(t, 'type', cls);
+  return `<span class="${cls}">${t}</span>`;
 }
 function ownBadgeById(id, map) {
   const c = map && map[id];
@@ -2067,7 +2072,11 @@ function unclassifiedSuggest(tags) {
 function tagChipHtml(t, grp, cls) {
   // v3.33.0: метка-чип кликабельна там, где у раздела есть фильтры; иначе — просто метка
   if (!FILTER_CFG[state.view]) return `<span class="${cls}">${esc(t)}</span>`;
-  const on = (((state.filters || {})[grp] || [])).some(x => String(x).toLowerCase() === String(t).toLowerCase());
+  const _cur = (state.filters || {})[grp];
+  // v4.3.1: группа «type» — одиночное значение (строка), остальные — массивы меток
+  const on = (grp === 'type')
+    ? String(_cur || '').toLowerCase() === String(t).toLowerCase()
+    : ((_cur || [])).some(x => String(x).toLowerCase() === String(t).toLowerCase());
   return `<span class="${cls} tchip${on ? ' on' : ''}" data-tagf="${esc(t)}" data-grp="${grp}" title="Фильтр по метке «${esc(t)}»">${esc(t)}</span>`;
 }
 // все метки карточки одной строкой (продукты · источники · служебные · прочие)
@@ -2103,6 +2112,14 @@ function cardTagsBlockHtml(c) {
 // включить/снять фильтр по метке
 async function toggleTagFilter(grp, val) {
   if (!val) return;
+  if (grp === 'type') {                                  // v4.3.1: ЛПУ/ЧК — одиночный фильтр раздела
+    const same = String(state.filters.type || '').toLowerCase() === String(val).toLowerCase();
+    state.filters.type = same ? '' : val;
+    try { syncAllFilterUI(); } catch (_) {}
+    await render();
+    toast(same ? 'Фильтр снят: ' + val : 'Тип: ' + val);
+    return;
+  }
   const key = grp === 'prods' ? 'prods' : (grp === 'srcs' ? 'srcs' : 'tags');
   const arr = (state.filters[key] || []).slice();
   const low = String(val).toLowerCase();
@@ -6587,7 +6604,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-19';
+  const SW_BUILD = 'offline-safe-20';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
