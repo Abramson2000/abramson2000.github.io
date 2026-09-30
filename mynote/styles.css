@@ -329,3 +329,10 @@ body { overflow-x: hidden; }
   #docWrap { overflow: visible; }
   body { overflow: visible; }
 }
+
+/* сплэш на время подключения и скрытая по умолчанию форма пароля (1.3.3) */
+#auth { display: none; }
+#auth.on { display: flex; }
+#splash { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--page-bg); z-index: 200; }
+#splash.hidden { display: none; }
+#splash .sp-in { color: var(--text-muted); font-size: 15px; }

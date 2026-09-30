@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.3.2';
+  const APP_VER = '1.3.3';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   const API = (/^([a-z0-9-]+\.)?crmuro\.ru$/i.test(location.hostname))
@@ -70,12 +70,14 @@
 
   function showAuth(msg, ok) {
     if (state.openLogin) { setTimeout(() => boot(), 1500); return; }
-    $('#auth').style.display = 'flex';
+    const sp = $('#splash'); if (sp) sp.classList.add('hidden');
+    const a = $('#auth'); a.hidden = false; a.classList.add('on');
     $('#app').classList.remove('on');
     const m = $('#authMsg'); m.textContent = msg || ''; m.className = 'form-msg' + (ok ? ' ok' : '');
   }
   function showApp() {
-    $('#auth').style.display = 'none';
+    const a0 = $('#auth'); a0.style.display = 'none'; a0.classList.remove('on'); a0.hidden = true;
+    const sp0 = $('#splash'); if (sp0) sp0.classList.add('hidden');
     $('#app').classList.add('on');
     $('#userName').textContent = state.user ? state.user.name || state.user.email : '';
     $('#ava').textContent = (state.user ? (state.user.name || state.user.email) : '?').trim().charAt(0).toUpperCase();
@@ -1524,8 +1526,8 @@
     if (location.hash.startsWith('#/l/')) { await route(); return; }
     if (state.bootN === undefined) state.bootN = 0;
     if (state.bootN++ > 6) { await showConnectScreen('Сервер не отвечает. Нажми «Повторить».'); return; }
-    // 1. режим сервера: с паролем или без (публичный /about)
-    try { const a = await api('/about'); if (a && a.open !== false) state.openLogin = true; } catch (e) {}
+    // 1. режим сервера (публичный /about) — не блокируем запуск
+    api('/about').then(a => { if (a && a.open !== false) state.openLogin = true; }).catch(() => {});
     // 2. протухший токен просто сбрасываем
     if (state.token) {
       try { await api('/me'); } catch (e) { if (e && e.status === 401) { state.token = ''; localStorage.removeItem('mynote-token'); } }
