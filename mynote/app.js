@@ -2,14 +2,19 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.3.4';
+  const APP_VER = '1.4.0';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
   // На mynote.crmuro.ru, pages.dev и локально API свой же (один домен) — тогда без CORS.
-  const API = (/^(www\.)?crmuro\.ru$/i.test(location.hostname))
-    ? 'https://mn-api.crmuro.ru/api/mynote'
-    : '/api/mynote';
+  // С хоста crmuro.ru API живёт на поддомене (дома у Саши весь pages.dev не резолвится).
+  // Держим два адреса: sync.crmuro.ru — основной, mn-api.crmuro.ru — запасной.
+  const API_HOSTS = (/^(www\.)?crmuro\.ru$/i.test(location.hostname))
+    ? ['https://sync.crmuro.ru/api/mynote', 'https://mn-api.crmuro.ru/api/mynote']
+    : ['/api/mynote'];
+  let apiHost = 0;
+  const apiBase = () => API_HOSTS[apiHost] || API_HOSTS[0];
+  const API = apiBase();
 
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -40,11 +45,18 @@
     const headers = Object.assign({}, opts.headers || {});
     if (state.token) headers.Authorization = 'Bearer ' + state.token;
     if (opts.body && !(opts.body instanceof FormData)) headers['Content-Type'] = 'application/json';
-    const ctrl = new AbortController();
-    const to = setTimeout(() => ctrl.abort(), 10000);
-    let res;
-    try { res = await fetch(API + path, Object.assign({}, opts, { headers, signal: ctrl.signal })); }
-    finally { clearTimeout(to); }
+    let res = null;
+    for (let attempt = 0; attempt < API_HOSTS.length; attempt++) {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 10000);
+      try {
+        res = await fetch(apiBase() + path, Object.assign({}, opts, { headers, signal: ctrl.signal }));
+        break;
+      } catch (e) {
+        if (attempt < API_HOSTS.length - 1) { apiHost++; continue; }  // другой адрес API
+        throw e;
+      } finally { clearTimeout(to); }
+    }
     if (res.status === 401 && state.token) {
       state.token = ''; state.user = null;
       localStorage.removeItem('mynote-token');
