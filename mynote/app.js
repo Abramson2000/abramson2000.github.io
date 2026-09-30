@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.3.1';
+  const APP_VER = '1.3.2';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   const API = (/^([a-z0-9-]+\.)?crmuro\.ru$/i.test(location.hostname))
@@ -38,7 +38,11 @@
     const headers = Object.assign({}, opts.headers || {});
     if (state.token) headers.Authorization = 'Bearer ' + state.token;
     if (opts.body && !(opts.body instanceof FormData)) headers['Content-Type'] = 'application/json';
-    const res = await fetch(API + path, Object.assign({}, opts, { headers }));
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 10000);
+    let res;
+    try { res = await fetch(API + path, Object.assign({}, opts, { headers, signal: ctrl.signal })); }
+    finally { clearTimeout(to); }
     if (res.status === 401 && state.token) {
       state.token = ''; state.user = null;
       localStorage.removeItem('mynote-token');
