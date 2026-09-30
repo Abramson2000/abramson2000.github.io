@@ -1027,10 +1027,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
         <span>Частные</span><em class="cnt" data-cnt="refpriv"></em>
       </button>
 
-      <button class="tab d-item" data-view="reffirm">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M14 9h4a2 2 0 0 1 2 2v10"/><path d="M7 7h2M7 11h2M7 15h2M17 13h1M17 17h1"/></svg>
-        <span>Компании</span><em class="cnt" data-cnt="reffirm"></em>
-      </button>
+
 
       <div class="d-sec">Система</div>
       <button class="tab d-item" data-view="settings">
@@ -1112,10 +1109,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
         <span>Частные <em class="cnt" data-cnt="refpriv"></em></span>
       </button>
 
-      <button class="tab" data-view="reffirm">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M14 9h4a2 2 0 0 1 2 2v10"/><path d="M7 7h2M7 11h2M7 15h2M17 13h1M17 17h1"/></svg>
-        <span>Компании <em class="cnt" data-cnt="reffirm"></em></span>
-      </button>
+
 
       <div class="d-sec">Система</div>
       <button class="tab" data-view="settings">
@@ -1830,7 +1824,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.3.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.4.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1877,9 +1871,7 @@ async function refreshCounts() {
       ).length,
       cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС')).length,
       refgos: clinics.filter(c => c.kind === 'ref_gos' && !c.markedDel).length,
-      refpriv: clinics.filter(c => c.kind === 'ref_priv' && !c.markedDel).length,
-      reffirm: clinics.filter(c => c.kind === 'ref_firm').length,
-      refcontact: 0
+      refpriv: clinics.filter(c => c.kind === 'ref_priv' && !c.markedDel).length
     };
     paintCounts();
   } catch (_) {}
@@ -2706,7 +2698,6 @@ const FILTER_CFG = {
   money:        { sel: 1, type: 1, prods: 1, srcs: 1, tags: 1, year: 1 },
   refgos:       { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
   refpriv:      { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
-  reffirm:      { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // как партнёры
   people:       { sel: 0, type: 0, prods: 0, srcs: 0, tags: 1, ownTags: 1, year: 0 },   // v4.3.0: бывшие «Врачи»+«Контакты»
   cns:          { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   air:          { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
@@ -3018,10 +3009,7 @@ async function filterRowsFor(view) {
     return all.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital')
       && cardProducts(c).includes(prod) && !isRefLinkedToWorking(c));
   }
-  if (view === 'refgos' || view === 'refpriv' || view === 'reffirm') {
-    // v3.36.0: в «Компаниях» список = справочные фирмы + реальные дистрибьюторы (как в renderRefFirms),
-    // иначе регион/город/менеджер/метки в фильтрах этого раздела неполные
-    if (view === 'reffirm') return all.filter(c => c.kind === 'ref_firm' || (c.kind === 'distributor' && !isServiceFirmRow(c)));
+  if (view === 'refgos' || view === 'refpriv') {
     const k = view === 'refgos' ? 'ref_gos' : 'ref_priv';
     return all.filter(c => c.kind === k && !c.markedDel);
   }
@@ -3069,7 +3057,7 @@ async function populateFiltersFor(view) {
 async function populateRefFilters() {
   let rows = [];
   {
-    const kind = state.view === 'refgos' ? 'ref_gos' : (state.view === 'refpriv' ? 'ref_priv' : 'ref_firm');
+    const kind = state.view === 'refpriv' ? 'ref_priv' : 'ref_gos';
     rows = (await listClinics()).filter(c => c.kind === kind);
   }
   const regions = [...new Set(rows.map(r => r.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
@@ -6604,7 +6592,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-20';
+  const SW_BUILD = 'offline-safe-21';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
