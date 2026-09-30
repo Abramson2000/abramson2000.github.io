@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.0.2';
+  const APP_VER = '1.1.0';
   const API = (location.hostname === 'abramson-crm.pages.dev' || location.hostname.endsWith('.abramson-crm.pages.dev') || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? '/api/mynote' : 'https://abramson-crm.pages.dev/api/mynote';
 
@@ -359,7 +359,7 @@
           return;
         }
       }
-      $('#sidebar').classList.remove('open'); $('#scrim').classList.remove('on');
+      closeSidebar();
       renderPage(d);
       renderTree();
     } catch (e) { toast(e.message, 'err'); }
@@ -1286,6 +1286,60 @@
     t.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); const ok = $('#dlgOk'); if (ok) ok.click(); } };
   }
 
+  function openSidebar() { $('#sidebar').classList.add('open'); $('#scrim').classList.add('on'); }
+  function closeSidebar() { $('#sidebar').classList.remove('open'); $('#scrim').classList.remove('on'); }
+
+  // свайп от левого края открывает панель, свайп влево по открытой — закрывает
+  function installEdgeSwipe() {
+    let sx = 0, sy = 0, open = false, on = false;
+    const anyOpen = () => $('#sidebar').classList.contains('open');
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) { on = false; return; }
+      const t = e.touches[0]; sx = t.clientX; sy = t.clientY; open = anyOpen();
+      on = open || sx <= 28;
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (!on || e.touches.length !== 1) return;
+      const t = e.touches[0]; const dx = t.clientX - sx; const dy = t.clientY - sy;
+      if (Math.abs(dy) > Math.abs(dx)) { on = false; return; }
+      if (!open && dx > 40) { openSidebar(); on = false; }
+      else if (open && dx < -40) { closeSidebar(); on = false; }
+    }, { passive: true });
+    document.addEventListener('touchend', () => { on = false; }, { passive: true });
+  }
+
+  function searchSheet() {
+    const box = el('div');
+    const inp = el('input'); inp.type = 'search'; inp.placeholder = 'Поиск по заголовкам и тексту'; inp.autocomplete = 'off';
+    inp.style.cssText = 'width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:16px;margin-bottom:10px';
+    const out = el('div');
+    box.appendChild(inp); box.appendChild(out);
+    const m = modal('Поиск', box, [], false);
+    const run = async () => {
+      const q = inp.value.trim();
+      out.innerHTML = '';
+      if (q.length < 2) { out.appendChild(el('div', 'small muted', 'Введите хотя бы два символа.')); return; }
+      const d = await api('/search?q=' + encodeURIComponent(q));
+      const ul = el('ul', 'items');
+      (d.hits || []).forEach(h => {
+        const li = el('li');
+        const col = el('div', 'grow');
+        const b = el('button', 'btn sm', h.title || 'Без названия'); b.type = 'button';
+        b.onclick = () => { document.querySelectorAll('.overlay').forEach(o => o.remove()); openPage(h.id); };
+        col.appendChild(b);
+        col.appendChild(el('div', 'small muted', (h.notebook || '') + ' · ' + fmtDate(h.updated)));
+        if (h.snippet) col.appendChild(el('div', 'small', h.snippet));
+        li.appendChild(col); ul.appendChild(li);
+      });
+      if (!(d.hits || []).length) ul.appendChild(el('li', 'muted small', 'Ничего не найдено.'));
+      out.appendChild(ul);
+    };
+    let tm = null;
+    inp.oninput = () => { clearTimeout(tm); tm = setTimeout(() => run().catch(e => toast(e.message, 'err')), 250); };
+    setTimeout(() => { inp.focus(); run().catch(() => {}); }, 80);
+    void m;
+  }
+
   function userMenu() {
     const box = el('div');
     const ul = el('ul', 'items');
@@ -1368,7 +1422,8 @@
     $('#btnUser').onclick = userMenu;
     $('#navFav').onclick = () => showFavorites().catch(e => toast(e.message, 'err'));
     $('#navTrash').onclick = () => showTrash().catch(e => toast(e.message, 'err'));
-    $('#navAbout').onclick = showAbout;
+    $('#btnAbout').onclick = showAbout;
+    const vl = $('#verLabel'); if (vl) vl.textContent = 'v' + APP_VER;
     $('#btnNewNotebook').onclick = async () => {
       const box = el('div');
       const t = el('input'); t.type = 'text'; t.value = 'Новый блокнот';
@@ -1388,6 +1443,12 @@
       if (!nb) { toast('Сначала создайте блокнот', 'err'); return; }
       newPageDialog(nb);
     };
+    // нижняя мобильная панель
+    const mbS = $('#mbSearch'); if (mbS) mbS.onclick = searchSheet;
+    const mbF = $('#mbFav'); if (mbF) mbF.onclick = () => showFavorites().catch(e => toast(e.message, 'err'));
+    const mbT = $('#mbTrash'); if (mbT) mbT.onclick = () => showTrash().catch(e => toast(e.message, 'err'));
+    installEdgeSwipe();
+
     $('#searchInp').oninput = (e) => { state.filter = e.target.value.trim(); renderTree(); };
     $('#searchInp').onkeydown = async (e) => {
       if (e.key !== 'Enter') return;
