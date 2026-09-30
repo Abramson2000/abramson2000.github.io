@@ -2,10 +2,12 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.3.3';
+  const APP_VER = '1.3.4';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
-  const API = (/^([a-z0-9-]+\.)?crmuro\.ru$/i.test(location.hostname))
+  // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
+  // На mynote.crmuro.ru, pages.dev и локально API свой же (один домен) — тогда без CORS.
+  const API = (/^(www\.)?crmuro\.ru$/i.test(location.hostname))
     ? 'https://mn-api.crmuro.ru/api/mynote'
     : '/api/mynote';
 
