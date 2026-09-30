@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.0.1';
+  const APP_VER = '1.0.2';
   const API = (location.hostname === 'abramson-crm.pages.dev' || location.hostname.endsWith('.abramson-crm.pages.dev') || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? '/api/mynote' : 'https://abramson-crm.pages.dev/api/mynote';
 
@@ -342,6 +342,23 @@
       state.page = d.page; state.path = d.path; state.files = d.files || []; state.rev = d.page.rev;
       state.edit = false; state.dirty = false;
       state.view = 'page';
+      try { localStorage.setItem('mynote-last', JSON.stringify({ id: id, nb: nbId || d.page.notebookId || '' })); } catch { /* ignore */ }
+      // несохранённый черновик этой же ревизии — восстанавливаем и тихо досылаем
+      let draft = null;
+      try { draft = JSON.parse(localStorage.getItem('mynote-draft:' + id) || 'null'); } catch { draft = null; }
+      if (draft && draft.rev === d.page.rev) {
+        const nb = draft.body && draft.body.length ? draft.body : null;
+        const nf = draft.fields && Object.keys(draft.fields).length ? draft.fields : null;
+        if (nb || nf) {
+          if (nb) state.page.body = JSON.stringify(nb);
+          if (nf) state.page.fields = JSON.stringify(nf);
+          state.dirty = true;
+          renderPage(d);
+          saveNow(true).then(() => toast('Восстановлены несохранённые правки', 'ok')).catch(() => {});
+          renderTree();
+          return;
+        }
+      }
       $('#sidebar').classList.remove('open'); $('#scrim').classList.remove('on');
       renderPage(d);
       renderTree();
@@ -1413,11 +1430,19 @@
       await loadTree();
       await route();
       if (location.hash.startsWith('#/l/')) return;
-      const first = (state.tree || []).find(nb => (nb.pages || []).length);
-      if (first && first.pages.length && !state.page) {
-        const p = first.pages.find(x => !x.parentId) || first.pages[0];
-        state.open.add(first.id); saveOpen();
-        openPage(p.id, first.id);
+      if (!state.page) {
+        let last = null;
+        try { last = JSON.parse(localStorage.getItem('mynote-last') || 'null'); } catch { last = null; }
+        let openId = null, openNb = null;
+        if (last && last.id) {
+          const nb = (state.tree || []).find(n => (n.pages || []).some(x => x.id === last.id));
+          if (nb) { openId = last.id; openNb = nb.id; }
+        }
+        if (!openId) {
+          const first = (state.tree || []).find(nb => (nb.pages || []).length);
+          if (first && first.pages.length) { const p = first.pages.find(x => !x.parentId) || first.pages[0]; openId = p.id; openNb = first.id; }
+        }
+        if (openId) { state.open.add(openNb); saveOpen(); openPage(openId, openNb); }
       }
     } catch (e) {
       if (e.status === 401) {
