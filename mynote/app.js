@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.2.0';
+  const APP_VER = '1.2.1';
   const API = (location.hostname === 'abramson-crm.pages.dev' || location.hostname.endsWith('.abramson-crm.pages.dev') || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? '/api/mynote' : 'https://abramson-crm.pages.dev/api/mynote';
 
@@ -36,7 +36,11 @@
     if (state.token) headers.Authorization = 'Bearer ' + state.token;
     if (opts.body && !(opts.body instanceof FormData)) headers['Content-Type'] = 'application/json';
     const res = await fetch(API + path, Object.assign({}, opts, { headers }));
-    if (res.status === 401 && state.token) { signOut(true); throw new Error('Нужен вход'); }
+    if (res.status === 401 && state.token) {
+      state.token = ''; state.user = null;
+      localStorage.removeItem('mynote-token');
+      const e401 = new Error('Нужен вход'); e401.status = 401; throw e401;
+    }
     let data = null;
     const ct = res.headers.get('Content-Type') || '';
     if (ct.includes('application/json')) { try { data = await res.json(); } catch { data = null; } }
@@ -58,6 +62,7 @@
   /* ---------------- вход ---------------- */
 
   function showAuth(msg, ok) {
+    if (state.openLogin) { boot(); return; }
     $('#auth').style.display = 'flex';
     $('#app').classList.remove('on');
     const m = $('#authMsg'); m.textContent = msg || ''; m.className = 'form-msg' + (ok ? ' ok' : '');
@@ -113,7 +118,7 @@
 
   // в открытом режиме пароля нет: вместо формы входа показываем «повторить»
   async function showConnectScreen(msg) {
-    let open = false;
+    let open = true;
     try { const a = await api('/about'); open = a.open !== false; } catch (e) { open = true; }
     if (!open) { showAuth(msg); return; }
     const box = el('div');
@@ -128,7 +133,6 @@
     localStorage.removeItem('mynote-token');
     $('#tree').innerHTML = '';
     if (!quiet) showAuth('Вы вышли из аккаунта', true);
-    if (quiet) showAuth('Сеанс истёк — войдите заново');
   }
 
   /* ---------------- дерево ---------------- */
@@ -1524,14 +1528,14 @@
         if (openId) { state.open.add(openNb); saveOpen(); openPage(openId, openNb); }
       }
     } catch (e) {
-      if (e.status === 401) {
-        localStorage.removeItem('mynote-token'); state.token = '';
+      const isAuth = (e && (e.status === 401 || /Нужен вход/.test(String(e.message || ''))));
+      if (isAuth) {
+        localStorage.removeItem('mynote-token'); state.token = ''; state.user = null;
         if (!state.retried) { state.retried = true; return boot(); }
-        if (state.openLogin) { showConnectScreen('Сеанс истёк — подключаюсь заново.'); return; }
-        showAuth('Сеанс истёк — войдите заново'); return;
+        await showConnectScreen('Сеанс истёк — подключаюсь заново.');
+        return;
       }
-      if (state.openLogin) { showConnectScreen('Не удалось связаться с сервером: ' + e.message); return; }
-      showAuth('Не удалось связаться с сервером: ' + e.message);
+      await showConnectScreen('Не удалось связаться с сервером: ' + (e && e.message ? e.message : 'ошибка'));
     }
   }
 
