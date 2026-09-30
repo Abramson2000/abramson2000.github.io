@@ -5,7 +5,7 @@
 //      сразу применяются к кэшу (оптимистично) и отправляются в базу, как только появится связь;
 //   3) локальная оболочка (index.html, supabase-js, иконки) — тоже в кэше.
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
-const APP_CACHE = 'crm-app-v20';
+const APP_CACHE = 'crm-app-v21';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
 const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
@@ -13,7 +13,7 @@ const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js'
 // Под-приложения на том же домене (/tingli, /spin, /cidian) — у каждого свой
 // сервис-воркер. CRM не должна подменять их своим «shell»: раньше проверка была
 // только на '/cidian/' со слэшем, и адрес '/cidian' без слэша открывал Базу.
-const SUBAPPS = ['/spin', '/tingli', '/cidian'];
+const SUBAPPS = ['/spin', '/tingli', '/cidian', '/mynote'];
 function isSubAppPath(p) {
   for (const s of SUBAPPS) { if (p === s || p.indexOf(s + '/') === 0) return true; }
   return false;

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>MyNote</title>
+<meta name="description" content="MyNote — личный блокнот: блокноты, вложенные страницы, места для путешествий." />
+<meta name="theme-color" content="#173B59" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/png" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="MyNote" />
+<link rel="stylesheet" href="styles.css?v=1.0.0" />
+</head>
+<body>
+
+<!-- вход -->
+<div id="auth">
+  <div class="auth-card">
+    <div class="brand">
+      <img src="img/symbol.svg" alt="" width="34" height="27" />
+      <h1>MyNote</h1>
+    </div>
+    <p class="sub">Личный блокнот: блокноты, вложенные страницы и места, которые хочется посетить.</p>
+    <div class="auth-tabs">
+      <button id="tabLogin" class="on" type="button">Вход</button>
+      <button id="tabReg" type="button">Регистрация</button>
+    </div>
+    <form id="authForm" autocomplete="on">
+      <label class="field" id="fName" style="display:none">
+        <span>Имя</span>
+        <input type="text" id="inName" autocomplete="name" placeholder="Как вас зовут" />
+      </label>
+      <label class="field">
+        <span>E-mail</span>
+        <input type="email" id="inEmail" autocomplete="username" placeholder="you@example.com" required />
+      </label>
+      <label class="field">
+        <span>Пароль</span>
+        <input type="password" id="inPass" autocomplete="current-password" placeholder="Не короче 6 символов" required />
+      </label>
+      <div class="form-msg" id="authMsg"></div>
+      <button class="btn primary" type="submit" id="btnAuth" style="width:100%">Войти</button>
+    </form>
+    <p class="small muted" style="margin:14px 0 0">
+      Данные хранятся на сервере, вход — по паролю. Восстановления пароля нет: пароль можно сменить после входа.
+    </p>
+  </div>
+</div>
+
+<!-- приложение -->
+<div id="app">
+  <div id="scrim"></div>
+  <aside id="sidebar">
+    <div class="sb-top">
+      <div class="brand-row">
+        <img src="img/symbol.svg" alt="MyNote" />
+        <span class="name hide-collapsed">MyNote</span>
+        <span class="spacer"></span>
+        <button class="icon-btn hide-collapsed" id="btnCollapse" title="Свернуть панель" type="button">&#8249;</button>
+      </div>
+      <div class="hide-collapsed">
+        <input type="search" id="searchInp" placeholder="Поиск по заголовкам и тексту" />
+      </div>
+      <div class="sb-actions hide-collapsed">
+        <button class="btn sm" id="btnNewNotebook" type="button">Блокнот</button>
+        <button class="btn sm primary" id="btnNewPage" type="button">Страница</button>
+      </div>
+    </div>
+    <div class="sb-nav hide-collapsed">
+      <button class="item" id="navFav" type="button"><span>★</span><span>Избранное</span><span class="n" id="favCount"></span></button>
+      <button class="item" id="navTrash" type="button"><span>🗑</span><span>Корзина</span></button>
+      <button class="item" id="navAbout" type="button"><span>ⓘ</span><span>О программе</span></button>
+    </div>
+    <div class="sb-label hide-collapsed">Блокноты</div>
+    <div id="treeWrap"><ul class="tree" id="tree"></ul></div>
+    <div class="sb-foot">
+      <div class="user-row">
+        <div class="avatar" id="ava">?</div>
+        <div class="grow hide-collapsed" style="min-width:0">
+          <div class="trunc" id="userName" style="font-size:14px"></div>
+        </div>
+        <button class="icon-btn hide-collapsed" id="btnUser" title="Настройки и выход" type="button">⋯</button>
+      </div>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div id="mobileBar">
+      <button class="icon-btn" id="btnMenu" title="Блокноты и страницы" type="button">☰</button>
+      <img src="img/symbol.svg" alt="MyNote" width="28" height="22" />
+      <span class="spacer"></span>
+      <button class="icon-btn" id="btnMobileEdit" title="Редактировать" type="button">✎</button>
+      <button class="icon-btn" id="btnMobileShare" title="Поделиться" type="button">↗</button>
+    </div>
+    <div id="topbar">
+      <div id="crumbs"></div>
+      <span class="pill private" id="accessPill">Личный</span>
+      <button class="btn sm hide-mobile" id="btnEdit" type="button">Редактировать</button>
+      <button class="btn sm hide-mobile" id="btnShare" type="button">Поделиться</button>
+      <button class="icon-btn hide-mobile" id="btnMore" title="Ещё" type="button">⋯</button>
+    </div>
+    <div id="docWrap">
+      <div id="doc">
+        <div id="emptyState" class="empty-wrap">
+          <img src="img/empty.svg" alt="" />
+          <div><b>Выберите страницу</b></div>
+          <div class="small">Слева — блокноты и страницы. Можно создать новый блокнот или страницу.</div>
+        </div>
+        <div id="pageView" class="hidden">
+          <div class="doc-head">
+            <h1 id="pageTitle" contenteditable="false" spellcheck="true"></h1>
+          </div>
+          <div class="doc-meta" id="docMeta"></div>
+          <div id="coverBox" class="hidden"></div>
+          <div id="placeWrap"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="modals"></div>
+<div id="toasts"></div>
+<script src="app.js?v=1.0.0"></script>
+</body>
+</html>

@@ -8,3 +8,13 @@ id = "a1a4242bc01e4141baa1511a28d142bb"
 
 [ai]
 binding = "AI"
+
+# MyNote (приложение на /mynote/) — своя структура и файлы
+[[d1_databases]]
+binding = "DB"
+database_name = "mynote"
+database_id = "dc7e092e-23c3-4a02-9e96-f621acd893ba"
+
+[[kv_namespaces]]
+binding = "FILES"
+id = "a91979dfcb534c31a1fa45c466e96000"
