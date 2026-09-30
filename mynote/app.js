@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.0.0';
+  const APP_VER = '1.0.1';
   const API = (location.hostname === 'abramson-crm.pages.dev' || location.hostname.endsWith('.abramson-crm.pages.dev') || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? '/api/mynote' : 'https://abramson-crm.pages.dev/api/mynote';
 
@@ -92,6 +92,18 @@
     } catch (e) {
       showAuth(e.message);
     } finally { $('#btnAuth').disabled = false; }
+  }
+
+  async function openAccess() {
+    try {
+      const d = await api('/auth/open', { method: 'POST', body: '{}' });
+      state.token = d.token || '';
+      state.user = d.user || null;
+      state.open = state.open || new Set();
+      if (state.token) localStorage.setItem('mynote-token', state.token);
+      state.openLogin = true;
+      return true;
+    } catch (e) { return false; }
   }
 
   function signOut(quiet) {
@@ -1261,8 +1273,10 @@
     const box = el('div');
     const ul = el('ul', 'items');
     const mk = (label, fn, cls) => { const li = el('li'); const b = el('button', 'btn sm ' + (cls || ''), label); b.type = 'button'; b.onclick = async () => { await fn(); }; li.appendChild(b); ul.appendChild(li); };
-    mk('Сменить пароль', () => { document.querySelectorAll('.overlay').forEach(o => o.remove()); passwordDialog(); });
-    mk('Выйти', async () => { document.querySelectorAll('.overlay').forEach(o => o.remove()); signOut(false); }, 'danger');
+    if (!state.openLogin) {
+      mk('Сменить пароль', () => { document.querySelectorAll('.overlay').forEach(o => o.remove()); passwordDialog(); });
+      mk('Выйти', async () => { document.querySelectorAll('.overlay').forEach(o => o.remove()); signOut(false); }, 'danger');
+    }
     box.appendChild(ul);
     const m = modal('Аккаунт', box, []);
     box.insertBefore(el('div', 'small muted', state.user ? state.user.email : ''), ul);
@@ -1391,7 +1405,7 @@
   async function boot() {
     bind();
     if (location.hash.startsWith('#/l/')) { await route(); return; }
-    if (!state.token) { showAuth(); return; }
+    if (!state.token && !(await openAccess())) { showAuth(); return; }
     try {
       const d = await api('/me');
       state.user = d.user;
@@ -1406,7 +1420,11 @@
         openPage(p.id, first.id);
       }
     } catch (e) {
-      if (e.status === 401) { showAuth('Сеанс истёк — войдите заново'); return; }
+      if (e.status === 401) {
+        localStorage.removeItem('mynote-token'); state.token = '';
+        if (!state.retried) { state.retried = true; return boot(); }
+        showAuth('Сеанс истёк — войдите заново'); return;
+      }
       showAuth('Не удалось связаться с сервером: ' + e.message);
     }
   }
