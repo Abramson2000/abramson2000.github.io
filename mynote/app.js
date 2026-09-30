@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.1.0';
+  const APP_VER = '1.1.1';
   const API = (location.hostname === 'abramson-crm.pages.dev' || location.hostname.endsWith('.abramson-crm.pages.dev') || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? '/api/mynote' : 'https://abramson-crm.pages.dev/api/mynote';
 

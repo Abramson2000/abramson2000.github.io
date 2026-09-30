@@ -270,7 +270,10 @@ body { overflow-x: hidden; }
     display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: var(--surface);
     border-bottom: 1px solid var(--border); min-height: 62px;
   }
-  #mobileBar .icon-btn { width: 52px; height: 52px; font-size: 26px; line-height: 1; }
+  #mobileBar .icon-btn { width: 54px; height: 54px; font-size: 26px; line-height: 1; color: var(--brand); }
+  #mobileBar .icon-btn svg { width: 28px; height: 28px; }
+  #topbar .hide-mobile, .hide-mobile { display: none !important; }
+  .only-desktop { display: none; }
   #mobileBar img { width: 34px; height: 27px; }
   #topbar { display: none; }
   #mobBottom {
