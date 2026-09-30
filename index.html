@@ -237,6 +237,7 @@ body {
 .cns-head b { color: var(--ink); }
 .cns-add { margin-left: auto; flex: none; background: var(--brand); color: #fff; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 .cns-add:hover { background: var(--brand-dark); }
+.doc-badge{display:inline-block;font-size:10.5px;line-height:1.5;padding:0 6px;border-radius:6px;background:rgba(20,120,80,.12);color:#14784f;margin-right:6px;vertical-align:1px}
 .mark-badge {
   display: inline-block; background: #dc2626; color: #fff;
   font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px;
@@ -1025,18 +1026,12 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
         <span>Частные</span><em class="cnt" data-cnt="refpriv"></em>
       </button>
-      <button class="tab d-item" data-view="refdoc">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11h4M19 9v4"/></svg>
-        <span>Врачи</span><em class="cnt" data-cnt="refdoc"></em>
-      </button>
+
       <button class="tab d-item" data-view="reffirm">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M14 9h4a2 2 0 0 1 2 2v10"/><path d="M7 7h2M7 11h2M7 15h2M17 13h1M17 17h1"/></svg>
         <span>Компании</span><em class="cnt" data-cnt="reffirm"></em>
       </button>
-      <button class="tab d-item" data-view="refcontact">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9.4" cy="10.4" r="2.2"/><path d="M6.4 16.4a3.4 3.4 0 0 1 6 0"/><path d="M14.6 9.4h3.6M14.6 12.2h3.6M14.6 15h2.4"/></svg>
-        <span>Контакты</span><em class="cnt" data-cnt="refcontact"></em>
-      </button>
+
       <div class="d-sec">Система</div>
       <button class="tab d-item" data-view="settings">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -1116,18 +1111,12 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
         <span>Частные <em class="cnt" data-cnt="refpriv"></em></span>
       </button>
-      <button class="tab" data-view="refdoc">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11h4M19 9v4"/></svg>
-        <span>Врачи <em class="cnt" data-cnt="refdoc"></em></span>
-      </button>
+
       <button class="tab" data-view="reffirm">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M14 9h4a2 2 0 0 1 2 2v10"/><path d="M7 7h2M7 11h2M7 15h2M17 13h1M17 17h1"/></svg>
         <span>Компании <em class="cnt" data-cnt="reffirm"></em></span>
       </button>
-      <button class="tab" data-view="refcontact">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9.4" cy="10.4" r="2.2"/><path d="M6.4 16.4a3.4 3.4 0 0 1 6 0"/><path d="M14.6 9.4h3.6M14.6 12.2h3.6M14.6 15h2.4"/></svg>
-        <span>Контакты <em class="cnt" data-cnt="refcontact"></em></span>
-      </button>
+
       <div class="d-sec">Система</div>
       <button class="tab" data-view="settings">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -1841,7 +1830,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.2.5';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.3.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1881,7 +1870,7 @@ async function refreshCounts() {
     tabCounts = {
       clinics: clinics.filter(c => (c.kind || 'hospital') === 'hospital').length,
       distributors: clinics.filter(c => c.kind === 'distributor').length,
-      people: people.filter(p => !isHiddenPerson(p)).length,
+      people: people.filter(p => !p.markedDel).length,
       money: clinics.filter(c =>
         (c.kind || 'hospital') === 'hospital' &&
         MONEY_YEARS.some(y => yearTotal(c, y) != null)
@@ -1889,9 +1878,8 @@ async function refreshCounts() {
       cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС')).length,
       refgos: clinics.filter(c => c.kind === 'ref_gos' && !c.markedDel).length,
       refpriv: clinics.filter(c => c.kind === 'ref_priv' && !c.markedDel).length,
-      refdoc: people.filter(p => isRefDoc(p)).length,
       reffirm: clinics.filter(c => c.kind === 'ref_firm').length,
-      refcontact: people.filter(p => !p.markedDel && (p.phone || p.email)).length
+      refcontact: 0
     };
     paintCounts();
   } catch (_) {}
@@ -2032,7 +2020,7 @@ let tagPool = { prod: [], src: [], other: [] };
 function isHiddenTag(t) {
   const str = String(t == null ? '' : t).trim();
   const low = str.toLowerCase();
-  return !str || OWN_TAGS.includes(low) || TECH_TAGS.includes(low) || str === REFDOC_TAG || str === FIRM_TAG;
+  return !str || OWN_TAGS.includes(low) || TECH_TAGS.includes(low);   // v4.3.0: «врач»/«контакт компании» — обычные метки
 }
 function canonTag(str) {
   const x = String(str == null ? '' : str).trim();
@@ -2702,8 +2690,7 @@ const FILTER_CFG = {
   refgos:       { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
   refpriv:      { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
   reffirm:      { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // как партнёры
-  refdoc:       { sel: 1, type: 0, prods: 0, srcs: 0, tags: 1, ownTags: 1, year: 0 },   // свои метки человека
-  refcontact:   { sel: 1, type: 0, prods: 0, srcs: 0, tags: 1, ownTags: 1, year: 0 },
+  people:       { sel: 0, type: 0, prods: 0, srcs: 0, tags: 1, ownTags: 1, year: 0 },   // v4.3.0: бывшие «Врачи»+«Контакты»
   cns:          { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   air:          { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   endo:         { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
@@ -3021,8 +3008,6 @@ async function filterRowsFor(view) {
     const k = view === 'refgos' ? 'ref_gos' : 'ref_priv';
     return all.filter(c => c.kind === k && !c.markedDel);
   }
-  if (view === 'refdoc') return (await listPeople()).filter(isRefDoc);
-  if (view === 'refcontact') return (await listPeople()).filter(p => !isHiddenPerson(p));
   if (view === 'nastya' || view === 'galya' || view === 'sasha') {
     const W = WORKLISTS[view];
     try {
@@ -3066,11 +3051,7 @@ async function populateFiltersFor(view) {
 }
 async function populateRefFilters() {
   let rows = [];
-  if (state.view === 'refdoc') {
-    rows = (await listPeople()).filter(isRefDoc);
-  } else if (state.view === 'refcontact') {
-    rows = (await listPeople()).filter(p => !isHiddenPerson(p));
-  } else {
+  {
     const kind = state.view === 'refgos' ? 'ref_gos' : (state.view === 'refpriv' ? 'ref_priv' : 'ref_firm');
     rows = (await listClinics()).filter(c => c.kind === kind);
   }
@@ -4393,7 +4374,7 @@ function telLink(phone) {
 
 async function renderPeople() {
   const view = document.getElementById('view');
-  let people = (await listPeople()).filter(p => !isHiddenPerson(p));
+  let people = (await listPeople()).filter(p => !p.markedDel);   // v4.3.0: тут все люди, включая врачей и контакты компаний
   const s = state.search;
   if (s) {
     people = people.filter(p =>
@@ -4420,6 +4401,8 @@ async function renderPeople() {
     if (links) links.forEach(l => { (extraMap[l.person_id] = extraMap[l.person_id] || []).push(l.clinic_id); });
   } catch (_) {}
 
+  const _f = state.filters;
+  people = people.filter(p => matchFilters(_f, p));
   people.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0) || (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
   let html = '<div class="list">';
   for (const p of people) {
@@ -4428,12 +4411,13 @@ async function renderPeople() {
     (extraMap[p.id] || []).forEach(cid => { const n = clinicMap[cid] && clinicMap[cid].name; if (n && !orgs.includes(n)) orgs.push(n); });
     const org = orgs.join(', ');
     const sub = [org, shortPos(p.position)].filter(Boolean).join(' / ');
+    const docMark = isRefDoc(p) ? '<span class="doc-badge">Врач</span>' : '';
     html += `<div class="card list-row${p.markedDel ? ' marked-del' : ''}" data-id="${p.id}" data-kind="person">
       <div class="list-row-top">
         <span class="list-row-name">${esc(p.fullName)}</span>
         ${p.markedDel ? '<span class="mark-badge">на удалении</span>' : ''}
       </div>
-      <div class="list-row-sub">${ownBadgeById(p.clinicId, clinicMap)}${esc(sub || '—')}</div>
+      <div class="list-row-sub">${docMark}${ownBadgeById(p.clinicId, clinicMap)}${esc(sub || '—')}</div>
     </div>`;
   }
   view.innerHTML = html + '</div>';
@@ -4508,13 +4492,13 @@ async function renderDicts() {
 
 // ---------- справочники: Гос ЛПУ / Частные клиники / Врачи ----------
 const REF_KIND_LABEL = { ref_gos: 'Государственные', ref_priv: 'Частные', ref_firm: 'Компании' };
-const REFDOC_TAG = 'refdoc';
-const FIRM_TAG = 'firmcontact'; // контакт компании: карточка человека есть, но в списки людей он не попадает
+const REFDOC_TAG = 'Врач';
+const FIRM_TAG = 'Контакт компании'; // контакт компании: карточка человека есть, но в списки людей он не попадает
 const isRefKind = k => k === 'ref_gos' || k === 'ref_priv' || k === 'ref_firm';
 const isFirmKind = k => k === 'ref_firm';
 const isRefDoc = p => (p.tags || []).includes(REFDOC_TAG);
 const isFirmContact = p => (p.tags || []).includes(FIRM_TAG);
-const isHiddenPerson = p => isRefDoc(p) || isFirmContact(p);
+const isHiddenPerson = () => false;   // v4.3.0: списки людей объединены в «Клиенты»
 const refTags = t => (t || []).filter(x => x !== REFDOC_TAG && x !== FIRM_TAG);
 const canEditRef = () => (CURRENT_ROLE !== 'guest' && CURRENT_ROLE !== 'viewer') || isRefEdit();
 // --- ограниченный пользователь (Евсеев): основное — только просмотр и без денег; справочники — просмотр и правка; команду не видит
@@ -6603,7 +6587,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-18';
+  const SW_BUILD = 'offline-safe-19';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
