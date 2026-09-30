@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.3.0';
+  const APP_VER = '1.3.1';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   const API = (/^([a-z0-9-]+\.)?crmuro\.ru$/i.test(location.hostname))
@@ -65,7 +65,7 @@
   /* ---------------- вход ---------------- */
 
   function showAuth(msg, ok) {
-    if (state.openLogin) { boot(); return; }
+    if (state.openLogin) { setTimeout(() => boot(), 1500); return; }
     $('#auth').style.display = 'flex';
     $('#app').classList.remove('on');
     const m = $('#authMsg'); m.textContent = msg || ''; m.className = 'form-msg' + (ok ? ' ok' : '');
@@ -114,9 +114,14 @@
     } catch (e) { return false; }
   }
 
-  async function openAccessRetry() {
-    for (let i = 0; i < 3; i++) { if (await openAccess()) return true; await new Promise(r => setTimeout(r, 800)); }
-    return false;
+  async function ensureToken(tries) {
+    tries = tries || 4;
+    for (let i = 0; i < tries; i++) {
+      if (state.token) return true;
+      if (await openAccess()) return true;
+      await new Promise(r => setTimeout(r, 500 + i * 600));
+    }
+    return !!state.token;
   }
 
   // в открытом режиме пароля нет: вместо формы входа показываем «повторить»
@@ -1513,11 +1518,21 @@
   async function boot() {
     bind();
     if (location.hash.startsWith('#/l/')) { await route(); return; }
-    if (!state.token && !(await openAccessRetry())) { await showConnectScreen(''); return; }
+    if (state.bootN === undefined) state.bootN = 0;
+    if (state.bootN++ > 6) { await showConnectScreen('Сервер не отвечает. Нажми «Повторить».'); return; }
+    // 1. режим сервера: с паролем или без (публичный /about)
+    try { const a = await api('/about'); if (a && a.open !== false) state.openLogin = true; } catch (e) {}
+    // 2. протухший токен просто сбрасываем
+    if (state.token) {
+      try { await api('/me'); } catch (e) { if (e && e.status === 401) { state.token = ''; localStorage.removeItem('mynote-token'); } }
+    }
+    // 3. нет токена — берём открытый вход (с повторами)
+    if (!state.token && !(await ensureToken(4))) { await showConnectScreen('Не удалось подключиться к серверу.'); return; }
     try {
       const d = await api('/me');
       state.user = d.user;
       if (d.open) state.openLogin = true;
+      state.bootN = 0;
       showApp();
       await loadTree();
       await route();
@@ -1540,7 +1555,7 @@
       const isAuth = (e && (e.status === 401 || /Нужен вход/.test(String(e.message || ''))));
       if (isAuth) {
         localStorage.removeItem('mynote-token'); state.token = ''; state.user = null;
-        if (!state.retried) { state.retried = true; return boot(); }
+        if (!state.retried || state.openLogin) { state.retried = true; await new Promise(r => setTimeout(r, 600)); return boot(); }
         await showConnectScreen('Сеанс истёк — подключаюсь заново.');
         return;
       }
