@@ -246,10 +246,27 @@ h1#pageTitle {
 
 /* мобильный режим */
 #mobileBar { display: none; }
-/* ---------- мобильный низ и укрупнение интерфейса (1.1.0) ---------- */
+/* ---------- нижняя полоса и укрупнение интерфейса ---------- */
+#mobBottom {
+  display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 4px 8px; gap: 4px; justify-content: center;
+}
+#mobBottom .mb-item {
+  flex: 0 1 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  background: transparent; border: 0; color: var(--text-muted); font: inherit; font-size: 12px;
+  padding: 6px 10px; min-height: 50px; cursor: pointer; border-radius: 8px;
+}
+#mobBottom .mb-item:hover { color: var(--brand); background: var(--page-bg); }
+#mobBottom .mb-item svg { width: 22px; height: 22px; }
+#mobBottom .mb-item:active, #mobBottom .mb-item.on { color: var(--brand); }
+#doc { padding-bottom: 96px; }
+
 html { -webkit-text-size-adjust: 100%; }
 body { overflow-x: hidden; }
-#mobBottom { display: none; }
+#crumbs { display: none !important; }
+#btnShowSide { display: none; }
+#sidebar.collapsed ~ main #topbar #btnShowSide { display: inline-flex; }
 .sb-brand { display: flex; align-items: center; gap: 8px; width: 100%; }
 .sb-brand img { flex: none; opacity: .9; }
 .sb-brand .n { margin-left: auto; font-size: 11.5px; color: var(--text-muted); }
@@ -263,6 +280,9 @@ body { overflow-x: hidden; }
   #sidebar.open { transform: none; }
   aside#sidebar { z-index: 70; }
   #sidebar.open ~ main #mobBottom { display: none; }
+#crumbs { display: none !important; }
+#btnShowSide { display: none; }
+#sidebar.collapsed ~ main #topbar #btnShowSide { display: inline-flex; }
   #sidebar.collapsed { width: min(86vw, 330px); }
   #scrim { position: fixed; inset: 0; background: rgba(23,42,58,.34); z-index: 65; display: none; }
   #scrim.on { display: block; }
@@ -273,21 +293,13 @@ body { overflow-x: hidden; }
   #mobileBar .icon-btn { width: 54px; height: 54px; font-size: 26px; line-height: 1; color: var(--brand); }
   #mobileBar .icon-btn svg { width: 28px; height: 28px; }
   #topbar .hide-mobile, .hide-mobile { display: none !important; }
-  .only-desktop { display: none; }
+  
   #mobileBar img { width: 34px; height: 27px; }
   #topbar { display: none; }
-  #mobBottom {
-    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
-    background: var(--surface); border-top: 1px solid var(--border);
-    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); gap: 4px;
-  }
-  #mobBottom .mb-item {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-    background: transparent; border: 0; color: var(--text-muted); font: inherit; font-size: 12px;
-    padding: 6px 2px; min-height: 54px; cursor: pointer;
-  }
+  #mobBottom { padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+  #mobBottom .mb-item { flex: 1; min-height: 54px; padding: 6px 2px; }
   #mobBottom .mb-item svg { width: 25px; height: 25px; }
-  #mobBottom .mb-item:active, #mobBottom .mb-item.on { color: var(--brand); }
+  #btnShowSide { display: none !important; }
   .hide-desktop { display: block; }
   .user-row .hide-desktop { display: inline-flex; }
   .sb-foot .user-row { display: none; }

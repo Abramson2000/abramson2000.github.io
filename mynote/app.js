@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.1.1';
+  const APP_VER = '1.2.0';
   const API = (location.hostname === 'abramson-crm.pages.dev' || location.hostname.endsWith('.abramson-crm.pages.dev') || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? '/api/mynote' : 'https://abramson-crm.pages.dev/api/mynote';
 
@@ -106,6 +106,22 @@
     } catch (e) { return false; }
   }
 
+  async function openAccessRetry() {
+    for (let i = 0; i < 3; i++) { if (await openAccess()) return true; await new Promise(r => setTimeout(r, 800)); }
+    return false;
+  }
+
+  // в открытом режиме пароля нет: вместо формы входа показываем «повторить»
+  async function showConnectScreen(msg) {
+    let open = false;
+    try { const a = await api('/about'); open = a.open !== false; } catch (e) { open = true; }
+    if (!open) { showAuth(msg); return; }
+    const box = el('div');
+    box.appendChild(el('p', null, msg || 'Не удалось связаться с сервером. Проверь интернет и попробуй ещё раз.'));
+    const b = btn('Повторить', 'primary', () => { document.querySelectorAll('.overlay').forEach(o => o.remove()); boot(); });
+    modal('Нет связи', box, [b]);
+  }
+
   function signOut(quiet) {
     if (!quiet && state.token) api('/auth/logout', { method: 'POST' }).catch(() => {});
     state.token = ''; state.user = null; state.page = null; state.tree = [];
@@ -154,7 +170,7 @@
       li.appendChild(kids);
       host.appendChild(li);
     }
-    $('#favCount').textContent = '';
+    const fc0 = $('#favCount'); if (fc0) fc0.textContent = '';
   }
 
   function renderNodes(nb, pages, parentId, host, depth, f) {
@@ -1220,12 +1236,12 @@
   function showAbout() {
     const box = el('div');
     const kv = el('div', 'kv');
-    [['Приложение', 'MyNote'], ['Версия', APP_VER], ['Хранение', 'серверное (D1 + файловое хранилище)'], ['Данные', 'доступ проверяется на сервере для каждой операции']].forEach(([k, v]) => {
+    [['Версия', APP_VER], ['Режим', state.openLogin ? 'без пароля' : 'с паролем']].forEach(([k, v]) => {
       kv.appendChild(el('div', 'muted', k)); kv.appendChild(el('div', null, v));
     });
     box.appendChild(kv);
-    box.appendChild(el('p', 'small muted', 'MyNote — личный блокнот: блокноты, вложенные страницы, места для поездок. Совместное одновременное редактирование одного текста пока не реализовано: при конфликте сохраняются обе редакции.'));
-    modal('О программе', box, [btn('Сменить пароль', 'sm', () => passwordDialog())]);
+    box.appendChild(el('p', 'small muted', 'Личный блокнот. Всё хранится на сервере, доступ — с любого устройства.'));
+    modal('О программе', box, state.openLogin ? [] : [btn('Сменить пароль', 'sm', () => passwordDialog())]);
   }
 
   function passwordDialog() {
@@ -1403,28 +1419,29 @@
   }
 
   function bind() {
+    const on = (sel, fn) => { const n = $(sel); if (n) n.onclick = fn; else console.warn('bind: нет элемента', sel); };
+    const onAny = (sel, ev, fn) => { const n = $(sel); if (n) n.addEventListener(ev, fn); };
     $('#tabLogin').onclick = () => setAuthMode(false);
     $('#tabReg').onclick = () => setAuthMode(true);
     $('#authForm').onsubmit = submitAuth;
-    $('#btnCollapse').onclick = () => { $('#sidebar').classList.toggle('collapsed'); localStorage.setItem('mynote-collapsed', $('#sidebar').classList.contains('collapsed') ? '1' : ''); };
-    $('#btnMenu').onclick = () => { $('#sidebar').classList.add('open'); $('#scrim').classList.add('on'); };
-    $('#scrim').onclick = () => { $('#sidebar').classList.remove('open'); $('#scrim').classList.remove('on'); };
-    $('#btnEdit').onclick = () => toggleEdit();
-    $('#btnMobileEdit').onclick = () => toggleEdit();
-    $('#btnShare').onclick = () => { const nb = (state.tree || []).find(n => (n.pages || []).some(p => state.page && p.id === state.page.id)); if (nb) shareDialog(nb); };
-    $('#btnMobileShare').onclick = () => $('#btnShare').click();
-    $('#btnMore').onclick = () => {
+    on('#btnCollapse', () => { $('#sidebar').classList.toggle('collapsed'); localStorage.setItem('mynote-collapsed', $('#sidebar').classList.contains('collapsed') ? '1' : ''); });
+    on('#btnShowSide', () => { $('#sidebar').classList.remove('collapsed'); localStorage.setItem('mynote-collapsed', ''); });
+    on('#btnMenu', () => openSidebar());
+    on('#scrim', () => closeSidebar());
+    on('#btnEdit', () => toggleEdit());
+    on('#btnMobileEdit', () => toggleEdit());
+    on('#btnShare', () => { const nb = (state.tree || []).find(n => (n.pages || []).some(p => state.page && p.id === state.page.id)); if (nb) shareDialog(nb); });
+    on('#btnMobileShare', () => $('#btnShare').click());
+    on('#btnMore', () => {
       const nb = (state.tree || []).find(n => (n.pages || []).some(p => state.page && p.id === state.page.id));
       if (!state.page || !nb) return;
       const p = (nb.pages || []).find(x => x.id === state.page.id);
       pageMenu(nb, p || { id: state.page.id, title: state.page.title, fav: state.page.fav, closed: state.page.closed });
-    };
-    $('#btnUser').onclick = userMenu;
-    $('#navFav').onclick = () => showFavorites().catch(e => toast(e.message, 'err'));
-    $('#navTrash').onclick = () => showTrash().catch(e => toast(e.message, 'err'));
-    $('#btnAbout').onclick = showAbout;
+    });
+    on('#btnUser', userMenu);
+    on('#btnAbout', showAbout);
     const vl = $('#verLabel'); if (vl) vl.textContent = 'v' + APP_VER;
-    $('#btnNewNotebook').onclick = async () => {
+    on('#btnNewNotebook', async () => {
       const box = el('div');
       const t = el('input'); t.type = 'text'; t.value = 'Новый блокнот';
       const l = el('label', 'field'); l.appendChild(el('span', null, 'Название')); l.appendChild(t);
@@ -1437,16 +1454,16 @@
       })]);
       setTimeout(() => { t.focus(); t.select(); }, 60);
       t.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); const ok = $('#dlgOk'); if (ok) ok.click(); } };
-    };
-    $('#btnNewPage').onclick = async () => {
+    });
+    on('#btnNewPage', async () => {
       const nb = (state.tree || []).find(n => n.role === 'owner' || n.role === 'editor') || (state.tree || [])[0];
       if (!nb) { toast('Сначала создайте блокнот', 'err'); return; }
       newPageDialog(nb);
-    };
+    });
     // нижняя мобильная панель
-    const mbS = $('#mbSearch'); if (mbS) mbS.onclick = searchSheet;
-    const mbF = $('#mbFav'); if (mbF) mbF.onclick = () => showFavorites().catch(e => toast(e.message, 'err'));
-    const mbT = $('#mbTrash'); if (mbT) mbT.onclick = () => showTrash().catch(e => toast(e.message, 'err'));
+    on('#mbSearch', searchSheet);
+    on('#mbFav', () => showFavorites().catch(e => toast(e.message, 'err')));
+    on('#mbTrash', () => showTrash().catch(e => toast(e.message, 'err')));
     installEdgeSwipe();
 
     $('#searchInp').oninput = (e) => { state.filter = e.target.value.trim(); renderTree(); };
@@ -1477,16 +1494,17 @@
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); toggleEdit(); }
       if (e.key === 'Escape') { const ov = document.querySelectorAll('.overlay'); if (ov.length) ov[ov.length - 1].remove(); }
     });
-    if (localStorage.getItem('mynote-collapsed')) $('#sidebar').classList.add('collapsed');
+    if (localStorage.getItem('mynote-collapsed') && window.innerWidth > 860) $('#sidebar').classList.add('collapsed');
   }
 
   async function boot() {
     bind();
     if (location.hash.startsWith('#/l/')) { await route(); return; }
-    if (!state.token && !(await openAccess())) { showAuth(); return; }
+    if (!state.token && !(await openAccessRetry())) { await showConnectScreen(''); return; }
     try {
       const d = await api('/me');
       state.user = d.user;
+      if (d.open) state.openLogin = true;
       showApp();
       await loadTree();
       await route();
@@ -1509,8 +1527,10 @@
       if (e.status === 401) {
         localStorage.removeItem('mynote-token'); state.token = '';
         if (!state.retried) { state.retried = true; return boot(); }
+        if (state.openLogin) { showConnectScreen('Сеанс истёк — подключаюсь заново.'); return; }
         showAuth('Сеанс истёк — войдите заново'); return;
       }
+      if (state.openLogin) { showConnectScreen('Не удалось связаться с сервером: ' + e.message); return; }
       showAuth('Не удалось связаться с сервером: ' + e.message);
     }
   }
