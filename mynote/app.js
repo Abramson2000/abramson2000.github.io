@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.7.0';
+  const APP_VER = '1.7.1';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -595,7 +595,17 @@
     if (cached && cached.page) applyPage(cached, id, nbId);
     else if (!state.page || state.page.id !== id) showDocLoading();
     try {
-      const d = await api('/pages/' + id);
+      let d = null, lastE = null;
+      for (let att = 0; att < 3; att++) {
+        try { d = await api('/pages/' + id, { timeout: 8000 }); lastE = null; break; }
+        catch (e) {
+          lastE = e;
+          if (e && e.status === 401) break;
+          if (seq !== openSeq) return;
+          await new Promise(r => setTimeout(r, 300));
+        }
+      }
+      if (!d) throw lastE || new Error('Нет связи');
       if (seq !== openSeq) return;                        // ответ устаревшего запроса — игнорируем
       const prev = pageCache.get(id);
       if (prev && prev.page && d.page && (d.page.rev || 0) < (prev.page.rev || 0) && state.page && state.page.id === id && state.dirty) return;
