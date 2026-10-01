@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.6.4';
+  const APP_VER = '1.6.6';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -171,6 +171,26 @@
 
   /* ---------------- дерево ---------------- */
 
+  let warmBusy = false;
+  async function warmCache() {
+    if (warmBusy) return; warmBusy = true;
+    try {
+      const all = [];
+      (state.tree || []).forEach(nb => (nb.pages || []).forEach(p => all.push([p.id, nb.id])));
+      for (const pair of all) {
+        if (state.warmStop) break;
+        const id = pair[0], nb = pair[1];
+        const c = pageCache.get(id);
+        if (c && c.page && (Date.now() - (c.ts || 0)) < 21600000) continue;   // свежее 6 часов — не трогаем
+        try {
+          const d = await api('/pages/' + id, { timeout: 25000 });
+          if (d && d.page) pageCachePut(id, d);
+        } catch (e) { if (e && e.status === 401) await ensureToken(2); }
+        await new Promise(r => setTimeout(r, 500));
+      }
+    } finally { warmBusy = false; }
+  }
+
   async function loadTree() {
     state.loadingTree = true; renderTree();
     // 1. мгновенно показываем то, что помним с прошлого раза
@@ -200,7 +220,7 @@
   function saveOpen() { localStorage.setItem('mynote-open', JSON.stringify(Array.from(state.open))); }
 
   /* ---------- кэш просмотренных страниц: открываем сразу, свежее — в фоне ---------- */
-  const PAGE_CACHE_MAX = 24;
+  const PAGE_CACHE_MAX = 250;
   const pageCache = new Map();
   let openSeq = 0;
   function pageCacheLoad() {
@@ -213,7 +233,13 @@
       const arr = Array.from(pageCache.entries()).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0)).slice(0, PAGE_CACHE_MAX);
       const o = {}; arr.forEach(([k, v]) => { o[k] = v; });
       localStorage.setItem('mynote-pages', JSON.stringify(o));
-    } catch (e) { try { localStorage.removeItem('mynote-pages'); } catch (e2) {} }
+    } catch (e) {
+      try {   // не влезло — оставляем самое свежее
+        const arr = Array.from(pageCache.entries()).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0)).slice(0, 60);
+        const o = {}; arr.forEach(([k, v]) => { o[k] = v; });
+        localStorage.setItem('mynote-pages', JSON.stringify(o));
+      } catch (e2) { try { localStorage.removeItem('mynote-pages'); } catch (e3) {} }
+    }
   }
   function pageCachePut(id, d) { pageCache.set(id, Object.assign({}, d, { ts: Date.now() })); pageCacheSave(); }
 
@@ -1751,6 +1777,7 @@
     }
     await treeP;
     await route();
+    if (!state.warmStart) { state.warmStart = true; setTimeout(warmCache, 1500); }
     if (location.hash.startsWith('#/l/')) return;
     if (state.page && state.page.id) { expandAncestors(state.page.id, state.page.notebookId); renderTree(); }
     if (!state.page && !state.openingId) {
