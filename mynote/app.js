@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.4.2';
+  const APP_VER = '1.4.3';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -52,7 +52,7 @@
     let res = null;
     for (let attempt = 0; attempt < API_HOSTS.length; attempt++) {
       const ctrl = new AbortController();
-      const to = setTimeout(() => ctrl.abort(), 10000);
+      const to = setTimeout(() => ctrl.abort(), 25000);
       try {
         res = await fetch(apiBase() + url2, Object.assign({}, opts, { headers, signal: ctrl.signal }));
         break;
