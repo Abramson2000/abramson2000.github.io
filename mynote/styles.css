@@ -249,9 +249,11 @@ h1#pageTitle {
 html { -webkit-text-size-adjust: 100%; }
 body { overflow-x: hidden; }
 #crumbs { display: none !important; }
-.sb-brand { display: flex; align-items: center; gap: 8px; width: 100%; }
+.foot-row { display: flex; align-items: center; gap: 8px; }
+.sb-brand { display: flex; align-items: center; gap: 8px; background: transparent; border: 0; padding: 2px 0; font: inherit; color: var(--text-muted); cursor: pointer; }
 .sb-brand img { flex: none; opacity: .9; }
-.sb-brand .n { margin-left: auto; font-size: 11.5px; color: var(--text-muted); }
+.sb-brand svg { width: 17px; height: 17px; flex: none; }
+.sb-brand .n { font-size: 11.5px; color: var(--text-muted); }
 .hide-desktop { display: none; }
 
 @media (max-width: 860px) {

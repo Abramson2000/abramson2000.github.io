@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.5.3';
+  const APP_VER = '1.5.4';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -98,8 +98,8 @@
     const a0 = $('#auth'); a0.style.display = 'none'; a0.classList.remove('on'); a0.hidden = true;
     const sp0 = $('#splash'); if (sp0) sp0.classList.add('hidden');
     $('#app').classList.add('on');
-    $('#userName').textContent = state.user ? state.user.name || state.user.email : '';
-    $('#ava').textContent = (state.user ? (state.user.name || state.user.email) : '?').trim().charAt(0).toUpperCase();
+    const un = $('#userName'); if (un) un.textContent = state.user ? state.user.name || state.user.email : '';
+    const av = $('#ava'); if (av) av.textContent = (state.user ? (state.user.name || state.user.email) : '?').trim().charAt(0).toUpperCase();
   }
 
   let regMode = false;
@@ -1440,8 +1440,8 @@
     const d = await api('/pub/' + token);
     $('#auth').style.display = 'none';
     $('#app').classList.add('on');
-    $('#userName').textContent = 'Гость (по ссылке)';
-    $('#ava').textContent = 'Г';
+    const un2 = $('#userName'); if (un2) un2.textContent = 'Гость (по ссылке)';
+    const av2 = $('#ava'); if (av2) av2.textContent = 'Г';
     $('#sidebar').classList.remove('open');
     $('#tree').innerHTML = '';
     const li = el('li', 'node');
@@ -1503,7 +1503,7 @@
     });
     on('#btnUser', userMenu);
     on('#btnAbout', showAbout);
-    ['#verLabel', '#verLabel2'].forEach(sel => { const n = $(sel); if (n) n.textContent = 'v' + APP_VER; });
+    ['#verLabel', '#verLabel2'].forEach(sel => { const n = $(sel); if (n) n.textContent = 'v. ' + APP_VER + ' · © Abramson'; });
     on('#btnNewNotebook', async () => {
       const box = el('div');
       const t = el('input'); t.type = 'text'; t.value = 'Новый блокнот';
