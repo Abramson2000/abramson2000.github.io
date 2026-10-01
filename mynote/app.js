@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.6.3';
+  const APP_VER = '1.6.4';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -64,7 +64,8 @@
         throw e;
       } finally { clearTimeout(to); }
     }
-    if (res.status === 401 && state.token) {
+    if (res.status === 401) {
+      if (!state.token) { const e0 = new Error('Нужен вход'); e0.status = 401; e0.noToken = true; throw e0; }
       state.token = ''; state.user = null;
       localStorage.removeItem('mynote-token');
       const e401 = new Error('Нужен вход'); e401.status = 401; throw e401;
@@ -189,7 +190,7 @@
         state.loadingTree = false; renderTree();
         return;
       } catch (e) {
-        if (e && e.status === 401) throw e;
+        if (e && e.status === 401) { await ensureToken(3); await new Promise(r => setTimeout(r, 700)); continue; }
         await new Promise(r => setTimeout(r, 2000));
       }
     }
@@ -564,6 +565,7 @@
       applyPage(d, id, nbId);
     } catch (e) {
       if (seq !== openSeq) return;
+      if (e && e.status === 401) { if (!cached) docError('Сейчас нет доступа к серверу. Нажми «Повторить».', id, nbId); return; }
       if (cached) toast('Не удалось обновить — показана сохранённая версия', 'err');
       else docError(e && e.message ? ('Не удалось загрузить страницу: ' + e.message) : '', id, nbId);
     }
@@ -1709,11 +1711,23 @@
     showApp();
     pageCacheLoad();
     state.bootN = 0;
-    // дерево и последняя страница — параллельно, каждая сама разберётся со связью
-    const treeP = loadTree();
+    // 1. что помним — показываем сразу, без сети
+    try {
+      const ct = JSON.parse(localStorage.getItem('mynote-tree') || 'null');
+      if (Array.isArray(ct) && ct.length) { state.tree = ct; state.loadingTree = true; renderTree(); }
+    } catch (e) {}
     let lastEarly = null;
     try { lastEarly = JSON.parse(localStorage.getItem('mynote-last') || 'null'); } catch (e) { lastEarly = null; }
-    if (lastEarly && lastEarly.id) { state.openingId = lastEarly.id; openPage(lastEarly.id, lastEarly.nb); }
+    if (lastEarly && lastEarly.id) {
+      state.openingId = lastEarly.id;
+      const cd = pageCache.get(lastEarly.id);
+      if (cd && cd.page) { applyPage(cd, lastEarly.id, lastEarly.nb); expandAncestors(lastEarly.id, lastEarly.nb); renderTree(); }
+      else showDocLoading();
+    }
+    // 2. доступ, и только потом — сеть
+    if (!state.token) await ensureToken(3);
+    const treeP = loadTree();
+    if (lastEarly && lastEarly.id) openPage(lastEarly.id, lastEarly.nb);
     // доступ и профиль — в фоне, короткими запросами
     api('/about', { timeout: 6000 }).then(a => { if (a && a.open !== false) state.openLogin = true; }).catch(() => {});
     try {
