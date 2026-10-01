@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.6.9';
+  const APP_VER = '1.7.0';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -50,26 +50,22 @@
     let url2 = path;
     if (state.token) url2 += (url2.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(state.token);
     if (opts.body && !(opts.body instanceof FormData)) headers['Content-Type'] = 'text/plain;charset=UTF-8';
-    let res = null;
+    let res = null, lastErr = null;
     {
-      // порядок: сначала тот адрес, что уже отвечал, остальные — параллельно (гонка)
       const order = API_HOSTS.map((h, i) => i);
       const best = order.indexOf(apiHost);
-      if (best > 0) { order.splice(best, 1); order.unshift(apiHost); }
-      const ctrls = order.map(() => new AbortController());
-      const tos = ctrls.map(c => setTimeout(() => c.abort(), limit));
-      try {
-        res = await Promise.any(order.map((hi, k) => new Promise((ok, no) => {
-          fetch(API_HOSTS[hi] + url2, Object.assign({}, opts, { headers, signal: ctrls[k].signal }))
-            .then(r => { if (r.status === 404 && order.length > 1) no(new Error('пустой адрес')); else { apiHost = hi; ok(r); } })
-            .catch(no);
-        })));
-      } catch (e) {
-        throw (e && e.errors && e.errors[0]) || e;
-      } finally {
-        tos.forEach(clearTimeout);
-        order.forEach((hi, k) => { if (hi !== apiHost) ctrls[k].abort(); });
+      if (best > 0) { order.splice(best, 1); order.unshift(apiHost); }   // с рабочего адреса, остальные — как запасные
+      for (const hi of order) {
+        const ctrl = new AbortController();
+        const to = setTimeout(() => ctrl.abort(), limit);
+        try {
+          const r = await fetch(API_HOSTS[hi] + url2, Object.assign({}, opts, { headers, signal: ctrl.signal }));
+          if (r.status === 404 && order.length > 1) { lastErr = new Error('пустой адрес'); continue; }
+          apiHost = hi; res = r; break;
+        } catch (e) { lastErr = e; }
+        finally { clearTimeout(to); }
       }
+      if (!res) throw lastErr || new Error('Нет связи');
     }
     if (res.status === 401) {
       if (!state.token) { const e0 = new Error('Нужен вход'); e0.status = 401; e0.noToken = true; throw e0; }
