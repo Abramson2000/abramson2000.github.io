@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.6.7';
+  const APP_VER = '1.6.8';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -184,17 +184,22 @@
     try {
       const all = [];
       (state.tree || []).forEach(nb => (nb.pages || []).forEach(p => all.push([p.id, nb.id])));
-      for (const pair of all) {
-        if (state.warmStop) break;
-        const id = pair[0], nb = pair[1];
-        const c = pageCache.get(id);
-        if (c && c.page && (Date.now() - (c.ts || 0)) < 21600000) continue;   // свежее 6 часов — не трогаем
-        try {
-          const d = await api('/pages/' + id, { timeout: 25000 });
-          if (d && d.page) pageCachePut(id, d);
-        } catch (e) { if (e && e.status === 401) await ensureToken(2); }
-        await new Promise(r => setTimeout(r, 500));
-      }
+      let k = 0;
+      const worker = async () => {                        // две загрузки параллельно, иначе долго
+        while (k < all.length) {
+          if (state.warmStop) return;
+          const pair = all[k++], id = pair[0];
+          const c = pageCache.get(id);
+          if (c && c.page && (Date.now() - (c.ts || 0)) < 21600000) continue;   // свежее 6 часов — не трогаем
+          if (state.page && state.page.id === id) continue;                     // то, что открыто, уже загружено
+          try {
+            const d = await api('/pages/' + id, { timeout: 25000 });
+            if (d && d.page) pageCachePut(id, d);
+          } catch (e) { if (e && e.status === 401) await ensureToken(2); }
+          await new Promise(r => setTimeout(r, 200));
+        }
+      };
+      await Promise.all([worker(), worker()]);
     } finally { warmBusy = false; }
   }
 
