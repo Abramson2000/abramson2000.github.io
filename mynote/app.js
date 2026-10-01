@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.5.5';
+  const APP_VER = '1.6.0';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -197,6 +197,68 @@
 
   function saveOpen() { localStorage.setItem('mynote-open', JSON.stringify(Array.from(state.open))); }
 
+  /* ---------- кэш просмотренных страниц: открываем сразу, свежее — в фоне ---------- */
+  const PAGE_CACHE_MAX = 24;
+  const pageCache = new Map();
+  let openSeq = 0;
+  function pageCacheLoad() {
+    try { const o = JSON.parse(localStorage.getItem('mynote-pages') || '{}');
+      Object.keys(o).forEach(k => pageCache.set(k, o[k]));
+    } catch (e) {}
+  }
+  function pageCacheSave() {
+    try {
+      const arr = Array.from(pageCache.entries()).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0)).slice(0, PAGE_CACHE_MAX);
+      const o = {}; arr.forEach(([k, v]) => { o[k] = v; });
+      localStorage.setItem('mynote-pages', JSON.stringify(o));
+    } catch (e) { try { localStorage.removeItem('mynote-pages'); } catch (e2) {} }
+  }
+  function pageCachePut(id, d) { pageCache.set(id, Object.assign({}, d, { ts: Date.now() })); pageCacheSave(); }
+
+  const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
+
+  function findNbById(id) {
+    const t = state.tree || [];
+    return t.find(nb => nb.id === id) || t.find(nb => (nb.pages || []).some(p => p.id === id)) || null;
+  }
+  function expandAncestors(id, nbId) {
+    const nb = (nbId && (state.tree || []).find(n => n.id === nbId)) || findNbById(id);
+    if (!nb) return false;
+    const pages = nb.pages || [];
+    let cur = pages.find(p => p.id === id), guard = 0, changed = false;
+    while (cur && cur.parentId && guard++ < 60) {
+      if (!state.open.has(cur.parentId)) { state.open.add(cur.parentId); changed = true; }
+      cur = pages.find(p => p.id === cur.parentId);
+    }
+    if (!state.open.has(nb.id)) { state.open.add(nb.id); changed = true; }
+    if (changed) saveOpen();
+    return changed;
+  }
+  function markTreeSelected(id) {
+    let hit = null;
+    $$('.tree .line').forEach(n => {
+      if (n.dataset.id === id) { n.classList.add('on'); hit = n; } else n.classList.remove('on');
+    });
+    if (hit && hit.scrollIntoView) { try { hit.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
+  }
+  function updateTreeTitle(id, title) {
+    const line = document.querySelector('.tree .line[data-id="' + id + '"] .ttl');
+    if (line) line.textContent = title;
+  }
+
+  /* ---------- «уже загруженная ветка» без обращения к серверу ---------- */
+  function renderSubtree(id) {
+    const nb = findNbById(id);
+    if (!nb) return false;
+    const line = document.querySelector('.tree .line[data-id="' + id + '"]');
+    const ul = line && line.parentElement ? line.parentElement.querySelector(':scope > ul.kids') : null;
+    if (!ul) return false;
+    ul.innerHTML = '';
+    const parentId = (nb.id === id) ? '' : id;          // у блокнота дети — верхнего уровня
+    renderNodes(nb, nb.pages || [], parentId, ul, 0, state.filter.toLowerCase());
+    return true;
+  }
+
   function renderTree() {
     const host = $('#tree'); host.innerHTML = '';
     const f = state.filter.toLowerCase();
@@ -207,52 +269,57 @@
     }
     for (const nb of state.tree) {
       const li = el('li', 'node');
-      const modeCls = nb.mode === 'shared' ? 'mode-shared' : (nb.mode === 'link' ? 'mode-link' : '');
-      const line = el('div', 'line ' + modeCls);
-      const tw = el('button', 'tw', state.open.has(nb.id) ? '▾' : '▸');
-      tw.type = 'button';
+      const open = state.open.has(nb.id);
+      const line = el('div', 'line');
+      line.dataset.id = nb.id; line.dataset.nb = nb.id;
+      const tw = el('button', 'tw' + (open ? ' open' : '')); tw.type = 'button'; tw.innerHTML = CHEV;
+      tw.title = open ? 'Свернуть' : 'Раскрыть';
       tw.onclick = (e) => { e.stopPropagation(); toggleOpen(nb.id); };
       line.appendChild(tw);
       line.appendChild(el('span', 'ttl nb-title', (nb.title || 'Блокнот')));
       line.appendChild(el('span', 'pill ' + nb.mode, nb.mode === 'private' ? 'Личный' : (nb.mode === 'link' ? 'По ссылке' : (nb.role === 'owner' ? 'Совместный' : 'Доступ ' + (nb.role === 'editor' ? 'редактора' : 'чтение')))));
-      line.onclick = () => { toggleOpen(nb.id); };
+      line.onclick = (e) => { if (e.target.closest('.tw') || e.target.closest('.menu-btn')) return; toggleOpen(nb.id); };
       if (nb.role === 'owner') {
-        const mb = el('button', 'icon-btn', '⋯'); mb.type = 'button'; mb.style.cssText = 'width:26px;height:26px;font-size:15px';
+        const mb = el('button', 'icon-btn menu-btn', '⋯'); mb.type = 'button'; mb.style.cssText = 'width:26px;height:26px;font-size:15px';
         mb.onclick = (e) => { e.stopPropagation(); notebookMenu(nb); };
         line.appendChild(mb);
       }
       li.appendChild(line);
       const kids = el('ul', 'kids');
-      if (state.open.has(nb.id)) renderNodes(nb, nb.pages || [], '', kids, 0, f);
+      if (open) renderNodes(nb, nb.pages || [], '', kids, 0, f);
       li.appendChild(kids);
       host.appendChild(li);
     }
-    const fc0 = $('#favCount'); if (fc0) fc0.textContent = '';
   }
 
   function renderNodes(nb, pages, parentId, host, depth, f) {
-    const kids = pages.filter(p => (p.parentId || '') === parentId).sort((a, b) => (a.sort || 0) - (b.sort || 0));
+    const kids = pages.filter(p => (p.parentId || '') === parentId)
+      .filter(p => !f || (p.title || '').toLowerCase().includes(f))
+      .sort((a, b) => (a.sort || 0) - (b.sort || 0));
     for (const p of kids) {
       const hasKids = pages.some(x => (x.parentId || '') === p.id);
+      const open = state.open.has(p.id);
       const li = el('li', 'node');
       const line = el('div', 'line');
       line.dataset.id = p.id; line.dataset.nb = nb.id;
       line.draggable = true;
-      const tw = el('button', 'tw', hasKids ? (state.open.has(p.id) ? '▾' : '▸') : '');
-      tw.type = 'button';
-      if (hasKids) tw.onclick = (e) => { e.stopPropagation(); toggleOpen(p.id); };
-      line.appendChild(tw);
+      if (hasKids) {
+        const tw = el('button', 'tw' + (open ? ' open' : '')); tw.type = 'button'; tw.innerHTML = CHEV;
+        tw.title = open ? 'Свернуть' : 'Раскрыть';
+        tw.onclick = (e) => { e.stopPropagation(); toggleOpen(p.id); };
+        line.appendChild(tw);
+      } else {
+        const sp = el('span', 'tw leaf'); sp.innerHTML = CHEV; line.appendChild(sp);
+      }
       line.appendChild(el('span', 'ttl', p.title || 'Без названия'));
       if (p.fav) line.appendChild(el('span', 'fav', '★'));
       if (p.closed) line.appendChild(el('span', 'pill closed', 'закрыта'));
-      const mb = el('button', 'icon-btn', '⋯'); mb.type = 'button'; mb.style.cssText = 'width:26px;height:26px;font-size:15px';
+      const mb = el('button', 'icon-btn menu-btn', '⋯'); mb.type = 'button'; mb.style.cssText = 'width:26px;height:26px;font-size:15px';
       mb.onclick = (e) => { e.stopPropagation(); pageMenu(nb, p); };
       line.appendChild(mb);
-      line.onclick = () => openPage(p.id, nb.id);
+      line.onclick = (e) => { if (e.target.closest('.tw') || e.target.closest('.menu-btn')) return; openPage(p.id, nb.id); };
       if (state.page && state.page.id === p.id) line.classList.add('on');
-      if (state.view === 'page' && state.page && state.page.id === p.id) line.classList.add('on');
 
-      // перетаскивание: внутрь / до / после
       line.ondragstart = (e) => { e.dataTransfer.setData('text/plain', p.id); e.dataTransfer.effectAllowed = 'move'; };
       line.ondragover = (e) => {
         e.preventDefault();
@@ -272,7 +339,7 @@
       };
       li.appendChild(line);
       const sub = el('ul', 'kids');
-      if (state.open.has(p.id)) renderNodes(nb, pages, p.id, sub, depth + 1, f);
+      if (open) renderNodes(nb, pages, p.id, sub, depth + 1, f);
       li.appendChild(sub);
       host.appendChild(li);
     }
@@ -298,7 +365,16 @@
 
   function toggleOpen(id) {
     if (state.open.has(id)) state.open.delete(id); else state.open.add(id);
-    saveOpen(); renderTree();
+    saveOpen();
+    // перерисовываем только эту ветку — остальное дерево и редактор не трогаем
+    const line = document.querySelector('.tree .line[data-id="' + id + '"]');
+    const tw = line ? line.querySelector('.tw') : null;
+    if (tw) { tw.classList.toggle('open', state.open.has(id)); tw.title = state.open.has(id) ? 'Свернуть' : 'Раскрыть'; }
+    if (!line || !state.open.has(id)) {
+      if (line) { const ul = line.parentElement.querySelector(':scope > ul.kids'); if (ul) ul.innerHTML = ''; }
+      return;
+    }
+    if (!renderSubtree(id)) renderTree();
   }
 
   /* ---------------- меню страниц и блокнотов ---------------- */
@@ -336,6 +412,7 @@
       await loadTree(); toast('Готово', 'ok'); m.close();
     });
     if (canWrite) {
+      add('Добавить вложенную страницу', async () => { m.close(); newPageDialog(nb, p.id); });
       add('Переместить…', async () => { m.close(); moveDialog(nb, p); });
       add('Переименовать', async () => {
         const name = prompt('Новое название', p.title); if (name == null) return;
@@ -408,34 +485,63 @@
     $('#accessPill').textContent = ''; $('#accessPill').className = 'pill hidden';
   }
 
-  async function openPage(id, nbId) {
-    try {
-      if (state.dirty) await saveNow(true);
-      const d = await api('/pages/' + id);
-      state.page = d.page; state.path = d.path; state.files = d.files || []; state.rev = d.page.rev;
-      state.edit = false; state.dirty = false;
-      state.view = 'page';
-      try { localStorage.setItem('mynote-last', JSON.stringify({ id: id, nb: nbId || d.page.notebookId || '' })); } catch { /* ignore */ }
-      // несохранённый черновик этой же ревизии — восстанавливаем и тихо досылаем
-      let draft = null;
-      try { draft = JSON.parse(localStorage.getItem('mynote-draft:' + id) || 'null'); } catch { draft = null; }
-      if (draft && draft.rev === d.page.rev) {
-        const nb = draft.body && draft.body.length ? draft.body : null;
-        const nf = draft.fields && Object.keys(draft.fields).length ? draft.fields : null;
-        if (nb || nf) {
-          if (nb) state.page.body = JSON.stringify(nb);
-          if (nf) state.page.fields = JSON.stringify(nf);
-          state.dirty = true;
-          renderPage(d);
-          saveNow(true).then(() => toast('Восстановлены несохранённые правки', 'ok')).catch(() => {});
-          renderTree();
-          return;
-        }
+  function showDocLoading() {
+    $('#emptyState').classList.add('hidden');
+    $('#pageView').classList.remove('hidden');
+    $('#pageTitle').textContent = '';
+    $('#docMeta').innerHTML = '';
+    $('#crumbs').innerHTML = '';
+    const cm = $('#crumbsM'); if (cm) cm.innerHTML = '';
+    const cb = $('#coverBox'); if (cb) { cb.className = 'hidden'; cb.innerHTML = ''; }
+    const w = $('#placeWrap'); if (w) w.innerHTML = '<div class="doc-loading">Загружаю страницу…</div>';
+  }
+
+  function applyPage(d, id, nbId) {
+    state.page = d.page; state.path = d.path || []; state.files = d.files || []; state.rev = d.page.rev;
+    state.edit = false; state.dirty = false;
+    state.view = 'page';
+    localStorage.setItem('mynote-last', JSON.stringify({ id: id, nb: nbId || d.page.notebookId || '' }));
+    let draft = null;
+    try { draft = JSON.parse(localStorage.getItem('mynote-draft:' + id) || 'null'); } catch (e) { draft = null; }
+    if (draft && draft.rev === d.page.rev) {
+      const nb = draft.body && draft.body.length ? draft.body : null;
+      const nf = draft.fields && Object.keys(draft.fields).length ? draft.fields : null;
+      if (nb || nf) {
+        if (nb) state.page.body = JSON.stringify(nb);
+        if (nf) state.page.fields = JSON.stringify(nf);
+        state.dirty = true;
+        renderPage(d);
+        saveNow(true).then(() => toast('Восстановлены несохранённые правки', 'ok')).catch(() => {});
+        markTreeSelected(id);
+        return;
       }
-      closeSidebar();
-      renderPage(d);
-      renderTree();
-    } catch (e) { toast(e.message, 'err'); }
+    }
+    closeSidebar();
+    renderPage(d);
+    markTreeSelected(id);
+  }
+
+  async function openPage(id, nbId) {
+    const seq = ++openSeq;
+    // не блокируем переход: черновик сохраняем локально, отправку — в фон
+    if (state.dirty) { saveDraft(); saveNow(true); }
+    state.view = 'page';
+    const changed = expandAncestors(id, nbId);
+    if (changed) renderTree();
+    markTreeSelected(id);
+    const cached = pageCache.get(id);
+    if (cached && cached.page) applyPage(cached, id, nbId);
+    else if (!state.page || state.page.id !== id) showDocLoading();
+    try {
+      const d = await api('/pages/' + id);
+      if (seq !== openSeq) return;                        // ответ устаревшего запроса — игнорируем
+      const prev = pageCache.get(id);
+      if (prev && prev.page && d.page && (d.page.rev || 0) < (prev.page.rev || 0) && state.page && state.page.id === id && state.dirty) return;
+      pageCachePut(id, d);
+      applyPage(d, id, nbId);
+    } catch (e) {
+      if (seq === openSeq && !cached) { renderPageEmpty(); toast(e.message, 'err'); }
+    }
   }
 
   function renderPage(d) {
@@ -443,13 +549,18 @@
     $('#emptyState').classList.add('hidden');
     $('#pageView').classList.remove('hidden');
     // хлебные крошки
-    const c = $('#crumbs'); c.innerHTML = '';
-    (d.path || []).forEach((n, i) => {
-      if (i) c.appendChild(el('span', 'sep', '/'));
-      const s = el('span', 'c' + (i === d.path.length - 1 ? ' cur' : ''), n.title || 'Без названия');
-      if (i !== d.path.length - 1) s.onclick = () => openPage(n.id);
-      c.appendChild(s);
-    });
+    const chain = d.path || [];
+    const fillCrumbs = (c) => {
+      c.innerHTML = '';
+      chain.forEach((n, i) => {
+        if (i) c.appendChild(el('span', 'sep', '/'));
+        const s = el('span', 'c' + (i === chain.length - 1 ? ' cur' : ''), n.title || 'Без названия');
+        if (i !== chain.length - 1) s.onclick = () => openPage(n.id);
+        c.appendChild(s);
+      });
+    };
+    fillCrumbs($('#crumbs'));
+    const cm = $('#crumbsM'); if (cm) fillCrumbs(cm);
     const pill = $('#accessPill');
     const role = nb.role || 'viewer';
     pill.className = 'pill ' + (nb.mode || 'private');
@@ -950,28 +1061,25 @@
     setSave('Сохраняется…', 'wait');
     try {
       const d = await api('/pages/' + id, { method: 'PATCH', body: JSON.stringify(payload) });
-      state.rev = d.rev; state.dirty = false;
-      state.page.title = payload.title;
       localStorage.removeItem('mynote-draft:' + id);
-      setSave('Сохранено', 'ok');
-      await loadTree();
+      pageCache.delete(id);                       // в кэше теперь устаревшая копия
       const cur = (state.tree || []).find(nb => (nb.pages || []).some(p => p.id === id));
-      if (cur) {
-        const item = cur.pages.find(p => p.id === id);
-        if (item) {
-          const sel = document.querySelector('.tree .line.on');
-          if (sel) sel.querySelector('.ttl').textContent = item.title;
-        }
+      if (cur) { const item = cur.pages.find(p => p.id === id); if (item) item.title = payload.title; }
+      updateTreeTitle(id, payload.title);
+      if (state.page && state.page.id === id) {
+        state.rev = d.rev; state.dirty = false; state.page.title = payload.title;
+        setSave('Сохранено', 'ok');
       }
     } catch (e) {
       if (e.status === 409 && e.data && e.data.conflict) {
-        state.dirty = true;
-        setSave('Конфликт версий', 'err');
+        if (state.page && state.page.id === id) { state.dirty = true; setSave('Конфликт версий', 'err'); }
         conflictDialog(e.data);
       } else {
-        state.dirty = true;
         saveDraft();
-        setSave(navigator.onLine === false ? 'Нет сети — ожидает отправки' : 'Ошибка сохранения', 'err');
+        if (state.page && state.page.id === id) {
+          state.dirty = true;
+          setSave(navigator.onLine === false ? 'Нет сети — ожидает отправки' : 'Ошибка сохранения', 'err');
+        }
         if (!silent) toast(e.message, 'err');
       }
     } finally { state.saving = false; }
@@ -1092,12 +1200,23 @@
       const o = el('option', null, n.title); o.value = n.id; if (n.id === nb.id) o.selected = true; nbSel.appendChild(o);
     });
     const parSel = el('select');
+    // сама страница и всё её поддерево — запрещённые цели
+    const banned = new Set([p.id]);
+    (function walkBan() {
+      let grew = true;
+      while (grew) {
+        grew = false;
+        (state.tree || []).forEach(n => (n.pages || []).forEach(x => {
+          if (banned.has(x.parentId) && !banned.has(x.id)) { banned.add(x.id); grew = true; }
+        }));
+      }
+    })();
     const fill = () => {
       parSel.innerHTML = '';
       const target = (state.tree || []).find(n => n.id === nbSel.value);
       const o0 = el('option', null, '— верхний уровень —'); o0.value = ''; parSel.appendChild(o0);
       const walk = (parentId, depth) => (target.pages || []).filter(x => (x.parentId || '') === parentId).sort((a, b) => (a.sort || 0) - (b.sort || 0)).forEach(x => {
-        if (x.id === p.id) return;
+        if (banned.has(x.id)) return;
         const o = el('option', null, '— '.repeat(depth) + (x.title || 'Без названия')); o.value = x.id; parSel.appendChild(o);
         walk(x.id, depth + 1);
       });
@@ -1360,7 +1479,7 @@
     box.appendChild(lp); box.appendChild(parentNote);
     const m = modal('Новая страница', box, [btn('Создать', 'primary', async () => {
       const d = await api('/pages', { method: 'POST', body: JSON.stringify({ notebookId: nb.id, parentId, title: t.value.trim() || (kind === 'place' ? 'Новое место' : 'Новая страница'), kind }) });
-      m.close(); await loadTree(); state.open.add(nb.id); saveOpen(); renderTree(); openPage(d.id);
+      m.close(); await loadTree(); expandAncestors(d.id, nb.id); renderTree(); openPage(d.id, nb.id);
     })]);
     setTimeout(() => t.focus(), 60);
     t.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); const ok = $('#dlgOk'); if (ok) ok.click(); } };
@@ -1583,10 +1702,19 @@
       if (d.open) state.openLogin = true;
       state.bootN = 0;
       showApp();
-      await loadTree();
+      pageCacheLoad();
+      const treeP = loadTree();
+      let lastEarly = null;
+      try { lastEarly = JSON.parse(localStorage.getItem('mynote-last') || 'null'); } catch (e) { lastEarly = null; }
+      if (lastEarly && lastEarly.id) { state.openingId = lastEarly.id; openPage(lastEarly.id, lastEarly.nb); }
+      await treeP;
       await route();
       if (location.hash.startsWith('#/l/')) return;
-      if (!state.page) {
+      if (state.page && state.page.id) {
+        expandAncestors(state.page.id, state.page.notebookId);
+        renderTree();
+      }
+      if (!state.page && !state.openingId) {
         let last = null;
         try { last = JSON.parse(localStorage.getItem('mynote-last') || 'null'); } catch { last = null; }
         let openId = null, openNb = null;
