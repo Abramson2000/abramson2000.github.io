@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.4.5';
+  const APP_VER = '1.4.6';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -10,7 +10,7 @@
   // С хоста crmuro.ru API живёт на поддомене (дома у Саши весь pages.dev не резолвится).
   // Держим два адреса: sync.crmuro.ru — основной, mn-api.crmuro.ru — запасной.
   const API_HOSTS = (/^(www\.)?crmuro\.ru$/i.test(location.hostname))
-    ? ['https://sync.crmuro.ru/api/mynote', 'https://mn-api.crmuro.ru/api/mynote']
+    ? ['https://mn-api.crmuro.ru/api/mynote', 'https://sync.crmuro.ru/api/mynote']
     : ['/api/mynote'];
   let apiHost = 0;
   const apiBase = () => API_HOSTS[apiHost] || API_HOSTS[0];
