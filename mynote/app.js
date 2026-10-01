@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.4.8';
+  const APP_VER = '1.4.9';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -1570,11 +1570,14 @@
     if (!state.token && !(await ensureToken(4))) { await showConnectScreen('Не удалось подключиться к серверу.'); return; }
     try {
       const d = await api('/me');
+      console.log('DBG me ok', JSON.stringify(d).slice(0, 120));
       state.user = d.user;
       if (d.open) state.openLogin = true;
       state.bootN = 0;
       showApp();
+      console.log('DBG showApp ok, иду за деревом');
       await loadTree();
+      console.log('DBG дерево загружено:', (state.tree||[]).length);
       await route();
       if (location.hash.startsWith('#/l/')) return;
       if (!state.page) {
@@ -1592,6 +1595,7 @@
         if (openId) { state.open.add(openNb); saveOpen(); openPage(openId, openNb); }
       }
     } catch (e) {
+      console.log('DBG ОШИБКА в boot:', String(e && e.message), String(e && e.stack).slice(0, 160));
       const isAuth = (e && (e.status === 401 || /Нужен вход/.test(String(e.message || ''))));
       if (isAuth) {
         localStorage.removeItem('mynote-token'); state.token = ''; state.user = null;
