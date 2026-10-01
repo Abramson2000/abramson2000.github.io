@@ -10,9 +10,9 @@
 <link rel="manifest" href="manifest.json">
 <style>
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=2.23.3') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.5.6') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.6.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.5.6') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.6.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -380,6 +380,153 @@
   .part-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #dcdce2; background: #fff; color: transparent; font-size: 13px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 11px; cursor: pointer; transition: background .12s ease, border-color .12s ease, transform .12s ease; }
   .part-check.on { background: var(--done); border-color: var(--done); color: #fff; }
   .part-check:active { transform: scale(.9); }
+/* ==== CRS_CSS_V3 — лист 课程 (расписание и ДЗ) ==== */
+body.crs-open { padding-left: 0 !important; }
+body.crs-open .app { opacity: 1 !important; }
+body.crs-open #tabbar { transform: translateX(-104%) !important; }
+body.crs-open.sb-open #tabbar { transform: none !important; }
+body.crs-open .menu-btn { display: flex !important; }
+@media (min-width: 900px) { body.crs-open.sb-open { padding-left: var(--sbw); } body.crs-open .app { max-width: 1140px; } }
+
+.crs-top { display: flex; align-items: center; gap: 10px; margin: 2px 0 12px; flex-wrap: wrap; }
+.crs-seg { display: inline-flex; background: #ecebe7; border-radius: 12px; padding: 3px; gap: 2px; }
+.crs-seg button { border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 700; color: #6f6f77;
+  padding: 8px 14px; border-radius: 10px; cursor: pointer; transition: .15s ease; }
+.crs-seg button.on { background: #fff; color: var(--red); box-shadow: 0 2px 6px rgba(29,29,33,.08); }
+.crs-add { margin-left: auto; border: 0; background: var(--red); color: #fff; font: inherit; font-size: 14px; font-weight: 700;
+  padding: 10px 16px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 14px rgba(198,55,23,.25); }
+.crs-add:active { transform: scale(.97); }
+
+.crs-bar { margin-bottom: 14px; }
+.crs-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.crs-nb { width: 38px; height: 38px; border-radius: 12px; border: 1px solid rgba(29,29,33,.1); background: #fff;
+  font-size: 19px; line-height: 1; color: #6b6b73; cursor: pointer; }
+.crs-nb:hover { border-color: var(--red); color: var(--red); }
+.crs-range { flex: 1; text-align: center; cursor: pointer; line-height: 1.25; }
+.crs-range b { display: block; font-size: 16px; color: var(--text); }
+.crs-range span { font-size: 12px; color: var(--muted); }
+.crs-today { border: 1px solid rgba(29,29,33,.1); background: #fff; color: var(--red); font: inherit; font-size: 13px;
+  font-weight: 700; padding: 9px 13px; border-radius: 12px; cursor: pointer; }
+.crs-today:hover { border-color: var(--red); background: var(--red-soft); }
+
+.crs-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.crs-chips-prog { margin-top: 4px; }
+.crs-scroll { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+.crs-chip { border: 1px solid rgba(29,29,33,.1); background: #fff; color: #55555d; font: inherit; font-size: 13px;
+  padding: 7px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.crs-chip b { color: var(--faint); font-weight: 700; }
+.crs-chip.on { background: var(--red-soft); border-color: var(--red); color: var(--red); font-weight: 700; }
+.crs-chip.on b { color: var(--red); }
+.crs-chip.rem { border-color: transparent; background: #f4f3ef; color: #77777f; cursor: default; }
+.crs-chip.mv { border-color: transparent; background: var(--yellow); color: #6b5300; cursor: default; }
+.crs-chip.ok { border-color: transparent; background: var(--ok-soft); color: var(--ok); cursor: default; font-weight: 700; }
+.crs-chip.off { border-color: transparent; background: var(--bad-soft); color: var(--bad); cursor: default; }
+
+.crs-cols { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; align-items: start; }
+.crs-cols-one { grid-template-columns: 1fr; gap: 12px; }
+.crs-col { min-width: 0; }
+.crs-col-h { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin: 6px 0 10px; }
+.crs-day-h { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 16px 0 8px; }
+.crs-day-h.sel { margin-top: 14px; }
+.crs-day.today .crs-day-h { color: var(--red); }
+.crs-day-empty { font-size: 13px; color: var(--faint); padding: 2px 0 6px; }
+
+.crs-card { background: var(--card); border-radius: 18px; padding: 14px 16px; box-shadow: var(--shadow-card); margin-bottom: 10px; }
+.crs-card.off { opacity: .62; }
+.crs-card.done .crs-c-tag { color: var(--ok); }
+.crs-card-top { display: flex; align-items: flex-start; gap: 10px; }
+.crs-c-time { font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -.3px; line-height: 1.15; }
+.crs-c-time span { display: block; font-size: 11.5px; font-weight: 600; color: var(--faint); letter-spacing: 0; }
+.crs-c-tag { margin-left: auto; text-align: right; font-size: 13px; font-weight: 700; color: var(--red); line-height: 1.25; }
+.crs-c-tag span { display: block; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.crs-more { border: 0; background: transparent; color: var(--faint); font-size: 20px; line-height: 1; cursor: pointer;
+  padding: 0 2px 6px 6px; margin-top: -2px; }
+.crs-more:hover { color: var(--red); }
+.crs-mat { font-size: 14px; color: var(--text); margin-top: 8px; line-height: 1.35; }
+.crs-mat.muted { color: var(--faint); font-size: 13px; }
+.crs-place { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.crs-link { color: var(--red); text-decoration: none; font-weight: 700; }
+.crs-note { font-size: 12.5px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+.crs-card .crs-chips { margin-top: 9px; }
+.crs-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 11px; }
+.crs-b { border: 0; font: inherit; font-size: 13px; font-weight: 700; padding: 9px 14px; border-radius: 11px; cursor: pointer; text-decoration: none; }
+.crs-b.p { background: var(--red); color: #fff; }
+.crs-b.s { background: #f4f3ef; color: #55555d; }
+.crs-b.s:hover { background: var(--red-soft); color: var(--red); }
+.crs-add-big { width: 100%; border: 1px dashed rgba(29,29,33,.18); background: transparent; color: var(--muted);
+  font: inherit; font-size: 14px; font-weight: 700; padding: 14px; border-radius: 16px; cursor: pointer; margin-top: 6px; }
+.crs-add-big:hover { border-color: var(--red); color: var(--red); background: var(--red-soft); }
+
+.crs-hw-in { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(29,29,33,.1); }
+.crs-hw-title { font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+.crs-hw-item { font-size: 13.5px; color: #4a4a52; padding: 3px 0 3px 14px; position: relative; line-height: 1.35; }
+.crs-hw-item::before { content: '·'; position: absolute; left: 4px; color: var(--faint); font-weight: 800; }
+.crs-hw-item.on { color: var(--faint); text-decoration: line-through; }
+.crs-hw-grp { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 14px 0 7px; }
+.crs-hw-grp.bad { color: var(--bad); }
+.crs-hw-row { background: var(--card); border-radius: 15px; padding: 12px 14px; box-shadow: var(--shadow-card); margin-bottom: 9px; }
+.crs-hw-row-t { font-size: 14.5px; font-weight: 700; color: var(--text); }
+.crs-hw-row-s { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.crs-card.hw .crs-hw-item { padding-left: 16px; }
+
+.crs-month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 6px; }
+.crs-cell { border: 1px solid rgba(29,29,33,.07); background: #fff; border-radius: 12px; padding: 7px 6px 6px; min-height: 56px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; font: inherit; }
+.crs-cell .n { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.crs-cell.out { opacity: .38; }
+.crs-cell.today { border-color: var(--red); }
+.crs-cell.today .n { color: var(--red); }
+.crs-cell.sel { background: var(--red-soft); border-color: var(--red); }
+.crs-cell .dots { display: flex; gap: 3px; }
+.crs-cell .dot { width: 5px; height: 5px; border-radius: 50%; display: block; }
+.crs-cell .dot.p { background: var(--red); }
+.crs-cell .dot.h { background: #d9b13a; }
+
+.crs-empty { font-size: 13.5px; color: var(--faint); padding: 14px 2px; }
+.crs-empty a { color: var(--red); cursor: pointer; font-weight: 700; }
+.crs-foot { display: flex; align-items: center; gap: 10px; margin: 22px 0 10px; }
+.crs-save { font-size: 11.5px; color: var(--faint); }
+.crs-ver { margin-left: auto; font-size: 11.5px; color: var(--faint); }
+
+.crs-scrim { position: fixed; inset: 0; background: rgba(29,29,33,.32); z-index: 200; animation: crsFade .16s ease; }
+@keyframes crsFade { from { opacity: 0 } to { opacity: 1 } }
+.crs-sheet { position: fixed; z-index: 201; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 560px;
+  max-height: 92vh; background: var(--card); border-radius: 22px 22px 0 0; box-shadow: 0 -10px 40px rgba(29,29,33,.24);
+  display: flex; flex-direction: column; animation: crsUp .2s ease; }
+@keyframes crsUp { from { transform: translate(-50%, 24px); opacity: .6 } to { transform: translate(-50%, 0); opacity: 1 } }
+.crs-grab { width: 44px; height: 4px; border-radius: 99px; background: rgba(29,29,33,.14); margin: 9px auto 2px; flex-shrink: 0; }
+.crs-sheet-h { display: flex; align-items: center; gap: 10px; padding: 8px 16px 10px; border-bottom: 1px solid rgba(29,29,33,.07); }
+.crs-sheet-t { font-size: 17px; font-weight: 800; color: var(--text); }
+.crs-x { margin-left: auto; border: 0; background: #f4f3ef; width: 34px; height: 34px; border-radius: 11px; color: #6b6b73;
+  font-size: 15px; cursor: pointer; }
+.crs-sheet-b { padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.crs-lbl { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); margin: 14px 0 7px; }
+.crs-lbl:first-child { margin-top: 2px; }
+.crs-inp { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; color: var(--text); background: #fbfbfc;
+  border: 1px solid rgba(29,29,33,.12); border-radius: 12px; padding: 11px 12px; outline: none; }
+.crs-inp:focus { border-color: var(--red); background: #fff; }
+textarea.crs-inp { resize: vertical; line-height: 1.4; }
+.crs-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.crs-sticky { position: sticky; bottom: 0; background: linear-gradient(180deg, rgba(255,255,255,0), #fff 40%); padding-top: 12px; margin-top: 16px; }
+.crs-menu { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.crs-menu button { border: 0; background: #f7f7f8; color: var(--text); font: inherit; font-size: 15px; font-weight: 600;
+  text-align: left; padding: 14px 16px; border-radius: 13px; cursor: pointer; }
+.crs-menu button:hover { background: var(--red-soft); color: var(--red); }
+.crs-menu button.danger { color: var(--bad); }
+.crs-menu button.danger:hover { background: var(--bad-soft); }
+
+@media (max-width: 899.98px) {
+  .crs-cols { grid-template-columns: 1fr; gap: 6px; }
+  .crs-col-h { margin-top: 12px; }
+  .crs-col-hw { margin-top: 16px; }
+  .crs-seg button { padding: 8px 11px; font-size: 13.5px; }
+  .crs-add { padding: 10px 13px; font-size: 13.5px; }
+  .crs-cell { min-height: 48px; border-radius: 10px; }
+  .crs-sheet { max-width: none; max-height: 88vh; border-radius: 20px 20px 0 0; }
+  .crs-top { gap: 8px; }
+}
+/* ==== /CRS_CSS_V3 ==== */
+
 </style>
 </head>
 <body>
@@ -419,6 +566,7 @@
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=3.6.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=3.6.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
@@ -22616,7 +22764,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.5.6';
+const APP_VER = '3.6.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -22737,6 +22885,8 @@ function unitStats(u) {
 function goTab(t) {
   tab = t;
   sbClose(); // выбрали раздел — меню сразу убираем
+  document.getElementById('tab-sched').classList.toggle('active', t === 'sched');
+  document.body.classList.toggle('crs-open', t === 'sched');
   document.getElementById('tab-lessons').classList.toggle('active', t === 'lessons');
   document.getElementById('tab-mine').classList.toggle('active', t === 'mine');
   document.getElementById('tab-idv').classList.toggle('active', t === 'idv');
@@ -22745,7 +22895,8 @@ function goTab(t) {
   document.getElementById('tab-favs').classList.toggle('active', t === 'favs');
   document.getElementById('tab-dict').classList.toggle('active', t === 'dict');
 
-  if (t === 'lessons') renderUnits();
+  if (t === 'sched') renderCourses();
+  else if (t === 'lessons') renderUnits();
   else if (t === 'mine') renderMine();
   else if (t === 'idv') renderIdv();
   else if (t === 'team') renderTeam();
@@ -24173,6 +24324,1163 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
+
+/* ================= CRS_BLOCK_V3 — 课程 · расписание и ДЗ =================
+   Отдельный лист «课程»: неделя / месяц / ДЗ.
+   Данные: localStorage «tingli-schedule-v1» + облачная копия через /api/backup
+   (тот же механизм, что и прогресс — второй базы не создаём).
+   ДЗ в существующих уроках НЕ копируются: связь по стабильным ключам
+   tingli-hwstate-<unit>-<part> / tingli-due-<unit>-<part> / tingli-hwdue-<unit>-<part>.
+   ======================================================================== */
+const CRS_LS = 'tingli-schedule-v1';
+const CRS_TZ_DEF = 'Europe/Moscow';
+const CRS_DOW = ['', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const CRS_DOW_FULL = ['', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье'];
+const CRS_MON = ['', 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+const CRS_MON_NOM = ['', 'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+const CRS_PROGS = [
+  { id: 'lessons', zh: '听力', ru: 'Самоучёба', tab: 'lessons' },
+  { id: 'mine', zh: '语法', ru: 'Ли Лаоши', tab: 'mine' },
+  { id: 'idv', zh: '口语', ru: 'с Любой', tab: 'idv' },
+  { id: 'team', zh: '团队', ru: 'группа', tab: 'team' },
+  { id: 'biz', zh: '商务', ru: '商务', tab: 'biz' }
+];
+const CRS_OFFSETS = [ { m: 1440, t: 'за день' }, { m: 180, t: 'за 3 часа' }, { m: 60, t: 'за час' }, { m: 30, t: 'за 30 минут' } ];
+const CRS_HW_STATES = [
+  { id: 'todo', ru: 'Не начато' }, { id: 'doing', ru: 'В работе' }, { id: 'done', ru: 'Выполнено' }
+];
+
+/* ---------- утилиты времени и поясов ---------- */
+function crsYmd(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+function crsAddDays(d, n) { const x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
+function crsDow(ymd) { const a = ymd.split('-'); return ((new Date(+a[0], +a[1] - 1, +a[2]).getDay() + 6) % 7) + 1; }
+function crsParse(ymd) { const a = ymd.split('-'); return new Date(+a[0], +a[1] - 1, +a[2]); }
+function crsMonStart(d) { const x = new Date(d.getFullYear(), d.getMonth(), 1); return d = x; }
+function crsWeekStart(d) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - (crsDow(crsYmd(x)) - 1)); return x; }
+const CRS_LOCAL_TZ = (function () { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || CRS_TZ_DEF; } catch (e) { return CRS_TZ_DEF; } })();
+function crsOff(zone, date) {
+  try {
+    const dtf = new Intl.DateTimeFormat('en-US', { timeZone: zone, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const p = {}; dtf.formatToParts(date).forEach(function (x) { p[x.type] = x.value; });
+    return Date.UTC(+p.year, +p.month - 1, +p.day, (+p.hour) % 24, +p.minute, +p.second) - date.getTime();
+  } catch (e) { return 0; }
+}
+function crsInstant(ymd, hm, tz) {           // момент времени: дата и время заданы в поясе tz
+  const a = ymd.split('-'), b = hm.split(':');
+  const g = Date.UTC(+a[0], +a[1] - 1, +a[2], +b[0], +b[1]);
+  return g - crsOff(tz || CRS_TZ_DEF, new Date(g));
+}
+function crsTimeIn(ymd, hm, tz, zone) {
+  const inst = crsInstant(ymd, hm, tz);
+  const t = new Date(inst + crsOff(zone, new Date(inst)));
+  return ('0' + t.getUTCHours()).slice(-2) + ':' + ('0' + t.getUTCMinutes()).slice(-2);
+}
+function crsTzShort(zone) {
+  if (zone === 'Asia/Shanghai') return 'Пекин';
+  if (zone === CRS_TZ_DEF) return 'Москва';
+  if (zone === CRS_LOCAL_TZ) return 'твой пояс';
+  return zone.split('/').pop().replace(/_/g, ' ');
+}
+function crsTzOffText(zone) {
+  const o = crsOff(zone, new Date()) / 60000;
+  return 'UTC' + (o >= 0 ? '+' : '−') + Math.abs(o / 60).toFixed(0).replace('.0', '');
+}
+function crsTzList() {
+  const base = ['Europe/Moscow', 'Europe/Kaliningrad', 'Asia/Yekaterinburg', 'Asia/Novosibirsk', 'Asia/Krasnoyarsk',
+                'Asia/Irkutsk', 'Asia/Yakutsk', 'Asia/Vladivostok', 'Asia/Magadan', 'Asia/Kamchatka',
+                'Asia/Shanghai', 'Asia/Hong_Kong', 'Asia/Almaty', 'Asia/Tbilisi', 'Asia/Dubai', 'Europe/Istanbul',
+                'Europe/Berlin', 'Europe/London', 'America/New_York', 'Asia/Tokyo', 'Asia/Seoul', 'Asia/Bangkok'];
+  if (base.indexOf(CRS_LOCAL_TZ) < 0) base.unshift(CRS_LOCAL_TZ);
+  return base;
+}
+
+/* ---------- хранилище ---------- */
+function crsBlank() {
+  return { v: 1, upd: Date.now(), tz: CRS_TZ_DEF, lessons: {}, series: {}, hw: {}, hwstate: {}, hwdue: {},
+           rem: { lessons: { on: true, offsets: [1440, 60, 30] }, hw: { on: true, offsets: [1440, 60] } },
+           subs: {}, push: { asked: false }, filters: { prog: '' }, hiddenCanceled: false };
+}
+let crsCache = null;
+function crsStore() {
+  if (crsCache) return crsCache;
+  let o = null;
+  try { o = JSON.parse(localStorage.getItem(CRS_LS) || 'null'); } catch (e) { o = null; }
+  if (!o || typeof o !== 'object') o = crsBlank();
+  const b = crsBlank();
+  for (const k in b) if (o[k] === undefined) o[k] = b[k];
+  o.rem.lessons = Object.assign({}, b.rem.lessons, o.rem.lessons || {});
+  o.rem.hw = Object.assign({}, b.rem.hw, o.rem.hw || {});
+  crsCache = o;
+  return o;
+}
+let crsPushTimer = null;
+function crsSave(o, quiet) {
+  o.upd = Date.now();
+  crsCache = o;
+  try { localStorage.setItem(CRS_LS, JSON.stringify(o)); } catch (e) {}
+  if (!quiet) { try { scheduleBackup(); } catch (e) {} }
+  crsCloudSoon();
+}
+function crsUid(p) { return (p || 'e') + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+/* ---------- сеть: облачная копия ---------- */
+const CRS_API = (function () {
+  const h = location.hostname;
+  if (/^(www\.)?crmuro\.ru$/i.test(h)) return ['https://crmuro.ru/tingli-api', 'https://abramson-crm.pages.dev/api'];
+  return ['/api', 'https://abramson-crm.pages.dev/api'];
+})();
+let crsApiBase = 0;
+function crsApi(path, opts) {
+  const order = [];
+  if (crsApiBase) order.push(crsApiBase);
+  CRS_API.forEach(function (_, i) { if (i !== crsApiBase) order.push(i); });
+  return new Promise(function (resolve, reject) {
+    let i = 0;
+    const tryNext = function (lastErr) {
+      if (i >= order.length) { reject(lastErr || new Error('Нет связи')); return; }
+      const base = CRS_API[order[i++]];
+      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const tm = setTimeout(function () { if (ctl) ctl.abort(); }, 12000);
+      fetch(base + path, Object.assign({}, opts || {}, { signal: ctl ? ctl.signal : undefined }))
+        .then(function (r) { clearTimeout(tm); if (r.status === 404 || r.status === 405) return tryNext(new Error('нет пути')); crsApiBase = CRS_API.indexOf(base); resolve(r); })
+        .catch(function (e) { clearTimeout(tm); tryNext(e); });
+    };
+    tryNext();
+  });
+}
+function crsCloudSoon() {
+  if (crsPushTimer) clearTimeout(crsPushTimer);
+  crsPushTimer = setTimeout(crsCloudPush, 1500);
+}
+async function crsCloudPush() {
+  try {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('tingli-') === 0) data[k] = localStorage.getItem(k); }
+    await crsApi('/backup', { method: 'POST', body: JSON.stringify(data) });
+    crsSaveStatus('saved');
+  } catch (e) { crsSaveStatus('offline'); }
+}
+function crsMerge(a, b) {                    // объединение без дублей, свежая правка побеждает
+  const out = Object.assign({}, a);
+  const keys = ['lessons', 'series', 'hw'];
+  keys.forEach(function (g) {
+    out[g] = Object.assign({}, a[g] || {});
+    const B = b[g] || {};
+    Object.keys(B).forEach(function (id) {
+      const x = out[g][id], y = B[id];
+      if (!x) { out[g][id] = y; return; }
+      if ((y.upd || 0) > (x.upd || 0)) out[g][id] = y;
+    });
+  });
+  ['hwstate', 'hwdue'].forEach(function (g) {
+    out[g] = Object.assign({}, a[g] || {});
+    const B = b[g] || {};
+    Object.keys(B).forEach(function (id) {
+      const x = out[g][id], y = B[id];
+      if (!x || ((y && y.upd) || 0) > ((x && x.upd) || 0)) out[g][id] = y;
+    });
+  });
+  out.rem = Object.assign({}, a.rem, b.rem);
+  out.subs = Object.assign({}, a.subs || {}, b.subs || {});
+  out.upd = Math.max(a.upd || 0, b.upd || 0);
+  return out;
+}
+let crsPullOnce = false;
+async function crsCloudPull() {
+  if (crsPullOnce) return; crsPullOnce = true;
+  try {
+    const r = await crsApi('/backup');
+    if (!r.ok) return;
+    const cloud = await r.json();
+    const raw = cloud && cloud[CRS_LS];
+    let local = crsStore();
+    if (!raw) { crsCloudPush(); return; }
+    let rem = null;
+    try { rem = JSON.parse(raw); } catch (e) { rem = null; }
+    if (!rem) return;
+    const merged = crsMerge(local, rem);
+    const changed = JSON.stringify(merged) !== JSON.stringify(local);
+    crsCache = merged;
+    try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
+    if (changed) { crsToast('☁️ Расписание синхронизировано'); crsCloudPush(); }
+  } catch (e) {}
+}
+function crsSaveStatus(s) {
+  const n = document.getElementById('crsSave');
+  if (!n) return;
+  n.textContent = s === 'saved' ? 'сохранено' : (s === 'offline' ? 'сохранено на устройстве' : 'сохраняю…');
+  n.className = 'crs-save ' + (s || '');
+}
+function crsToast(msg) {
+  try {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#1d1d21;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.25)';
+    document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2600);
+  } catch (e) {}
+}
+
+/* ---------- сущности ---------- */
+function crsProg(id) { return CRS_PROGS.filter(function (p) { return p.id === id; })[0] || CRS_PROGS[0]; }
+function crsProgTitle(id) { const p = crsProg(id); return p.zh + (p.ru ? ' · ' + p.ru : ''); }
+function crsUnitsOf(progId) {
+  if (progId === 'idv') return IDV.filter(function (u) { return (u.src || 'idv') === 'idv'; });
+  if (progId === 'team') return IDV.filter(function (u) { return u.src === 'team'; });
+  if (progId === 'mine') return EXTRA;
+  if (progId === 'biz') return BIZ;
+  return UNITS;
+}
+function crsUnit(n) { return ALL_UNITS.filter(function (u) { return u.unit === n; })[0] || null; }
+function crsUnitTitle(n) {
+  const u = crsUnit(n); if (!u) return '';
+  const t = (typeof unitName === 'function') ? unitName(u) : (u.label || '');
+  if (u.ru && t.indexOf(u.ru) >= 0) return t;
+  return t + (u.ru ? ' · ' + u.ru : '');
+}
+
+/* Занятия: серии + исключения разворачиваются в конкретные события */
+function crsLessonList(fromYmd, toYmd) {
+  const st = crsStore(), out = [];
+  const from = crsParse(fromYmd), to = crsParse(toYmd);
+  Object.keys(st.lessons).forEach(function (id) {
+    const l = st.lessons[id];
+    if (l.date >= fromYmd && l.date <= toYmd) out.push(Object.assign({}, l, { evId: 'l:' + id }));
+  });
+  Object.keys(st.series).forEach(function (sid) {
+    const s = st.series[sid];
+    const start = crsParse(s.from > fromYmd ? s.from : fromYmd);
+    const end = crsParse(s.to && s.to < toYmd ? s.to : toYmd);
+    for (let d = crsWeekStart(start); d <= end; d = crsAddDays(d, 1)) {
+      const ymd = crsYmd(d);
+      if (ymd < s.from || (s.to && ymd > s.to)) continue;
+      if (ymd < fromYmd || ymd > toYmd) continue;
+      const dow = crsDow(ymd);
+      if ((s.days || []).indexOf(dow) < 0) continue;
+      const weeks = Math.floor((crsParse(ymd) - crsWeekStart(crsParse(s.from))) / (7 * 864e5));
+      if (s.every === 2 && weeks % 2 !== 0) continue;
+      const ex = (s.except || {})[ymd];
+      const evId = 's:' + sid + ':' + ymd;
+      if (ex === 'canceled') { out.push(Object.assign({}, s, { evId: evId, id: sid, date: ymd, status: 'canceled', seriesId: sid })); continue; }
+      if (ex && typeof ex === 'object') {
+        if (ex.date && ex.date !== ymd) continue;                 // перенесено на другой день — покажем там
+        out.push(Object.assign({}, s, { evId: evId, id: sid, date: ymd, time: ex.time || s.time, status: 'plan', seriesId: sid, movedFrom: ex.movedFrom || null }));
+        continue;
+      }
+      if (st.lessons['s:' + sid + ':' + ymd]) continue;           // уже есть отдельное занятие
+      out.push(Object.assign({}, s, { evId: evId, id: sid, date: ymd, status: 'plan', seriesId: sid }));
+    }
+    // перенесённые в этот диапазон
+    Object.keys(s.except || {}).forEach(function (fromDay) {
+      const ex = s.except[fromDay];
+      if (!ex || typeof ex !== 'object' || !ex.date) return;
+      if (ex.date >= fromYmd && ex.date <= toYmd) out.push(Object.assign({}, s, { evId: 's:' + sid + ':' + ex.date, id: sid, date: ex.date, time: ex.time || s.time, status: 'moved', seriesId: sid, movedFrom: fromDay }));
+    });
+  });
+  return out.sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); });
+}
+function crsLessonState(ev) {
+  const st = crsStore();
+  if (ev.status === 'canceled') return 'canceled';
+  if (st.done && st.done[ev.evId]) return 'done';
+  if (ev.evId.indexOf('l:') === 0) { const l = st.lessons[ev.evId.slice(2)]; if (l && l.done) return 'done'; }
+  return ev.status === 'moved' ? 'moved' : 'plan';
+}
+function crsNextLesson() {
+  const st = crsStore(), now = Date.now();
+  const evs = crsLessonList(crsYmd(crsAddDays(new Date(), -7)), crsYmd(crsAddDays(new Date(), 60)));
+  return evs.filter(function (e) { return e.status !== 'canceled' && crsInstant(e.date, e.time, e.tz) >= now - 10 * 60000; })[0] || null;
+}
+
+/* ---------- ДЗ ---------- */
+function crsHwKey(unit, partId) { return 'u' + unit + 'p' + partId; }
+function crsHwState(key) {
+  const st = crsStore();
+  const rec = st.hwstate[key];
+  if (rec && rec.state) return rec.state;
+  const m = /^u(\d+)p(\d+)$/.exec(key);
+  if (m) { try { const meta = JSON.parse(localStorage.getItem('tingli-hwmeta-' + m[1] + '-' + m[2]) || 'null'); if (meta && meta.done) return 'done'; } catch (e) {} }
+  return 'todo';
+}
+function crsHwSetState(key, state) {
+  const st = crsStore();
+  st.hwstate[key] = { state: state, upd: Date.now() };
+  const m = /^u(\d+)p(\d+)$/.exec(key);
+  if (m) {                                  // держим старую модель в согласии (значок приложения, напоминания)
+    let meta = {};
+    try { meta = JSON.parse(localStorage.getItem('tingli-hwmeta-' + m[1] + '-' + m[2]) || '{}') || {}; } catch (e) { meta = {}; }
+    meta.done = (state === 'done');
+    try { localStorage.setItem('tingli-hwmeta-' + m[1] + '-' + m[2], JSON.stringify(meta)); } catch (e) {}
+  }
+  crsSave(st);
+  try { if (typeof updateAppBadge === 'function') updateAppBadge(); } catch (e) {}
+  try { crsCloudSoon(); } catch (e) {}
+  return state;
+}
+function crsHwDue(key) {
+  const st = crsStore();
+  if (st.hwdue[key]) return st.hwdue[key];
+  const m = /^u(\d+)p(\d+)$/.exec(key);
+  let d = '';
+  if (m) { try { d = localStorage.getItem('tingli-due-' + m[1] + '-' + m[2]) || ''; } catch (e) {} }
+  return d ? { mode: 'date', date: d } : { mode: 'none' };
+}
+function crsHwSetDue(key, due) {
+  const st = crsStore();
+  st.hwdue[key] = Object.assign({}, due, { upd: Date.now() });
+  const m = /^u(\d+)p(\d+)$/.exec(key);
+  if (m) {
+    const legacy = crsHwDueDate(key, st);
+    try { if (legacy) localStorage.setItem('tingli-due-' + m[1] + '-' + m[2], legacy); else localStorage.removeItem('tingli-due-' + m[1] + '-' + m[2]); } catch (e) {}
+  }
+  crsSave(st);
+  try { if (typeof updateAppBadge === 'function') updateAppBadge(); } catch (e) {}
+}
+function crsHwDueDate(key, st0) {
+  const st = st0 || crsStore();
+  const d = st.hwdue[key];
+  if (!d || d.mode === 'none') return '';
+  if (d.mode === 'date') return d.date || '';
+  if (d.mode === 'lesson') { const l = crsLessonById(d.lessonId, st); return l ? (l.date || crsSeriesNext(d.lessonId, st)) : ''; }
+  return '';
+}
+function crsSeriesNext(sid, st0) {
+  const st = st0 || crsStore();
+  if (!st.series[sid]) return '';
+  const evs = crsLessonList(crsYmd(new Date()), crsYmd(crsAddDays(new Date(), 120)));
+  const hit = evs.filter(function (e) { return e.seriesId === sid && e.status !== 'canceled'; })[0];
+  return hit ? hit.date : '';
+}
+function crsLessonById(id, st0) { const st = st0 || crsStore(); return st.lessons[id] || null; }
+function crsHwList() {
+  const st = crsStore(), out = [];
+  // существующие ДЗ в уроках
+  ALL_UNITS.forEach(function (u) {
+    (u.parts || []).forEach(function (p) {
+      if (p.kind !== 'hw') return;
+      const key = crsHwKey(u.unit, p.id);
+      out.push({ key: key, unit: u.unit, partId: p.id, title: (p.title || 'ДЗ'), program: crsProgOfUnit(u), existing: true,
+                 items: (p.questions || []).map(function (q) { return (typeof q === 'string' ? q : q.q); }) });
+    });
+  });
+  // свои ДЗ
+  Object.keys(st.hw).forEach(function (id) {
+    const h = st.hw[id];
+    out.push({ key: 'c:' + id, id: id, title: h.title || 'ДЗ', program: h.program || '', existing: false,
+               items: (h.items || []), text: h.text || '', files: h.files || [], material: h.material || null, lessonId: h.lessonId || '' });
+  });
+  out.forEach(function (h) {
+    h.state = crsHwState(h.key);
+    h.due = crsHwDue(h.key);
+    h.dueDate = crsHwDueDate(h.key);
+  });
+  return out;
+}
+function crsProgOfUnit(u) {
+  if (!u) return '';
+  if (u.src === 'team') return 'team';
+  if (u.src === 'idv') return 'idv';
+  if (u.src === 'extra') return 'mine';
+  if (u.src === 'biz') return 'biz';
+  return 'lessons';
+}
+function crsHwOpen(key) {
+  const m = /^u(\d+)p(\d+)$/.exec(key);
+  if (!m) { crsToast('Это своё задание — открой его в списке ДЗ'); return; }
+  const u = crsUnit(+m[1]);
+  if (!u) return;
+  closeCrsSheets();
+  if (typeof openPart === 'function') openPart(+m[1], +m[2]);
+}
+function crsLessonOpen(ev) {
+  if (!ev || !ev.material || ev.material.unit === undefined) { crsToast('У занятия не выбран материал'); return; }
+  const u = crsUnit(+ev.material.unit);
+  closeCrsSheets();
+  if (!u) return;
+  if (ev.material.part !== undefined && ev.material.part !== null && ev.material.part !== '') {
+    if (typeof openPart === 'function') openPart(+ev.material.unit, +ev.material.part);
+  } else if (typeof openUnit === 'function') openUnit(+ev.material.unit);
+}
+
+/* ---------- напоминания ---------- */
+function crsReminderQueue() {
+  const st = crsStore(), q = [];
+  const now = Date.now();
+  const evs = crsLessonList(crsYmd(crsAddDays(new Date(), -3)), crsYmd(crsAddDays(new Date(), 30)));
+  evs.forEach(function (ev) {
+    if (ev.status === 'canceled') return;
+    const inst = crsInstant(ev.date, ev.time, ev.tz);
+    const offs = (st.rem.lessons.offsets || []).slice().sort(function (a, b) { return a - b; });
+    offs.forEach(function (m) { q.push({ at: inst - m * 60000, kind: 'lesson', key: ev.evId, id: ev.evId, when: m, title: crsProgTitle(ev.program), sub: crsLessonWhen(ev) }); });
+  });
+  crsHwList().forEach(function (h) {
+    if (h.state === 'done') return;
+    const d = h.dueDate; if (!d) return;
+    const inst = crsInstant(d, '23:59', CRS_TZ_DEF);
+    (st.rem.hw.offsets || []).forEach(function (m) { q.push({ at: inst - m * 60000, kind: 'hw', key: h.key, id: h.key, when: m, title: h.title, sub: 'ДЗ · к ' + d }); });
+  });
+  return q.sort(function (a, b) { return a.at - b.at; });
+}
+function crsMissed() { return crsReminderQueue().filter(function (r) { return r.at < Date.now() - 60000 && r.at > Date.now() - 3 * 864e5; }); }
+function crsUpcoming() { return crsReminderQueue().filter(function (r) { return r.at >= Date.now(); }); }
+function crsLessonWhen(ev) {
+  const d = crsParse(ev.date), today = crsYmd(new Date());
+  const head = ev.date === today ? 'сегодня' : (CRS_DOW_FULL[crsDow(ev.date)] + ', ' + d.getDate() + ' ' + CRS_MON[d.getMonth() + 1]);
+  return head + ' · ' + ev.time;
+}
+/* ================= /CRS_BLOCK_V3 (часть 1: модель) ================= */
+
+/* ================= CRS_BLOCK_V3 (часть 2: экраны) ================= */
+let crsMode = 'week';
+let crsWeekStartD = crsWeekStart(new Date());
+let crsMonthD = crsMonStart(new Date());
+let crsSelDay = crsYmd(new Date());
+let crsHwFilter = 'open';
+let crsBusy = false;
+
+function crsShell() {
+  const st = crsStore();
+  const prog = st.filters.prog || '';
+  return '<div class="topbar">' +
+    '<div class="logo"><img src="sched-logo.png?v=3.6.0" alt=""></div>' +
+    '<div class="top-title">课程</div><div class="sub">Расписание<br>и домашние задания</div>' +
+    '</div>' +
+    '<div class="crs-top">' +
+      '<div class="crs-seg" id="crsSeg">' +
+        '<button data-m="week" class="' + (crsMode === 'week' ? 'on' : '') + '">Неделя</button>' +
+        '<button data-m="month" class="' + (crsMode === 'month' ? 'on' : '') + '">Месяц</button>' +
+        '<button data-m="hw" class="' + (crsMode === 'hw' ? 'on' : '') + '">ДЗ</button>' +
+      '</div>' +
+      '<button class="crs-add" onclick="crsForm(\'\')">+ Занятие</button>' +
+    '</div>' +
+    '<div class="crs-bar" id="crsBar"></div>' +
+    '<div id="crsBody"></div>' +
+    '<div class="crs-foot"><span id="crsSave" class="crs-save"></span><span class="crs-ver">Abramson © ' + APP_VER + '</span></div>';
+}
+function renderCourses() {
+  showTabbar(true); partAudioKey = null; showPlayer(false);
+  curUnit = null; curPart = null;
+  app.innerHTML = crsShell();
+  const seg = document.getElementById('crsSeg');
+  if (seg) seg.querySelectorAll('button').forEach(function (b) {
+    b.onclick = function () { crsMode = b.dataset.m; renderCourses(); };
+  });
+  crsCloudPull();
+  crsPaint();
+}
+function crsPaint() {
+  const bar = document.getElementById('crsBar'), body = document.getElementById('crsBody');
+  if (!body) return;
+  if (crsMode === 'month') { bar.innerHTML = crsMonthBar(); body.innerHTML = crsMonthHtml(); }
+  else if (crsMode === 'hw') { bar.innerHTML = crsHwBar(); body.innerHTML = crsHwHtml(); }
+  else { bar.innerHTML = crsWeekBar(); body.innerHTML = crsWeekHtml(); }
+  const seg = document.getElementById('crsSeg');
+  if (seg) seg.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === crsMode); });
+}
+
+/* ---------- верхняя панель ---------- */
+function crsProgChips() {
+  const st = crsStore(), cur = st.filters.prog || '';
+  return '<div class="crs-chips crs-chips-prog">' +
+    '<button class="crs-chip' + (cur === '' ? ' on' : '') + '" onclick="crsSetProg(\'\')">Все программы</button>' +
+    CRS_PROGS.map(function (p) {
+      const n = crsCountProgram(p.id);
+      return '<button class="crs-chip' + (cur === p.id ? ' on' : '') + '" onclick="crsSetProg(\'' + p.id + '\')">' + p.zh + ' ' + p.ru + (n ? ' <b>' + n + '</b>' : '') + '</button>';
+    }).join('') + '</div>';
+}
+function crsSetProg(id) { const st = crsStore(); st.filters.prog = id; crsSave(st, true); crsPaint(); }
+function crsCountProgram(id) {
+  const evs = crsLessonList(crsYmd(crsAddDays(new Date(), -7)), crsYmd(crsAddDays(new Date(), 30)));
+  return evs.filter(function (e) { return e.program === id && e.status !== 'canceled'; }).length;
+}
+function crsWeekBar() {
+  const ws = crsWeekStartD, d1 = ws, d2 = crsAddDays(ws, 6);
+  return '<div class="crs-nav">' +
+    '<button class="crs-nb" onclick="crsWeekShift(-1)" title="Прошлая неделя">‹</button>' +
+    '<div class="crs-range" onclick="crsGoToday()"><b>' + d1.getDate() + ' — ' + d2.getDate() + ' ' + CRS_MON[d2.getMonth() + 1] + '</b>' +
+      '<span>' + crsTzShort(CRS_LOCAL_TZ) + ' · ' + crsTzOffText(CRS_LOCAL_TZ) + '</span></div>' +
+    '<button class="crs-nb" onclick="crsWeekShift(1)" title="Следующая неделя">›</button>' +
+    '<button class="crs-today" onclick="crsGoToday()">Сегодня</button></div>' + crsProgChips();
+}
+function crsWeekShift(n) { crsWeekStartD = crsAddDays(crsWeekStartD, 7 * n); crsPaint(); }
+function crsGoToday() { crsWeekStartD = crsWeekStart(new Date()); crsMonthD = crsMonStart(new Date()); crsSelDay = crsYmd(new Date()); crsPaint(); }
+function crsMonthBar() {
+  return '<div class="crs-nav">' +
+    '<button class="crs-nb" onclick="crsMonthShift(-1)">‹</button>' +
+    '<div class="crs-range" onclick="crsGoToday()"><b>' + CRS_MON_NOM[crsMonthD.getMonth() + 1] + ' ' + crsMonthD.getFullYear() + '</b>' +
+    '<span>' + crsTzShort(CRS_LOCAL_TZ) + ' · ' + crsTzOffText(CRS_LOCAL_TZ) + '</span></div>' +
+    '<button class="crs-nb" onclick="crsMonthShift(1)">›</button>' +
+    '<button class="crs-today" onclick="crsGoToday()">Сегодня</button></div>';
+}
+function crsMonthShift(n) { crsMonthD = new Date(crsMonthD.getFullYear(), crsMonthD.getMonth() + n, 1); crsPaint(); }
+function crsHwBar() {
+  const f = crsHwFilter;
+  return '<div class="crs-chips crs-chips-hw">' +
+    [['upcoming', 'Предстоящие'], ['overdue', 'Просроченные'], ['done', 'Выполненные'], ['open', 'Все открытые']].map(function (x) {
+      return '<button class="crs-chip' + (f === x[0] ? ' on' : '') + '" onclick="crsHwSetFilter(\'' + x[0] + '\')">' + x[1] + '</button>';
+    }).join('') + crsProgChips() + '</div>';
+}
+function crsHwSetFilter(f) { crsHwFilter = f; crsPaint(); }
+
+/* ---------- неделя ---------- */
+function crsWeekHtml() {
+  const st = crsStore();
+  const from = crsYmd(crsWeekStartD), to = crsYmd(crsAddDays(crsWeekStartD, 6));
+  let evs = crsLessonList(from, to);
+  if (st.filters.prog) evs = evs.filter(function (e) { return e.program === st.filters.prog; });
+  let days = '';
+  for (let i = 0; i < 7; i++) {
+    const d = crsAddDays(crsWeekStartD, i), ymd = crsYmd(d);
+    const list = evs.filter(function (e) { return e.date === ymd; });
+    const isToday = ymd === crsYmd(new Date());
+    days += '<div class="crs-day' + (isToday ? ' today' : '') + (list.length ? '' : ' empty') + '">' +
+      '<div class="crs-day-h">' + CRS_DOW_FULL[crsDow(ymd)].toUpperCase() + ' · ' + d.getDate() + ' ' + CRS_MON[d.getMonth() + 1] + '</div>';
+    if (!list.length) {
+      days += '<div class="crs-day-empty">' + (i === 0 && !crsAnyWeekLesson(from, to) ? 'Пока пусто — добавь занятие' : 'свободно') + '</div>';
+    } else {
+      days += list.map(crsLessonCard).join('');
+    }
+    days += '</div>';
+  }
+  const hwPanel = crsHwPanel(crsWeekStartD, crsAddDays(crsWeekStartD, 6));
+  return '<div class="crs-cols">' +
+    '<div class="crs-col"><div class="crs-col-h">Расписание занятий</div>' + days +
+      '<button class="crs-add-big" onclick="crsForm(\'\')">+ Добавить занятие</button></div>' +
+    '<div class="crs-col crs-col-hw"><div class="crs-col-h">ДЗ к занятиям</div>' + hwPanel + '</div>' +
+    '</div>';
+}
+function crsAnyWeekLesson(from, to) { return crsLessonList(from, to).length > 0; }
+function crsLessonCard(ev) {
+  const st = crsStore();
+  const state = crsLessonState(ev);
+  const t = ev.time + (ev.dur ? ' – ' + crsEndTime(ev.date, ev.time, ev.dur, ev.tz) : '');
+  const t2 = (ev.tz && ev.tz !== CRS_LOCAL_TZ) ? crsTimeIn(ev.date, ev.time, ev.tz, CRS_LOCAL_TZ) + ' у тебя · ' : '';
+  const rem = (st.rem.lessons.on && (st.rem.lessons.offsets || []).length && state !== 'canceled' && state !== 'done')
+    ? '<span class="crs-chip rem">⏰ ' + crsRemWord(Math.min.apply(null, st.rem.lessons.offsets)) + '</span>' : '';
+  const moved = ev.movedFrom ? '<span class="crs-chip mv">перенесено с ' + crsDayShort(ev.movedFrom) + '</span>' : '';
+  const hw = crsLessonHwBlock(ev);
+  const mat = (ev.material && ev.material.unit !== undefined && ev.material.unit !== null && ev.material.unit !== '')
+    ? '<div class="crs-mat">' + esc(crsUnitTitle(ev.material.unit)) + (ev.material.part !== undefined && ev.material.part !== '' ? ' · ' + esc(crsPartTitle(ev.material.unit, ev.material.part)) : '') + '</div>'
+    : '<div class="crs-mat muted">Материал ещё не выбран</div>';
+  return '<div class="crs-card' + (state === 'canceled' ? ' off' : '') + (state === 'done' ? ' done' : '') + '">' +
+    '<div class="crs-card-top">' +
+      '<div class="crs-c-time">' + esc(t) + '<span>' + esc(t2 || (ev.dur ? ev.dur + ' мин' : '')) + '</span></div>' +
+      '<div class="crs-c-tag">' + esc(crsProgTitle(ev.program)) + (ev.teacher ? '<span>' + esc(ev.teacher) + '</span>' : '') + '</div>' +
+      '<button class="crs-more" onclick="crsMenu(\'' + ev.evId + '\')" title="Действия">⋯</button>' +
+    '</div>' +
+    mat +
+    (ev.place || ev.link ? '<div class="crs-place">' + (ev.place ? '📍 ' + esc(ev.place) : '') + (ev.link ? ' <a href="' + esc(ev.link) + '" target="_blank" rel="noopener" class="crs-link">Открыть ссылку</a>' : '') + '</div>' : '') +
+    (ev.note ? '<div class="crs-note">' + esc(ev.note) + '</div>' : '') +
+    '<div class="crs-chips">' + moved + rem +
+      (state === 'done' ? '<span class="crs-chip ok">проведено</span>' : '') +
+      (state === 'canceled' ? '<span class="crs-chip off">отменено</span>' : '') + '</div>' +
+    hw +
+    '<div class="crs-actions">' +
+      (ev.material && ev.material.unit !== undefined && ev.material.unit !== '' && state !== 'canceled' ? '<button class="crs-b p" onclick="crsLessonOpenEv(\'' + ev.evId + '\')">Открыть урок</button>' : '') +
+      (ev.link ? '<a class="crs-b s" href="' + esc(ev.link) + '" target="_blank" rel="noopener">Подключиться</a>' : '') +
+    '</div></div>';
+}
+function crsEndTime(ymd, hm, dur, tz) {
+  const a = hm.split(':');
+  const inst = crsInstant(ymd, hm, tz) + (dur || 60) * 60000;
+  const t = new Date(inst + crsOff(tz || CRS_TZ_DEF, new Date(inst)));
+  return ('0' + t.getUTCHours()).slice(-2) + ':' + ('0' + t.getUTCMinutes()).slice(-2);
+}
+function crsDayShort(ymd) {
+  const d = crsParse(ymd);
+  return d.getDate() + ' ' + CRS_MON[d.getMonth() + 1];
+}
+function crsRemWord(m) { return m >= 1440 ? 'за день' : (m >= 60 ? 'за ' + (m === 60 ? 'час' : Math.round(m / 60) + ' ч') : 'за ' + m + ' минут'); }
+function crsPartTitle(unit, partId) {
+  const u = crsUnit(+unit); if (!u) return '';
+  const p = (u.parts || []).filter(function (x) { return x.id === +partId; })[0];
+  return p ? (p.title || '') : '';
+}
+function crsLessonHwBlock(ev) {
+  const list = crsHwForLesson(ev);
+  if (!list.length) return '';
+  const shown = list.slice(0, 2);
+  const rest = list.length - shown.length;
+  return '<div class="crs-hw-in">' + shown.map(function (h) {
+    const it = (h.items || []).slice(0, 3).map(function (q) {
+      return '<div class="crs-hw-item' + (h.state === 'done' ? ' on' : '') + '">' + esc(String(q).slice(0, 80)) + '</div>';
+    }).join('');
+    return '<div class="crs-hw-title">' + esc(h.title) + (h.dueDate ? ' · к ' + crsDayShort(h.dueDate) : '') + '</div>' + it +
+      '<div class="crs-actions"><button class="crs-b s" onclick="crsHwOpen(\'' + h.key + '\')">Открыть задание</button>' +
+      '<button class="crs-b s" onclick="crsHwStateBtn(\'' + h.key + '\')">' + crsStateWord(h.state) + '</button></div>';
+  }).join('') + (rest > 0 ? '<div class="crs-note">и ещё ' + rest + ' задани' + (rest === 1 ? 'е' : 'я') + '</div>' : '') + '</div>';
+}
+function crsStateWord(s) { return s === 'done' ? '✓ Выполнено' : (s === 'doing' ? 'В работе' : 'Не начато'); }
+function crsHwStateBtn(key) {
+  const cur = crsHwState(key);
+  const next = cur === 'todo' ? 'doing' : (cur === 'doing' ? 'done' : 'todo');
+  crsHwSetState(key, next);
+  crsPaint();
+  crsToast('ДЗ: ' + crsStateWord(next));
+}
+function crsHwPanel(fromD, toD) {
+  const st = crsStore();
+  let list = crsHwList().filter(function (h) { return h.state !== 'done'; });
+  if (st.filters.prog) list = list.filter(function (h) { return h.program === st.filters.prog; });
+  const overdue = [], soon = [], none = [];
+  const now = Date.now();
+  list.forEach(function (h) {
+    if (!h.dueDate) { none.push(h); return; }
+    const t = crsInstant(h.dueDate, '23:59', CRS_TZ_DEF);
+    if (t < now) overdue.push(h); else soon.push(h);
+  });
+  const block = function (title, arr, cls) {
+    if (!arr.length) return '';
+    return '<div class="crs-hw-grp ' + (cls || '') + '">' + title + '</div>' + arr.map(function (h) {
+      return '<div class="crs-hw-row"><div class="crs-hw-row-t">' + esc(h.title) + '</div>' +
+        '<div class="crs-hw-row-s">' + esc(crsProgTitle(h.program)) + ' · ' + (h.dueDate ? 'к ' + crsDayShort(h.dueDate) : 'без срока') + ' · ' + esc(crsStateWord(h.state)) + '</div>' +
+        '<div class="crs-actions"><button class="crs-b s" onclick="crsHwOpen(\'' + h.key + '\')">Открыть задание</button>' +
+        '<button class="crs-b s" onclick="crsHwStateBtn(\'' + h.key + '\')">Сменить</button>' +
+        '<button class="crs-b s" onclick="crsHwDueSheet(\'' + h.key + '\')">Срок</button></div></div>';
+    }).join('');
+  };
+  let out = block('Просрочено', overdue, 'bad') + block('Скоро', soon) + block('Без срока', none);
+  if (!out) out = '<div class="crs-empty">Открытых ДЗ нет</div>';
+  return out;
+}
+
+/* ---------- месяц ---------- */
+function crsMonthHtml() {
+  const st = crsStore();
+  const first = crsMonStart(crsMonthD);
+  const start = crsWeekStart(first);
+  let evs = crsLessonList(crsYmd(start), crsYmd(crsAddDays(start, 41)));
+  if (st.filters.prog) evs = evs.filter(function (e) { return e.program === st.filters.prog; });
+  const hw = crsHwList().filter(function (h) { return h.dueDate && h.state !== 'done'; });
+  let grid = '';
+  for (let i = 0; i < 42; i++) {
+    const d = crsAddDays(start, i), ymd = crsYmd(d);
+    const inMonth = d.getMonth() === crsMonthD.getMonth();
+    const day = evs.filter(function (e) { return e.date === ymd && e.status !== 'canceled'; });
+    const due = hw.filter(function (h) { return h.dueDate === ymd; });
+    const isToday = ymd === crsYmd(new Date());
+    grid += '<button class="crs-cell' + (inMonth ? '' : ' out') + (isToday ? ' today' : '') + (ymd === crsSelDay ? ' sel' : '') + '" onclick="crsPickDay(\'' + ymd + '\')">' +
+      '<span class="n">' + d.getDate() + '</span>' +
+      '<span class="dots">' + day.map(function (e) { return '<i class="dot p"></i>'; }).join('') + due.map(function () { return '<i class="dot h"></i>'; }).join('') + '</span>' +
+      '</button>';
+  }
+  const sel = crsSelDay;
+  const dayEvs = evs.filter(function (e) { return e.date === sel; });
+  const dayHw = hw.filter(function (h) { return h.dueDate === sel; });
+  let list = '';
+  if (dayEvs.length) list += dayEvs.map(crsLessonCard).join('');
+  if (dayHw.length) list += '<div class="crs-hw-grp">ДЗ к этому дню</div>' + dayHw.map(function (h) {
+    return '<div class="crs-hw-row"><div class="crs-hw-row-t">' + esc(h.title) + '</div><div class="crs-hw-row-s">' + esc(crsProgTitle(h.program)) + ' · ' + esc(crsStateWord(h.state)) + '</div>' +
+      '<div class="crs-actions"><button class="crs-b s" onclick="crsHwOpen(\'' + h.key + '\')">Открыть задание</button></div></div>';
+  }).join('');
+  if (!list) list = '<div class="crs-empty">На этот день ничего нет — <a onclick="crsFormForDay(\'' + sel + '\')">добавить занятие</a></div>';
+  return '<div class="crs-month">' + grid + '</div>' +
+    '<div class="crs-day-h sel">' + CRS_DOW_FULL[crsDow(sel)].toUpperCase() + ' · ' + crsParse(sel).getDate() + ' ' + CRS_MON[crsParse(sel).getMonth() + 1] + '</div>' +
+    '<div class="crs-cols crs-cols-one">' + list + '</div>';
+}
+function crsPickDay(ymd) { crsSelDay = ymd; crsPaint(); }
+function crsFormForDay(ymd) { crsForm('', { date: ymd }); }
+
+/* ---------- ДЗ ---------- */
+function crsHwHtml() {
+  const st = crsStore();
+  let list = crsHwList();
+  if (st.filters.prog) list = list.filter(function (h) { return h.program === st.filters.prog; });
+  const now = Date.now();
+  const withDue = list.filter(function (h) { return h.dueDate; });
+  if (crsHwFilter === 'upcoming') list = withDue.filter(function (h) { return h.state !== 'done' && crsInstant(h.dueDate, '23:59', CRS_TZ_DEF) >= now; });
+  else if (crsHwFilter === 'overdue') list = withDue.filter(function (h) { return h.state !== 'done' && crsInstant(h.dueDate, '23:59', CRS_TZ_DEF) < now; });
+  else if (crsHwFilter === 'done') list = list.filter(function (h) { return h.state === 'done'; });
+  else list = list.filter(function (h) { return h.state !== 'done'; });
+  list.sort(function (a, b) { return (a.dueDate || '9999') .localeCompare(b.dueDate || '9999'); });
+  let out = list.map(function (h) {
+    const items = (h.items || []).slice(0, 4).map(function (q) { return '<div class="crs-hw-item">' + esc(String(q).slice(0, 90)) + '</div>'; }).join('');
+    return '<div class="crs-card hw">' +
+      '<div class="crs-card-top"><div class="crs-c-time">' + (h.dueDate ? crsDayShort(h.dueDate) : 'без срока') + '<span>' + esc(crsProgTitle(h.program)) + '</span></div>' +
+      '<div class="crs-c-tag">' + esc(h.title) + '</div>' +
+      (h.existing ? '' : '<button class="crs-more" onclick="crsHwEdit(\'' + h.key + '\')" title="Изменить">⋯</button>') + '</div>' +
+      items +
+      '<div class="crs-chips"><span class="crs-chip' + (h.state === 'done' ? ' ok' : '') + '">' + esc(crsStateWord(h.state)) + '</span>' +
+      '<span class="crs-chip">' + (h.dueDate ? 'срок: ' + crsDayShort(h.dueDate) : 'без срока') + '</span></div>' +
+      '<div class="crs-actions">' +
+        (h.existing ? '<button class="crs-b p" onclick="crsHwOpen(\'' + h.key + '\')">Открыть задание</button>' : '') +
+        '<button class="crs-b s" onclick="crsHwStateBtn(\'' + h.key + '\')">' + esc(crsStateWord(h.state)) + '</button>' +
+        '<button class="crs-b s" onclick="crsHwDueSheet(\'' + h.key + '\')">Срок</button>' +
+      '</div></div>';
+  }).join('');
+  if (!out) out = '<div class="crs-empty">Здесь пусто</div>';
+  return '<div class="crs-cols crs-cols-one">' + out +
+    '<button class="crs-add-big" onclick="crsHwForm()">+ Своё задание</button></div>';
+}
+/* ================= /CRS_BLOCK_V3 (часть 2) ================= */
+
+/* ================= CRS_BLOCK_V3 (часть 3: шторки) ================= */
+function crsSheet(title, html, opts) {
+  closeCrsSheets();
+  opts = opts || {};
+  const scrim = document.createElement('div'); scrim.className = 'crs-scrim'; scrim.onclick = closeCrsSheets;
+  const sheet = document.createElement('div'); sheet.className = 'crs-sheet';
+  sheet.innerHTML = '<div class="crs-grab"></div>' +
+    '<div class="crs-sheet-h"><div class="crs-sheet-t">' + title + '</div><button class="crs-x" onclick="closeCrsSheets()" aria-label="Закрыть">✕</button></div>' +
+    '<div class="crs-sheet-b">' + html + '</div>';
+  document.body.appendChild(scrim); document.body.appendChild(sheet);
+  const esc0 = function (e) { if (e.key === 'Escape') { closeCrsSheets(); document.removeEventListener('keydown', esc0); } };
+  document.addEventListener('keydown', esc0);
+  let y0 = null;
+  sheet.addEventListener('touchstart', function (e) { y0 = e.touches[0].clientY; }, { passive: true });
+  sheet.addEventListener('touchmove', function (e) {
+    if (y0 === null) return;
+    const dy = e.touches[0].clientY - y0;
+    if (dy > 0) sheet.style.transform = 'translateY(' + dy + 'px)';
+  }, { passive: true });
+  sheet.addEventListener('touchend', function (e) {
+    const dy = (e.changedTouches[0].clientY - (y0 || 0));
+    sheet.style.transform = '';
+    if (dy > 90) closeCrsSheets();
+    y0 = null;
+  });
+  if (opts.after) opts.after(sheet);
+  return sheet;
+}
+function closeCrsSheets() { document.querySelectorAll('.crs-sheet,.crs-scrim').forEach(function (n) { n.remove(); }); }
+
+/* ---------- форма занятия ---------- */
+function crsForm(id, preset) {
+  const st = crsStore();
+  const src = id ? (st.lessons[id] || null) : null;
+  const s = src || Object.assign({
+    program: st.filters.prog || 'idv', teacher: '', date: (preset && preset.date) || crsYmd(new Date()),
+    time: '19:00', dur: 60, tz: CRS_TZ_DEF, link: '', place: '', note: '',
+    material: { unit: '', part: '' }, rem: null, repeat: { on: false, days: [], every: 1, to: '' }
+  }, preset || {});
+  const f = {
+    program: s.program, teacher: s.teacher || '', date: s.date, time: s.time, dur: s.dur || 60, tz: s.tz || CRS_TZ_DEF,
+    link: s.link || '', place: s.place || '', note: s.note || '',
+    unit: (s.material && s.material.unit !== undefined) ? s.material.unit : '', part: (s.material && s.material.part !== undefined) ? s.material.part : '',
+    repeatOn: !!(s.repeat && s.repeat.on), days: (s.repeat && s.repeat.days) || [], every: (s.repeat && s.repeat.every) || 1, toDate: (s.repeat && s.repeat.to) || '',
+    remOn: s.rem === null ? (st.rem.lessons.on !== false) : (!!s.rem && s.rem.length > 0),
+    remOffsets: (Array.isArray(s.rem) ? s.rem : (st.rem.lessons.offsets || [])).slice()
+  };
+  if (!f.repeatOn) f.days = [crsDow(f.date)];
+  const draw = function () {
+    const units = crsUnitsOf(f.program);
+    const parts = f.unit !== '' ? ((crsUnit(+f.unit) || {}).parts || []) : [];
+    return '<div class="crs-lbl">Программа</div><div class="crs-chips">' + CRS_PROGS.map(function (p) {
+      return '<button class="crs-chip' + (f.program === p.id ? ' on' : '') + '" data-p="' + p.id + '">' + p.zh + ' ' + p.ru + '</button>';
+    }).join('') + '</div>' +
+    '<div class="crs-lbl">Преподаватель</div><input class="crs-inp" id="crsT" value="' + esc(f.teacher) + '" placeholder="имя или пусто (самоучёба)">' +
+    '<div class="crs-2col">' +
+      '<div><div class="crs-lbl">Дата</div><input class="crs-inp" id="crsD" type="date" value="' + f.date + '"></div>' +
+      '<div><div class="crs-lbl">Начало</div><input class="crs-inp" id="crsH" type="time" value="' + f.time + '"></div>' +
+    '</div>' +
+    '<div class="crs-lbl">Длительность</div><div class="crs-chips">' + [30, 45, 50, 60, 90, 120].map(function (d) {
+      return '<button class="crs-chip' + (f.dur === d ? ' on' : '') + '" data-dur="' + d + '">' + d + ' мин</button>';
+    }).join('') + '</div>' +
+    '<div class="crs-lbl">Часовой пояс</div><select class="crs-inp" id="crsTZ">' + crsTzList().map(function (z) {
+      return '<option value="' + z + '"' + (f.tz === z ? ' selected' : '') + '>' + crsTzShort(z) + ' · ' + crsTzOffText(z) + '</option>';
+    }).join('') + '</select>' +
+    '<div class="crs-lbl">Повторение</div><div class="crs-chips">' +
+      '<button class="crs-chip' + (!f.repeatOn ? ' on' : '') + '" data-rep="0">однократно</button>' +
+      '<button class="crs-chip' + (f.repeatOn && f.every === 1 ? ' on' : '') + '" data-rep="1">еженедельно</button>' +
+      '<button class="crs-chip' + (f.repeatOn && f.every === 2 ? ' on' : '') + '" data-rep="2">каждые 2 недели</button></div>' +
+    (f.repeatOn ? '<div class="crs-lbl">Дни недели</div><div class="crs-chips">' + [1, 2, 3, 4, 5, 6, 7].map(function (d) {
+      return '<button class="crs-chip' + (f.days.indexOf(d) >= 0 ? ' on' : '') + '" data-day="' + d + '">' + CRS_DOW[d] + '</button>';
+    }).join('') + '</div><div class="crs-lbl">До даты (необязательно)</div><input class="crs-inp" id="crsTo" type="date" value="' + f.toDate + '">' : '') +
+    '<div class="crs-lbl">Материал урока (необязательно)</div><select class="crs-inp" id="crsU"><option value="">— не выбран —</option>' + units.map(function (u) {
+      const t = (typeof unitName === 'function' ? unitName(u) : u.label) + (u.ru ? ' · ' + u.ru : '');
+      return '<option value="' + u.unit + '"' + (String(f.unit) === String(u.unit) ? ' selected' : '') + '>' + esc(t) + '</option>';
+    }).join('') + '</select>' +
+    (units.length && f.unit !== '' ? '<div class="crs-lbl">Раздел материала</div><select class="crs-inp" id="crsP"><option value="">— весь урок —</option>' + parts.map(function (p) {
+      return '<option value="' + p.id + '"' + (String(f.part) === String(p.id) ? ' selected' : '') + '>' + esc(p.title || ('часть ' + p.id)) + '</option>';
+    }).join('') + '</select>' : '') +
+    '<div class="crs-lbl">Ссылка на подключение</div><input class="crs-inp" id="crsL" value="' + esc(f.link) + '" placeholder="https://…">' +
+    '<div class="crs-lbl">Место</div><input class="crs-inp" id="crsPl" value="' + esc(f.place) + '" placeholder="Zoom, Телеграм, класс…">' +
+    '<div class="crs-lbl">Заметка</div><textarea class="crs-inp" id="crsN" rows="2">' + esc(f.note) + '</textarea>' +
+    '<div class="crs-lbl">Напоминание</div><div class="crs-chips">' +
+      '<button class="crs-chip' + (!f.remOn ? ' on' : '') + '" data-rem="off">не напоминать</button>' +
+      CRS_OFFSETS.map(function (o) {
+        return '<button class="crs-chip' + (f.remOn && f.remOffsets.indexOf(o.m) >= 0 ? ' on' : '') + '" data-rem="' + o.m + '">' + o.t + '</button>';
+      }).join('') + '</div>' +
+    '<div class="crs-note">' + (f.tz !== CRS_LOCAL_TZ ? 'У тебя это будет ' + crsTimeIn(f.date, f.time, f.tz, CRS_LOCAL_TZ) + '.' : 'Время в твоём поясе.') + '</div>';
+  };
+  const sheet = crsSheet(id ? 'Изменить занятие' : 'Новое занятие', draw() +
+    '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsOk" style="flex:1">Сохранить</button>' +
+    '<button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>');
+  const redraw = function () {
+    sheet.querySelector('.crs-sheet-b').innerHTML = draw() +
+      '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsOk" style="flex:1">Сохранить</button><button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>';
+    bind();
+  };
+  const bind = function () {
+    sheet.querySelectorAll('[data-p]').forEach(function (b) { b.onclick = function () { f.program = b.dataset.p; f.unit = ''; f.part = ''; redraw(); }; });
+    sheet.querySelectorAll('[data-dur]').forEach(function (b) { b.onclick = function () { f.dur = +b.dataset.dur; redraw(); }; });
+    sheet.querySelectorAll('[data-rep]').forEach(function (b) { b.onclick = function () { f.repeatOn = b.dataset.rep !== '0'; f.every = +b.dataset.rep || 1; if (f.repeatOn && !f.days.length) f.days = [crsDow(f.date)]; redraw(); }; });
+    sheet.querySelectorAll('[data-day]').forEach(function (b) { b.onclick = function () { const d = +b.dataset.day; const i = f.days.indexOf(d); if (i < 0) f.days.push(d); else f.days.splice(i, 1); redraw(); }; });
+    sheet.querySelectorAll('[data-rem]').forEach(function (b) {
+      b.onclick = function () {
+        const v = b.dataset.rem;
+        if (v === 'off') { f.remOn = false; }
+        else { f.remOn = true; const m = +v; const i = f.remOffsets.indexOf(m); if (i < 0) f.remOffsets.push(m); else f.remOffsets.splice(i, 1); }
+        redraw();
+      };
+    });
+    const U = sheet.querySelector('#crsU');
+    if (U) U.onchange = function () { f.unit = U.value; f.part = ''; redraw(); };
+    const P = sheet.querySelector('#crsP');
+    if (P) P.onchange = function () { f.part = P.value; };
+    const ok = sheet.querySelector('#crsOk');
+    if (ok) ok.onclick = function () { crsFormSave(id, f, sheet); };
+  };
+  bind();
+}
+function crsFormSave(id, f, sheet) {
+  const st = crsStore();
+  const rem = f.remOn ? f.remOffsets.slice() : [];
+  const base = {
+    program: f.program, teacher: f.teacher.trim(), dur: f.dur, tz: f.tz,
+    link: f.link.trim(), place: f.place.trim(), note: f.note.trim(),
+    material: (f.unit !== '' ? { unit: +f.unit, part: (f.part === '' ? '' : +f.part) } : null),
+    rem: rem, upd: Date.now()
+  };
+  if (f.repeatOn && f.days.length) {
+    const sId = (id && !st.lessons[id]) ? id : crsUid('s');
+    const ser = Object.assign({}, base, {
+      id: sId, days: f.days.slice().sort(), every: f.every, from: f.date, to: f.toDate || '',
+      time: f.time, except: (id && st.series[id] ? st.series[id].except : {}) || {}
+    });
+    st.series[sId] = ser;
+    if (id && st.lessons[id]) delete st.lessons[id];
+    if (id && st.series[id]) delete st.series[id];
+    crsSave(st);
+    closeCrsSheets(); renderCourses(); crsToast('Серия сохранена');
+    return;
+  }
+  const lid = id || crsUid('l');
+  const prev = st.lessons[lid] || null;
+  st.lessons[lid] = Object.assign({}, prev || {}, base, {
+    id: lid, date: f.date, time: f.time, status: (prev && prev.status) || 'plan',
+    movedFrom: (prev && prev.movedFrom) || null, hwKeys: (prev && prev.hwKeys) || []
+  });
+  if (id && st.series[id]) delete st.series[id];
+  crsSave(st);
+  closeCrsSheets(); renderCourses(); crsToast('Занятие сохранено');
+}
+/* ---------- меню занятия ---------- */
+function crsMenu(evId) {
+  const ev = crsFindEv(evId); if (!ev) return;
+  const st = crsStore();
+  const lessonsId = ev.evId.indexOf('l:') === 0 ? ev.evId.slice(2) : '';
+  const done = crsIsDone(ev);
+  crsSheet('Занятие', '<div class="crs-note">' + esc(crsProgTitle(ev.program)) + (ev.teacher ? ' · ' + esc(ev.teacher) : '') + '<br>' + esc(crsLessonWhen(ev)) + '</div>' +
+    '<div class="crs-menu">' +
+      '<button onclick="closeCrsSheets();crsForm(\'' + (lessonsId || '') + '\',null,\'' + evId + '\')">Изменить</button>' +
+      '<button onclick="closeCrsSheets();crsMove(\'' + evId + '\')">Перенести</button>' +
+      (done ? '<button onclick="closeCrsSheets();crsSetDone(\'' + evId + '\',false)">Снять отметку «проведено»</button>'
+            : '<button onclick="closeCrsSheets();crsSetDone(\'' + evId + '\',true)">Отметить проведённым</button>') +
+      (ev.status === 'canceled' ? '<button onclick="closeCrsSheets();crsRestore(\'' + evId + '\')">Восстановить занятие</button>'
+                                : '<button class="danger" onclick="closeCrsSheets();crsCancel(\'' + evId + '\')">Отменить занятие</button>') +
+    '</div>');
+}
+function crsFindEv(evId) {
+  const evs = crsLessonList(crsYmd(crsAddDays(new Date(), -120)), crsYmd(crsAddDays(new Date(), 200)));
+  return evs.filter(function (e) { return e.evId === evId; })[0] || null;
+}
+function crsIsDone(ev) { const st = crsStore(); return !!(st.done && st.done[ev.evId]) || !!(st.lessons[ev.id] && st.lessons[ev.id].done); }
+function crsSetDone(evId, v) {
+  const st = crsStore();
+  st.done = st.done || {};
+  if (v) st.done[evId] = Date.now(); else delete st.done[evId];
+  if (evId.indexOf('l:') === 0 && st.lessons[evId.slice(2)]) st.lessons[evId.slice(2)].done = !!v;
+  crsSave(st); renderCourses(); crsToast(v ? 'Занятие отмечено проведённым' : 'Отметка снята');
+}
+/* ---------- перенос ---------- */
+function crsMove(evId) {
+  const ev = crsFindEv(evId); if (!ev) return;
+  let pickDay = ev.date, pickTime = ev.time, scope = 'one';
+  const isSeries = !!ev.seriesId;
+  const draw = function () {
+    const days = [];
+    for (let i = -3; i < 25; i++) { const d = crsAddDays(new Date(), i); days.push({ k: crsYmd(d), t: CRS_DOW[crsDow(crsYmd(d))] + ' ' + d.getDate() }); }
+    return '<div class="crs-note">' + esc(crsProgTitle(ev.program)) + (ev.teacher ? ' · ' + esc(ev.teacher) : '') + '<br>сейчас: ' + esc(crsLessonWhen(ev)) + ' (' + esc(crsTzShort(ev.tz || CRS_TZ_DEF)) + ')</div>' +
+      '<div class="crs-lbl">Новый день</div><div class="crs-chips crs-scroll">' + days.map(function (d) {
+        return '<button class="crs-chip' + (d.k === pickDay ? ' on' : '') + '" data-d="' + d.k + '">' + d.t + '</button>';
+      }).join('') + '</div>' +
+      '<div class="crs-lbl">Новое время</div><div class="crs-chips crs-scroll">' + ['08:00','09:00','10:00','11:30','12:50','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].map(function (t) {
+        return '<button class="crs-chip' + (t === pickTime ? ' on' : '') + '" data-t="' + t + '">' + t + '</button>';
+      }).join('') + '</div>' +
+      (isSeries ? '<div class="crs-lbl">Серия</div><div class="crs-chips">' +
+        '<button class="crs-chip' + (scope === 'one' ? ' on' : '') + '" data-s="one">Только это занятие</button>' +
+        '<button class="crs-chip' + (scope === 'tail' ? ' on' : '') + '" data-s="tail">Это и последующие</button></div>' : '') +
+      '<div class="crs-note">У преподавателя: ' + crsTimeIn(pickDay, pickTime, ev.tz || CRS_TZ_DEF, ev.tz2zone || 'Asia/Shanghai') + ' 北京</div>' +
+      '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsMvOk" style="flex:1">Перенести</button><button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>';
+  };
+  const sheet = crsSheet('Перенести занятие', draw());
+  const bind = function () {
+    sheet.querySelectorAll('[data-d]').forEach(function (b) { b.onclick = function () { pickDay = b.dataset.d; reb(); }; });
+    sheet.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { pickTime = b.dataset.t; reb(); }; });
+    sheet.querySelectorAll('[data-s]').forEach(function (b) { b.onclick = function () { scope = b.dataset.s; reb(); }; });
+    const ok = sheet.querySelector('#crsMvOk');
+    if (ok) ok.onclick = function () { crsMoveDo(ev, pickDay, pickTime, scope); };
+  };
+  const reb = function () { sheet.querySelector('.crs-sheet-b').innerHTML = draw(); bind(); };
+  bind();
+}
+function crsMoveDo(ev, day, time, scope) {
+  const st = crsStore();
+  if (ev.evId.indexOf('l:') === 0) {
+    const id = ev.evId.slice(2), l = st.lessons[id];
+    if (l) { l.movedFrom = { date: l.date, time: l.time }; l.date = day; l.time = time; l.upd = Date.now(); }
+  } else if (ev.seriesId) {
+    const s = st.series[ev.seriesId];
+    if (s) {
+      s.except = s.except || {};
+      if (scope === 'tail') {
+        const cut = ev.date;
+        const oldTo = s.to || '';
+        s.to = crsYmd(crsAddDays(crsParse(cut), -1));
+        const ns = Object.assign({}, s, { id: crsUid('s'), from: cut, to: oldTo, days: [crsDow(day)], time: time, except: {}, upd: Date.now() });
+        st.series[ns.id] = ns;
+      } else {
+        s.except[ev.date] = { date: day, time: time, movedFrom: ev.date };
+        s.upd = Date.now();
+      }
+    }
+  }
+  crsRecalcHwDue(st, 'lesson');
+  crsSave(st);
+  closeCrsSheets(); renderCourses(); crsToast('Перенесено на ' + crsDayShort(day) + ', ' + time);
+}
+/* ---------- отмена и восстановление ---------- */
+function crsCancel(evId) {
+  const ev = crsFindEv(evId); if (!ev) return;
+  const linked = crsHwForLesson(ev).filter(function (h) { return h.due && h.due.mode === 'lesson'; });
+  crsSheet('Отменить занятие', '<div class="crs-note">' + esc(crsLessonWhen(ev)) + ' · ' + esc(crsProgTitle(ev.program)) + '</div>' +
+    '<div class="crs-note">Запись останется в истории, ответы и ДЗ сохранятся. Напоминания по занятию выключим.</div>' +
+    (linked.length ? '<div class="crs-lbl">Срок ДЗ, привязанный к занятию</div><div class="crs-chips">' +
+      '<button class="crs-chip on" data-due="keep">оставить как есть</button>' +
+      '<button class="crs-chip" data-due="clear">снять срок</button>' +
+      '<button class="crs-chip" data-due="move">перенести на дату…</button></div>' : '') +
+    '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsCancelOk" style="flex:1">Отменить занятие</button><button class="crs-b s" onclick="closeCrsSheets()">Назад</button></div>',
+    { after: function (sheet) {
+        const ok = sheet.querySelector('#crsCancelOk');
+        if (ok) ok.onclick = function () {
+          const st = crsStore();
+          if (ev.evId.indexOf('l:') === 0 && st.lessons[ev.evId.slice(2)]) { st.lessons[ev.evId.slice(2)].status = 'canceled'; st.lessons[ev.evId.slice(2)].upd = Date.now(); }
+          else if (ev.seriesId && st.series[ev.seriesId]) { st.series[ev.seriesId].except = st.series[ev.seriesId].except || {}; st.series[ev.seriesId].except[ev.date] = 'canceled'; st.series[ev.seriesId].upd = Date.now(); }
+          st.canceled = st.canceled || {}; st.canceled[ev.evId] = Date.now();
+          crsSave(st); closeCrsSheets(); renderCourses(); crsToast('Занятие отменено — можно вернуть в меню ⋯');
+        };
+      } });
+}
+function crsRestore(evId) {
+  const st = crsStore();
+  if (evId.indexOf('l:') === 0 && st.lessons[evId.slice(2)]) { st.lessons[evId.slice(2)].status = 'plan'; st.lessons[evId.slice(2)].upd = Date.now(); }
+  else {
+    const ev = crsFindEv(evId);
+    if (ev && ev.seriesId && st.series[ev.seriesId]) { delete (st.series[ev.seriesId].except || {})[ev.date]; st.series[ev.seriesId].upd = Date.now(); }
+  }
+  if (st.canceled) delete st.canceled[evId];
+  crsSave(st); renderCourses(); crsToast('Занятие восстановлено');
+}
+/* ---------- ДЗ: срок и свои задания ---------- */
+function crsHwForLesson(ev) {
+  const unit = ev.material && ev.material.unit;
+  const part = ev.material ? ev.material.part : '';
+  const list = crsHwList().filter(function (h) {
+    if (h.existing && unit !== undefined && unit !== '' && h.unit === +unit) return true;
+    if (h.lessonId && h.lessonId === ev.id) return true;
+    if ((ev.hwKeys || []).indexOf(h.key) >= 0) return true;
+    return false;
+  });
+  if (part !== undefined && part !== '' && part !== null) {
+    list.sort(function (a, b) {
+      const pa = a.existing && a.partId === +part ? 1 : 0;
+      const pb = b.existing && b.partId === +part ? 1 : 0;
+      return pb - pa;
+    });
+  }
+  return list;
+}
+function crsHwDueSheet(key, preset) {
+  const cur = crsHwDue(key);
+  let mode = (preset && preset.mode) || cur.mode || 'none';
+  let date = (preset && preset.date) || cur.date || crsYmd(crsAddDays(new Date(), 1));
+  let lessonId = cur.lessonId || '';
+  const evs = crsLessonList(crsYmd(new Date()), crsYmd(crsAddDays(new Date(), 60)));
+  const draw = function () {
+    return '<div class="crs-chips"><button class="crs-chip' + (mode === 'none' ? ' on' : '') + '" data-m="none">без срока</button>' +
+      '<button class="crs-chip' + (mode === 'date' ? ' on' : '') + '" data-m="date">дата</button>' +
+      '<button class="crs-chip' + (mode === 'lesson' ? ' on' : '') + '" data-m="lesson">к началу занятия</button></div>' +
+      (mode === 'date' ? '<div class="crs-lbl">Дата</div><input class="crs-inp" type="date" id="crsDueD" value="' + date + '">' : '') +
+      (mode === 'lesson' ? '<div class="crs-lbl">Занятие</div><select class="crs-inp" id="crsDueL">' + evs.map(function (e) {
+        return '<option value="' + (e.id || '') + '|' + e.date + '"' + (lessonId === e.id ? ' selected' : '') + '>' + esc(crsLessonWhen(e) + ' · ' + crsProgTitle(e.program)) + '</option>';
+      }).join('') + '</select><div class="crs-note">Такой срок поедет вместе с занятием при переносе.</div>' : '') +
+      '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsDueOk" style="flex:1">Сохранить</button><button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>';
+  };
+  const sheet = crsSheet('Срок ДЗ', draw());
+  const bind = function () {
+    sheet.querySelectorAll('[data-m]').forEach(function (b) { b.onclick = function () { mode = b.dataset.m; reb(); }; });
+    const ok = sheet.querySelector('#crsDueOk');
+    if (ok) ok.onclick = function () {
+      if (mode === 'date') { const n = sheet.querySelector('#crsDueD'); if (n) date = n.value; }
+      if (mode === 'lesson') { const n = sheet.querySelector('#crsDueL'); if (n) { const p = n.value.split('|'); lessonId = p[0]; date = p[1]; } }
+      crsHwSetDue(key, mode === 'none' ? { mode: 'none' } : (mode === 'date' ? { mode: 'date', date: date } : { mode: 'lesson', lessonId: lessonId, date: date }));
+      closeCrsSheets(); crsPaint(); crsToast('Срок обновлён');
+    };
+  };
+  const reb = function () { sheet.querySelector('.crs-sheet-b').innerHTML = draw(); bind(); };
+  bind();
+}
+function crsHwForm(key) {
+  const st = crsStore();
+  const id = key && key.indexOf('c:') === 0 ? key.slice(2) : '';
+  const h = id ? (st.hw[id] || {}) : {};
+  let f = { title: h.title || '', program: h.program || (st.filters.prog || ''), text: h.text || '', items: (h.items || []).slice(), unit: (h.material && h.material.unit) || '', lessonId: h.lessonId || '' };
+  const draw = function () {
+    return '<div class="crs-lbl">Название</div><input class="crs-inp" id="crsHT" value="' + esc(f.title) + '" placeholder="например: Эссе о поездке">' +
+      '<div class="crs-lbl">Программа</div><div class="crs-chips">' + CRS_PROGS.map(function (p) {
+        return '<button class="crs-chip' + (f.program === p.id ? ' on' : '') + '" data-p="' + p.id + '">' + p.zh + ' ' + p.ru + '</button>';
+      }).join('') + '</div>' +
+      '<div class="crs-lbl">Текст задания</div><textarea class="crs-inp" id="crsHX" rows="3" placeholder="что нужно сделать">' + esc(f.text) + '</textarea>' +
+      '<div class="crs-lbl">Чек-лист (по строке на пункт)</div><textarea class="crs-inp" id="crsHI" rows="3" placeholder="1. …&#10;2. …">' + esc(f.items.join('\n')) + '</textarea>' +
+      '<div class="crs-lbl">Связанный материал</div><select class="crs-inp" id="crsHU"><option value="">— нет —</option>' + crsUnitsOf(f.program || 'idv').map(function (u) {
+        return '<option value="' + u.unit + '"' + (String(f.unit) === String(u.unit) ? ' selected' : '') + '>' + esc((typeof unitName === 'function' ? unitName(u) : u.label)) + '</option>';
+      }).join('') + '</select>' +
+      '<div class="crs-note">Своё задание живёт здесь и не попадает в 句子 и 词典.</div>' +
+      '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsHOk" style="flex:1">Сохранить</button><button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>';
+  };
+  const sheet = crsSheet(id ? 'Своё задание' : 'Новое задание', draw());
+  const bind = function () {
+    sheet.querySelectorAll('[data-p]').forEach(function (b) { b.onclick = function () { f.program = b.dataset.p; reb(); }; });
+    const ok = sheet.querySelector('#crsHOk');
+    if (ok) ok.onclick = function () {
+      const t = sheet.querySelector('#crsHT').value.trim();
+      if (!t) { crsToast('Нужно название'); return; }
+      const st2 = crsStore();
+      const nid = id || crsUid('h');
+      st2.hw[nid] = {
+        id: nid, title: t, program: f.program,
+        text: sheet.querySelector('#crsHX').value.trim(),
+        items: sheet.querySelector('#crsHI').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean),
+        material: sheet.querySelector('#crsHU').value ? { unit: +sheet.querySelector('#crsHU').value } : null,
+        lessonId: f.lessonId, upd: Date.now()
+      };
+      crsSave(st2); closeCrsSheets(); crsPaint(); crsToast('Задание сохранено');
+    };
+  };
+  const reb = function () { sheet.querySelector('.crs-sheet-b').innerHTML = draw(); bind(); };
+  bind();
+}
+function crsHwEdit(key) { crsHwForm(key); }
+function crsRecalcHwDue(st, why) { /* привязка «к занятию» считается на лету — пересчёт очереди напоминаний */ try { crsPushSyncReminders(); } catch (e) {} }
+/* ================= /CRS_BLOCK_V3 (часть 3) ================= */
+
+/* ================= CRS_BLOCK_V3 (часть 4: напоминания, push, склейка) ================= */
+
+/* ---------- напоминания внутри приложения ---------- */
+const CRS_SEEN_LS = 'tingli-rem-seen-v1';
+function crsSeen() { try { return JSON.parse(localStorage.getItem(CRS_SEEN_LS) || '{}') || {}; } catch (e) { return {}; } }
+function crsSeenSet(k) { const o = crsSeen(); o[k] = Date.now(); try { localStorage.setItem(CRS_SEEN_LS, JSON.stringify(o)); } catch (e) {} }
+function crsSeenHas(k) { return !!crsSeen()[k]; }
+function crsPushSyncReminders() {
+  if (crsBusy) return;
+  crsBusy = true;
+  try {
+    const due = crsReminderQueue().filter(function (r) { return r.at <= Date.now() && r.at > Date.now() - 6 * 3600e3; });
+    due.forEach(function (r) {
+      const k = r.kind + '|' + r.key + '|' + r.when;
+      if (crsSeenHas(k)) return;
+      crsSeenSet(k);
+      const txt = (r.kind === 'lesson' ? 'Занятие' : 'ДЗ') + ' ' + crsRemWord(r.when) + ': ' + r.title;
+      try { if (window.Notification && Notification.permission === 'granted') new Notification('小山听力 · ' + APP_VER, { body: txt, tag: k, icon: 'tab-sch.png' }); } catch (e) {}
+      crsToast('🔔 ' + txt);
+    });
+  } catch (e) {} finally { crsBusy = false; }
+}
+setInterval(function () { try { crsPushSyncReminders(); } catch (e) {} }, 60000);
+
+/* ---------- Web Push ---------- */
+function crsPushSupported() { return ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window); }
+function crsPushStatus() {
+  if (!crsPushSupported()) return { ok: false, note: 'Браузер не поддерживает Web Push' };
+  if (Notification.permission === 'denied') return { ok: false, note: 'Уведомления запрещены в настройках браузера' };
+  if (Notification.permission === 'default') return { ok: false, note: 'Разрешение ещё не выдано' };
+  return { ok: true, note: 'Разрешение выдано' };
+}
+function crsB64ToU8(s) {
+  const pad = '='.repeat((4 - s.length % 4) % 4);
+  const b = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  const a = new Uint8Array(b.length);
+  for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i);
+  return a;
+}
+async function crsPushKey() {
+  try {
+    const r = await crsApi('/push/key');
+    if (!r.ok) return '';
+    const j = await r.json();
+    return j && j.key ? j.key : '';
+  } catch (e) { return ''; }
+}
+async function crsPushEnable() {
+  if (!crsPushSupported()) { crsPushStatusSheet('Этот браузер не умеет Web Push. Напоминания будут приходить, когда приложение открыто.'); return; }
+  if (Notification.permission === 'denied') { crsPushStatusSheet('Уведомления запрещены в настройках браузера — включи их для crmuro.ru и повтори.'); return; }
+  let perm = Notification.permission;
+  if (perm !== 'granted') perm = await Notification.requestPermission();
+  if (perm !== 'granted') { crsPushStatusSheet('Разрешение не выдано — напоминания будут только внутри приложения.'); return; }
+  const key = await crsPushKey();
+  if (!key) { crsPushStatusSheet('Разрешение выдано. Сервер подписки пока не отвечает — уведомления пойдут, только когда приложение открыто. Это честный статус, а не «включено».'); return; }
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: crsB64ToU8(key) });
+    const body = JSON.stringify({ sub: sub.toJSON(), tz: CRS_LOCAL_TZ, ver: APP_VER });
+    const r = await crsApi('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: body });
+    if (r.ok) { const st = crsStore(); st.push = { on: true, at: Date.now() }; crsSave(st); crsPushStatusSheet('Подписка сохранена на сервере. Напоминания придут, даже если приложение закрыто.'); }
+    else crsPushStatusSheet('Подписку не удалось сохранить на сервере (ответ ' + r.status + '). Уведомления пойдут, только когда приложение открыто.');
+  } catch (e) {
+    crsPushStatusSheet('Браузер не дал подписаться: ' + (e && e.message ? e.message : e) + '. Уведомления пойдут, только когда приложение открыто.');
+  }
+}
+async function crsPushDisable() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) { try { await crsApi('/push/unsubscribe', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify({ endpoint: sub.endpoint }) }); } catch (e) {} await sub.unsubscribe(); }
+  } catch (e) {}
+  const st = crsStore(); st.push = { on: false, at: Date.now() }; crsSave(st);
+  crsPushStatusSheet('Подписка снята. Напоминания будут только внутри приложения.');
+}
+function crsPushStatusSheet(msg) {
+  const st = crsStore();
+  const s = crsPushStatus();
+  const base = Notification && Notification.permission ? Notification.permission : 'нет';
+  crsSheet('Напоминания', '<div class="crs-note">' + esc(msg) + '</div>' +
+    '<div class="crs-note">Web Push: ' + (crsPushSupported() ? 'поддерживается' : 'не поддерживается') + ' · разрешение: ' + esc(base) + ' · подписка: ' + ((st.push && st.push.on) ? 'сохранена' : 'нет') + '</div>' +
+    '<div class="crs-lbl">Напоминания о занятиях</div><div class="crs-chips">' +
+      '<button class="crs-chip' + (st.rem.lessons.on ? ' on' : '') + '" onclick="crsRemToggle(\'lessons\')">' + (st.rem.lessons.on ? 'включены' : 'выключены') + '</button>' +
+      CRS_OFFSETS.map(function (o) {
+        return '<button class="crs-chip' + ((st.rem.lessons.offsets || []).indexOf(o.m) >= 0 ? ' on' : '') + '" onclick="crsRemOff(\'lessons\',' + o.m + ')">' + o.t + '</button>';
+      }).join('') + '</div>' +
+    '<div class="crs-lbl">Напоминания о ДЗ</div><div class="crs-chips">' +
+      '<button class="crs-chip' + (st.rem.hw.on ? ' on' : '') + '" onclick="crsRemToggle(\'hw\')">' + (st.rem.hw.on ? 'включены' : 'выключены') + '</button>' +
+      CRS_OFFSETS.map(function (o) {
+        return '<button class="crs-chip' + ((st.rem.hw.offsets || []).indexOf(o.m) >= 0 ? ' on' : '') + '" onclick="crsRemOff(\'hw\',' + o.m + ')">' + o.t + '</button>';
+      }).join('') + '</div>' +
+    '<div class="crs-note">Дальше: ' + (crsUpcoming().slice(0, 3).map(function (r) { return crsRemWord(r.when) + ' — ' + r.title; }).join('; ') || 'пока нечего напоминать') + '</div>' +
+    '<div class="crs-actions crs-sticky"><button class="crs-b p" onclick="crsPushEnable()" style="flex:1">Включить Web Push</button>' +
+    '<button class="crs-b s" onclick="crsPushDisable()">Снять подписку</button></div>');
+}
+function crsRemToggle(g) { const st = crsStore(); st.rem[g].on = !st.rem[g].on; crsSave(st); crsPushStatusSheet('Настройка сохранена.'); }
+function crsRemOff(g, m) { const st = crsStore(); const a = st.rem[g].offsets || []; const i = a.indexOf(m); if (i < 0) a.push(m); else a.splice(i, 1); st.rem[g].offsets = a; crsSave(st); crsPushStatusSheet('Настройка сохранена.'); }
+
+/* ---------- склейка с приложением ---------- */
+function crsBoot() {
+  try { crsStore(); } catch (e) {}
+  try { crsCloudPull(); } catch (e) {}
+  setTimeout(function () { try { crsPushSyncReminders(); } catch (e) {} }, 2000);
+}
+document.addEventListener('DOMContentLoaded', crsBoot);
+/* ================= /CRS_BLOCK_V3 (часть 4) ================= */
+
 </script>
 </body>
 </html>

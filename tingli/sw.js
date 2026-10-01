@@ -1,8 +1,8 @@
 // Service Worker «Тингли» — офлайн-режим (авиарежим / полёт)
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
-// data-build: v3.5.4 (2026-09-30: аудио переозвучено без вводных частей)
-const CACHE = 'tingli-cache-v31-rollback';
+// data-build: v3.6.0 (2026-10-01: лист 课程 — расписание и ДЗ)
+const CACHE = 'tingli-cache-v34-courses';
 
 // Cloudflare отдаёт файлы сжатыми (content-encoding: br), а Cache API хранит уже
 // распакованное тело: если отдать такую запись на НАВИГАЦИЮ, браузер пытается
@@ -25,6 +25,9 @@ const ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './tab-sch.png',
+  './tab-sch-off.png',
+  './sched-logo.png',
   './apple-touch-icon-v2.png',
   './apple-touch-icon.png',
   './bg.jpg',
