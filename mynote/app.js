@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.4.9';
+  const APP_VER = '1.5.0';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -10,7 +10,7 @@
   // С хоста crmuro.ru API живёт на поддомене (дома у Саши весь pages.dev не резолвится).
   // Держим два адреса: sync.crmuro.ru — основной, mn-api.crmuro.ru — запасной.
   const API_HOSTS = (/^(www\.)?crmuro\.ru$/i.test(location.hostname))
-    ? ['https://mn-api.crmuro.ru/api/mynote', 'https://sync.crmuro.ru/api/mynote']
+    ? ['https://mn-api.crmuro.ru/api/mynote', '/api/mynote']
     : ['/api/mynote'];
   let apiHost = 0;
   const apiBase = () => API_HOSTS[apiHost] || API_HOSTS[0];
@@ -52,7 +52,7 @@
     let res = null;
     for (let attempt = 0; attempt < API_HOSTS.length; attempt++) {
       const ctrl = new AbortController();
-      const to = setTimeout(() => ctrl.abort(), 25000);
+      const to = setTimeout(() => ctrl.abort(), 30000);
       try {
         res = await fetch(apiBase() + url2, Object.assign({}, opts, { headers, signal: ctrl.signal }));
         break;
@@ -169,16 +169,26 @@
 
   /* ---------------- дерево ---------------- */
 
-  async function loadTree(tries) {
-    if (tries === undefined) tries = 3;
-    try {
-      const d = await api('/tree');
-      state.tree = d.notebooks || [];
-      renderTree();
-    } catch (e) {
-      // сеть бывает медленной — пробуем ещё, а не остаёмся с пустым списком
-      if (tries > 1) { setTimeout(() => loadTree(tries - 1), 3000); return; }
-      throw e;
+  async function loadTree() {
+    // 1. мгновенно показываем то, что помним с прошлого раза
+    if (!(state.tree || []).length) {
+      try {
+        const cached = JSON.parse(localStorage.getItem('mynote-tree') || 'null');
+        if (Array.isArray(cached) && cached.length) { state.tree = cached; renderTree(); }
+      } catch (e) {}
+    }
+    // 2. и до 15 раз пробуем получить свежий список — сеть до сервера отвечает рывками
+    for (let i = 0; i < 15; i++) {
+      try {
+        const d = await api('/tree');
+        state.tree = d.notebooks || [];
+        renderTree();
+        try { localStorage.setItem('mynote-tree', JSON.stringify(state.tree)); } catch (e) {}
+        return;
+      } catch (e) {
+        if (e && e.status === 401) throw e;
+        await new Promise(r => setTimeout(r, 4000));
+      }
     }
   }
 
@@ -1570,14 +1580,11 @@
     if (!state.token && !(await ensureToken(4))) { await showConnectScreen('Не удалось подключиться к серверу.'); return; }
     try {
       const d = await api('/me');
-      console.log('DBG me ok', JSON.stringify(d).slice(0, 120));
       state.user = d.user;
       if (d.open) state.openLogin = true;
       state.bootN = 0;
       showApp();
-      console.log('DBG showApp ok, иду за деревом');
       await loadTree();
-      console.log('DBG дерево загружено:', (state.tree||[]).length);
       await route();
       if (location.hash.startsWith('#/l/')) return;
       if (!state.page) {
@@ -1595,7 +1602,6 @@
         if (openId) { state.open.add(openNb); saveOpen(); openPage(openId, openNb); }
       }
     } catch (e) {
-      console.log('DBG ОШИБКА в boot:', String(e && e.message), String(e && e.stack).slice(0, 160));
       const isAuth = (e && (e.status === 401 || /Нужен вход/.test(String(e.message || ''))));
       if (isAuth) {
         localStorage.removeItem('mynote-token'); state.token = ''; state.user = null;
