@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.6.6';
+  const APP_VER = '1.6.7';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -10,7 +10,7 @@
   // С хоста crmuro.ru API живёт на поддомене (дома у Саши весь pages.dev не резолвится).
   // Держим два адреса: sync.crmuro.ru — основной, mn-api.crmuro.ru — запасной.
   const API_HOSTS = (/^(www\.)?crmuro\.ru$/i.test(location.hostname))
-    ? ['https://mn-api.crmuro.ru/api/mynote']
+    ? ['https://mn-api.crmuro.ru/api/mynote', 'https://mynote.crmuro.ru/api/mynote']
     : ['/api/mynote'];
   let apiHost = 0;
   const apiBase = () => API_HOSTS[apiHost] || API_HOSTS[0];
@@ -51,18 +51,25 @@
     if (state.token) url2 += (url2.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(state.token);
     if (opts.body && !(opts.body instanceof FormData)) headers['Content-Type'] = 'text/plain;charset=UTF-8';
     let res = null;
-    if (API_HOSTS.length > 1) apiHost = 0;      // каждый запрос пробуем с лучшего адреса
-    for (let attempt = 0; attempt < API_HOSTS.length; attempt++) {
-      const ctrl = new AbortController();
-      const to = setTimeout(() => ctrl.abort(), limit);
+    {
+      // порядок: сначала тот адрес, что уже отвечал, остальные — параллельно (гонка)
+      const order = API_HOSTS.map((h, i) => i);
+      const best = order.indexOf(apiHost);
+      if (best > 0) { order.splice(best, 1); order.unshift(apiHost); }
+      const ctrls = order.map(() => new AbortController());
+      const tos = ctrls.map(c => setTimeout(() => c.abort(), limit));
       try {
-        res = await fetch(apiBase() + url2, Object.assign({}, opts, { headers, signal: ctrl.signal }));
-        if (res.status === 404 && attempt < API_HOSTS.length - 1) { apiHost++; continue; }   // этот адрес пуст — пробуем следующий
-        break;
+        res = await Promise.any(order.map((hi, k) => new Promise((ok, no) => {
+          fetch(API_HOSTS[hi] + url2, Object.assign({}, opts, { headers, signal: ctrls[k].signal }))
+            .then(r => { if (r.status === 404 && order.length > 1) no(new Error('пустой адрес')); else { apiHost = hi; ok(r); } })
+            .catch(no);
+        })));
       } catch (e) {
-        if (attempt < API_HOSTS.length - 1) { apiHost++; continue; }  // другой адрес API
-        throw e;
-      } finally { clearTimeout(to); }
+        throw (e && e.errors && e.errors[0]) || e;
+      } finally {
+        tos.forEach(clearTimeout);
+        order.forEach((hi, k) => { if (hi !== apiHost) ctrls[k].abort(); });
+      }
     }
     if (res.status === 401) {
       if (!state.token) { const e0 = new Error('Нужен вход'); e0.status = 401; e0.noToken = true; throw e0; }
@@ -1737,6 +1744,8 @@
     showApp();
     pageCacheLoad();
     state.bootN = 0;
+    // прогреваем соединение заранее — первое обращение бывает очень долгим
+    API_HOSTS.forEach(h => { try { fetch(h + '/about', { cache: 'no-store' }).catch(() => {}); } catch (e) {} });
     // 1. что помним — показываем сразу, без сети
     try {
       const ct = JSON.parse(localStorage.getItem('mynote-tree') || 'null');
