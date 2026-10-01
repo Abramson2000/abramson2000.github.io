@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.5.0';
+  const APP_VER = '1.5.1';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -42,6 +42,7 @@
 
   async function api(path, opts) {
     opts = opts || {};
+    const limit = opts.timeout || 30000;
     const headers = Object.assign({}, opts.headers || {});
     // Заголовок Authorization и application/json вызывают предварительный CORS-запрос,
     // который у Саши дома рвётся. Поэтому токен идёт в ссылке, а тело — как text/plain:
@@ -52,7 +53,7 @@
     let res = null;
     for (let attempt = 0; attempt < API_HOSTS.length; attempt++) {
       const ctrl = new AbortController();
-      const to = setTimeout(() => ctrl.abort(), 30000);
+      const to = setTimeout(() => ctrl.abort(), limit);
       try {
         res = await fetch(apiBase() + url2, Object.assign({}, opts, { headers, signal: ctrl.signal }));
         break;
@@ -170,6 +171,7 @@
   /* ---------------- дерево ---------------- */
 
   async function loadTree() {
+    state.loadingTree = true; renderTree();
     // 1. мгновенно показываем то, что помним с прошлого раза
     if (!(state.tree || []).length) {
       try {
@@ -178,16 +180,17 @@
       } catch (e) {}
     }
     // 2. и до 15 раз пробуем получить свежий список — сеть до сервера отвечает рывками
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 30; i++) {
       try {
-        const d = await api('/tree');
+        const d = await api('/tree', { timeout: 8000 });
         state.tree = d.notebooks || [];
         renderTree();
         try { localStorage.setItem('mynote-tree', JSON.stringify(state.tree)); } catch (e) {}
+        state.loadingTree = false; renderTree();
         return;
       } catch (e) {
         if (e && e.status === 401) throw e;
-        await new Promise(r => setTimeout(r, 4000));
+        await new Promise(r => setTimeout(r, 2000));
       }
     }
   }
@@ -198,7 +201,8 @@
     const host = $('#tree'); host.innerHTML = '';
     const f = state.filter.toLowerCase();
     if (!state.tree.length) {
-      const li = el('li', 'node'); li.appendChild(el('div', 'line', 'Пока нет блокнотов — создайте первый.'));
+      const li = el('li', 'node');
+      li.appendChild(el('div', 'line', state.loadingTree ? 'Загружаю список…' : 'Пока нет блокнотов — создайте первый.'));
       host.appendChild(li); return;
     }
     for (const nb of state.tree) {
