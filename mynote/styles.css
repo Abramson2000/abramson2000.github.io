@@ -88,8 +88,6 @@ label.field > span { display: block; font-size: 13px; color: var(--text-muted); 
   width: var(--sidebar-width); flex: 0 0 var(--sidebar-width); background: var(--surface);
   border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0;
 }
-#sidebar.collapsed { width: 56px; flex-basis: 56px; }
-#sidebar.collapsed .hide-collapsed { display: none; }
 .sb-top { padding: 12px 12px 8px; }
 .brand-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .brand-row img { width: 30px; height: 24px; }
@@ -246,31 +244,11 @@ h1#pageTitle {
 
 /* мобильный режим */
 #mobileBar { display: none; }
-/* ---------- нижняя полоса и укрупнение интерфейса ---------- */
-#mobBottom {
-  display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
-  background: var(--surface); border-top: 1px solid var(--border);
-  padding: 4px 8px; gap: 4px; justify-content: center;
-}
-#mobBottom .mb-item {
-  flex: 0 1 210px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  background: transparent; border: 0; color: var(--text-muted); font: inherit; font-size: 12px;
-  padding: 6px 10px; min-height: 50px; cursor: pointer; border-radius: 8px;
-}
-#mobBottom .mb-item:hover { color: var(--brand); background: var(--page-bg); }
-#mobBottom .mb-item svg { width: 22px; height: 22px; }
-#mobBottom .mb-item img { display: block; }
-#mobBottom .mb-item b { font-weight: 600; color: var(--text); }
-.sb-actions { border-top: 1px solid var(--border); padding: 8px 10px 0; }
-.sb-actions .btn { flex: 1; }
-#mobBottom .mb-item:active, #mobBottom .mb-item.on { color: var(--brand); }
-#doc { padding-bottom: 96px; }
+#doc { padding-bottom: 24px; }
 
 html { -webkit-text-size-adjust: 100%; }
 body { overflow-x: hidden; }
 #crumbs { display: none !important; }
-#btnShowSide { display: none; }
-#sidebar.collapsed ~ main #topbar #btnShowSide { display: inline-flex; }
 .sb-brand { display: flex; align-items: center; gap: 8px; width: 100%; }
 .sb-brand img { flex: none; opacity: .9; }
 .sb-brand .n { margin-left: auto; font-size: 11.5px; color: var(--text-muted); }
@@ -283,11 +261,7 @@ body { overflow-x: hidden; }
   }
   #sidebar.open { transform: none; }
   aside#sidebar { z-index: 70; }
-  #sidebar.open ~ main #mobBottom { display: none; }
 #crumbs { display: none !important; }
-#btnShowSide { display: none; }
-#sidebar.collapsed ~ main #topbar #btnShowSide { display: inline-flex; }
-  #sidebar.collapsed { width: min(86vw, 330px); }
   #scrim { position: fixed; inset: 0; background: rgba(23,42,58,.34); z-index: 65; display: none; }
   #scrim.on { display: block; }
   #mobileBar {
@@ -300,17 +274,13 @@ body { overflow-x: hidden; }
   
   #mobileBar img { width: 34px; height: 27px; }
   #topbar { display: none; }
-  #mobBottom { padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
-  #mobBottom .mb-item { flex: 1; min-height: 54px; padding: 6px 2px; }
-  #mobBottom .mb-item svg { width: 25px; height: 25px; }
-  #btnShowSide { display: none !important; }
   .hide-desktop { display: block; }
   .user-row .hide-desktop { display: inline-flex; }
   .sb-foot .user-row { display: none; }
   #docBody, #docBody p, #docBody li, .val, .place-field .k, #docMeta, .sb-foot { font-size: 16px; }
   .val, #docBody p, #docBody li { line-height: 1.55; }
   input, textarea, #searchInp, [contenteditable="true"] { font-size: 16px; }
-  #doc { padding: 14px 14px 170px; }
+  #doc { padding: 14px 14px 40px; }
   .place-side { padding: 12px 14px; }
   .sb-top { padding-bottom: 6px; }
   .sb-brand .n { font-size: 12px; }

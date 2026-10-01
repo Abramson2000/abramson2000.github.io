@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="MyNote" />
-<link rel="stylesheet" href="styles.css?v=1.5.1" />
+<link rel="stylesheet" href="styles.css?v=1.5.2" />
 </head>
 <body>
 
@@ -60,7 +60,6 @@
         <img src="img/symbol.svg" alt="MyNote" />
         <span class="name hide-collapsed">MyNote</span>
         <span class="spacer"></span>
-        <button class="icon-btn hide-collapsed" id="btnCollapse" title="Свернуть панель" type="button">&#8249;</button>
       </div>
       <div hidden>
         <input type="search" id="searchInp" placeholder="Поиск по заголовкам и тексту" />
@@ -104,24 +103,11 @@
       </button>
     </div>
     <div id="topbar">
-      <button class="icon-btn" id="btnShowSide" title="Показать панель" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-      </button>
       <div id="crumbs"></div>
       <span class="pill private" id="accessPill">Личный</span>
       <button class="btn sm hide-mobile" id="btnEdit" type="button">Редактировать</button>
       <button class="btn sm hide-mobile" id="btnShare" type="button">Поделиться</button>
       <button class="icon-btn hide-mobile" id="btnMore" title="Ещё" type="button">⋯</button>
-    </div>
-    <div id="mobBottom">
-      <button class="mb-item" id="mbSearch" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
-        <span>Поиск</span>
-      </button>
-      <button class="mb-item" id="mbInfo" type="button">
-        <img src="img/symbol.svg" alt="MyNote" width="24" height="20" />
-        <span>Мой блокнот <b id="verLabel2"></b></span>
-      </button>
     </div>
     <div id="docWrap">
       <div id="doc">
@@ -145,6 +131,6 @@
 
 <div id="modals"></div>
 <div id="toasts"></div>
-<script src="app.js?v=1.5.1"></script>
+<script src="app.js?v=1.5.2"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.5.1';
+  const APP_VER = '1.5.2';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -1489,8 +1489,6 @@
     $('#tabLogin').onclick = () => setAuthMode(false);
     $('#tabReg').onclick = () => setAuthMode(true);
     $('#authForm').onsubmit = submitAuth;
-    on('#btnCollapse', () => { $('#sidebar').classList.toggle('collapsed'); localStorage.setItem('mynote-collapsed', $('#sidebar').classList.contains('collapsed') ? '1' : ''); });
-    on('#btnShowSide', () => { $('#sidebar').classList.remove('collapsed'); localStorage.setItem('mynote-collapsed', ''); });
     on('#btnMenu', () => openSidebar());
     on('#scrim', () => closeSidebar());
     on('#btnEdit', () => toggleEdit());
@@ -1525,9 +1523,6 @@
       if (!nb) { toast('Сначала создайте блокнот', 'err'); return; }
       newPageDialog(nb);
     });
-    // нижняя мобильная панель
-    on('#mbSearch', searchSheet);
-    on('#mbInfo', showAbout);
     installEdgeSwipe();
 
     $('#searchInp').oninput = (e) => { state.filter = e.target.value.trim(); renderTree(); };
@@ -1558,7 +1553,7 @@
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); toggleEdit(); }
       if (e.key === 'Escape') { const ov = document.querySelectorAll('.overlay'); if (ov.length) ov[ov.length - 1].remove(); }
     });
-    if (localStorage.getItem('mynote-collapsed') && window.innerWidth > 860) $('#sidebar').classList.add('collapsed');
+    try { localStorage.removeItem('mynote-collapsed'); } catch (e) {}
   }
 
   // Если через 7 секунд приложение так и не открылось — предлагаем обновить страницу
