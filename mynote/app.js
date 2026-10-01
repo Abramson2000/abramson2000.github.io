@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.6.8';
+  const APP_VER = '1.6.9';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -179,14 +179,17 @@
   /* ---------------- дерево ---------------- */
 
   let warmBusy = false;
+  let lastTouch = Date.now();
   async function warmCache() {
     if (warmBusy) return; warmBusy = true;
     try {
       const all = [];
       (state.tree || []).forEach(nb => (nb.pages || []).forEach(p => all.push([p.id, nb.id])));
       let k = 0;
-      const worker = async () => {                        // две загрузки параллельно, иначе долго
+      const worker = async () => {
         while (k < all.length) {
+          // фон уступает человеку: пока он читает и кликает — ничего не грузим
+          while (!state.warmStop && (state.openingId || Date.now() - lastTouch < 7000)) await new Promise(r => setTimeout(r, 400));
           if (state.warmStop) return;
           const pair = all[k++], id = pair[0];
           const c = pageCache.get(id);
@@ -584,6 +587,7 @@
   }
 
   async function openPage(id, nbId) {
+    lastTouch = Date.now();
     const seq = ++openSeq;
     // не блокируем переход: черновик сохраняем локально, отправку — в фон
     if (state.dirty) { saveDraft(); saveNow(true); }
@@ -1667,6 +1671,8 @@
   }
 
   function bind() {
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
+      document.addEventListener(ev, () => { lastTouch = Date.now(); }, true));
     const on = (sel, fn) => { const n = $(sel); if (n) n.onclick = fn; else console.warn('bind: нет элемента', sel); };
     const onAny = (sel, ev, fn) => { const n = $(sel); if (n) n.addEventListener(ev, fn); };
     $('#tabLogin').onclick = () => setAuthMode(false);
