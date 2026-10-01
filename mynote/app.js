@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.6.0';
+  const APP_VER = '1.6.1';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -89,14 +89,12 @@
 
   function showAuth(msg, ok) {
     if (state.openLogin) { setTimeout(() => boot(), 1500); return; }
-    const sp = $('#splash'); if (sp) sp.classList.add('hidden');
     const a = $('#auth'); a.hidden = false; a.classList.add('on');
     $('#app').classList.remove('on');
     const m = $('#authMsg'); m.textContent = msg || ''; m.className = 'form-msg' + (ok ? ' ok' : '');
   }
   function showApp() {
     const a0 = $('#auth'); a0.style.display = 'none'; a0.classList.remove('on'); a0.hidden = true;
-    const sp0 = $('#splash'); if (sp0) sp0.classList.add('hidden');
     $('#app').classList.add('on');
     const un = $('#userName'); if (un) un.textContent = state.user ? state.user.name || state.user.email : '';
     const av = $('#ava'); if (av) av.textContent = (state.user ? (state.user.name || state.user.email) : '?').trim().charAt(0).toUpperCase();
@@ -129,7 +127,7 @@
 
   async function openAccess() {
     try {
-      const d = await api('/auth/open', { method: 'POST', body: '{}' });
+      const d = await api('/auth/open', { method: 'POST', body: '{}', timeout: 9000 });
       state.token = d.token || '';
       state.user = d.user || null;
       state.open = state.open || new Set();
@@ -1603,7 +1601,6 @@
 
   function bind() {
     const on = (sel, fn) => { const n = $(sel); if (n) n.onclick = fn; else console.warn('bind: нет элемента', sel); };
-    on('#spReload', () => { location.replace(location.pathname + '?fresh=' + Date.now()); });
     const onAny = (sel, ev, fn) => { const n = $(sel); if (n) n.addEventListener(ev, fn); };
     $('#tabLogin').onclick = () => setAuthMode(false);
     $('#tabReg').onclick = () => setAuthMode(true);
@@ -1676,71 +1673,62 @@
   }
 
   // Если через 7 секунд приложение так и не открылось — предлагаем обновить страницу
-  function splashWatchdog() {
-    setTimeout(() => {
-      const b = $('#spReload');
-      if (b && !$('#app').classList.contains('on')) b.hidden = false;
-    }, 7000);
-  }
-
   async function boot() {
     bind();
     if (location.hash.startsWith('#/l/')) { await route(); return; }
     if (state.bootN === undefined) state.bootN = 0;
     if (state.bootN++ > 6) { await showConnectScreen('Сервер не отвечает. Нажми «Повторить».'); return; }
-    // 1. режим сервера (публичный /about) — не блокируем запуск
-    api('/about').then(a => { if (a && a.open !== false) state.openLogin = true; }).catch(() => {});
-    // 2. протухший токен просто сбрасываем
-    if (state.token) {
-      try { await api('/me'); } catch (e) { if (e && e.status === 401) { state.token = ''; localStorage.removeItem('mynote-token'); } }
-    }
-    // 3. нет токена — берём открытый вход (с повторами)
-    if (!state.token && !(await ensureToken(4))) { await showConnectScreen('Не удалось подключиться к серверу.'); return; }
+    // показываем интерфейс сразу — никаких экранов ожидания
+    showApp();
+    pageCacheLoad();
+    state.bootN = 0;
+    // дерево и последняя страница — параллельно, каждая сама разберётся со связью
+    const treeP = loadTree();
+    let lastEarly = null;
+    try { lastEarly = JSON.parse(localStorage.getItem('mynote-last') || 'null'); } catch (e) { lastEarly = null; }
+    if (lastEarly && lastEarly.id) { state.openingId = lastEarly.id; openPage(lastEarly.id, lastEarly.nb); }
+    // доступ и профиль — в фоне, короткими запросами
+    api('/about', { timeout: 6000 }).then(a => { if (a && a.open !== false) state.openLogin = true; }).catch(() => {});
     try {
-      const d = await api('/me');
+      if (state.token) {
+        try { await api('/me', { timeout: 8000 }); }
+        catch (e) { if (e && e.status === 401) { state.token = ''; localStorage.removeItem('mynote-token'); } }
+      }
+      if (!state.token) await ensureToken(3);
+      const d = await api('/me', { timeout: 8000 });
       state.user = d.user;
       if (d.open) state.openLogin = true;
-      state.bootN = 0;
       showApp();
-      pageCacheLoad();
-      const treeP = loadTree();
-      let lastEarly = null;
-      try { lastEarly = JSON.parse(localStorage.getItem('mynote-last') || 'null'); } catch (e) { lastEarly = null; }
-      if (lastEarly && lastEarly.id) { state.openingId = lastEarly.id; openPage(lastEarly.id, lastEarly.nb); }
-      await treeP;
-      await route();
-      if (location.hash.startsWith('#/l/')) return;
-      if (state.page && state.page.id) {
-        expandAncestors(state.page.id, state.page.notebookId);
-        renderTree();
-      }
-      if (!state.page && !state.openingId) {
-        let last = null;
-        try { last = JSON.parse(localStorage.getItem('mynote-last') || 'null'); } catch { last = null; }
-        let openId = null, openNb = null;
-        if (last && last.id) {
-          const nb = (state.tree || []).find(n => (n.pages || []).some(x => x.id === last.id));
-          if (nb) { openId = last.id; openNb = nb.id; }
-        }
-        if (!openId) {
-          const first = (state.tree || []).find(nb => (nb.pages || []).length);
-          if (first && first.pages.length) { const p = first.pages.find(x => !x.parentId) || first.pages[0]; openId = p.id; openNb = first.id; }
-        }
-        if (openId) { state.open.add(openNb); saveOpen(); openPage(openId, openNb); }
-      }
     } catch (e) {
       const isAuth = (e && (e.status === 401 || /Нужен вход/.test(String(e.message || ''))));
       if (isAuth) {
         localStorage.removeItem('mynote-token'); state.token = ''; state.user = null;
-        if (!state.retried || state.openLogin) { state.retried = true; await new Promise(r => setTimeout(r, 600)); return boot(); }
-        await showConnectScreen('Сеанс истёк — подключаюсь заново.');
-        return;
+        if (!state.retried) { state.retried = true; return boot(); }
+      } else {
+        toast('Нет связи с сервером — покажу данные, как только связь появится', 'err');
       }
-      await showConnectScreen('Не удалось связаться с сервером: ' + (e && e.message ? e.message : 'ошибка'));
+    }
+    await treeP;
+    await route();
+    if (location.hash.startsWith('#/l/')) return;
+    if (state.page && state.page.id) { expandAncestors(state.page.id, state.page.notebookId); renderTree(); }
+    if (!state.page && !state.openingId) {
+      let last = null;
+      try { last = JSON.parse(localStorage.getItem('mynote-last') || 'null'); } catch (e) { last = null; }
+      let openId = null, openNb = null;
+      if (last && last.id) {
+        const nb = (state.tree || []).find(n => (n.pages || []).some(x => x.id === last.id));
+        if (nb) { openId = last.id; openNb = nb.id; }
+      }
+      if (!openId) {
+        const first = (state.tree || []).find(nb => (nb.pages || []).length);
+        if (first && first.pages.length) { const pg = first.pages.find(x => !x.parentId) || first.pages[0]; openId = pg.id; openNb = first.id; }
+      }
+      if (openId) { state.open.add(openNb); saveOpen(); openPage(openId, openNb); }
     }
   }
 
   window.__mn = { state: state, parseBlocks: parseBlocks, renderBody: renderBody, blockNode: blockNode, collectBody: collectBody, openPage: openPage, loadTree: loadTree, api: api };
 
-  document.addEventListener('DOMContentLoaded', () => { splashWatchdog(); boot().catch(e => console.error(e)); });
+  document.addEventListener('DOMContentLoaded', () => { boot().catch(e => console.error(e)); });
 })();
