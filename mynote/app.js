@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.5.4';
+  const APP_VER = '1.5.5';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
