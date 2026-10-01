@@ -336,3 +336,8 @@ body { overflow-x: hidden; }
 #splash { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--page-bg); z-index: 200; }
 #splash.hidden { display: none; }
 #splash .sp-in { color: var(--text-muted); font-size: 15px; }
+
+#splash { flex-direction: column; gap: 14px; }
+#spReload { margin-top: 6px; padding: 10px 18px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); border-radius: 8px; font-size: 15px; cursor: pointer; }
+#spReload:hover { background: var(--page-bg); }
