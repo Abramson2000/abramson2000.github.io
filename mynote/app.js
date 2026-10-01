@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.4.6';
+  const APP_VER = '1.4.7';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -173,8 +173,11 @@
     if (tries === undefined) tries = 3;
     try {
       const d = await api('/tree');
+      console.log('DBG loadTree: d=', JSON.stringify(d).slice(0, 120));
       state.tree = d.notebooks || [];
+      console.log('DBG state.tree=', state.tree.length);
       renderTree();
+      console.log('DBG tree html=', ($('#tree') ? $('#tree').innerHTML.length : 'нет #tree'), '| filter=', state.filter);
     } catch (e) {
       // сеть бывает медленной — пробуем ещё, а не остаёмся с пустым списком
       if (tries > 1) { setTimeout(() => loadTree(tries - 1), 3000); return; }
