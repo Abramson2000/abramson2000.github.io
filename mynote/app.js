@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.4.3';
+  const APP_VER = '1.4.4';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -1462,8 +1462,8 @@
   }
 
   function bind() {
-    on('#spReload', () => { location.replace(location.pathname + '?fresh=' + Date.now()); });
     const on = (sel, fn) => { const n = $(sel); if (n) n.onclick = fn; else console.warn('bind: нет элемента', sel); };
+    on('#spReload', () => { location.replace(location.pathname + '?fresh=' + Date.now()); });
     const onAny = (sel, ev, fn) => { const n = $(sel); if (n) n.addEventListener(ev, fn); };
     $('#tabLogin').onclick = () => setAuthMode(false);
     $('#tabReg').onclick = () => setAuthMode(true);
