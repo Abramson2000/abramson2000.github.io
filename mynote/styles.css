@@ -250,6 +250,7 @@ h1#pageTitle {
   background: #12283c; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 14px; box-shadow: var(--shadow-card);
 }
 .doc-loading { padding: 26px 0; color: var(--text-muted); font-size: 15px; }
+.doc-error { padding: 26px 0; color: var(--text-muted); font-size: 15px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
 .toast.err { background: #8e2f2f; }
 .toast.ok { background: #1d6b46; }
 

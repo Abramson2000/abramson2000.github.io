@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.6.1';
+  const APP_VER = '1.6.2';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -10,7 +10,7 @@
   // С хоста crmuro.ru API живёт на поддомене (дома у Саши весь pages.dev не резолвится).
   // Держим два адреса: sync.crmuro.ru — основной, mn-api.crmuro.ru — запасной.
   const API_HOSTS = (/^(www\.)?crmuro\.ru$/i.test(location.hostname))
-    ? ['https://mn-api.crmuro.ru/api/mynote', '/api/mynote']
+    ? ['https://mn-api.crmuro.ru/api/mynote', 'https://sync.crmuro.ru/api/mynote']
     : ['/api/mynote'];
   let apiHost = 0;
   const apiBase = () => API_HOSTS[apiHost] || API_HOSTS[0];
@@ -51,11 +51,13 @@
     if (state.token) url2 += (url2.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(state.token);
     if (opts.body && !(opts.body instanceof FormData)) headers['Content-Type'] = 'text/plain;charset=UTF-8';
     let res = null;
+    if (API_HOSTS.length > 1) apiHost = 0;      // каждый запрос пробуем с лучшего адреса
     for (let attempt = 0; attempt < API_HOSTS.length; attempt++) {
       const ctrl = new AbortController();
       const to = setTimeout(() => ctrl.abort(), limit);
       try {
         res = await fetch(apiBase() + url2, Object.assign({}, opts, { headers, signal: ctrl.signal }));
+        if (res.status === 404 && attempt < API_HOSTS.length - 1) { apiHost++; continue; }   // этот адрес пуст — пробуем следующий
         break;
       } catch (e) {
         if (attempt < API_HOSTS.length - 1) { apiHost++; continue; }  // другой адрес API
@@ -191,6 +193,7 @@
         await new Promise(r => setTimeout(r, 2000));
       }
     }
+    state.loadingTree = false; state.treeError = true; renderTree();
   }
 
   function saveOpen() { localStorage.setItem('mynote-open', JSON.stringify(Array.from(state.open))); }
@@ -262,8 +265,14 @@
     const f = state.filter.toLowerCase();
     if (!state.tree.length) {
       const li = el('li', 'node');
-      li.appendChild(el('div', 'line', state.loadingTree ? 'Загружаю список…' : 'Пока нет блокнотов — создайте первый.'));
-      host.appendChild(li); return;
+      const txt = state.loadingTree ? 'Загружаю список…' : (state.treeError ? 'Список не загрузился. ' : 'Пока нет блокнотов — создайте первый.');
+      const d = el('div', 'line', txt);
+      if (state.treeError) {
+        const b = el('button', 'btn sm', 'Повторить'); b.type = 'button'; b.style.marginLeft = '6px';
+        b.onclick = (e) => { e.stopPropagation(); state.treeError = false; loadTree(); };
+        d.appendChild(b);
+      }
+      li.appendChild(d); host.appendChild(li); return;
     }
     for (const nb of state.tree) {
       const li = el('li', 'node');
@@ -483,6 +492,22 @@
     $('#accessPill').textContent = ''; $('#accessPill').className = 'pill hidden';
   }
 
+  function docError(msg, id, nbId) {
+    $('#emptyState').classList.add('hidden');
+    $('#pageView').classList.remove('hidden');
+    $('#pageTitle').textContent = '';
+    $('#docMeta').innerHTML = '';
+    const cb = $('#coverBox'); if (cb) { cb.className = 'hidden'; cb.innerHTML = ''; }
+    const w = $('#placeWrap'); if (!w) return;
+    w.innerHTML = '';
+    const box = el('div', 'doc-error');
+    box.appendChild(el('div', null, msg || 'Не удалось загрузить страницу — сервер не ответил.'));
+    const b = el('button', 'btn primary', 'Повторить'); b.type = 'button';
+    b.onclick = () => { w.innerHTML = ''; openPage(id, nbId); };
+    box.appendChild(b);
+    w.appendChild(box);
+  }
+
   function showDocLoading() {
     $('#emptyState').classList.add('hidden');
     $('#pageView').classList.remove('hidden');
@@ -538,7 +563,9 @@
       pageCachePut(id, d);
       applyPage(d, id, nbId);
     } catch (e) {
-      if (seq === openSeq && !cached) { renderPageEmpty(); toast(e.message, 'err'); }
+      if (seq !== openSeq) return;
+      if (cached) toast('Не удалось обновить — показана сохранённая версия', 'err');
+      else docError(e && e.message ? ('Не удалось загрузить страницу: ' + e.message) : '', id, nbId);
     }
   }
 
