@@ -10,9 +10,9 @@
 <link rel="manifest" href="manifest.json">
 <style>
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=2.23.3') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.6.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.5.6') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.6.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.5.6') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -380,53 +380,6 @@
   .part-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #dcdce2; background: #fff; color: transparent; font-size: 13px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 11px; cursor: pointer; transition: background .12s ease, border-color .12s ease, transform .12s ease; }
   .part-check.on { background: var(--done); border-color: var(--done); color: #fff; }
   .part-check:active { transform: scale(.9); }
-  /* ==== расписание занятий ==== */
-  .sch-wrap { margin: 4px 0 6px; }
-  .sch-card { background: var(--card); border-radius: 20px; padding: 14px 16px; box-shadow: var(--shadow-card); margin-bottom: 11px; }
-  .sch-card.today { border: 1px solid #eee; }
-  .sch-when { font-size: 12.5px; color: var(--muted); font-weight: 700; }
-  .sch-time { font-size: 30px; font-weight: 900; letter-spacing: -.8px; line-height: 1.1; margin: 2px 0 3px; }
-  .sch-tz { font-size: 12.5px; color: #7c7c85; font-weight: 600; }
-  .sch-row { display: flex; align-items: center; gap: 12px; }
-  .sch-tag { display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
-  .sch-tag.gr { background: #e9f1f9; color: #2f6fb0; }
-  .sch-tag.tm { background: var(--red-soft); color: var(--red); }
-  .sch-tag.tk { background: var(--ok-soft); color: var(--ok); }
-  .sch-tag.sl { background: #efeff2; color: #6d6d75; }
-  .sch-week { display: flex; gap: 6px; margin: 2px 0 4px; }
-  .sch-day { flex: 1; text-align: center; background: var(--card); border-radius: 14px; padding: 9px 0 7px; box-shadow: var(--shadow-card); }
-  .sch-day.on { background: var(--red); color: #fff; }
-  .sch-day .d { font-size: 11.5px; font-weight: 800; opacity: .65; }
-  .sch-day.on .d { opacity: .85; }
-  .sch-day .n { font-size: 16px; font-weight: 800; margin-top: 1px; }
-  .sch-dot { width: 6px; height: 6px; border-radius: 3px; margin: 5px auto 0; background: #ddd; }
-  .sch-dot.gr { background: #2f6fb0; }
-  .sch-dot.tm { background: var(--red); }
-  .sch-dot.tk { background: var(--ok); }
-  .sch-item { display: flex; gap: 12px; padding: 13px 0; border-bottom: 1px solid #f0efec; align-items: flex-start; }
-  .sch-item:last-child { border-bottom: none; }
-  .sch-item .w { width: 92px; flex: none; }
-  .sch-item .w .t { font-size: 16.5px; font-weight: 800; }
-  .sch-item .w .t2 { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-top: 2px; }
-  .sch-item .b { flex: 1; min-width: 0; }
-  .sch-item .b .h { font-size: 16px; font-weight: 800; letter-spacing: -.2px; }
-  .sch-item .b .s { font-size: 13px; color: var(--muted); font-weight: 600; margin-top: 3px; }
-  .sch-item.today { background: #fff6d6; border: 1px solid #e8d79a; border-radius: 14px; padding: 12px; margin: 6px 0; }
-  .sch-item.canceled .h { text-decoration: line-through; opacity: .45; }
-  .sch-mark { font-size: 11.5px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: #efeff2; color: #6d6d75; white-space: nowrap; }
-  .sch-mark.mv { background: #fff6d6; color: #9a6b00; border: 1px solid #e8d79a; }
-  .sch-btn { border: none; border-radius: 14px; padding: 11px 14px; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
-  .sch-btn.p { background: var(--red); color: #fff; }
-  .sch-btn.s { background: var(--card); color: var(--text); box-shadow: var(--shadow-card); }
-  .sch-btns { display: flex; gap: 8px; margin-top: 12px; }
-  .sch-note { font-size: 12.5px; color: var(--muted); font-weight: 600; line-height: 1.45; margin: 10px 2px 0; }
-  .sch-ic { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; font-size: 22px; color: var(--red); font-family: "TLCJK", "SimSun", serif; font-weight: 700; }
-  .sch-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; background: var(--card); border-radius: 22px 22px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,.22); padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); max-height: 86vh; overflow-y: auto; }
-  .sch-scrim { position: fixed; inset: 0; background: rgba(20,20,24,.42); z-index: 89; }
-  .sch-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 2px; }
-  .sch-chip { border-radius: 12px; padding: 9px 13px; background: #f4f3f0; font-size: 14px; font-weight: 800; cursor: pointer; border: none; font-family: inherit; }
-  .sch-chip.on { background: var(--red); color: #fff; }
-  .sch-lbl { font-size: 12.5px; color: var(--muted); font-weight: 700; margin-top: 14px; }
 </style>
 </head>
 <body>
@@ -467,7 +420,6 @@
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic sch-ic">课</span><span class="tab-label">课程<span class="tab-ru">Расписание</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
   <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队<span class="tab-ru">группа</span></span></button>
@@ -22664,7 +22616,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.6.0';
+const APP_VER = '3.5.6';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://abramson-crm.pages.dev';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -22786,7 +22738,6 @@ function goTab(t) {
   tab = t;
   sbClose(); // выбрали раздел — меню сразу убираем
   document.getElementById('tab-lessons').classList.toggle('active', t === 'lessons');
-  document.getElementById('tab-sched').classList.toggle('active', t === 'sched');
   document.getElementById('tab-mine').classList.toggle('active', t === 'mine');
   document.getElementById('tab-idv').classList.toggle('active', t === 'idv');
   document.getElementById('tab-team').classList.toggle('active', t === 'team');
@@ -22795,7 +22746,6 @@ function goTab(t) {
   document.getElementById('tab-dict').classList.toggle('active', t === 'dict');
 
   if (t === 'lessons') renderUnits();
-  else if (t === 'sched') renderSched();
   else if (t === 'mine') renderMine();
   else if (t === 'idv') renderIdv();
   else if (t === 'team') renderTeam();
@@ -22869,285 +22819,6 @@ document.addEventListener('click', function (e) {
 })();
 
 /* ===== Экраны ===== */
-
-/* ================= SCHEDULE_BLOCK_V1 ================= */
-const SCHEDULE = [
-   {
-      "day": 3,
-      "time": "14:00",
-      "dur": 60,
-      "type": "team",
-      "who": "Люба",
-      "title": "团队 · групповое",
-      "zh": "团队课",
-      "place": "Zoom",
-      "tz2": ""
-   },
-   {
-      "day": 3,
-      "time": "16:00",
-      "dur": 50,
-      "type": "gram",
-      "who": "Ли Лаоши",
-      "title": "语法 · Ли Лаоши",
-      "zh": "语法课",
-      "place": "Zoom",
-      "tz2": "Asia/Shanghai"
-   },
-   {
-      "day": 5,
-      "time": "12:50",
-      "dur": 45,
-      "type": "talk",
-      "who": "Люба",
-      "title": "口语 · индивидуальное",
-      "zh": "口语课",
-      "place": "Телеграм",
-      "tz2": ""
-   },
-   {
-      "day": 5,
-      "time": "14:00",
-      "dur": 60,
-      "type": "team",
-      "who": "Люба",
-      "title": "团队 · групповое",
-      "zh": "团队课",
-      "place": "Zoom",
-      "tz2": ""
-   }
-];
-const SCHED_TZ = 'Europe/Moscow';
-const SCHED_LS = 'tingli-schedule-v1';
-const SCHED_DOW = ['', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-const SCHED_MON = ['', 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-const SCHED_KIND = { gram: { ru: '语法', name: 'грамматика', cls: 'gr' }, team: { ru: '团队', name: 'группа', cls: 'tm' },
-                     talk: { ru: '口语', name: 'разговор', cls: 'tk' }, self: { ru: '自学', name: 'самоучёба', cls: 'sl' } };
-const LOCAL_TZ = (function () { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || SCHED_TZ; } catch (e) { return SCHED_TZ; } })();
-
-function schStore() { try { return JSON.parse(localStorage.getItem(SCHED_LS) || '{}') || {}; } catch (e) { return {}; } }
-function schSave(o) { try { localStorage.setItem(SCHED_LS, JSON.stringify(o)); } catch (e) {} try { scheduleBackup(); } catch (e) {} }
-
-function tzOffMs(zone, date) {
-  try {
-    const dtf = new Intl.DateTimeFormat('en-US', { timeZone: zone, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const p = {}; dtf.formatToParts(date).forEach(x => { p[x.type] = x.value; });
-    return Date.UTC(+p.year, +p.month - 1, +p.day, (+p.hour) % 24, +p.minute, +p.second) - date.getTime();
-  } catch (e) { return 0; }
-}
-function schInstant(ymd, hm) {            // момент времени: дата и время указаны в базовом поясе
-  const [y, m, d] = ymd.split('-').map(Number);
-  const [hh, mm] = hm.split(':').map(Number);
-  const guess = Date.UTC(y, m - 1, d, hh, mm);
-  return guess - tzOffMs(SCHED_TZ, new Date(guess));
-}
-function schTzTime(ymd, hm, zone) {       // время в другом поясе, 'ЧЧ:ММ'
-  const inst = schInstant(ymd, hm);
-  const t = new Date(inst + tzOffMs(zone, new Date(inst)));
-  return ('0' + t.getUTCHours()).slice(-2) + ':' + ('0' + t.getUTCMinutes()).slice(-2);
-}
-function schTzName(zone) {
-  if (zone === 'Asia/Shanghai') return '北京';
-  if (zone === SCHED_TZ) return 'МСК';
-  return zone;
-}
-function ymdOf(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
-function addDaysD(d, n) { const x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
-function dowOf(ymd) { const [y, m, d] = ymd.split('-').map(Number); return ((new Date(y, m - 1, d).getDay() + 6) % 7) + 1; }
-
-function schEvents(fromYmd, toYmd) {
-  const st = schStore(), moves = st.moves || {}, canc = st.canceled || {}, extra = st.extra || [];
-  const out = [];
-  const start = new Date(fromYmd + 'T12:00:00'), end = new Date(toYmd + 'T12:00:00');
-  for (let d = start; d <= end; d = addDaysD(d, 1)) {
-    const key = ymdOf(d), dow = dowOf(key);
-    SCHEDULE.forEach(function (s, i) {
-      if (s.day !== dow) return;
-      const id = i + '@' + key;
-      if (canc[id]) { out.push(Object.assign({}, s, { date: key, id: id, status: 'canceled' })); return; }
-      if (moves[id] && moves[id].date) return;                       // уехало на другой день — покажем там
-      out.push(Object.assign({}, s, { date: key, id: id, status: 'plan' }));
-    });
-    extra.forEach(function (e) {
-      if (e.date === key) out.push(Object.assign({ dur: 60, who: '', place: '' }, e, { id: 'x' + key + e.time, status: 'plan' }));
-    });
-    Object.keys(moves).forEach(function (id) {
-      const mv = moves[id];
-      if (!mv || mv.date !== key) return;
-      const i = parseInt(id.split('@')[0], 10), s = SCHEDULE[i];
-      if (!s) return;
-      out.push(Object.assign({}, s, { date: key, time: mv.time || s.time, id: id, status: 'movedin' }));
-    });
-  }
-  return out.sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); });
-}
-function schWhenTxt(ev) {
-  const d = new Date(ev.date + 'T12:00:00');
-  const today = ymdOf(new Date());
-  const tmr = ymdOf(addDaysD(new Date(), 1));
-  let day = SCHED_DOW[dowOf(ev.date)];
-  if (ev.date === today) day = 'Сегодня';
-  else if (ev.date === tmr) day = 'Завтра';
-  return day + ', ' + d.getDate() + ' ' + SCHED_MON[d.getMonth() + 1];
-}
-function schTimeHtml(ev) {
-  const local = schTzTime(ev.date, ev.time, LOCAL_TZ);
-  const main = local;
-  const parts = [];
-  if (LOCAL_TZ !== SCHED_TZ) parts.push(schTzTime(ev.date, ev.time, SCHED_TZ) + ' по Москве');
-  if (ev.tz2) parts.push(schTzTime(ev.date, ev.time, ev.tz2) + ' ' + schTzName(ev.tz2));
-  return { main: main, sub: parts.join(' · ') };
-}
-function schTagHtml(ev) {
-  const k = SCHED_KIND[ev.type] || SCHED_KIND.self;
-  return '<span class="sch-tag ' + k.cls + '">' + k.ru + (ev.who ? ' · ' + ev.who : '') + '</span>';
-}
-function schedBlock() {
-  const now = new Date();
-  const evs = schEvents(ymdOf(now), ymdOf(addDaysD(now, 7)));
-  const today = ymdOf(now);
-  const future = evs.filter(function (e) { return e.status !== 'canceled' && schInstant(e.date, e.time) >= now.getTime() - 5 * 60000; });
-  const next = future[0] || null;
-  let h = '<div class="section-title">Расписание</div>';
-  if (next) {
-    const t = schTimeHtml(next);
-    h += '<div class="sch-card today"><div class="sch-row" style="justify-content:space-between">' +
-         '<div><div class="sch-when">' + schWhenTxt(next) + '</div>' +
-         '<div class="sch-time">' + t.main + '</div>' +
-         '<div class="sch-tz">' + (t.sub || 'по Москве') + '</div></div>' + schTagHtml(next) + '</div>' +
-         '<div class="sch-btns"><button class="sch-btn p" style="flex:1" onclick="goTab(\'sched\')">Всё расписание</button>' +
-         '<button class="sch-btn s" onclick="schSheet(\'' + next.id + '\')">Перенести</button></div></div>';
-  } else {
-    h += '<div class="sch-card"><div class="sch-when">На ближайшую неделю занятий нет</div></div>';
-  }
-  h += '<div class="sch-week">';
-  for (let i = 0; i < 7; i++) {
-    const d = addDaysD(now, i), key = ymdOf(d), dow = dowOf(key);
-    const dots = SCHEDULE.filter(function (s) { return s.day === dow; }).map(function (s) {
-      const k = SCHED_KIND[s.type] || SCHED_KIND.self;
-      const gone = (schStore().canceled || {})[(SCHEDULE.indexOf(s)) + '@' + key];
-      return '<div class="sch-dot ' + (gone ? '' : k.cls) + '"></div>';
-    }).join('');
-    h += '<div class="sch-day' + (i === 0 ? ' on' : '') + '" onclick="goTab(\'sched\')"><div class="d">' + SCHED_DOW[dow] + '</div><div class="n">' + d.getDate() + '</div>' + dots + '</div>';
-  }
-  h += '</div>';
-  return h;
-}
-function schItemHtml(ev, today) {
-  const t = schTimeHtml(ev), k = SCHED_KIND[ev.type] || SCHED_KIND.self;
-  let mark = '';
-  if (ev.status === 'canceled') mark = '<span class="sch-mark">отмена</span>';
-  else if (ev.status === 'movedin') mark = '<span class="sch-mark mv">перенесено</span>';
-  else if (ev.status === 'done') mark = '<span class="sch-mark">был</span>';
-  else mark = '<button class="sch-btn s" style="padding:7px 11px;font-size:13px" onclick="event.stopPropagation();schSheet(\'' + ev.id + '\')">Перенести</button>';
-  const isToday = ev.date === today;
-  return '<div class="sch-item' + (isToday ? ' today' : '') + (ev.status === 'canceled' ? ' canceled' : '') + '">' +
-    '<div class="w"><div class="t">' + SCHED_DOW[dowOf(ev.date)] + ' ' + ev.date.slice(8) + '</div><div class="t2">' + t.main + (t.sub ? ' · ' + t.sub.split(' · ')[0] : '') + '</div></div>' +
-    '<div class="b"><div class="h">' + (ev.title || k.name) + '</div><div class="s">' + schWhenTxt(ev) + (ev.place ? ' · ' + ev.place : '') + (ev.dur ? ' · ' + ev.dur + ' мин' : '') + '</div></div>' +
-    '<div>' + mark + '</div></div>';
-}
-function renderSched() {
-  showTabbar(true); partAudioKey = null; showPlayer(false);
-  curUnit = null; curPart = null;
-  const now = new Date();
-  const from = ymdOf(addDaysD(now, -3)), to = ymdOf(addDaysD(now, 11));
-  const evs = schEvents(from, to);
-  const today = ymdOf(now);
-  let list = '';
-  let lastDate = '';
-  evs.forEach(function (ev) {
-    if (ev.date !== lastDate) {
-      const d = new Date(ev.date + 'T12:00:00');
-      list += '<div class="sch-item" style="padding:14px 0 4px;border:none"><div class="b"><div class="h" style="color:var(--red)">' + schWhenTxt(ev) + '</div></div></div>';
-      lastDate = ev.date;
-    }
-    list += schItemHtml(ev, today);
-  });
-  if (!list) list = '<div class="empty">Занятий нет — добавь в недельный график.</div>';
-  app.innerHTML = `
-    <div class="topbar">
-      <div class="logo"><img src="logo.png" alt="课"></div>
-      <div class="top-title">课程</div><div class="sub">Расписание<br>занятий</div>
-    </div>
-    <div class="sch-card"><div class="sch-row" style="justify-content:space-between">
-      <div><div class="sch-when">Время показано по ${LOCAL_TZ === SCHED_TZ ? 'Москве' : 'твоему поясу (' + LOCAL_TZ + ')'}</div>
-      <div class="sch-tz">Недельный график: Ср 14:00 и 16:00 · Пт 12:50 и 14:00</div></div>
-      <button class="sch-btn s" onclick="schSheet(\'\')">+ Занятие</button>
-    </div></div>
-    <div class="sch-card">${list}</div>
-    <div class="sch-note">Перенос не удаляет занятие: на старом месте остаётся пометка, а новое появляется на своём дне. Сначала в расписании — недельный график, дальше можно править каждое занятие отдельно.</div>
-    <div class="sch-note">Время преподавателя из Китая показано второй строкой (Пекин +5 ч к Москве). Когда поедешь — верхняя строка сама станет местной.</div>
-    <div class="ver-line">Abramson © ${APP_VER}</div>
-  `;
-}
-function schSheet(id) {
-  const st = schStore();
-  const ev = id ? schEvents(ymdOf(addDaysD(new Date(), -7)), ymdOf(addDaysD(new Date(), 21))).find(function (e) { return e.id === id; }) : null;
-  const base = ev || { type: 'self', who: '', title: 'Занятие', time: '14:00', dur: 60, place: '', date: ymdOf(new Date()) };
-  const days = [];
-  for (let i = 0; i < 14; i++) { const d = addDaysD(new Date(), i); days.push({ key: ymdOf(d), t: SCHED_DOW[dowOf(ymdOf(d))] + ' ' + d.getDate() }); }
-  const times = ['08:00', '09:00', '10:00', '11:30', '12:50', '14:00', '16:00', '18:00', '19:00', '21:00'];
-  let pickDay = base.date, pickTime = base.time;
-  const scrim = document.createElement('div'); scrim.className = 'sch-scrim'; scrim.onclick = schClose;
-  const sheet = document.createElement('div'); sheet.className = 'sch-sheet';
-  const render = function () {
-    sheet.innerHTML = '<div style="font-size:19px;font-weight:900;margin-bottom:4px">' + (id ? 'Перенести занятие' : 'Добавить занятие') + '</div>' +
-      '<div class="sch-tz">' + (ev ? (ev.title + ' · ' + schWhenTxt(ev) + ', ' + ev.time + ' по Москве') : 'новое занятие') + '</div>' +
-      '<div class="sch-lbl">Новый день</div><div class="sch-chips">' +
-      days.map(function (d) { return '<button class="sch-chip' + (d.key === pickDay ? ' on' : '') + '" data-d="' + d.key + '">' + d.t + '</button>'; }).join('') + '</div>' +
-      '<div class="sch-lbl">Новое время (по Москве)</div><div class="sch-chips">' +
-      times.map(function (t) { return '<button class="sch-chip' + (t === pickTime ? ' on' : '') + '" data-t="' + t + '">' + t + '</button>'; }).join('') + '</div>' +
-      '<div class="sch-note" id="schPrev"></div>' +
-      '<div class="sch-btns"><button class="sch-btn p" style="flex:1" id="schOk">' + (id ? 'Перенести' : 'Добавить') + '</button>' +
-      (id ? '<button class="sch-btn s" id="schNo">Отменить занятие</button>' : '<button class="sch-btn s" id="schBack">Закрыть</button>') + '</div>';
-    const prev = sheet.querySelector('#schPrev');
-    if (prev) {
-      const t2 = ev && ev.tz2 ? schTzTime(pickDay, pickTime, ev.tz2) + ' ' + schTzName(ev.tz2) : '';
-      prev.textContent = 'Как это у тебя: ' + schTzTime(pickDay, pickTime, LOCAL_TZ) + (LOCAL_TZ !== SCHED_TZ ? ' (по Москве ' + pickTime + ')' : '') + (t2 ? ' · у преподавателя ' + t2 : '');
-    }
-    sheet.querySelectorAll('.sch-chip').forEach(function (b) {
-      b.onclick = function () { if (b.dataset.d) pickDay = b.dataset.d; if (b.dataset.t) pickTime = b.dataset.t; render(); };
-    });
-    const ok = sheet.querySelector('#schOk');
-    ok.onclick = function () {
-      const o = schStore();
-      if (id) { o.moves = o.moves || {}; o.moves[id] = { date: pickDay, time: pickTime, at: Date.now() }; }
-      else { o.extra = o.extra || []; o.extra.push({ date: pickDay, time: pickTime, dur: base.dur, type: base.type, who: base.who, title: base.title, place: base.place, tz2: base.tz2 || '' }); }
-      schSave(o); schClose(); renderSched();
-    };
-    const no = sheet.querySelector('#schNo');
-    if (no) no.onclick = function () { const o = schStore(); o.canceled = o.canceled || {}; o.canceled[id] = 1; schSave(o); schClose(); renderSched(); };
-    const back = sheet.querySelector('#schBack');
-    if (back) back.onclick = schClose;
-  };
-  render();
-  document.body.appendChild(scrim); document.body.appendChild(sheet);
-}
-function schClose() {
-  document.querySelectorAll('.sch-sheet,.sch-scrim').forEach(function (n) { n.remove(); });
-}
-async function schCloudMerge() {
-  try {
-    const r = await fetch(API_BASE + '/api/backup');
-    if (!r.ok) return;
-    const cloud = await r.json();
-    const raw = cloud && cloud[SCHED_LS];
-    if (!raw) return;
-    const c = JSON.parse(raw), l = schStore();
-    let changed = false;
-    ['moves', 'canceled'].forEach(function (grp) {
-      const cg = c[grp] || {}, lg = l[grp] || {};
-      Object.keys(cg).forEach(function (k) { if (!lg[k]) { lg[k] = cg[k]; changed = true; } });
-      l[grp] = lg;
-    });
-    const seen = {};
-    (l.extra || []).forEach(function (e) { seen[e.date + e.time + (e.title || '')] = 1; });
-    (c.extra || []).forEach(function (e) { const k = e.date + e.time + (e.title || ''); if (!seen[k]) { (l.extra = l.extra || []).push(e); changed = true; } });
-    if (changed) { try { localStorage.setItem(SCHED_LS, JSON.stringify(l)); } catch (e) {} }
-  } catch (e) {}
-}
-/* ================= /SCHEDULE_BLOCK_V1 ================= */
-
 
 // ---- облачный бэкап прогресса (авто) ----
 let backupTimer = null;
@@ -23242,7 +22913,6 @@ async function tryRestore() {
     const cur = typeof tab !== 'undefined' ? tab : 'lessons';
     if (cur === 'lessons') renderUnits(); else if (cur === 'mine') renderMine();
     else if (cur === 'idv') renderIdv(); else if (cur === 'team') renderTeam(); else if (cur === 'favs') renderFavs();
-    else if (cur === 'sched') renderSched();
     else renderDict();
   } catch (e) {}
 }
@@ -23255,7 +22925,6 @@ function renderUnits() {
       <div class="logo"><img src="logo.png" alt="听"></div>
       <div class="top-title">小山听力</div><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
-    ${schedBlock()}
     ${UNITS.map(unitCard).join('')}
 `;
   refreshUnitBadges();
