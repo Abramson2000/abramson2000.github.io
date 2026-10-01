@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.4.4';
+  const APP_VER = '1.4.5';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -169,10 +169,17 @@
 
   /* ---------------- дерево ---------------- */
 
-  async function loadTree() {
-    const d = await api('/tree');
-    state.tree = d.notebooks || [];
-    renderTree();
+  async function loadTree(tries) {
+    if (tries === undefined) tries = 3;
+    try {
+      const d = await api('/tree');
+      state.tree = d.notebooks || [];
+      renderTree();
+    } catch (e) {
+      // сеть бывает медленной — пробуем ещё, а не остаёмся с пустым списком
+      if (tries > 1) { setTimeout(() => loadTree(tries - 1), 3000); return; }
+      throw e;
+    }
   }
 
   function saveOpen() { localStorage.setItem('mynote-open', JSON.stringify(Array.from(state.open))); }
