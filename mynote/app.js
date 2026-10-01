@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const APP_VER = '1.4.1';
+  const APP_VER = '1.4.2';
   // Адрес API. Домашний роутер Саши не резолвит ВЕСЬ домен pages.dev,
   // поэтому для crmuro.ru ходим через прокси-воркер на домене crmuro.ru.
   // Если приложение отдаётся с crmuro.ru (GitHub Pages) — API живёт на mn-api.crmuro.ru.
@@ -1462,6 +1462,7 @@
   }
 
   function bind() {
+    on('#spReload', () => { location.replace(location.pathname + '?fresh=' + Date.now()); });
     const on = (sel, fn) => { const n = $(sel); if (n) n.onclick = fn; else console.warn('bind: нет элемента', sel); };
     const onAny = (sel, ev, fn) => { const n = $(sel); if (n) n.addEventListener(ev, fn); };
     $('#tabLogin').onclick = () => setAuthMode(false);
@@ -1539,6 +1540,14 @@
     if (localStorage.getItem('mynote-collapsed') && window.innerWidth > 860) $('#sidebar').classList.add('collapsed');
   }
 
+  // Если через 7 секунд приложение так и не открылось — предлагаем обновить страницу
+  function splashWatchdog() {
+    setTimeout(() => {
+      const b = $('#spReload');
+      if (b && !$('#app').classList.contains('on')) b.hidden = false;
+    }, 7000);
+  }
+
   async function boot() {
     bind();
     if (location.hash.startsWith('#/l/')) { await route(); return; }
@@ -1589,5 +1598,5 @@
 
   window.__mn = { state: state, parseBlocks: parseBlocks, renderBody: renderBody, blockNode: blockNode, collectBody: collectBody, openPage: openPage, loadTree: loadTree, api: api };
 
-  document.addEventListener('DOMContentLoaded', () => { boot().catch(e => console.error(e)); });
+  document.addEventListener('DOMContentLoaded', () => { splashWatchdog(); boot().catch(e => console.error(e)); });
 })();
