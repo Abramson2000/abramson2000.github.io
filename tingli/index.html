@@ -9,10 +9,10 @@
 <link rel="apple-touch-icon" href="tingli-icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.6.0') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.6.0') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.7.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.7.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.6.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.7.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -516,7 +516,8 @@ body.crs-open .menu-btn { display: none !important; }
 .crs-sheet-t { font-size: 17px; font-weight: 800; color: var(--text); }
 .crs-x { margin-left: auto; border: 0; background: #f4f3ef; width: 34px; height: 34px; border-radius: 11px; color: #6b6b73;
   font-size: 15px; cursor: pointer; }
-.crs-sheet-b { padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.crs-sheet-b { padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.crs-sheet { will-change: transform; }
 .crs-lbl { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); margin: 14px 0 7px; }
 .crs-lbl:first-child { margin-top: 2px; }
 .crs-inp { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; color: var(--text); background: #fbfbfc;
@@ -586,7 +587,7 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.6.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.6.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.7.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.7.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
@@ -22785,7 +22786,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '4.6.0';
+const APP_VER = '4.7.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://tingli-api.crmuro.ru';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -25131,22 +25132,35 @@ function crsSheet(title, html, opts) {
   const esc0 = function (e) { if (e.key === 'Escape') { closeCrsSheets(); document.removeEventListener('keydown', esc0); } };
   document.addEventListener('keydown', esc0);
   let y0 = null;
-  sheet.addEventListener('touchstart', function (e) { y0 = e.touches[0].clientY; }, { passive: true });
+  const sbody = sheet.querySelector('.crs-sheet-b');
+  const fromHead = function (t) { return !!(t && t.closest && (t.closest('.crs-grab') || t.closest('.crs-sheet-h'))); };
+  const fromBodyTop = function (t) { return !!(t && t.closest && t.closest('.crs-sheet-b') && sbody && sbody.scrollTop <= 0); };
+  sheet.addEventListener('touchstart', function (e) {
+    const t = e.target;
+    y0 = (fromHead(t) || fromBodyTop(t)) ? e.touches[0].clientY : null;
+  }, { passive: true });
   sheet.addEventListener('touchmove', function (e) {
     if (y0 === null) return;
     const dy = e.touches[0].clientY - y0;
-    if (dy > 0) sheet.style.transform = 'translateY(' + dy + 'px)';
-  }, { passive: true });
-  sheet.addEventListener('touchend', function (e) {
-    const dy = (e.changedTouches[0].clientY - (y0 || 0));
+    if (dy <= 0) { sheet.style.transform = ''; return; }
+    if (e.cancelable) e.preventDefault();
+    sheet.style.transform = 'translate(-50%,' + dy + 'px)';
+  }, { passive: false });
+  const endDrag = function (e) {
+    if (y0 === null) return;
+    const dy = (e.changedTouches[0].clientY - y0);
+    sheet.style.transition = 'transform .18s ease';
     sheet.style.transform = '';
-    if (dy > 90) closeCrsSheets();
+    if (dy > 110) closeCrsSheets();
     y0 = null;
-  });
+  };
+  sheet.addEventListener('touchend', endDrag);
+  sheet.addEventListener('touchcancel', endDrag);
+  document.body.style.overflow = 'hidden';
   if (opts.after) opts.after(sheet);
   return sheet;
 }
-function closeCrsSheets() { document.querySelectorAll('.crs-sheet,.crs-scrim').forEach(function (n) { n.remove(); }); }
+function closeCrsSheets() { document.querySelectorAll('.crs-sheet,.crs-scrim').forEach(function (n) { n.remove(); }); document.body.style.overflow = ''; }
 
 /* ---------- форма занятия ---------- */
 function crsForm(id, preset, evId) {
