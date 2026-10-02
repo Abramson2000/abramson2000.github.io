@@ -9,10 +9,10 @@
 <link rel="apple-touch-icon" href="tingli-icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.5.0') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.5.0') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.6.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.6.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.5.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.6.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -437,8 +437,8 @@ body.crs-open .menu-btn { display: none !important; }
 .crs-cols { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; align-items: start; }
 .crs-cols-one { grid-template-columns: 1fr; gap: 12px; }
 .crs-col { min-width: 0; }
-.crs-col-h { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin: 6px 0 10px; }
-.crs-day-h { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 14px 0 7px; }
+.crs-col-h { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #6b6b74; margin: 6px 0 10px; }
+.crs-day-h { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #6b6b74; margin: 14px 0 7px; }
 .crs-day:first-of-type .crs-day-h { margin-top: 2px; }
 .crs-day-h.sel { margin-top: 14px; }
 .crs-day.today .crs-day-h { color: var(--red); }
@@ -475,11 +475,11 @@ body.crs-open .menu-btn { display: none !important; }
 .crs-add-big:hover { border-color: var(--red); color: var(--red); background: var(--red-soft); }
 
 .crs-hw-in { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(29,29,33,.1); }
-.crs-hw-title { font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+.crs-hw-title { font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #6b6b74; margin-bottom: 6px; }
 .crs-hw-item { font-size: 13.5px; color: #4a4a52; padding: 3px 0 3px 14px; position: relative; line-height: 1.35; }
 .crs-hw-item::before { content: '·'; position: absolute; left: 4px; color: var(--faint); font-weight: 800; }
 .crs-hw-item.on { color: var(--faint); text-decoration: line-through; }
-.crs-hw-grp { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 14px 0 7px; }
+.crs-hw-grp { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #6b6b74; margin: 14px 0 7px; }
 .crs-hw-grp.bad { color: var(--bad); }
 .crs-hw-row { background: var(--card); border-radius: 15px; padding: 12px 14px; box-shadow: var(--shadow-card); margin-bottom: 9px; }
 .crs-hw-row-t { font-size: 14.5px; font-weight: 700; color: var(--text); }
@@ -544,6 +544,9 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
 }
 /* ==== /CRS_CSS_V3 ==== */
 
+.crs-c-time span { color: #7d7d86; }
+.crs-hw-grp.bad { color: #b3342c; }
+
 </style>
 </head>
 <body>
@@ -583,7 +586,7 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.5.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.5.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.6.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.6.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
@@ -22782,7 +22785,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '4.5.0';
+const APP_VER = '4.6.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://tingli-api.crmuro.ru';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
