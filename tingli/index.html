@@ -9,10 +9,10 @@
 <link rel="apple-touch-icon" href="tingli-icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.7.0') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.7.0') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.8.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.8.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.7.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.8.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -548,6 +548,9 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
 .crs-c-time span { color: #7d7d86; }
 .crs-hw-grp.bad { color: #b3342c; }
 
+.crs-pass { display: inline-block; margin-left: 8px; font-size: 12px; font-weight: 700; color: #6b6b74; background: #f4f3ef; border-radius: 8px; padding: 2px 7px; }
+.crs-place .crs-link { margin-left: 8px; font-weight: 700; }
+
 </style>
 </head>
 <body>
@@ -587,7 +590,7 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.7.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.7.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.8.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.8.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
@@ -22786,7 +22789,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '4.7.0';
+const APP_VER = '4.8.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://tingli-api.crmuro.ru';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -24948,7 +24951,7 @@ function crsLessonCard(ev) {
       '<button class="crs-more" onclick="crsMenu(\'' + ev.evId + '\')" title="Действия">⋯</button>' +
     '</div>' +
     mat +
-    (ev.place || ev.link ? '<div class="crs-place">' + (ev.place ? '📍 ' + esc(ev.place) : '') + (ev.link ? ' <a href="' + esc(ev.link) + '" target="_blank" rel="noopener" class="crs-link">Открыть ссылку</a>' : '') + '</div>' : '') +
+    (ev.place || ev.link || ev.pass ? '<div class="crs-place">' + (ev.place ? '📍 ' + esc(ev.place) : '') + (ev.pass ? (ev.place ? ' · ' : '') + '<span class="crs-pass">код ' + esc(ev.pass) + '</span>' : '') + (ev.link ? ' · <a href="' + esc(ev.link) + '" target="_blank" rel="noopener" class="crs-link">Подключиться</a>' : '') + '</div>' : '') +
     (ev.note ? '<div class="crs-note">' + esc(ev.note) + '</div>' : '') +
     '<div class="crs-chips">' + moved + rem +
       (state === 'done' ? '<span class="crs-chip ok">проведено</span>' : '') +
@@ -25183,7 +25186,7 @@ function crsForm(id, preset, evId) {
   }, preset || {});
   const f = {
     program: s.program, teacher: s.teacher || '', date: s.date, time: s.time, dur: s.dur || 60, tz: s.tz || CRS_TZ_DEF,
-    link: s.link || '', place: s.place || '', note: s.note || '',
+    link: s.link || '', place: s.place || '', pass: s.pass || '', note: s.note || '',
     unit: (s.material && s.material.unit !== undefined) ? s.material.unit : '', part: (s.material && s.material.part !== undefined) ? s.material.part : '',
     repeatOn: !!(s.repeat && s.repeat.on), days: (s.repeat && s.repeat.days) || [], every: (s.repeat && s.repeat.every) || 1, toDate: (s.repeat && s.repeat.to) || '',
     remOn: s.rem === null ? (st.rem.lessons.on !== false) : (!!s.rem && s.rem.length > 0),
@@ -25239,6 +25242,7 @@ function crsForm(id, preset, evId) {
       return '<option value="' + p.id + '"' + (String(f.part) === String(p.id) ? ' selected' : '') + '>' + esc(p.title || ('часть ' + p.id)) + '</option>';
     }).join('') + '</select>' : '') +
     '<div class="crs-lbl">Ссылка на подключение</div><input class="crs-inp" id="crsL" value="' + esc(f.link) + '" placeholder="https://…">' +
+    '<div class="crs-lbl">Код доступа</div><input class="crs-inp" id="crsPw" value="' + esc(f.pass) + '" placeholder="например 81003">' +
     '<div class="crs-lbl">Место</div><input class="crs-inp" id="crsPl" value="' + esc(f.place) + '" placeholder="Zoom, Телеграм, класс…">' +
     '<div class="crs-lbl">Заметка</div><textarea class="crs-inp" id="crsN" rows="2">' + esc(f.note) + '</textarea>' +
     '<div class="crs-lbl">Напоминание</div><div class="crs-chips">' +
@@ -25252,7 +25256,22 @@ function crsForm(id, preset, evId) {
   const sheet = crsSheet(sid ? 'Изменить серию' : (id ? 'Изменить занятие' : 'Новое занятие'), draw() +
     '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsOk" style="flex:1">Сохранить</button>' +
     '<button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>');
+  const sync = function () {
+    const g = function (sel) { const n = sheet.querySelector(sel); return n ? n.value : null; };
+    const v = g('#crsT'); if (v !== null) f.teacher = v;
+    const d = g('#crsD'); if (d) f.date = d;
+    const hh = g('#crsH'); if (hh) f.time = hh;
+    const l = g('#crsL'); if (l !== null) f.link = l;
+    const pw = g('#crsPw'); if (pw !== null) f.pass = pw;
+    const pl = g('#crsPl'); if (pl !== null) f.place = pl;
+    const nt = g('#crsN'); if (nt !== null) f.note = nt;
+    const to = g('#crsTo'); if (to !== null) f.toDate = to;
+    const tz = g('#crsTZ'); if (tz) f.tz = tz.value;
+    const u = g('#crsU'); if (u !== null && u !== undefined) f.unit = u;
+    const pp = g('#crsP'); if (pp !== null && pp !== undefined) f.part = pp;
+  };
   const redraw = function () {
+    sync();
     sheet.querySelector('.crs-sheet-b').innerHTML = draw() +
       '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsOk" style="flex:1">Сохранить</button><button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>';
     bind();
@@ -25275,7 +25294,7 @@ function crsForm(id, preset, evId) {
     const P = sheet.querySelector('#crsP');
     if (P) P.onchange = function () { f.part = P.value; };
     const ok = sheet.querySelector('#crsOk');
-    if (ok) ok.onclick = function () { crsFormSave(sid || id, f, sheet); };
+    if (ok) ok.onclick = function () { sync(); crsFormSave(sid || id, f, sheet); };
   };
   bind();
 }
@@ -25289,7 +25308,7 @@ function crsFormSave(id, f, sheet) {
   const rem = f.remOn ? f.remOffsets.slice() : [];
   const base = {
     program: f.program, teacher: f.teacher.trim(), dur: f.dur, tz: f.tz,
-    link: f.link.trim(), place: f.place.trim(), note: f.note.trim(),
+    link: f.link.trim(), place: f.place.trim(), pass: (f.pass || '').trim(), note: f.note.trim(),
     material: (f.unit !== '' ? { unit: +f.unit, part: (f.part === '' ? '' : +f.part) } : null),
     rem: rem, upd: Date.now()
   };
