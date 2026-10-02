@@ -9,10 +9,10 @@
 <link rel="apple-touch-icon" href="tingli-icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.4.0') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.4.0') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.5.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.5.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.4.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.5.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -438,7 +438,8 @@ body.crs-open .menu-btn { display: none !important; }
 .crs-cols-one { grid-template-columns: 1fr; gap: 12px; }
 .crs-col { min-width: 0; }
 .crs-col-h { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin: 6px 0 10px; }
-.crs-day-h { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 16px 0 8px; }
+.crs-day-h { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 14px 0 7px; }
+.crs-day:first-of-type .crs-day-h { margin-top: 2px; }
 .crs-day-h.sel { margin-top: 14px; }
 .crs-day.today .crs-day-h { color: var(--red); }
 .crs-day-empty { font-size: 13px; color: var(--faint); padding: 2px 0 6px; }
@@ -582,7 +583,7 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.4.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.4.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.5.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.5.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
@@ -22781,7 +22782,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '4.4.0';
+const APP_VER = '4.5.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://tingli-api.crmuro.ru';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -24908,16 +24909,14 @@ function crsWeekHtml() {
   for (let i = 0; i < 7; i++) {
     const d = crsAddDays(crsWeekStartD, i), ymd = crsYmd(d);
     const list = evs.filter(function (e) { return e.date === ymd; });
+    if (!list.length) continue;
     const isToday = ymd === crsYmd(new Date());
-    days += '<div class="crs-day' + (isToday ? ' today' : '') + (list.length ? '' : ' empty') + '">' +
-      '<div class="crs-day-h">' + CRS_DOW_FULL[crsDow(ymd)].toUpperCase() + ' · ' + d.getDate() + ' ' + CRS_MON[d.getMonth() + 1] + '</div>';
-    if (!list.length) {
-      days += '<div class="crs-day-empty">' + (i === 0 && !crsAnyWeekLesson(from, to) ? 'Пока пусто — добавь занятие' : 'свободно') + '</div>';
-    } else {
-      days += list.map(crsLessonCard).join('');
-    }
-    days += '</div>';
+    days += '<div class="crs-day' + (isToday ? ' today' : '') + '">' +
+      '<div class="crs-day-h">' + CRS_DOW_FULL[crsDow(ymd)].toUpperCase() + ' · ' + d.getDate() + ' ' + CRS_MON[d.getMonth() + 1] + '</div>' +
+      list.map(crsLessonCard).join('') +
+      '</div>';
   }
+  if (!days) days = '<div class="crs-empty" style="padding:6px 2px 10px">На этой неделе занятий нет</div>';
   const hwPanel = crsHwPanel(crsWeekStartD, crsAddDays(crsWeekStartD, 6));
   return '<div class="crs-cols">' +
     '<div class="crs-col"><div class="crs-col-h">Расписание занятий</div>' + days +
