@@ -1,7 +1,7 @@
 /* Tingli — офлайн-кэш приложения.
    HTML — сеть вперёд (чтобы обновления приходили), остальное из кэша.
    Запросы к облаку (другой домен) не трогаем вообще. */
-const CACHE = 'tingli-cache-v56-identity7';
+const CACHE = 'tingli-cache-v57-recordhw';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './fonts/simsun-subset.woff2', './fonts/xiaoshan-title.woff2',
