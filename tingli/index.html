@@ -25032,7 +25032,9 @@ function crsSave(o, quiet) {
   o.upd = Date.now();
   crsCache = o;
   try { localStorage.setItem(CRS_LS, JSON.stringify(o)); } catch (e) {}
-  if (!quiet) { try { scheduleBackup(); } catch (e) {} }
+  // Расписание синхронизируем только через crsCloudPush(): там перед POST сначала
+  // подтягивается серверная копия и выполняется crsMerge. Общий scheduleBackup()
+  // здесь опасен: он может раньше отправить неполное локальное расписание и затереть облако.
   crsCloudSoon();
 }
 function crsUid(p) { return (p || 'e') + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
