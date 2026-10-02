@@ -6,13 +6,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小山听力</title>
 <link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png">
-<link rel="apple-touch-icon" href="tingli-icon-180.png">
+<link rel="apple-touch-icon" href="tingli-icon-180-v3.png">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.11.0') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.11.0') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.12.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.12.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.11.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.12.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -381,24 +381,15 @@
   .part-check.on { background: var(--done); border-color: var(--done); color: #fff; }
   .part-check:active { transform: scale(.9); }
 /* ==== CRS_CSS_V3 — лист 课程 (расписание и ДЗ) ==== */
-body.crs-open { padding-left: 0 !important; }
-body.crs-open .app { opacity: 1 !important; }
-body.crs-open #tabbar { transform: translateX(-104%) !important; }
-body.crs-open.sb-open #tabbar { transform: none !important; }
-body.crs-open .menu-btn { display: none !important; }
+
+
+
+
+
 @media (min-width: 900px) {
-  body.crs-open .menu-btn {
-    display: flex !important;
-    width: 46px; height: 46px; border-radius: 50%;
-    border: 0; padding: 0; color: transparent; font-size: 0; line-height: 0;
-    background: var(--red) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='16' viewBox='0 0 20 16'%3E%3Cg fill='%23ffffff'%3E%3Crect x='0' y='0.4' width='20' height='2.6' rx='1.3'/%3E%3Crect x='0' y='6.7' width='13.5' height='2.6' rx='1.3'/%3E%3Crect x='0' y='13' width='20' height='2.6' rx='1.3'/%3E%3C/g%3E%3C/svg%3E") center / 20px 16px no-repeat;
-    box-shadow: 0 6px 18px rgba(198,55,23,.3);
-    -webkit-backdrop-filter: none; backdrop-filter: none;
-  }
-  body.crs-open .menu-btn:hover { background-color: #b3300f; }
-  body.crs-open .menu-btn:active { transform: scale(.94); }
-}
-@media (min-width: 900px) { body.crs-open.sb-open { padding-left: var(--sbw); } body.crs-open .app { max-width: 1140px; } }
+  
+    }
+
 
 .crs-top { display: flex; align-items: center; gap: 10px; margin: 2px 0 12px; flex-wrap: wrap; }
 .crs-seg { display: inline-flex; background: #ecebe7; border-radius: 12px; padding: 3px; gap: 2px; }
@@ -571,6 +562,17 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 .crs-grab { margin: 7px auto 2px; }
 .crs-actions { gap: 8px; }
 
+.crs-pass { cursor: pointer; user-select: none; }
+.crs-pass:active { background: #e9e6df; }
+.crs-card.hwcard { background: linear-gradient(180deg, #fffaf3, #fff6ec); box-shadow: inset 0 0 0 1px rgba(198,55,23,.12), var(--shadow-card); }
+.crs-c-time.hw { color: var(--red); font-weight: 800; letter-spacing: .04em; }
+.crs-day-nodate .crs-day-h { color: #6b6b74; }
+
+.crs-card.hwcard { padding: 10px 12px; }
+.crs-card.hwcard .crs-mat { font-size: 13.5px; margin-top: 4px; }
+.crs-card.hwcard .crs-place { font-size: 12px; margin-top: 4px; }
+.crs-card.hwcard .crs-c-tag { font-size: 13px; }
+
 </style>
 </head>
 <body>
@@ -610,7 +612,7 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.11.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.11.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.12.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.12.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
@@ -22809,7 +22811,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '4.11.0';
+const APP_VER = '4.12.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://tingli-api.crmuro.ru';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -24524,6 +24526,20 @@ async function crsCloudPush() {
   } catch (e) { crsSaveStatus('offline'); }
   crsPushBusy = false;
 }
+function crsCopy(text, label) {
+  const done = function () { crsToast((label || 'Скопировано') + ': ' + text); };
+  const fallback = function () {
+    try {
+      const t = document.createElement('textarea');
+      t.value = text; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); done();
+    } catch (e) { crsToast('Не удалось скопировать: ' + text); }
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, fallback); return; }
+  } catch (e) {}
+  fallback();
+}
 function crsMerge(a, b) {                    // объединение без дублей, свежая правка побеждает
   const out = Object.assign({}, a);
   const keys = ['lessons', 'series', 'hw'];
@@ -24597,7 +24613,7 @@ async function crsCloudPull() {
     const changed = JSON.stringify(merged) !== JSON.stringify(local);
     crsCache = merged;
     try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
-    if (changed) { crsToast('☁️ Расписание синхронизировано'); crsCloudPush(); try { crsPaint(); } catch (e) {} }
+    if (changed) { crsToast('☁️ Расписание синхронизировано'); crsCloudPush(); try { crsWantScroll = true; crsPaint(); } catch (e) {} }
   } catch (e) {}
 }
 function crsSaveStatus(s) {
@@ -24904,9 +24920,9 @@ function renderCourses() {
     b.onclick = function () { crsMode = b.dataset.m; renderCourses(); };
   });
   crsCloudPull();
-  crsPaint();
+  crsPaint(true);
 }
-function crsPaint() {
+function crsPaint(recent) {
   const bar = document.getElementById('crsBar'), body = document.getElementById('crsBody');
   if (!body) return;
   if (crsMode === 'month') { bar.innerHTML = crsMonthBar(); body.innerHTML = crsMonthHtml(); }
@@ -24914,7 +24930,10 @@ function crsPaint() {
   else { bar.innerHTML = crsWeekBar(); body.innerHTML = crsWeekHtml(); }
   const seg = document.getElementById('crsSeg');
   if (seg) seg.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === crsMode); });
+  /* при открытии упираемся в сегодняшний день (или в ближайший) */
+  if (crsMode === 'week' && crsWantScroll) { crsWantScroll = false; try { crsScrollToToday(); } catch (e) {} }
 }
+let crsWantScroll = true;
 
 /* ---------- верхняя панель ---------- */
 function crsProgChips() {
@@ -24935,8 +24954,8 @@ function crsWeekBar() {
     '<button class="crs-nb" onclick="crsWeekShift(1)" title="Следующая неделя">›</button>' +
     '<button class="crs-today" onclick="crsGoToday()">Сегодня</button></div>' + crsProgChips();
 }
-function crsWeekShift(n) { crsWeekStartD = crsAddDays(crsWeekStartD, 7 * n); crsPaint(); }
-function crsGoToday() { crsWeekStartD = crsWeekStart(new Date()); crsMonthD = crsMonStart(new Date()); crsSelDay = crsYmd(new Date()); crsPaint(); }
+function crsWeekShift(n) { crsWeekStartD = crsAddDays(crsWeekStartD, 7 * n); crsWantScroll = true; crsPaint(); }
+function crsGoToday() { crsWeekStartD = crsWeekStart(new Date()); crsMonthD = crsMonStart(new Date()); crsSelDay = crsYmd(new Date()); crsWantScroll = true; crsPaint(); }
 function crsMonthBar() {
   return '<div class="crs-nav">' +
     '<button class="crs-nb" onclick="crsMonthShift(-1)">‹</button>' +
@@ -24961,24 +24980,44 @@ function crsWeekHtml() {
   const from = crsYmd(crsWeekStartD), to = crsYmd(crsAddDays(crsWeekStartD, 6));
   let evs = crsLessonList(from, to);
   if (st.filters.prog) evs = evs.filter(function (e) { return e.program === st.filters.prog; });
+  let hwAll = crsHwVisible().filter(function (h) { return h.state !== 'done'; });
+  if (st.filters.prog) hwAll = hwAll.filter(function (h) { return h.program === st.filters.prog; });
+  const hwOn = function (ymd) { return hwAll.filter(function (h) { return h.dueDate === ymd; }); };
   let days = '';
   for (let i = 0; i < 7; i++) {
     const d = crsAddDays(crsWeekStartD, i), ymd = crsYmd(d);
     const list = evs.filter(function (e) { return e.date === ymd; });
-    if (!list.length) continue;
+    const hw = hwOn(ymd);
+    if (!list.length && !hw.length) continue;
     const isToday = ymd === crsYmd(new Date());
-    days += '<div class="crs-day' + (isToday ? ' today' : '') + '">' +
+    days += '<div class="crs-day' + (isToday ? ' today' : '') + '" data-ymd="' + ymd + '">' +
       '<div class="crs-day-h">' + CRS_DOW_FULL[crsDow(ymd)].toUpperCase() + ' · ' + d.getDate() + ' ' + CRS_MON[d.getMonth() + 1] + '</div>' +
-      list.map(crsLessonCard).join('') +
+      list.map(crsLessonCard).join('') + hw.map(crsHwCard).join('') +
       '</div>';
   }
   if (!days) days = '<div class="crs-empty" style="padding:6px 2px 10px">На этой неделе занятий нет</div>';
-  const hwPanel = crsHwPanel(crsWeekStartD, crsAddDays(crsWeekStartD, 6));
-  return '<div class="crs-cols">' +
-    '<div class="crs-col"><div class="crs-col-h">Расписание занятий</div>' + days +
+  const noDate = hwAll.filter(function (h) { return !h.dueDate; });
+  const tail = noDate.length
+    ? '<div class="crs-day crs-day-nodate"><div class="crs-day-h">ДЗ БЕЗ СРОКА</div>' + noDate.map(crsHwCard).join('') + '</div>' : '';
+  return '<div class="crs-cols crs-cols-one">' +
+    '<div class="crs-col" id="crsList"><div class="crs-col-h">Расписание занятий и ДЗ</div>' + days + tail +
       '<button class="crs-add-big" onclick="crsForm(\'\')">+ Добавить занятие</button></div>' +
-    '<div class="crs-col crs-col-hw"><div class="crs-col-h">ДЗ к занятиям</div>' + hwPanel + '</div>' +
     '</div>';
+}
+function crsHwCard(h) {
+  return '<div class="crs-card hwcard" onclick="crsHwOpen(\'' + h.key + '\')">' +
+    '<div class="crs-card-top"><div class="crs-c-time hw">ДЗ</div><div class="crs-c-tag">' + esc(crsProgTitle(h.program)) + '</div></div>' +
+    '<div class="crs-mat">' + esc(h.title) + '</div>' +
+    '<div class="crs-place">' + (h.dueDate ? 'к ' + crsDayShort(h.dueDate) : 'без срока') + ' · ' + esc(crsStateWord(h.state)) + '</div>' +
+    '</div>';
+}
+function crsScrollToToday() {
+  const box = document.getElementById('crsList');
+  if (!box) return;
+  const t = box.querySelector('.crs-day.today') || box.querySelector('.crs-day');
+  if (!t) return;
+  const y = t.getBoundingClientRect().top + window.pageYOffset - 64;
+  window.scrollTo({ top: y, behavior: 'smooth' });
 }
 function crsAnyWeekLesson(from, to) { return crsLessonList(from, to).length > 0; }
 function crsLessonCard(ev) {
@@ -25000,7 +25039,7 @@ function crsLessonCard(ev) {
       '<button class="crs-more" onclick="crsMenu(\'' + ev.evId + '\')" title="Действия">⋯</button>' +
     '</div>' +
     mat +
-    (ev.place || ev.link || ev.pass ? '<div class="crs-place">' + (ev.place ? '📍 ' + esc(ev.place) : '') + (ev.pass ? (ev.place ? ' · ' : '') + '<span class="crs-pass">код ' + esc(ev.pass) + '</span>' : '') + (ev.link ? ' · <a href="' + esc(ev.link) + '" target="_blank" rel="noopener" class="crs-link">Подключиться</a>' : '') + '</div>' : '') +
+    (ev.place || ev.pass ? '<div class="crs-place">' + (ev.place ? '📍 ' + esc(ev.place) : '') + (ev.pass ? (ev.place ? ' · ' : '') + '<span class="crs-pass" onclick="crsCopy(\'' + esc(ev.pass) + '\',\'Код\')">код ' + esc(ev.pass) + ' ⧉</span>' : '') + '</div>' : '') +
     (ev.note ? '<div class="crs-note">' + esc(ev.note) + '</div>' : '') +
     '<div class="crs-chips">' + moved + rem +
       (state === 'done' ? '<span class="crs-chip ok">проведено</span>' : '') +

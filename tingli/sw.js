@@ -2,7 +2,7 @@
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
 // data-build: v3.6.0 (2026-10-01: лист 课程 — расписание и ДЗ)
-const CACHE = 'tingli-cache-v36-courses3';
+const CACHE = 'tingli-cache-v37-courses4';
 
 // Cloudflare отдаёт файлы сжатыми (content-encoding: br), а Cache API хранит уже
 // распакованное тело: если отдать такую запись на НАВИГАЦИЮ, браузер пытается
@@ -68,7 +68,9 @@ const ASSETS = [
   './tab-yu-off.png',
   './tab-yu.png',
   './tingli-favicon.png',
-  './tingli-icon-180.png',
+  './tingli-icon-180-v3.png',
+  './tingli-icon-192-v3.png',
+  './tingli-icon-512-v3.png',
   './tingli-icon-192.png',
   './tingli-icon-512.png',
   './title.png',
