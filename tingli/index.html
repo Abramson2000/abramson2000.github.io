@@ -10,9 +10,9 @@
 <link rel="manifest" href="manifest.json">
 <style>
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=2.23.3') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.6.1') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.6.2') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.6.1') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=3.6.2') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -385,7 +385,19 @@ body.crs-open { padding-left: 0 !important; }
 body.crs-open .app { opacity: 1 !important; }
 body.crs-open #tabbar { transform: translateX(-104%) !important; }
 body.crs-open.sb-open #tabbar { transform: none !important; }
-body.crs-open .menu-btn { display: flex !important; }
+body.crs-open .menu-btn { display: none !important; }
+@media (min-width: 900px) {
+  body.crs-open .menu-btn {
+    display: flex !important;
+    width: 46px; height: 46px; border-radius: 50%;
+    border: 0; padding: 0; color: transparent; font-size: 0; line-height: 0;
+    background: var(--red) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='16' viewBox='0 0 20 16'%3E%3Cg fill='%23ffffff'%3E%3Crect x='0' y='0.4' width='20' height='2.6' rx='1.3'/%3E%3Crect x='0' y='6.7' width='13.5' height='2.6' rx='1.3'/%3E%3Crect x='0' y='13' width='20' height='2.6' rx='1.3'/%3E%3C/g%3E%3C/svg%3E") center / 20px 16px no-repeat;
+    box-shadow: 0 6px 18px rgba(198,55,23,.3);
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  body.crs-open .menu-btn:hover { background-color: #b3300f; }
+  body.crs-open .menu-btn:active { transform: scale(.94); }
+}
 @media (min-width: 900px) { body.crs-open.sb-open { padding-left: var(--sbw); } body.crs-open .app { max-width: 1140px; } }
 
 .crs-top { display: flex; align-items: center; gap: 10px; margin: 2px 0 12px; flex-wrap: wrap; }
@@ -535,7 +547,7 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
   <div class="splash-title-text">小山听力</div>
 </div></div>
 <div class="app" id="app"></div>
-<button class="menu-btn" id="menuBtn" onclick="sbOpen()" aria-label="Меню">☰</button>
+<button class="menu-btn" id="menuBtn" onclick="sbToggle()" aria-label="Меню">☰</button>
 <div class="player" id="player">
   <div class="p-bar">
     <div class="spd-wrap" title="Скорость">
@@ -566,7 +578,7 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=3.6.1" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=3.6.1" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=3.6.2" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=3.6.2" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
@@ -22746,6 +22758,7 @@ function manTogglePart(n, pid, ev) {
 }
 function refreshAfterMan() {
   if (curUnit) openUnit(curUnit.unit);
+  else if (tab === 'sched') renderCourses();
   else if (tab === 'mine') renderMine();
   else if (tab === 'idv') renderIdv();
   else if (tab === 'team') renderTeam();
@@ -22764,7 +22777,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '3.6.1';
+const APP_VER = '3.6.2';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://tingli-api.crmuro.ru';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -23062,7 +23075,8 @@ async function tryRestore() {
     syncToast('☁️ Прогресс синхронизирован');
     sendBackup(); // облако = объединение
     const cur = typeof tab !== 'undefined' ? tab : 'lessons';
-    if (cur === 'lessons') renderUnits(); else if (cur === 'mine') renderMine();
+    if (cur === 'sched') renderCourses();
+    else if (cur === 'sched') renderCourses(); else if (cur === 'lessons') renderUnits(); else if (cur === 'mine') renderMine();
     else if (cur === 'idv') renderIdv(); else if (cur === 'team') renderTeam(); else if (cur === 'favs') renderFavs();
     else renderDict();
   } catch (e) {}
@@ -24314,17 +24328,6 @@ if (sbVerEl) sbVerEl.textContent = '';
 const sbVerLine = document.getElementById('sbVerLine');
 if (sbVerLine) sbVerLine.textContent = 'Abramson © ' + APP_VER;
 document.body.classList.add('sb-off'); // меню стартует скрытым — выезжает по ☰
-renderUnits();
-tryRestore();
-updateAppBadge();
-// Service Worker: офлайн-режим
-try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
-if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-9';
-  navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
-  navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
-}
-
 /* ================= CRS_BLOCK_V3 — 课程 · расписание и ДЗ =================
    Отдельный лист «课程»: неделя / месяц / ДЗ.
    Данные: localStorage «tingli-schedule-v1» + облачная копия через /api/backup
@@ -24340,10 +24343,10 @@ const CRS_MON = ['', 'января', 'февраля', 'марта', 'апрел
 const CRS_MON_NOM = ['', 'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 const CRS_PROGS = [
   { id: 'lessons', zh: '听力', ru: 'Самоучёба', tab: 'lessons' },
+  { id: 'biz', zh: '商务', ru: 'Самоучёба', tab: 'biz' },
   { id: 'mine', zh: '语法', ru: 'Ли Лаоши', tab: 'mine' },
-  { id: 'idv', zh: '口语', ru: 'с Любой', tab: 'idv' },
-  { id: 'team', zh: '团队', ru: 'группа', tab: 'team' },
-  { id: 'biz', zh: '商务', ru: '商务', tab: 'biz' }
+  { id: 'idv', zh: '口语', ru: 'Люба', tab: 'idv' },
+  { id: 'team', zh: '团队', ru: 'группа', tab: 'team' }
 ];
 const CRS_OFFSETS = [ { m: 1440, t: 'за день' }, { m: 180, t: 'за 3 часа' }, { m: 60, t: 'за час' }, { m: 30, t: 'за 30 минут' } ];
 const CRS_HW_STATES = [
@@ -24396,7 +24399,7 @@ function crsTzList() {
 
 /* ---------- хранилище ---------- */
 function crsBlank() {
-  return { v: 1, upd: Date.now(), tz: CRS_TZ_DEF, lessons: {}, series: {}, hw: {}, hwstate: {}, hwdue: {},
+  return { v: 1, upd: Date.now(), tz: CRS_TZ_DEF, lessons: {}, series: {}, hw: {}, hwstate: {}, hwdue: {}, hwdel: {}, killed: {},
            rem: { lessons: { on: true, offsets: [1440, 60, 30] }, hw: { on: true, offsets: [1440, 60] } },
            subs: {}, push: { asked: false }, filters: { prog: '' }, hiddenCanceled: false };
 }
@@ -24472,7 +24475,7 @@ function crsMerge(a, b) {                    // объединение без д
       if ((y.upd || 0) > (x.upd || 0)) out[g][id] = y;
     });
   });
-  ['hwstate', 'hwdue'].forEach(function (g) {
+  ['hwstate', 'hwdue', 'hwdel'].forEach(function (g) {
     out[g] = Object.assign({}, a[g] || {});
     const B = b[g] || {};
     Object.keys(B).forEach(function (id) {
@@ -24483,7 +24486,38 @@ function crsMerge(a, b) {                    // объединение без д
   out.rem = Object.assign({}, a.rem, b.rem);
   out.subs = Object.assign({}, a.subs || {}, b.subs || {});
   out.upd = Math.max(a.upd || 0, b.upd || 0);
+  // надгробия: удалённое на одном устройстве не возвращается с другого
+  out.killed = Object.assign({}, b.killed || {});
+  Object.keys(a.killed || {}).forEach(function (k) {
+    out.killed[k] = Math.max(a.killed[k] || 0, (b.killed || {})[k] || 0);
+  });
+  Object.keys(out.killed).forEach(function (k) {
+    if (out.lessons[k] && out.killed[k] >= (out.lessons[k].upd || 0)) delete out.lessons[k];
+    if (out.series[k] && out.killed[k] >= (out.series[k].upd || 0)) delete out.series[k];
+  });
+  Object.keys(out.lessons || {}).forEach(function (id) {
+    const m = /^s:([^:]+):/.exec(id);
+    if (m && out.killed[m[1]] && out.killed[m[1]] >= ((out.lessons[id] || {}).upd || 0)) delete out.lessons[id];
+  });
   return out;
+}
+function crsDelete(evId, scope) {
+  const st = crsStore();
+  st.killed = st.killed || {};
+  const now = Date.now();
+  if (evId.indexOf('l:') === 0) {
+    const id = evId.slice(2);
+    delete st.lessons[id]; st.killed[id] = now;
+  } else {
+    const ev = crsFindEv(evId);
+    const sid = ev && ev.seriesId;
+    if (sid) {
+      delete st.series[sid]; st.killed[sid] = now;
+      Object.keys(st.lessons).forEach(function (k) { if (k.indexOf('s:' + sid + ':') === 0) { delete st.lessons[k]; st.killed[k] = now; } });
+    }
+  }
+  crsSave(st);
+  closeCrsSheets(); renderCourses(); crsToast('Удалено совсем');
 }
 let crsPullOnce = false;
 async function crsCloudPull() {
@@ -24502,7 +24536,7 @@ async function crsCloudPull() {
     const changed = JSON.stringify(merged) !== JSON.stringify(local);
     crsCache = merged;
     try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
-    if (changed) { crsToast('☁️ Расписание синхронизировано'); crsCloudPush(); }
+    if (changed) { crsToast('☁️ Расписание синхронизировано'); crsCloudPush(); try { crsPaint(); } catch (e) {} }
   } catch (e) {}
 }
 function crsSaveStatus(s) {
@@ -24672,8 +24706,52 @@ function crsHwList() {
     h.state = crsHwState(h.key);
     h.due = crsHwDue(h.key);
     h.dueDate = crsHwDueDate(h.key);
+    h.deleted = !!((st.hwdel || {})[h.key] || {}).del;
   });
   return out;
+}
+function crsHwVisible() { return crsHwList().filter(function (h) { return !h.deleted; }); }
+function crsHwDelMark(key, del) {
+  const st = crsStore();
+  st.hwdel = st.hwdel || {};
+  st.hwdel[key] = { del: del ? 1 : 0, upd: Date.now() };
+  crsSave(st);
+}
+function crsHwDel(key) {
+  const st = crsStore();
+  if (key.indexOf('c:') === 0) {                 // своё задание — удаляем совсем
+    delete st.hw[key.slice(2)];
+    crsSave(st);
+    crsPaint(); crsToast('Задание удалено');
+    return;
+  }
+  crsHwDelMark(key, true);                       // задание из урока — убираем из расписания
+  crsPaint(); crsToast('Задание убрано из расписания');
+}
+function crsHwRestore(key) { crsHwDelMark(key, false); crsPaint(); crsToast('Задание вернулось'); }
+function crsHwDelPast() {
+  const now = Date.now();
+  const past = crsHwVisible().filter(function (h) {
+    return h.dueDate && crsInstant(h.dueDate, '23:59', CRS_TZ_DEF) < now;
+  });
+  if (!past.length) { crsToast('Прошедших заданий нет'); return; }
+  crsSheet('Удалить прошедшие', '<div class="crs-note">Найдено ' + past.length + ' задани' + (past.length === 1 ? 'е' : 'й') + ' с прошедшим сроком:' +
+    past.slice(0, 12).map(function (h) { return '<br>· ' + esc(h.title) + ' — ' + crsDayShort(h.dueDate); }).join('') +
+    (past.length > 12 ? '<br>· и ещё ' + (past.length - 12) : '') + '</div>' +
+    '<div class="crs-note">Свои задания удалятся совсем, задания из уроков просто уйдут из списка (их можно вернуть на вкладке ДЗ → «Удалённые»).</div>' +
+    '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsDelPast" style="flex:1">Удалить ' + past.length + '</button>' +
+    '<button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>',
+    { after: function (sheet) {
+        const ok = sheet.querySelector('#crsDelPast');
+        if (ok) ok.onclick = function () {
+          past.forEach(function (h) {
+            if (h.key.indexOf('c:') === 0) delete crsStore().hw[h.key.slice(2)];
+            else crsHwDelMark(h.key, true);
+          });
+          crsSave(crsStore());
+          closeCrsSheets(); crsPaint(); crsToast('Удалено: ' + past.length);
+        };
+      } });
 }
 function crsProgOfUnit(u) {
   if (!u) return '';
@@ -24781,7 +24859,7 @@ function crsPaint() {
 function crsProgChips() {
   const st = crsStore(), cur = st.filters.prog || '';
   return '<div class="crs-chips crs-chips-prog">' +
-    '<button class="crs-chip' + (cur === '' ? ' on' : '') + '" onclick="crsSetProg(\'\')">Все программы</button>' +
+    '<button class="crs-chip' + (cur === '' ? ' on' : '') + '" onclick="crsSetProg(\'\')">Все</button>' +
     CRS_PROGS.map(function (p) {
       const n = crsCountProgram(p.id);
       return '<button class="crs-chip' + (cur === p.id ? ' on' : '') + '" onclick="crsSetProg(\'' + p.id + '\')">' + p.zh + ' ' + p.ru + (n ? ' <b>' + n + '</b>' : '') + '</button>';
@@ -24815,7 +24893,7 @@ function crsMonthShift(n) { crsMonthD = new Date(crsMonthD.getFullYear(), crsMon
 function crsHwBar() {
   const f = crsHwFilter;
   return '<div class="crs-chips crs-chips-hw">' +
-    [['upcoming', 'Предстоящие'], ['overdue', 'Просроченные'], ['done', 'Выполненные'], ['open', 'Все открытые']].map(function (x) {
+    [['open', 'Все открытые'], ['upcoming', 'Предстоящие'], ['overdue', 'Просроченные'], ['done', 'Выполненные'], ['del', 'Удалённые']].map(function (x) {
       return '<button class="crs-chip' + (f === x[0] ? ' on' : '') + '" onclick="crsHwSetFilter(\'' + x[0] + '\')">' + x[1] + '</button>';
     }).join('') + crsProgChips() + '</div>';
 }
@@ -24919,7 +24997,7 @@ function crsHwStateBtn(key) {
 }
 function crsHwPanel(fromD, toD) {
   const st = crsStore();
-  let list = crsHwList().filter(function (h) { return h.state !== 'done'; });
+  let list = crsHwVisible().filter(function (h) { return h.state !== 'done'; });
   if (st.filters.prog) list = list.filter(function (h) { return h.program === st.filters.prog; });
   const overdue = [], soon = [], none = [];
   const now = Date.now();
@@ -24985,6 +25063,16 @@ function crsHwHtml() {
   const st = crsStore();
   let list = crsHwList();
   if (st.filters.prog) list = list.filter(function (h) { return h.program === st.filters.prog; });
+  if (crsHwFilter === 'del') {
+    const del = list.filter(function (h) { return h.deleted; });
+    if (!del.length) return '<div class="crs-cols crs-cols-one"><div class="crs-empty">Удалённых заданий нет</div></div>';
+    return '<div class="crs-cols crs-cols-one">' + del.map(function (h) {
+      return '<div class="crs-hw-row"><div class="crs-hw-row-t">' + esc(h.title) + '</div>' +
+        '<div class="crs-hw-row-s">' + esc(crsProgTitle(h.program)) + (h.dueDate ? ' · к ' + crsDayShort(h.dueDate) : '') + '</div>' +
+        '<div class="crs-actions"><button class="crs-b s" onclick="crsHwRestore(\'' + h.key + '\')">Вернуть</button></div></div>';
+    }).join('') + '</div>';
+  }
+  list = list.filter(function (h) { return !h.deleted; });
   const now = Date.now();
   const withDue = list.filter(function (h) { return h.dueDate; });
   if (crsHwFilter === 'upcoming') list = withDue.filter(function (h) { return h.state !== 'done' && crsInstant(h.dueDate, '23:59', CRS_TZ_DEF) >= now; });
@@ -24997,7 +25085,7 @@ function crsHwHtml() {
     return '<div class="crs-card hw">' +
       '<div class="crs-card-top"><div class="crs-c-time">' + (h.dueDate ? crsDayShort(h.dueDate) : 'без срока') + '<span>' + esc(crsProgTitle(h.program)) + '</span></div>' +
       '<div class="crs-c-tag">' + esc(h.title) + '</div>' +
-      (h.existing ? '' : '<button class="crs-more" onclick="crsHwEdit(\'' + h.key + '\')" title="Изменить">⋯</button>') + '</div>' +
+      '<button class="crs-more" onclick="crsHwMenu(\'' + h.key + '\')" title="Действия">⋯</button></div>' +
       items +
       '<div class="crs-chips"><span class="crs-chip' + (h.state === 'done' ? ' ok' : '') + '">' + esc(crsStateWord(h.state)) + '</span>' +
       '<span class="crs-chip">' + (h.dueDate ? 'срок: ' + crsDayShort(h.dueDate) : 'без срока') + '</span></div>' +
@@ -25008,8 +25096,25 @@ function crsHwHtml() {
       '</div></div>';
   }).join('');
   if (!out) out = '<div class="crs-empty">Здесь пусто</div>';
+  const delN = crsHwList().filter(function (h) { return h.deleted && (!st.filters.prog || h.program === st.filters.prog); }).length;
   return '<div class="crs-cols crs-cols-one">' + out +
-    '<button class="crs-add-big" onclick="crsHwForm()">+ Своё задание</button></div>';
+    '<div class="crs-actions">' +
+      '<button class="crs-b s" onclick="crsHwForm()">+ Своё задание</button>' +
+      '<button class="crs-b s" onclick="crsHwDelPast()">Удалить прошедшие</button>' +
+      (delN ? '<button class="crs-b s" onclick="crsHwSetFilter(\'del\')">Удалённые (' + delN + ')</button>' : '') +
+    '</div></div>';
+}
+function crsHwMenu(key) {
+  const h = crsHwList().filter(function (x) { return x.key === key; })[0];
+  if (!h) return;
+  const custom = key.indexOf('c:') === 0;
+  crsSheet(esc(h.title), '<div class="crs-note">' + esc(crsProgTitle(h.program)) + (h.dueDate ? ' · к ' + crsDayShort(h.dueDate) : ' · без срока') + '</div>' +
+    '<div class="crs-menu">' +
+      (custom ? '<button onclick="closeCrsSheets();crsHwForm(\'' + key + '\')">Изменить</button>' : '') +
+      '<button onclick="closeCrsSheets();crsHwDueSheet(\'' + key + '\')">Срок</button>' +
+      (custom ? '<button class="danger" onclick="closeCrsSheets();crsHwDel(\'' + key + '\')">Удалить совсем</button>'
+              : '<button class="danger" onclick="closeCrsSheets();crsHwDel(\'' + key + '\')">Убрать из расписания</button>') +
+    '</div>');
 }
 /* ================= /CRS_BLOCK_V3 (часть 2) ================= */
 
@@ -25178,7 +25283,19 @@ function crsMenu(evId) {
             : '<button onclick="closeCrsSheets();crsSetDone(\'' + evId + '\',true)">Отметить проведённым</button>') +
       (ev.status === 'canceled' ? '<button onclick="closeCrsSheets();crsRestore(\'' + evId + '\')">Восстановить занятие</button>'
                                 : '<button class="danger" onclick="closeCrsSheets();crsCancel(\'' + evId + '\')">Отменить занятие</button>') +
+      '<button class="danger" onclick="crsDeleteAsk(\'' + evId + '\')">Удалить совсем</button>' +
     '</div>');
+}
+function crsDeleteAsk(evId) {
+  const ev = crsFindEv(evId); if (!ev) return;
+  const ser = !!ev.seriesId;
+  crsSheet('Удалить совсем', '<div class="crs-note">' + esc(crsLessonWhen(ev)) + ' · ' + esc(crsProgTitle(ev.program)) + '</div>' +
+    '<div class="crs-note">' + (ser
+      ? 'Это занятие из серии — удалится вся серия целиком (вместе с переносами и отметками). Если нужно просто убрать один день — нажми «Отменить занятие».'
+      : 'Занятие исчезнет на всех твоих устройствах.') + '</div>' +
+    '<div class="crs-actions crs-sticky"><button class="crs-b" id="crsDelOk" style="flex:1;background:var(--bad);color:#fff">Удалить</button>' +
+    '<button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>',
+    { after: function (sheet) { const b = sheet.querySelector('#crsDelOk'); if (b) b.onclick = function () { crsDelete(evId); }; } });
 }
 function crsFindEv(evId) {
   const evs = crsLessonList(crsYmd(crsAddDays(new Date(), -120)), crsYmd(crsAddDays(new Date(), 200)));
@@ -25285,7 +25402,7 @@ function crsRestore(evId) {
 function crsHwForLesson(ev) {
   const unit = ev.material && ev.material.unit;
   const part = ev.material ? ev.material.part : '';
-  const list = crsHwList().filter(function (h) {
+  const list = crsHwVisible().filter(function (h) {
     if (h.existing && unit !== undefined && unit !== '' && h.unit === +unit) return true;
     if (h.lessonId && h.lessonId === ev.id) return true;
     if ((ev.hwKeys || []).indexOf(h.key) >= 0) return true;
@@ -25473,6 +25590,9 @@ function crsRemToggle(g) { const st = crsStore(); st.rem[g].on = !st.rem[g].on; 
 function crsRemOff(g, m) { const st = crsStore(); const a = st.rem[g].offsets || []; const i = a.indexOf(m); if (i < 0) a.push(m); else a.splice(i, 1); st.rem[g].offsets = a; crsSave(st); crsPushStatusSheet('Настройка сохранена.'); }
 
 /* ---------- склейка с приложением ---------- */
+function sbToggle() {
+  if (document.body.classList.contains('sb-open')) sbClose(); else sbOpen();
+}
 function crsBoot() {
   try { crsStore(); } catch (e) {}
   try { crsCloudPull(); } catch (e) {}
@@ -25481,6 +25601,16 @@ function crsBoot() {
 document.addEventListener('DOMContentLoaded', crsBoot);
 /* ================= /CRS_BLOCK_V3 (часть 4) ================= */
 
+goTab('sched');
+tryRestore();
+updateAppBadge();
+// Service Worker: офлайн-режим
+try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
+if ('serviceWorker' in navigator) {
+  const SW_BUILD = 'offline-safe-9';
+  navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
+  navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
+}
 </script>
 </body>
 </html>
