@@ -5,14 +5,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小山听力</title>
-<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png?v=5.6.0"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png?v=5.6.0">
-<link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.6.0">
+<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png?v=5.7.0"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png?v=5.7.0">
+<link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.7.0">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.6.0') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.6.0') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.7.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.7.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.6.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.7.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     /* ===== палитра Tingli (5.0.0) ===== */
     --paper:       #F5F4F1;
@@ -132,6 +132,31 @@
   .speak-heard { font-size: 14px; line-height: 1.7; background: var(--paper); border-radius: 14px; padding: 12px; }
   .speak-heard .hzh { font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-size: 19px; display: block; margin-top: 4px; }
   .speak-verdict { font-size: 14px; line-height: 1.7; margin-top: 10px; }
+  .tts-bar { display:flex; gap:9px; margin-top:12px; padding:12px; background:var(--surface); border-radius:16px; box-shadow:var(--shadow-card); align-items:center; }
+  .tts-btn { border:0; border-radius:999px; padding:10px 15px; font:inherit; font-size:13.5px; font-weight:700; cursor:pointer; }
+  .tts-btn.main { background:var(--seal); color:#fff; }
+  .tts-btn.stop { background:var(--paper); color:var(--ink); box-shadow:inset 0 0 0 1px var(--line); }
+  .tts-state { margin-left:auto; font-size:12px; color:var(--ink-2); min-width:70px; text-align:right; }
+
+  .rec-hw-intro { background:var(--surface); border-radius:18px; padding:15px 16px; box-shadow:var(--shadow-card); font-size:14px; line-height:1.55; color:var(--ink-2); margin-bottom:12px; }
+  .rec-hw-item { background:var(--surface); border-radius:18px; padding:15px 16px; box-shadow:var(--shadow-card); margin-bottom:11px; }
+  .rec-hw-top { display:flex; gap:11px; align-items:flex-start; }
+  .rec-hw-num { width:30px; height:30px; border-radius:10px; background:var(--seal); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; }
+  .rec-hw-phrase { font-family:"TLCJK","SimSun","Songti SC","STSong",serif; font-size:19px; line-height:1.65; color:var(--ink); flex:1; }
+  .rec-hw-state { font-size:12.5px; color:var(--ink-2); margin:8px 0 0 41px; }
+  .rec-hw-state.saved { color:var(--jade); font-weight:700; }
+  .rec-hw-state.live { color:var(--danger); font-weight:700; }
+  .rec-hw-actions { display:flex; gap:8px; margin:10px 0 0 41px; flex-wrap:wrap; }
+  .rec-hw-b { border:0; border-radius:999px; padding:9px 14px; font:inherit; font-size:13px; font-weight:700; cursor:pointer; background:var(--paper); color:var(--ink); box-shadow:inset 0 0 0 1px var(--line); }
+  .rec-hw-b.rec { background:var(--seal); color:#fff; box-shadow:none; }
+  .rec-hw-b.del { color:var(--danger); }
+  .rec-hw-audio { width:calc(100% - 41px); margin:10px 0 0 41px; display:none; }
+  .rec-hw-share { background:var(--surface); border-radius:18px; padding:15px 16px; box-shadow:var(--shadow-card); margin-top:14px; }
+  .rec-hw-progress { font-size:13px; color:var(--ink-2); margin-bottom:10px; }
+  .rec-hw-share .btn { background:var(--seal); }
+  .rec-hw-fallback { margin-top:10px; font-size:13px; line-height:1.6; color:var(--ink-2); }
+  .rec-hw-fallback a { color:var(--seal); font-weight:700; display:block; margin-top:5px; }
+
   .part-done { font-size: 11px; font-weight: 700; color: var(--done); background: var(--done-soft); border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
 
   /* Экран задания */
@@ -613,7 +638,7 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 </head>
 <body>
 <div id="splash"><div class="splash-in">
-  <div class="splash-logo"><img src="logo.png?v=5.6.0" alt=""></div>
+  <div class="splash-logo"><img src="logo.png?v=5.7.0" alt=""></div>
   <div class="splash-title-text">小山听力</div>
 </div></div>
 <div class="app" id="app"></div>
@@ -647,15 +672,15 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
   </div>
 </div>
 <div class="tabbar" id="tabbar">
-  <div class="sb-brand"><img src="logo.png?v=5.6.0" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.6.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.6.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
-  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.6.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.6.0" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.6.0" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.6.0" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
-  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.6.0" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.6.0" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
+  <div class="sb-brand"><img src="logo.png?v=5.7.0" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.7.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.7.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.7.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.7.0" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.7.0" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.7.0" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
+  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.7.0" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.7.0" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
   <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队<span class="tab-ru">группа</span></span></button>
-  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.6.0" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.6.0" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png?v=5.6.0" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png?v=5.6.0" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
-  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.6.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.6.0" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
+  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.7.0" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.7.0" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png?v=5.7.0" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png?v=5.7.0" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
+  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.7.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.7.0" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-offline" id="sbOffline">
     <button class="sb-offline-btn" id="sbOfflineBtn" onclick="offlineDownload()">⬇️ Скачать для полёта</button>
     <div class="sb-offline-st" id="sbOfflineSt"></div>
@@ -20295,7 +20320,70 @@ const IDV_UNITS = [
      ]
    }
   ]
+ },
+ {
+  "unit": 214,
+  "label": "网上购物",
+  "emoji": "🛍️",
+  "zh": "网上购物",
+  "ru": "Диалог, слова и устное ДЗ",
+  "src": "team",
+  "parts": [
+   {
+    "id": 0,
+    "kind": "text",
+    "title": "Диалог · 网上购物",
+    "titleZh": "课文 · 网上购物",
+    "tts": true,
+    "text": "A：我昨天在网上买了一个真皮的包，才两百块钱而且还包邮，真划算，今天一早就送到我家了。\nB：真的吗？这快递速度真给力。那包包质量怎么样？\nA：还挺不错，皮子手感很好，样子也和图片一模一样，没有色差。\nB：真好，上次我在网上买了一条裙子，踩了个地雷。\nA：怎么说？\nB：实物与图片严重不符，穿上身不好看不说，而且内里还很扎肉。\nA：啊？那能不能退回给卖家啊？\nB：幸好这家店有七天无理由退换服务，最后我把裙子退回去了。"
+   },
+   {
+    "id": 1,
+    "kind": "words",
+    "title": "Слова из диалога",
+    "titleZh": "生词",
+    "words": [
+     {"zh":"给力","py":"gěilì","ru":"крутой, классный; мощный (разг.)"},
+     {"zh":"质量","py":"zhìliàng","ru":"качество"},
+     {"zh":"地雷","py":"dìléi","ru":"мина; перен. неудачная покупка"},
+     {"zh":"严重","py":"yánzhòng","ru":"серьёзный, сильный, тяжёлый"},
+     {"zh":"不符","py":"bùfú","ru":"не соответствовать; не совпадать"},
+     {"zh":"网上","py":"wǎngshàng","ru":"в интернете, онлайн"},
+     {"zh":"真皮","py":"zhēnpí","ru":"натуральная кожа"},
+     {"zh":"包邮","py":"bāoyóu","ru":"доставка включена; бесплатная доставка"},
+     {"zh":"划算","py":"huásuan","ru":"выгодный; выгодно"},
+     {"zh":"一早","py":"yīzǎo","ru":"рано утром"},
+     {"zh":"快递","py":"kuàidì","ru":"экспресс-доставка; курьерская доставка"},
+     {"zh":"皮子","py":"pízi","ru":"кожа (материал)"},
+     {"zh":"手感","py":"shǒugǎn","ru":"ощущение на ощупь"},
+     {"zh":"样子","py":"yàngzi","ru":"вид, внешний вид"},
+     {"zh":"一模一样","py":"yīmóyīyàng","ru":"совершенно одинаковый; точь-в-точь"},
+     {"zh":"色差","py":"sèchā","ru":"разница, расхождение в цвете"},
+     {"zh":"实物","py":"shíwù","ru":"реальный товар; вещь вживую"},
+     {"zh":"内里","py":"nèilǐ","ru":"подкладка, внутренняя сторона"},
+     {"zh":"扎肉","py":"zhāròu","ru":"колоться, неприятно касаться кожи"},
+     {"zh":"退回","py":"tuìhuí","ru":"вернуть; отправить обратно"},
+     {"zh":"卖家","py":"màijiā","ru":"продавец"},
+     {"zh":"幸好","py":"xìnghǎo","ru":"к счастью; хорошо, что"}
+    ]
+   },
+   {
+    "id": 2,
+    "kind": "record_hw",
+    "ico": "音",
+    "title": "ДЗ · роль A · запись по фразам",
+    "titleZh": "作业 · A 角色录音",
+    "text": "Запиши только реплики A из диалога — по одной фразе. Каждая запись сохраняется на этом устройстве автоматически. Когда все 4 записи готовы, нажми «Отправить в Telegram» и выбери Telegram в системном меню «Поделиться».",
+    "lines": [
+     "我昨天在网上买了一个真皮的包，才两百块钱而且还包邮，真划算，今天一早就送到我家了。",
+     "还挺不错，皮子手感很好，样子也和图片一模一样，没有色差。",
+     "怎么说？",
+     "啊？那能不能退回给卖家啊？"
+    ]
+   }
+  ]
  }
+
 ];
 
 const BIZ_UNITS = [
@@ -22847,7 +22935,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.6.0';
+const APP_VER = '5.7.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -22968,6 +23056,7 @@ audio.addEventListener('ended', () => { updatePlayerUI(); });
 
 /* ===== Прогресс ===== */
 function partDone(u, part) {
+  if (part.kind === 'record_hw') return recHwAllDoneSync(u, part);
   const p = prog[u.unit] && prog[u.unit][part.id];
   if (!p) return false;
   if (part.kind === 'match') return !!(p.done);
@@ -22978,6 +23067,7 @@ function unitStats(u) {
   u.parts.forEach(part => {
     const p = prog[u.unit] && prog[u.unit][part.id];
     if (part.kind === 'match') { total++; if (p && p.done) done++; return; }
+    if (part.kind === 'record_hw') { (part.lines || []).forEach(function (_,i) { total++; if (recHwHasSync(u,part,i)) done++; }); return; }
     if (!part.tasks) return;
     part.tasks.forEach((t, i) => { total++; if (p && p[i] === true) done++; });
   });
@@ -23185,7 +23275,7 @@ function renderUnits() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.6.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.7.0" alt="听"></div>
       <div class="top-title">小山听力</div><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
     ${UNITS.map(unitCard).join('')}
@@ -23201,7 +23291,7 @@ function renderIdv() {
   const list = IDV.filter(u => (u.src || 'idv') === 'idv');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.6.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.7.0" alt="听"></div>
       <div class="top-title">口语</div><div class="sub">口语课</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -23214,7 +23304,7 @@ function renderBiz() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.6.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.7.0" alt="听"></div>
       <div class="top-title">小山商务</div><div class="sub">经贸初级汉语口语</div>
     </div>
     ${BIZ.length ? BIZ.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -23228,7 +23318,7 @@ function renderTeam() {
   const list = IDV.filter(u => u.src === 'team');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.6.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.7.0" alt="听"></div>
       <div class="top-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -23241,7 +23331,7 @@ function renderMine() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.6.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.7.0" alt="听"></div>
       <div class="top-title">语法</div><div class="sub">李老师课</div>
     </div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
@@ -23276,7 +23366,7 @@ function renderDict() {
   const d = dictLoad();
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.6.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.7.0" alt="听"></div>
       <div class="top-title">词典</div><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
@@ -23491,7 +23581,7 @@ function isChk(part) {
 }
 function partNum(part) {
   if (part && part.ico) return part.ico;   // своя иконка части (напр. 音 у задания «Слушать»)
-  if (part.kind === 'hw') return ICO_HW;
+  if (part.kind === 'hw' || part.kind === 'record_hw') return ICO_HW;
   if (part.kind === 'words') return partIco(part);
   if (!hasTxt(part) && part.audio) return ICO_LISTEN;   // слушать без скрипта / задание на прослушивание
   if (isDlg(part)) return ICO_DLG;
@@ -23540,7 +23630,7 @@ function openUnit(n) {
             <div class="part-title">${esc(part.title)}</div>
             ${part.titleZh ? `<div class="part-zh">${esc(part.titleZh)}</div>` : ''}
           </div>
-          ${part.kind === 'hw' ? dueBadge(u.unit, part.id, hwAllDone(u, part)) : ''}
+          ${(part.kind === 'hw' || part.kind === 'record_hw') ? dueBadge(u.unit, part.id, part.kind === 'record_hw' ? recHwAllDoneSync(u, part) : hwAllDone(u, part)) : ''}
           ${partDone(u, part) ? '<span class="part-done">готово</span>' : ''}
           <span class="part-arrow">›</span>
         </div>
@@ -23558,6 +23648,7 @@ function openPart(unitN, partId) {
   else { partAudioKey = null; showPlayer(false); }
   if (part.kind === 'words') renderWords(u, part);
   else if (part.kind === 'hw') renderHw(u, part);
+  else if (part.kind === 'record_hw') renderRecordHw(u, part);
   else if (part.kind === 'text') renderText(u, part);
   else if (part.kind === 'match') renderMatch(u, part);
   else openTask(u, part, 0);
@@ -23577,8 +23668,46 @@ function renderText(u, part) {
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
     <div class="lesson-text">${pimg}${paras.map(p => `<p class="zh">${esc(p)}</p>`).join('')}</div>
+    ${part.tts ? dialogTtsHtml() : ''}
     ${part.speak ? speakBoxHtml() : ''}`;
   posRestore();
+}
+
+
+let _dlgTtsRun = 0;
+function dialogTtsHtml() {
+  return '<div class="tts-bar"><button class="tts-btn main" onclick="dialogTtsStart()">🔊 Озвучить диалог</button>' +
+    '<button class="tts-btn stop" onclick="dialogTtsStop()">■ Стоп</button><span class="tts-state" id="ttsState"></span></div>';
+}
+function dialogTtsStop() {
+  _dlgTtsRun++;
+  try { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); } catch (e) {}
+  const s = document.getElementById('ttsState'); if (s) s.textContent = '';
+}
+function dialogTtsStart() {
+  if (!('speechSynthesis' in window) || !window.SpeechSynthesisUtterance) {
+    const s = document.getElementById('ttsState'); if (s) s.textContent = 'Озвучка недоступна'; return;
+  }
+  try { window.speechSynthesis.cancel(); } catch (e) {}
+  const run = ++_dlgTtsRun;
+  const lines = String((curPart && curPart.text) || '').split(/\n+/).map(x => x.trim()).filter(Boolean);
+  const zh = (window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : []).filter(v => /^zh/i.test(v.lang || ''));
+  let i = 0;
+  const state = document.getElementById('ttsState');
+  const next = function () {
+    if (run !== _dlgTtsRun) return;
+    if (i >= lines.length) { if (state) state.textContent = 'Готово'; return; }
+    const raw = lines[i++], roleA = /^[AaＡA][：:]/.test(raw);
+    const txt = raw.replace(/^[ABＡＢab][：:]\s*/, '');
+    const u = new SpeechSynthesisUtterance(txt);
+    u.lang = 'zh-CN'; u.rate = 0.88; u.pitch = roleA ? 0.94 : 1.07;
+    if (zh.length) u.voice = zh[roleA ? 0 : Math.min(1, zh.length - 1)];
+    u.onend = next;
+    u.onerror = function () { if (run === _dlgTtsRun && state) state.textContent = 'Ошибка озвучки'; };
+    if (state) state.textContent = (roleA ? 'A' : 'B') + ' · ' + i + '/' + lines.length;
+    window.speechSynthesis.speak(u);
+  };
+  next();
 }
 
 // ── «Говорим сами»: запись голоса → расшифровка (Whisper) → проверка ИИ ──────
@@ -23947,7 +24076,7 @@ function renderFavs() {
   const typeName = t => t.type === 'choice' ? 'Выбор' : t.type === 'fill' ? 'Ввод' : 'Верно/Неверно';
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.6.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.7.0" alt="听"></div>
       <div class="top-title">句子</div><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
     </div>
     ${items.length ? items.map(it => {
@@ -24003,6 +24132,164 @@ function renderDots() {
   if (el) el.innerHTML = dots;
 }
 
+
+/* ===== Устное ДЗ: пофразовая запись, сохранение на устройстве, отправка через Share Sheet ===== */
+const REC_DB_NAME = 'tingli-local-recordings-v1';
+const REC_DB_STORE = 'clips';
+let recHwRecorder = null, recHwStream = null, recHwChunks = [], recHwIndex = -1, recHwUrls = {};
+
+function recHwKey(u, p, i) { return u.unit + '-' + p.id + '-' + i; }
+function recHwMetaKey(u, p, i) { return 'tingliLocalRecMeta-' + recHwKey(u, p, i); }
+function recHwHasSync(u, p, i) { try { return !!localStorage.getItem(recHwMetaKey(u,p,i)); } catch (e) { return false; } }
+function recHwAllDoneSync(u, p) { return !!(p && p.lines && p.lines.length) && p.lines.every(function (_,i) { return recHwHasSync(u,p,i); }); }
+
+function recHwDb() {
+  return new Promise(function (resolve, reject) {
+    const q = indexedDB.open(REC_DB_NAME, 1);
+    q.onupgradeneeded = function () { if (!q.result.objectStoreNames.contains(REC_DB_STORE)) q.result.createObjectStore(REC_DB_STORE); };
+    q.onsuccess = function () { resolve(q.result); };
+    q.onerror = function () { reject(q.error); };
+  });
+}
+async function recHwPut(key, blob) {
+  const db = await recHwDb();
+  await new Promise(function (resolve, reject) {
+    const tx = db.transaction(REC_DB_STORE, 'readwrite');
+    tx.objectStore(REC_DB_STORE).put(blob, key);
+    tx.oncomplete = resolve; tx.onerror = function () { reject(tx.error); };
+  });
+  try { db.close(); } catch (e) {}
+}
+async function recHwGet(key) {
+  const db = await recHwDb();
+  const v = await new Promise(function (resolve, reject) {
+    const tx = db.transaction(REC_DB_STORE, 'readonly');
+    const q = tx.objectStore(REC_DB_STORE).get(key);
+    q.onsuccess = function () { resolve(q.result || null); }; q.onerror = function () { reject(q.error); };
+  });
+  try { db.close(); } catch (e) {}
+  return v;
+}
+async function recHwDel(key) {
+  const db = await recHwDb();
+  await new Promise(function (resolve, reject) {
+    const tx = db.transaction(REC_DB_STORE, 'readwrite');
+    tx.objectStore(REC_DB_STORE).delete(key);
+    tx.oncomplete = resolve; tx.onerror = function () { reject(tx.error); };
+  });
+  try { db.close(); } catch (e) {}
+}
+function recHwMetaWrite(u,p,i,blob) {
+  const m = { mime: blob.type || 'audio/webm', size: blob.size || 0, ts: Date.now() };
+  try { localStorage.setItem(recHwMetaKey(u,p,i), JSON.stringify(m)); } catch (e) {}
+}
+function recHwClearUrls() {
+  Object.keys(recHwUrls).forEach(function (k) { try { URL.revokeObjectURL(recHwUrls[k]); } catch (e) {} });
+  recHwUrls = {};
+}
+function renderRecordHw(u, part) {
+  showTabbar(false); partAudioKey = null; showPlayer(false);
+  curUnit = u; curPart = part;
+  recHwClearUrls();
+  const done = (part.lines || []).filter(function (_,i) { return recHwHasSync(u,part,i); }).length;
+  app.innerHTML = '<div class="topbar"><button class="back" onclick="goBack()">←</button>' +
+    '<div style="flex:1;min-width:0"><div class="u-title">' + esc(part.title) + '</div><div class="u-sub">' + esc(u.zh || '') + '</div></div></div>' +
+    dueBarHtml(u, part) +
+    '<div class="rec-hw-intro">' + esc(part.text || '') + '<br><b>Записи хранятся локально на этом устройстве.</b></div>' +
+    (part.lines || []).map(function (line,i) {
+      const saved = recHwHasSync(u,part,i);
+      return '<div class="rec-hw-item"><div class="rec-hw-top"><div class="rec-hw-num">' + (i+1) + '</div><div class="rec-hw-phrase">' + esc(line) + '</div></div>' +
+        '<div class="rec-hw-state' + (saved ? ' saved' : '') + '" id="recHwState-' + i + '">' + (saved ? '✓ Запись сохранена' : 'Ещё не записано') + '</div>' +
+        '<div class="rec-hw-actions"><button class="rec-hw-b rec" id="recHwBtn-' + i + '" onclick="recHwToggle(' + i + ')">' + (saved ? '🎤 Перезаписать' : '🎤 Записать') + '</button>' +
+        (saved ? '<button class="rec-hw-b del" onclick="recHwDelete(' + i + ')">Удалить</button>' : '') + '</div>' +
+        '<audio class="rec-hw-audio" id="recHwAudio-' + i + '" controls></audio></div>';
+    }).join('') +
+    '<div class="rec-hw-share"><div class="rec-hw-progress">Готово: ' + done + '/' + (part.lines || []).length + '</div>' +
+      '<button class="btn" onclick="recHwShare()">Отправить в Telegram</button>' +
+      '<div class="rec-hw-fallback" id="recHwFallback">Откроется системное меню «Поделиться» — выбери Telegram.</div></div>';
+  recHwHydrate(u, part);
+  window.scrollTo(0,0);
+}
+async function recHwHydrate(u, part) {
+  for (let i = 0; i < (part.lines || []).length; i++) {
+    if (!recHwHasSync(u,part,i)) continue;
+    try {
+      const blob = await recHwGet(recHwKey(u,part,i));
+      const a = document.getElementById('recHwAudio-' + i);
+      if (!blob || !a) continue;
+      const url = URL.createObjectURL(blob); recHwUrls[i] = url; a.src = url; a.style.display = 'block';
+    } catch (e) {}
+  }
+}
+async function recHwToggle(i) {
+  if (recHwRecorder && recHwRecorder.state === 'recording') {
+    if (recHwIndex === i) { try { recHwRecorder.stop(); } catch (e) {} }
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+    alert('Запись звука недоступна в этом браузере. Открой Tingli в Safari или Chrome.'); return;
+  }
+  try { recHwStream = await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch (e) { alert('Нет доступа к микрофону. Разреши микрофон для Tingli.'); return; }
+  const types = ['audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/webm;codecs=opus','audio/webm'];
+  let mime = '';
+  for (const t of types) { try { if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) { mime = t; break; } } catch (e) {} }
+  try { recHwRecorder = mime ? new MediaRecorder(recHwStream,{mimeType:mime}) : new MediaRecorder(recHwStream); }
+  catch (e) { recHwRecorder = new MediaRecorder(recHwStream); }
+  recHwIndex = i; recHwChunks = [];
+  recHwRecorder.ondataavailable = function (e) { if (e.data && e.data.size) recHwChunks.push(e.data); };
+  recHwRecorder.onstop = async function () {
+    const idx0 = recHwIndex;
+    const type = (recHwRecorder && recHwRecorder.mimeType) || mime || 'audio/webm';
+    const blob = new Blob(recHwChunks,{type:type});
+    try { if (recHwStream) recHwStream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+    recHwStream = null; recHwRecorder = null; recHwIndex = -1;
+    if (blob.size < 800) { alert('Запись слишком короткая. Запиши фразу ещё раз.'); renderRecordHw(curUnit,curPart); return; }
+    await recHwPut(recHwKey(curUnit,curPart,idx0), blob);
+    recHwMetaWrite(curUnit,curPart,idx0,blob);
+    renderRecordHw(curUnit,curPart);
+  };
+  recHwRecorder.start();
+  const b = document.getElementById('recHwBtn-' + i); if (b) b.textContent = '⏹ Остановить';
+  const s = document.getElementById('recHwState-' + i); if (s) { s.textContent = '● идёт запись…'; s.className = 'rec-hw-state live'; }
+}
+async function recHwDelete(i) {
+  try { await recHwDel(recHwKey(curUnit,curPart,i)); } catch (e) {}
+  try { localStorage.removeItem(recHwMetaKey(curUnit,curPart,i)); } catch (e) {}
+  renderRecordHw(curUnit,curPart);
+}
+function recHwExt(mime) {
+  mime = String(mime || '');
+  if (mime.indexOf('mp4') >= 0 || mime.indexOf('m4a') >= 0) return 'm4a';
+  if (mime.indexOf('ogg') >= 0) return 'ogg';
+  if (mime.indexOf('mpeg') >= 0) return 'mp3';
+  return 'webm';
+}
+async function recHwShare() {
+  const lines = (curPart && curPart.lines) || [];
+  const files = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (!recHwHasSync(curUnit,curPart,i)) { alert('Сначала запиши все фразы. Не хватает записи № ' + (i+1)); return; }
+    const blob = await recHwGet(recHwKey(curUnit,curPart,i));
+    if (!blob) { alert('Не удалось найти запись № ' + (i+1) + ' на этом устройстве. Перезапиши её.'); return; }
+    const ext = recHwExt(blob.type);
+    files.push(new File([blob], 'Tingli_team_online-shopping_A_' + (i+1) + '.' + ext, {type:blob.type || 'audio/webm'}));
+  }
+  try {
+    if (navigator.share && (!navigator.canShare || navigator.canShare({files:files}))) {
+      await navigator.share({title:'团队 · 网上购物 · ДЗ роль A', text:'ДЗ Tingli: роль A, 4 фразы', files:files});
+      return;
+    }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const box = document.getElementById('recHwFallback');
+  if (!box) return;
+  box.innerHTML = 'Прямое меню «Поделиться» недоступно. Скачай записи и отправь их в Telegram:' +
+    files.map(function (f) {
+      const url = URL.createObjectURL(f);
+      return '<a href="' + url + '" download="' + esc(f.name) + '">Скачать ' + esc(f.name) + '</a>';
+    }).join('');
+}
+
 /* ===== Домашнее задание (hw): свободные ответы + сборка текста для учителя ===== */
 function hwKey(unitN, partId, i) { return 'tingli-hw-' + unitN + '-' + partId + '-' + i; }
 function hwLoad(unitN, partId, i) { try { return localStorage.getItem(hwKey(unitN, partId, i)) || ''; } catch (e) { return ''; } }
@@ -24056,7 +24343,7 @@ function dueBarHtml(u, part) {
     (dueGet(u.unit, part.id) ? '<button class="hw-due-x" onclick="dueSetVal(\'\')" title="Убрать срок">✕</button>' : '') +
     '</div>';
 }
-function dueSetVal(v) { if (!curUnit || !curPart) return; saveLocal(dueKey(curUnit.unit, curPart.id), v || ''); updateAppBadge(); renderHw(curUnit, curPart); }
+function dueSetVal(v) { if (!curUnit || !curPart) return; saveLocal(dueKey(curUnit.unit, curPart.id), v || ''); updateAppBadge(); if (curPart.kind === 'record_hw') renderRecordHw(curUnit, curPart); else renderHw(curUnit, curPart); }
 /* счётчик ДЗ значком на иконке приложения (PWA Badging API) */
 function appBadgeCount() {
   let n = 0;
@@ -24825,7 +25112,12 @@ function crsHwState(key) {
   const rec = st.hwstate[key];
   if (rec && rec.state) return rec.state;
   const m = /^u(\d+)p(\d+)$/.exec(key);
-  if (m) { try { const meta = JSON.parse(localStorage.getItem('tingli-hwmeta-' + m[1] + '-' + m[2]) || 'null'); if (meta && meta.done) return 'done'; } catch (e) {} }
+  if (m) {
+    try { const meta = JSON.parse(localStorage.getItem('tingli-hwmeta-' + m[1] + '-' + m[2]) || 'null'); if (meta && meta.done) return 'done'; } catch (e) {}
+    const u = ALL_UNITS.find(function (x) { return x.unit === +m[1]; });
+    const p = u && (u.parts || []).find(function (x) { return x.id === +m[2]; });
+    if (p && p.kind === 'record_hw' && recHwAllDoneSync(u,p)) return 'done';
+  }
   return 'todo';
 }
 function crsHwSetState(key, state) {
@@ -24883,10 +25175,10 @@ function crsHwList() {
   // существующие ДЗ в уроках
   ALL_UNITS.forEach(function (u) {
     (u.parts || []).forEach(function (p) {
-      if (p.kind !== 'hw') return;
+      if (p.kind !== 'hw' && p.kind !== 'record_hw') return;
       const key = crsHwKey(u.unit, p.id);
       out.push({ key: key, unit: u.unit, partId: p.id, title: (p.title || 'ДЗ'), program: crsProgOfUnit(u), existing: true,
-                 items: (p.questions || []).map(function (q) { return (typeof q === 'string' ? q : q.q); }) });
+                 items: p.kind === 'record_hw' ? (p.lines || []) : (p.questions || []).map(function (q) { return (typeof q === 'string' ? q : q.q); }) });
     });
   });
   // свои ДЗ
