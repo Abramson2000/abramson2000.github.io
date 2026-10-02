@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tingli — диагностика</title>
+<style>
+  body{font:16px/1.5 -apple-system,system-ui,sans-serif;background:#F5F4F1;color:#1D1D21;margin:0;padding:16px 16px 60px}
+  h1{font-size:19px;margin:6px 0 14px}
+  button{font:inherit;font-weight:700;background:#C63717;color:#fff;border:0;border-radius:12px;padding:14px 18px;width:100%;margin:8px 0 16px}
+  button.sec{background:#fff;color:#1D1D21;border:1px solid #E5E1DA}
+  .row{background:#fff;border:1px solid #E5E1DA;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:14px;word-break:break-word}
+  .k{color:#77746F;font-size:12px}
+  .ok{color:#3D795F;font-weight:700}
+  .bad{color:#A63B34;font-weight:700}
+  pre{white-space:pre-wrap;font-size:12.5px;margin:4px 0 0}
+</style>
+</head>
+<body>
+<h1>Tingli — диагностика связи и расписания</h1>
+<button id="go">Проверить</button>
+<div id="out"></div>
+<script>
+const HOSTS = ['https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
+function row(t, body, cls) {
+  return '<div class="row"><div class="k">' + t + '</div><div class="' + (cls || '') + '">' + body + '</div></div>';
+}
+function esc(s) { return String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+async function check() {
+  const out = document.getElementById('out');
+  out.innerHTML = '';
+  out.innerHTML += row('Время устройства', esc(new Date().toString()) + '<br>ISO: ' + esc(new Date().toISOString()) + '<br>таймзона: ' + esc(Intl.DateTimeFormat().resolvedOptions().timeZone));
+  out.innerHTML += row('Адрес страницы', esc(location.href));
+  out.innerHTML += row('User-Agent', esc(navigator.userAgent));
+  // связь с облаком
+  for (const h of HOSTS) {
+    const t0 = Date.now();
+    try {
+      const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 12000);
+      const r = await fetch(h + '/backup', { signal: ctl.signal });
+      clearTimeout(to);
+      const txt = await r.text();
+      let keys = 0, series = -1, upd = null;
+      try { const j = JSON.parse(txt); keys = Object.keys(j).length;
+            if (j['tingli-schedule-v1']) { const st = JSON.parse(j['tingli-schedule-v1']); series = Object.keys(st.series || {}).length; upd = st.upd; } } catch (e) {}
+      out.innerHTML += row('Облако ' + h, 'HTTP ' + r.status + ' за ' + (Date.now() - t0) + ' мс<br>ключей: ' + keys + ', серий в расписании: ' + series + ', upd: ' + esc(String(upd)), r.ok ? 'ok' : 'bad');
+    } catch (e) {
+      out.innerHTML += row('Облако ' + h, 'ОШИБКА за ' + (Date.now() - t0) + ' мс: ' + esc(e && e.message || e), 'bad');
+    }
+  }
+  // локальное хранилище
+  let ls = [];
+  try { for (let i = 0; i < localStorage.length; i++) ls.push(localStorage.key(i)); } catch (e) {}
+  let st = null;
+  try { st = JSON.parse(localStorage.getItem('tingli-schedule-v1') || 'null'); } catch (e) {}
+  out.innerHTML += row('localStorage', 'ключей: ' + ls.length + '<br>' + esc(ls.filter(k => k.indexOf('tingli-') === 0).join(', ')));
+  out.innerHTML += row('Локальное расписание', st ? ('серий: ' + Object.keys(st.series || {}).length + ', занятий: ' + Object.keys(st.lessons || {}).length + ', upd: ' + esc(String(st.upd)) + '<br><pre>' + esc(JSON.stringify(Object.keys(st.series || {}).map(k => [k, st.series[k].program, st.series[k].teacher, st.series[k].days, st.series[k].time, st.series[k].from, st.series[k].to]))) + '</pre>') : 'нет', st ? 'ok' : 'bad');
+  // версия приложения и кэши
+  try {
+    const caches_ = await caches.keys();
+    out.innerHTML += row('Кэши service worker', esc(caches_.join(', ')));
+  } catch (e) { out.innerHTML += row('Кэши service worker', 'недоступны: ' + esc(e.message)); }
+  try {
+    const r = await fetch('index.html?diag=' + Date.now(), { cache: 'no-store' });
+    const t = await r.text();
+    const m = t.match(/APP_VER = '([0-9.]+)'/);
+    out.innerHTML += row('Версия приложения на сервере', m ? m[1] : 'не найдена', m ? 'ok' : 'bad');
+  } catch (e) { out.innerHTML += row('Версия приложения на сервере', 'ошибка: ' + esc(e.message), 'bad'); }
+  try {
+    const sw = await navigator.serviceWorker.getRegistrations();
+    out.innerHTML += row('Service worker', sw.length ? sw.map(x => x.active && x.active.scriptURL || '(нет активного)').join('<br>') : 'не зарегистрирован');
+  } catch (e) {}
+}
+document.getElementById('go').onclick = check;
+check();
+</script>
+</body>
+</html>
