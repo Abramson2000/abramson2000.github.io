@@ -9,10 +9,10 @@
 <link rel="apple-touch-icon" href="tingli-icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.8.0') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.8.0') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.9.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.9.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.8.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.9.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -551,6 +551,9 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
 .crs-pass { display: inline-block; margin-left: 8px; font-size: 12px; font-weight: 700; color: #6b6b74; background: #f4f3ef; border-radius: 8px; padding: 2px 7px; }
 .crs-place .crs-link { margin-left: 8px; font-weight: 700; }
 
+html { overflow-x: hidden; overscroll-behavior-x: none; }
+body { overflow-x: hidden; overscroll-behavior-x: none; }
+
 </style>
 </head>
 <body>
@@ -590,7 +593,7 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.8.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.8.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.9.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.9.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
@@ -22789,7 +22792,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '4.8.0';
+const APP_VER = '4.9.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://tingli-api.crmuro.ru';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -22967,18 +22970,25 @@ document.addEventListener('click', function (e) {
     const t = e.touches[0];
     const off = document.body.classList.contains('sb-off');
     const onSb = e.target && e.target.closest && e.target.closest('#tabbar');
-    if (!off && (onSb || t.clientX < Math.min(sb.offsetWidth, 340))) sbTouch = { x: t.clientX, y: t.clientY, mode: 'close' };
-    else if (off && t.clientX < 30) sbTouch = { x: t.clientX, y: t.clientY, mode: 'open' };
-    if (sbTouch) sb.classList.add('sb-drag');
+    /* тащим колонку только если палец лёг на неё саму (закрыть) или у самого левого края (открыть) */
+    if (!off && onSb) sbTouch = { x: t.clientX, y: t.clientY, mode: 'close', armed: true };
+    else if (off && t.clientX < 24) sbTouch = { x: t.clientX, y: t.clientY, mode: 'open', armed: false };
+    if (sbTouch && sbTouch.armed) sb.classList.add('sb-drag');
   }, { passive: true });
   document.addEventListener('touchmove', function (e) {
     if (!sbTouch) return;
     const t = e.touches[0];
     const dx = t.clientX - sbTouch.x;
     const dy = Math.abs(t.clientY - sbTouch.y);
-    if (dy > 70 && Math.abs(dx) < 14) { sbTouch = null; return; }
     const sb = sbEl();
     const w = sb.offsetWidth;
+    if (!sbTouch.armed) {
+      /* пока палец не пошёл явно вбок — колонку не трогаем (иначе она дрожит при прокрутке) */
+      if (Math.abs(dx) < 10 || Math.abs(dx) < dy) return;
+      sbTouch.armed = true;
+      sb.classList.add('sb-drag');
+    }
+    if (Math.abs(dx) < dy) return;
     if (sbTouch.mode === 'close') sb.style.transform = 'translateX(' + Math.min(0, dx) + 'px)';
     else sb.style.transform = 'translateX(' + Math.max(-w, dx - w) + 'px)';
   }, { passive: true });
@@ -22986,10 +22996,13 @@ document.addEventListener('click', function (e) {
     if (!sbTouch) return;
     const sb = sbEl();
     const dx = e.changedTouches[0].clientX - sbTouch.x;
+    const armed = sbTouch.armed;
     sb.classList.remove('sb-drag');
     sb.style.transform = '';
-    if (sbTouch.mode === 'close' && dx < -55) sbClose();
-    else if (sbTouch.mode === 'open' && dx > 55) sbOpen();
+    if (armed) {
+      if (sbTouch.mode === 'close' && dx < -55) sbClose();
+      else if (sbTouch.mode === 'open' && dx > 55) sbOpen();
+    }
     sbTouch = null;
   }, { passive: true });
 })();
@@ -25221,7 +25234,7 @@ function crsForm(id, preset, evId) {
       '<div><div class="crs-lbl">Дата</div><input class="crs-inp" id="crsD" type="date" value="' + f.date + '"></div>' +
       '<div><div class="crs-lbl">Начало</div><input class="crs-inp" id="crsH" type="time" value="' + f.time + '"></div>' +
     '</div>' +
-    '<div class="crs-lbl">Длительность</div><div class="crs-chips">' + [30, 45, 50, 60, 90, 120].map(function (d) {
+    '<div class="crs-lbl">Длительность</div><div class="crs-chips">' + [30, 45, 50, 60, 90].map(function (d) {
       return '<button class="crs-chip' + (f.dur === d ? ' on' : '') + '" data-dur="' + d + '">' + d + ' мин</button>';
     }).join('') + '</div>' +
     '<div class="crs-lbl">Часовой пояс</div><select class="crs-inp" id="crsTZ">' + crsTzList().map(function (z) {
