@@ -132,6 +132,32 @@
   .speak-heard { font-size: 14px; line-height: 1.7; background: var(--paper); border-radius: 14px; padding: 12px; }
   .speak-heard .hzh { font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-size: 19px; display: block; margin-top: 4px; }
   .speak-verdict { font-size: 14px; line-height: 1.7; margin-top: 10px; }
+  .dlg-tools { display:flex; gap:9px; margin:0 0 12px; }
+  .dlg-tools .btn { padding:12px 14px; }
+  .dlg-list { display:flex; flex-direction:column; gap:10px; }
+  .dlg-line { background:var(--surface); border-radius:16px; padding:13px 14px; box-shadow:var(--shadow-card); }
+  .dlg-line.a { box-shadow:inset 3px 0 0 var(--seal), var(--shadow-card); }
+  .dlg-line.b { box-shadow:inset 3px 0 0 var(--line), var(--shadow-card); }
+  .dlg-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .dlg-role { width:25px; height:25px; border-radius:9px; background:var(--seal-soft); color:var(--seal); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .dlg-say { margin-left:auto; border:0; background:var(--paper); color:var(--ink); border-radius:999px; padding:6px 10px; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+  .dlg-zh { font-family:"TLCJK","SimSun","Songti SC","STSong",serif; font-size:19px; line-height:1.6; color:var(--ink); }
+  .dlg-py { font-size:13px; line-height:1.5; color:var(--seal); margin-top:4px; }
+  .dlg-ru { font-size:13px; line-height:1.5; color:var(--ink-2); margin-top:4px; }
+  .vhw-intro { background:var(--surface); border-radius:16px; padding:13px 14px; margin:12px 0; box-shadow:var(--shadow-card); color:var(--ink-2); font-size:14px; line-height:1.55; }
+  .vhw-item { background:var(--surface); border-radius:18px; padding:14px; margin:10px 0; box-shadow:var(--shadow-card); }
+  .vhw-num { font-size:12px; font-weight:800; color:var(--seal); margin-bottom:6px; }
+  .vhw-zh { font-family:"TLCJK","SimSun","Songti SC","STSong",serif; font-size:19px; line-height:1.6; color:var(--ink); }
+  .vhw-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .vhw-b { border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:999px; padding:8px 12px; font:inherit; font-size:12.5px; font-weight:700; cursor:pointer; }
+  .vhw-b.rec { background:var(--seal); border-color:var(--seal); color:#fff; }
+  .vhw-b.share { color:var(--seal); }
+  .vhw-b.del { color:var(--danger); }
+  .vhw-state { font-size:12.5px; color:var(--ink-2); margin-top:8px; }
+  .vhw-state.ok { color:var(--jade); font-weight:700; }
+  .vhw-audio { width:100%; margin-top:9px; display:none; }
+  .vhw-footer { background:var(--surface); border-radius:18px; padding:14px; margin:14px 0 28px; box-shadow:var(--shadow-card); }
+  .vhw-footer .note { font-size:12.5px; color:var(--ink-2); line-height:1.5; margin-top:8px; }
   .tts-bar { display:flex; gap:9px; margin-top:12px; padding:12px; background:var(--surface); border-radius:16px; box-shadow:var(--shadow-card); align-items:center; }
   .tts-btn { border:0; border-radius:999px; padding:10px 15px; font:inherit; font-size:13.5px; font-weight:700; cursor:pointer; }
   .tts-btn.main { background:var(--seal); color:#fff; }
@@ -23656,6 +23682,7 @@ function openPart(unitN, partId) {
 
 function renderText(u, part) {
   showTabbar(false);
+  if (part && part.dialogueLines && part.dialogueLines.length) { renderDialogue(u, part); return; }
   if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u, part);
   else if (part && part.audio) {
     if (partAudioKey !== u.unit + '-' + part.id) setPartAudio(u, part);
@@ -23668,46 +23695,62 @@ function renderText(u, part) {
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
     <div class="lesson-text">${pimg}${paras.map(p => `<p class="zh">${esc(p)}</p>`).join('')}</div>
-    ${part.tts ? dialogTtsHtml() : ''}
     ${part.speak ? speakBoxHtml() : ''}`;
   posRestore();
 }
 
-
-let _dlgTtsRun = 0;
-function dialogTtsHtml() {
-  return '<div class="tts-bar"><button class="tts-btn main" onclick="dialogTtsStart()">🔊 Озвучить диалог</button>' +
-    '<button class="tts-btn stop" onclick="dialogTtsStop()">■ Стоп</button><span class="tts-state" id="ttsState"></span></div>';
+function dlgVoice(role) {
+  if (!('speechSynthesis' in window)) return null;
+  const all = speechSynthesis.getVoices ? speechSynthesis.getVoices() : [];
+  const zh = all.filter(v => /^zh(-|_)/i.test(v.lang || '') || /Chinese|中文|普通话/i.test(v.name || ''));
+  const ms = zh.filter(v => /Microsoft/i.test(v.name || ''));
+  const namesA = /Xiaoxiao|Xiaoyi|Huihui|Yaoyao|晓晓|晓伊/i;
+  const namesB = /Yunxi|Yunyang|Kangkang|云希|云扬|康康/i;
+  const pool = ms.length ? ms : zh;
+  return pool.find(v => role === 'A' ? namesA.test(v.name || '') : namesB.test(v.name || '')) || pool[role === 'B' && pool.length > 1 ? 1 : 0] || null;
 }
-function dialogTtsStop() {
-  _dlgTtsRun++;
-  try { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); } catch (e) {}
-  const s = document.getElementById('ttsState'); if (s) s.textContent = '';
+function dlgSpeakLine(i) {
+  if (!curPart || !curPart.dialogueLines || !curPart.dialogueLines[i]) return;
+  if (!('speechSynthesis' in window) || !window.SpeechSynthesisUtterance) { alert('На этом устройстве нет встроенной озвучки.'); return; }
+  speechSynthesis.cancel();
+  const ln = curPart.dialogueLines[i];
+  const u = new SpeechSynthesisUtterance(ln.zh);
+  u.lang = 'zh-CN'; u.rate = .9; u.pitch = ln.role === 'A' ? 1.02 : .94;
+  const v = dlgVoice(ln.role); if (v) u.voice = v;
+  speechSynthesis.speak(u);
 }
-function dialogTtsStart() {
-  if (!('speechSynthesis' in window) || !window.SpeechSynthesisUtterance) {
-    const s = document.getElementById('ttsState'); if (s) s.textContent = 'Озвучка недоступна'; return;
-  }
-  try { window.speechSynthesis.cancel(); } catch (e) {}
-  const run = ++_dlgTtsRun;
-  const lines = String((curPart && curPart.text) || '').split(/\n+/).map(x => x.trim()).filter(Boolean);
-  const zh = (window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : []).filter(v => /^zh/i.test(v.lang || ''));
-  let i = 0;
-  const state = document.getElementById('ttsState');
-  const next = function () {
-    if (run !== _dlgTtsRun) return;
-    if (i >= lines.length) { if (state) state.textContent = 'Готово'; return; }
-    const raw = lines[i++], roleA = /^[AaＡA][：:]/.test(raw);
-    const txt = raw.replace(/^[ABＡＢab][：:]\s*/, '');
-    const u = new SpeechSynthesisUtterance(txt);
-    u.lang = 'zh-CN'; u.rate = 0.88; u.pitch = roleA ? 0.94 : 1.07;
-    if (zh.length) u.voice = zh[roleA ? 0 : Math.min(1, zh.length - 1)];
-    u.onend = next;
-    u.onerror = function () { if (run === _dlgTtsRun && state) state.textContent = 'Ошибка озвучки'; };
-    if (state) state.textContent = (roleA ? 'A' : 'B') + ' · ' + i + '/' + lines.length;
-    window.speechSynthesis.speak(u);
-  };
-  next();
+function dlgSpeakAll() {
+  if (!curPart || !curPart.dialogueLines) return;
+  if (!('speechSynthesis' in window) || !window.SpeechSynthesisUtterance) { alert('На этом устройстве нет встроенной озвучки.'); return; }
+  speechSynthesis.cancel();
+  curPart.dialogueLines.forEach(ln => {
+    const u = new SpeechSynthesisUtterance(ln.zh);
+    u.lang = 'zh-CN'; u.rate = .9; u.pitch = ln.role === 'A' ? 1.02 : .94;
+    const v = dlgVoice(ln.role); if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  });
+}
+function dlgStop() { try { speechSynthesis.cancel(); } catch (e) {} }
+function renderDialogue(u, part) {
+  showTabbar(false); partAudioKey = null; showPlayer(false);
+  curUnit = u; curPart = part;
+  app.innerHTML = `
+    <div class="topbar"><button class="back" onclick="goBack()">←</button>
+      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
+    <div class="dlg-tools">
+      <button class="btn" onclick="dlgSpeakAll()">▶ Озвучить диалог</button>
+      <button class="btn ghost" onclick="dlgStop()">■ Стоп</button>
+    </div>
+    <div class="dlg-list">
+      ${part.dialogueLines.map((ln,i) => `
+        <div class="dlg-line ${ln.role === 'A' ? 'a' : 'b'}">
+          <div class="dlg-head"><span class="dlg-role">${esc(ln.role)}</span><button class="dlg-say" onclick="dlgSpeakLine(${i})">🔊 Слушать</button></div>
+          <div class="dlg-zh">${esc(ln.zh)}</div>
+          ${ln.py ? `<div class="dlg-py">${esc(ln.py)}</div>` : ''}
+          ${ln.ru ? `<div class="dlg-ru">${esc(ln.ru)}</div>` : ''}
+        </div>`).join('')}
+    </div>`;
+  posRestore();
 }
 
 // ── «Говорим сами»: запись голоса → расшифровка (Whisper) → проверка ИИ ──────
@@ -24321,6 +24364,10 @@ function dueState(unitN, partId) {
 function dayWord(n) { const m = n % 10, h = n % 100; if (h >= 11 && h <= 14) return 'дней'; if (m === 1) return 'день'; if (m >= 2 && m <= 4) return 'дня'; return 'дней'; }
 function hwAllDone(u, part) {
   if (!part.questions || !part.questions.length) return false;
+  if (part.voiceHomework) {
+    const f = voiceHwFlags(u.unit, part.id, part.questions.length);
+    return f.length === part.questions.length && f.every(Boolean);
+  }
   for (let i = 0; i < part.questions.length; i++) { if (!hwLoad(u.unit, part.id, i).trim()) return false; }
   return true;
 }
@@ -24414,7 +24461,175 @@ function hwCopy(withQ) {
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fallback);
   else fallback();
 }
+
+const VHW_DB = 'tingli-voice-hw-v1', VHW_STORE = 'rec';
+let _vhwRec = null, _vhwChunks = [], _vhwIdx = -1, _vhwStream = null;
+function voiceHwFlagKey(unitN, partId) { return 'tingli-vhw-' + unitN + '-' + partId; }
+function voiceHwFlags(unitN, partId, n) {
+  try {
+    const a = JSON.parse(localStorage.getItem(voiceHwFlagKey(unitN, partId)) || '[]');
+    return Array.from({length:n}, (_,i) => !!a[i]);
+  } catch(e) { return Array(n).fill(false); }
+}
+function voiceHwSetFlag(unitN, partId, i, val, n) {
+  const a = voiceHwFlags(unitN, partId, n); a[i] = !!val;
+  saveLocal(voiceHwFlagKey(unitN, partId), JSON.stringify(a));
+  const answered = a.filter(Boolean).length;
+  saveLocal('tingli-hwmeta-' + unitN + '-' + partId, JSON.stringify({n:n, done:answered === n, answered:answered}));
+  updateAppBadge();
+}
+function voiceDb() {
+  return new Promise((resolve,reject) => {
+    if (!window.indexedDB) return reject(new Error('IndexedDB недоступен'));
+    const q = indexedDB.open(VHW_DB, 1);
+    q.onupgradeneeded = () => { const db=q.result; if(!db.objectStoreNames.contains(VHW_STORE)) db.createObjectStore(VHW_STORE); };
+    q.onsuccess = () => resolve(q.result); q.onerror = () => reject(q.error || new Error('DB error'));
+  });
+}
+function voiceRecKey(unitN, partId, i) { return unitN + '-' + partId + '-' + i; }
+async function voicePut(unitN, partId, i, blob) {
+  const db=await voiceDb();
+  await new Promise((resolve,reject) => { const tx=db.transaction(VHW_STORE,'readwrite'); tx.objectStore(VHW_STORE).put({blob:blob,type:blob.type,ts:Date.now()}, voiceRecKey(unitN,partId,i)); tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error); });
+  db.close();
+}
+async function voiceGet(unitN, partId, i) {
+  try {
+    const db=await voiceDb();
+    const v=await new Promise((resolve,reject)=>{ const tx=db.transaction(VHW_STORE,'readonly'); const q=tx.objectStore(VHW_STORE).get(voiceRecKey(unitN,partId,i)); q.onsuccess=()=>resolve(q.result||null); q.onerror=()=>reject(q.error); });
+    db.close(); return v;
+  } catch(e) { return null; }
+}
+async function voiceDel(unitN, partId, i) {
+  try {
+    const db=await voiceDb();
+    await new Promise((resolve,reject)=>{ const tx=db.transaction(VHW_STORE,'readwrite'); tx.objectStore(VHW_STORE).delete(voiceRecKey(unitN,partId,i)); tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error); });
+    db.close();
+  } catch(e) {}
+}
+function voiceExt(type) {
+  type=String(type||'').toLowerCase();
+  if(type.indexOf('mp4')>=0 || type.indexOf('m4a')>=0) return 'm4a';
+  if(type.indexOf('mpeg')>=0 || type.indexOf('mp3')>=0) return 'mp3';
+  if(type.indexOf('ogg')>=0) return 'ogg';
+  return 'webm';
+}
+function voiceFile(rec, i) {
+  const ext=voiceExt(rec && (rec.type || (rec.blob && rec.blob.type)));
+  return new File([rec.blob], 'Tingli_214_A' + (i+1) + '.' + ext, {type:(rec.type || rec.blob.type || 'audio/webm')});
+}
+function voiceFallbackDownload(file) {
+  const a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+async function voiceHwRefresh() {
+  if(!curPart || !curPart.voiceHomework) return;
+  const flags=voiceHwFlags(curUnit.unit,curPart.id,curPart.questions.length);
+  for(let i=0;i<curPart.questions.length;i++){
+    const rec=await voiceGet(curUnit.unit,curPart.id,i);
+    const st=document.getElementById('vhwState'+i), au=document.getElementById('vhwAud'+i), sh=document.getElementById('vhwShare'+i), del=document.getElementById('vhwDel'+i);
+    if(rec && rec.blob){
+      if(st){st.textContent='✅ Запись сохранена';st.className='vhw-state ok';}
+      if(au){au.src=URL.createObjectURL(rec.blob);au.style.display='block';}
+      if(sh) sh.style.display='inline-block'; if(del) del.style.display='inline-block';
+      if(!flags[i]) voiceHwSetFlag(curUnit.unit,curPart.id,i,true,curPart.questions.length);
+    } else {
+      if(st){st.textContent='Записи пока нет';st.className='vhw-state';}
+      if(au) au.style.display='none'; if(sh) sh.style.display='none'; if(del) del.style.display='none';
+      if(flags[i]) voiceHwSetFlag(curUnit.unit,curPart.id,i,false,curPart.questions.length);
+    }
+  }
+  const ready=voiceHwFlags(curUnit.unit,curPart.id,curPart.questions.length).filter(Boolean).length;
+  const c=document.getElementById('vhwCount'); if(c) c.textContent='Готово записей: '+ready+' из '+curPart.questions.length;
+  const all=document.getElementById('vhwShareAll'); if(all) all.disabled=ready!==curPart.questions.length;
+}
+async function voiceHwToggle(i) {
+  if(_vhwRec && _vhwRec.state==='recording'){
+    if(_vhwIdx===i){ try{_vhwRec.stop();}catch(e){} }
+    else alert('Сначала останови текущую запись.');
+    return;
+  }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder){ alert('На этом устройстве запись через браузер недоступна.'); return; }
+  try { _vhwStream=await navigator.mediaDevices.getUserMedia({audio:true}); } catch(e){ alert('Разреши доступ к микрофону для Tingli.'); return; }
+  const types=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/mpeg']; let mime='';
+  for(const t of types){try{if(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)){mime=t;break;}}catch(e){}}
+  try{_vhwRec=mime?new MediaRecorder(_vhwStream,{mimeType:mime}):new MediaRecorder(_vhwStream);}catch(e){_vhwRec=new MediaRecorder(_vhwStream);}
+  _vhwChunks=[]; _vhwIdx=i;
+  const btn=document.getElementById('vhwRec'+i), st=document.getElementById('vhwState'+i);
+  _vhwRec.ondataavailable=e=>{if(e.data&&e.data.size)_vhwChunks.push(e.data);};
+  _vhwRec.onstop=async()=>{
+    try{_vhwStream.getTracks().forEach(t=>t.stop());}catch(e){}
+    const blob=new Blob(_vhwChunks,{type:_vhwRec.mimeType||mime||'audio/webm'});
+    if(blob.size>1000){
+      await voicePut(curUnit.unit,curPart.id,i,blob);
+      voiceHwSetFlag(curUnit.unit,curPart.id,i,true,curPart.questions.length);
+      try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+    }
+    _vhwRec=null; _vhwIdx=-1; _vhwStream=null;
+    await voiceHwRefresh();
+    const b=document.getElementById('vhwRec'+i); if(b)b.textContent='🎙 Перезаписать';
+  };
+  _vhwRec.start();
+  if(btn) btn.textContent='⏹ Остановить и сохранить';
+  if(st){st.textContent='● идёт запись…';st.className='vhw-state';}
+}
+async function voiceHwDelete(i){
+  if(!confirm('Удалить эту запись?')) return;
+  await voiceDel(curUnit.unit,curPart.id,i);
+  voiceHwSetFlag(curUnit.unit,curPart.id,i,false,curPart.questions.length);
+  await voiceHwRefresh();
+}
+async function voiceHwShare(i){
+  const rec=await voiceGet(curUnit.unit,curPart.id,i); if(!rec||!rec.blob)return;
+  const file=voiceFile(rec,i);
+  try{
+    if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){ await navigator.share({files:[file],title:'Tingli · 网上购物 · роль A'}); }
+    else voiceFallbackDownload(file);
+  }catch(e){ if(e && e.name!=='AbortError') voiceFallbackDownload(file); }
+}
+async function voiceHwShareAll(){
+  const files=[];
+  for(let i=0;i<curPart.questions.length;i++){const rec=await voiceGet(curUnit.unit,curPart.id,i);if(!rec||!rec.blob){alert('Сначала запиши все фразы.');return;}files.push(voiceFile(rec,i));}
+  try{
+    if(navigator.share && (!navigator.canShare || navigator.canShare({files:files}))){ await navigator.share({files:files,title:'Tingli · 团队 · 网上购物 · роль A'}); }
+    else files.forEach(voiceFallbackDownload);
+  }catch(e){ if(e && e.name!=='AbortError') files.forEach(voiceFallbackDownload); }
+}
+function renderVoiceHw(u, part){
+  showTabbar(false); partAudioKey=null; showPlayer(false); curUnit=u; curPart=part;
+  app.innerHTML=`
+    <div class="topbar"><button class="back" onclick="goBack()">←</button>
+      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh||'')}</div></div></div>
+    ${dueBarHtml(u,part)}
+    <div class="vhw-intro">${esc(part.text||'')}<br><b>Записи сохраняются на этом устройстве.</b></div>
+    ${part.questions.map((q,i)=>`
+      <div class="vhw-item">
+        <div class="vhw-num">A · фраза ${i+1}</div>
+        <div class="vhw-zh">${esc(typeof q==='string'?q:q.q)}</div>
+        <div class="vhw-actions">
+          <button class="vhw-b" onclick="dlgSpeakText(${i})">🔊 Образец</button>
+          <button class="vhw-b rec" id="vhwRec${i}" onclick="voiceHwToggle(${i})">🎙 Записать</button>
+          <button class="vhw-b share" id="vhwShare${i}" style="display:none" onclick="voiceHwShare(${i})">📤 Поделиться</button>
+          <button class="vhw-b del" id="vhwDel${i}" style="display:none" onclick="voiceHwDelete(${i})">Удалить</button>
+        </div>
+        <div class="vhw-state" id="vhwState${i}">Проверяю сохранённую запись…</div>
+        <audio class="vhw-audio" id="vhwAud${i}" controls></audio>
+      </div>`).join('')}
+    <div class="vhw-footer">
+      <div id="vhwCount" class="hw-count"></div>
+      <button class="btn" id="vhwShareAll" onclick="voiceHwShareAll()" disabled>📤 Отправить все 4 записи</button>
+      <div class="note">Откроется системное меню «Поделиться» — выбери Telegram и нужный чат.</div>
+    </div>`;
+  voiceHwRefresh(); posRestore();
+}
+function dlgSpeakText(i){
+  if(!curPart||!curPart.questions||!curPart.questions[i])return;
+  if(!('speechSynthesis' in window)||!window.SpeechSynthesisUtterance){alert('На этом устройстве нет встроенной озвучки.');return;}
+  speechSynthesis.cancel();
+  const q=curPart.questions[i], txt=typeof q==='string'?q:q.q;
+  const u=new SpeechSynthesisUtterance(txt);u.lang='zh-CN';u.rate=.86;u.pitch=1.02;const v=dlgVoice('A');if(v)u.voice=v;speechSynthesis.speak(u);
+}
+
 function renderHw(u, part) {
+  if (part && part.voiceHomework) { renderVoiceHw(u, part); return; }
   showTabbar(false); showPlayer(!!(part && part.audio));
   curUnit = u; curPart = part;
   const aiCheck = part.aiCheck !== false;
