@@ -3233,7 +3233,7 @@ const IDV_UNITS = [
  "label": "网上购物",
  "emoji": "🛍️",
  "zh": "网上购物",
- "ru": "Покупки в интернете",
+ "ru": "Диалог о покупках",
  "src": "team",
  "parts": [
   {
@@ -3415,7 +3415,7 @@ const IDV_UNITS = [
   {
    "id": 2,
    "kind": "hw",
-   "title": "ДЗ · роль A · запись по фразам",
+   "title": "ДЗ · роль A",
    "titleZh": "作业 · A角色录音",
    "aiCheck": false,
    "voiceHomework": true,
