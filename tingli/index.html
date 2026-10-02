@@ -9,10 +9,10 @@
 <link rel="apple-touch-icon" href="tingli-icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.3.0') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.3.0') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=4.4.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.4.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.3.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=4.4.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     --bg: #f5f4f1;
     --card: #ffffff;
@@ -444,6 +444,10 @@ body.crs-open .menu-btn { display: none !important; }
 .crs-day-empty { font-size: 13px; color: var(--faint); padding: 2px 0 6px; }
 
 .crs-card { background: var(--card); border-radius: 18px; padding: 14px 16px; box-shadow: var(--shadow-card); margin-bottom: 10px; }
+.crs-card { cursor: pointer; }
+.crs-card:active { transform: scale(.995); }
+.crs-hw-in.compact { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 8px; margin-top: 8px; border-top: 0; }
+.crs-chip.hw { background: var(--red-soft); color: var(--red); font-weight: 600; }
 .crs-card.off { opacity: .62; }
 .crs-card.done .crs-c-tag { color: var(--ok); }
 .crs-card-top { display: flex; align-items: flex-start; gap: 10px; }
@@ -578,7 +582,7 @@ textarea.crs-inp { resize: vertical; line-height: 1.4; }
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.3.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.3.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=4.4.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=4.4.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
@@ -22777,7 +22781,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '4.3.0';
+const APP_VER = '4.4.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_BASE = 'https://tingli-api.crmuro.ru';
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
@@ -24934,7 +24938,7 @@ function crsLessonCard(ev) {
   const mat = (ev.material && ev.material.unit !== undefined && ev.material.unit !== null && ev.material.unit !== '')
     ? '<div class="crs-mat">' + esc(crsUnitTitle(ev.material.unit)) + (ev.material.part !== undefined && ev.material.part !== '' ? ' · ' + esc(crsPartTitle(ev.material.unit, ev.material.part)) : '') + '</div>'
     : '<div class="crs-mat muted">Материал ещё не выбран</div>';
-  return '<div class="crs-card' + (state === 'canceled' ? ' off' : '') + (state === 'done' ? ' done' : '') + '">' +
+  return '<div class="crs-card' + (state === 'canceled' ? ' off' : '') + (state === 'done' ? ' done' : '') + '" onclick="crsOpenLesson(event,\'' + ev.evId + '\')">' +
     '<div class="crs-card-top">' +
       '<div class="crs-c-time">' + esc(t) + '<span>' + esc(t2 || (ev.dur ? ev.dur + ' мин' : '')) + '</span></div>' +
       '<div class="crs-c-tag">' + esc(crsProgTitle(ev.program)) + (ev.teacher ? '<span>' + esc(ev.teacher) + '</span>' : '') + '</div>' +
@@ -24971,16 +24975,15 @@ function crsPartTitle(unit, partId) {
 function crsLessonHwBlock(ev) {
   const list = crsHwForLesson(ev);
   if (!list.length) return '';
-  const shown = list.slice(0, 2);
-  const rest = list.length - shown.length;
-  return '<div class="crs-hw-in">' + shown.map(function (h) {
-    const it = (h.items || []).slice(0, 3).map(function (q) {
-      return '<div class="crs-hw-item' + (h.state === 'done' ? ' on' : '') + '">' + esc(String(q).slice(0, 80)) + '</div>';
-    }).join('');
-    return '<div class="crs-hw-title">' + esc(h.title) + (h.dueDate ? ' · к ' + crsDayShort(h.dueDate) : '') + '</div>' + it +
-      '<div class="crs-actions"><button class="crs-b s" onclick="crsHwOpen(\'' + h.key + '\')">Открыть задание</button>' +
-      '<button class="crs-b s" onclick="crsHwStateBtn(\'' + h.key + '\')">' + crsStateWord(h.state) + '</button></div>';
-  }).join('') + (rest > 0 ? '<div class="crs-note">и ещё ' + rest + ' задани' + (rest === 1 ? 'е' : 'я') + '</div>' : '') + '</div>';
+  const un = list.filter(function (h) { return h.state !== 'done'; }).length;
+  return '<div class="crs-hw-in compact"><span class="crs-chip hw">ДЗ: ' + list.length + (un ? '' : ' ✓') + '</span>' +
+    (un ? '<span class="crs-chip">не сдано: ' + un + '</span>' : '') + '</div>';
+}
+function crsOpenLesson(e, evId) {
+  if (e && e.target && e.target.closest && (e.target.closest('button') || e.target.closest('a'))) return;
+  const ev = crsFindEv(evId); if (!ev) return;
+  const lessonsId = ev.evId.indexOf('l:') === 0 ? ev.evId.slice(2) : '';
+  crsForm(lessonsId, null, evId);
 }
 function crsStateWord(s) { return s === 'done' ? '✓ Выполнено' : (s === 'doing' ? 'В работе' : 'Не начато'); }
 function crsHwStateBtn(key) {
@@ -25144,9 +25147,19 @@ function crsSheet(title, html, opts) {
 function closeCrsSheets() { document.querySelectorAll('.crs-sheet,.crs-scrim').forEach(function (n) { n.remove(); }); }
 
 /* ---------- форма занятия ---------- */
-function crsForm(id, preset) {
+function crsForm(id, preset, evId) {
   const st = crsStore();
-  const src = id ? (st.lessons[id] || null) : null;
+  const ev = evId ? crsFindEv(evId) : null;
+  let sid = '';
+  if (id && st.series[id]) sid = id;
+  if (!id && ev && ev.seriesId) sid = ev.seriesId;
+  const ser = sid ? st.series[sid] : null;
+  const src = (id && st.lessons[id]) ? st.lessons[id]
+    : (ser ? {
+      program: ser.program, teacher: ser.teacher, date: (ev ? ev.date : ser.from), time: ser.time, dur: ser.dur,
+      tz: ser.tz, link: ser.link, place: ser.place, note: ser.note, material: ser.material, rem: ser.rem,
+      repeat: { on: true, days: (ser.days || []).slice(), every: ser.every || 1, to: ser.to || '' }
+    } : null);
   const s = src || Object.assign({
     program: st.filters.prog || 'idv', teacher: '', date: (preset && preset.date) || crsYmd(new Date()),
     time: '19:00', dur: 60, tz: CRS_TZ_DEF, link: '', place: '', note: '',
@@ -25161,6 +25174,23 @@ function crsForm(id, preset) {
     remOffsets: (Array.isArray(s.rem) ? s.rem : (st.rem.lessons.offsets || [])).slice()
   };
   if (!f.repeatOn) f.days = [crsDow(f.date)];
+  const hwBlock = function () {
+    if (!id && !evId) return '';
+    const fake = {
+      evId: evId || ('l:' + id), id: sid || id || '',
+      material: (f.unit !== '' ? { unit: +f.unit, part: (f.part === '' ? '' : +f.part) } : null), hwKeys: []
+    };
+    const list = crsHwForLesson(fake);
+    if (!list.length) return '<div class="crs-lbl">ДЗ к занятию</div><div class="crs-note">К этому занятию заданий нет.</div>';
+    return '<div class="crs-lbl">ДЗ к занятию</div>' + list.map(function (h) {
+      return '<div class="crs-hw-row"><div class="crs-hw-row-t">' + esc(h.title) + '</div>' +
+        '<div class="crs-hw-row-s">' + esc(crsProgTitle(h.program)) + (h.dueDate ? ' · к ' + crsDayShort(h.dueDate) : '') + '</div>' +
+        '<div class="crs-actions">' +
+          (h.existing ? '<button type="button" class="crs-b s" onclick="crsHwOpen(\'' + h.key + '\')">Открыть</button>' : '') +
+          '<button type="button" class="crs-b s" data-hwst="' + h.key + '" onclick="crsHwToggleIn(this)">' + esc(crsStateWord(h.state)) + '</button>' +
+        '</div></div>';
+    }).join('');
+  };
   const draw = function () {
     const units = crsUnitsOf(f.program);
     const parts = f.unit !== '' ? ((crsUnit(+f.unit) || {}).parts || []) : [];
@@ -25200,9 +25230,10 @@ function crsForm(id, preset) {
       CRS_OFFSETS.map(function (o) {
         return '<button class="crs-chip' + (f.remOn && f.remOffsets.indexOf(o.m) >= 0 ? ' on' : '') + '" data-rem="' + o.m + '">' + o.t + '</button>';
       }).join('') + '</div>' +
-    '<div class="crs-note">' + (f.tz !== CRS_LOCAL_TZ ? 'У тебя это будет ' + crsTimeIn(f.date, f.time, f.tz, CRS_LOCAL_TZ) + '.' : 'Время в твоём поясе.') + '</div>';
+    '<div class="crs-note">' + (f.tz !== CRS_LOCAL_TZ ? 'У тебя это будет ' + crsTimeIn(f.date, f.time, f.tz, CRS_LOCAL_TZ) + '.' : 'Время в твоём поясе.') + '</div>' +
+    hwBlock();
   };
-  const sheet = crsSheet(id ? 'Изменить занятие' : 'Новое занятие', draw() +
+  const sheet = crsSheet(sid ? 'Изменить серию' : (id ? 'Изменить занятие' : 'Новое занятие'), draw() +
     '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsOk" style="flex:1">Сохранить</button>' +
     '<button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>');
   const redraw = function () {
@@ -25228,9 +25259,14 @@ function crsForm(id, preset) {
     const P = sheet.querySelector('#crsP');
     if (P) P.onchange = function () { f.part = P.value; };
     const ok = sheet.querySelector('#crsOk');
-    if (ok) ok.onclick = function () { crsFormSave(id, f, sheet); };
+    if (ok) ok.onclick = function () { crsFormSave(sid || id, f, sheet); };
   };
   bind();
+}
+function crsHwToggleIn(el) {
+  const k = el.getAttribute('data-hwst'); if (!k) return;
+  crsHwStateBtn(k);
+  el.textContent = crsStateWord(crsHwState(k));
 }
 function crsFormSave(id, f, sheet) {
   const st = crsStore();
