@@ -2,7 +2,7 @@
 // Стратегия: навигация (index.html) — network-first; статика и аудио — cache-first с дозаписью;
 // /api/* (облачный бэкап) — только сеть, не кэшируется.
 // data-build: v3.6.0 (2026-10-01: лист 课程 — расписание и ДЗ)
-const CACHE = 'tingli-cache-v53-identity4';
+const CACHE = 'tingli-cache-v54-identity5';
 
 // Cloudflare отдаёт файлы сжатыми (content-encoding: br), а Cache API хранит уже
 // распакованное тело: если отдать такую запись на НАВИГАЦИЮ, браузер пытается

@@ -5,14 +5,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小山听力</title>
-<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png?v=5.3.0"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png?v=5.3.0">
-<link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.3.0">
+<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png?v=5.4.0"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png?v=5.4.0">
+<link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.4.0">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.3.0') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.3.0') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.4.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.4.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.3.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.4.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     /* ===== палитра Tingli (5.0.0) ===== */
     --paper:       #F5F4F1;
@@ -608,7 +608,7 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 </head>
 <body>
 <div id="splash"><div class="splash-in">
-  <div class="splash-logo"><img src="logo.png?v=5.3.0" alt=""></div>
+  <div class="splash-logo"><img src="logo.png?v=5.4.0" alt=""></div>
   <div class="splash-title-text">小山听力</div>
 </div></div>
 <div class="app" id="app"></div>
@@ -642,15 +642,15 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
   </div>
 </div>
 <div class="tabbar" id="tabbar">
-  <div class="sb-brand"><img src="logo.png?v=5.3.0" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.3.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.3.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
-  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.3.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.3.0" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.3.0" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.3.0" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
-  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.3.0" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.3.0" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
+  <div class="sb-brand"><img src="logo.png?v=5.4.0" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.4.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.4.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.4.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.4.0" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.4.0" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.4.0" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
+  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.4.0" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.4.0" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
   <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队<span class="tab-ru">группа</span></span></button>
-  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.3.0" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.3.0" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png?v=5.3.0" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png?v=5.3.0" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
-  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.3.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.3.0" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
+  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.4.0" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.4.0" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png?v=5.4.0" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png?v=5.4.0" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
+  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.4.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.4.0" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-offline" id="sbOffline">
     <button class="sb-offline-btn" id="sbOfflineBtn" onclick="offlineDownload()">⬇️ Скачать для полёта</button>
     <div class="sb-offline-st" id="sbOfflineSt"></div>
@@ -22842,7 +22842,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.3.0';
+const APP_VER = '5.4.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -23180,7 +23180,7 @@ function renderUnits() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.3.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.4.0" alt="听"></div>
       <div class="top-title">小山听力</div><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
     ${UNITS.map(unitCard).join('')}
@@ -23196,7 +23196,7 @@ function renderIdv() {
   const list = IDV.filter(u => (u.src || 'idv') === 'idv');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.3.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.4.0" alt="听"></div>
       <div class="top-title">口语</div><div class="sub">口语课</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -23209,7 +23209,7 @@ function renderBiz() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.3.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.4.0" alt="听"></div>
       <div class="top-title">小山商务</div><div class="sub">经贸初级汉语口语</div>
     </div>
     ${BIZ.length ? BIZ.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -23223,7 +23223,7 @@ function renderTeam() {
   const list = IDV.filter(u => u.src === 'team');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.3.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.4.0" alt="听"></div>
       <div class="top-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -23236,7 +23236,7 @@ function renderMine() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.3.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.4.0" alt="听"></div>
       <div class="top-title">语法</div><div class="sub">李老师课</div>
     </div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
@@ -23271,7 +23271,7 @@ function renderDict() {
   const d = dictLoad();
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.3.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.4.0" alt="听"></div>
       <div class="top-title">词典</div><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
@@ -23942,7 +23942,7 @@ function renderFavs() {
   const typeName = t => t.type === 'choice' ? 'Выбор' : t.type === 'fill' ? 'Ввод' : 'Верно/Неверно';
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.3.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.4.0" alt="听"></div>
       <div class="top-title">句子</div><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
     </div>
     ${items.length ? items.map(it => {
@@ -24421,17 +24421,6 @@ if (sbVerEl) sbVerEl.textContent = '';
 const sbVerLine = document.getElementById('sbVerLine');
 if (sbVerLine) sbVerLine.textContent = 'Abramson © ' + APP_VER;
 document.body.classList.add('sb-off'); // меню стартует скрытым — выезжает по ☰
-
-/* одноразовая чистка: на устройствах осталась старая копия расписания с мусором */
-(function () {
-  try {
-    if (localStorage.getItem('tingli-sched-clean-v2') !== '1') {
-      localStorage.setItem('tingli-sched-clean-v2', '1');
-      localStorage.removeItem('tingli-schedule-v1');
-      localStorage.removeItem('tingli-apihost-v1');
-    }
-  } catch (e) {}
-})();
 /* tingli-apihost-drop: чужой служебный адрес больше не используем */
 (function () {
   try {
@@ -24665,24 +24654,59 @@ function crsDelete(evId, scope) {
   closeCrsSheets(); renderCourses(); crsToast('Удалено совсем');
 }
 let crsPullOnce = false;
+function crsFetchSchedule() {
+  /* тянем ТОЛЬКО расписание — маленький ответ, с повторами */
+  return new Promise(function (resolve) {
+    let tries = 0;
+    const attempt = function () {
+      tries++;
+      let ctl = null, tm = null;
+      const opts = { cache: 'no-store' };
+      try { ctl = new AbortController(); opts.signal = ctl.signal; tm = setTimeout(function () { ctl.abort(); }, 20000); } catch (e) {}
+      crsApi('/backup?key=' + encodeURIComponent(CRS_LS), opts)
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (tm) clearTimeout(tm);
+          if (j && j.ok && typeof j.value === 'string' && j.value) { resolve(j.value); return; }
+          if (tries < 3) setTimeout(attempt, 700); else resolve(null);
+        })
+        .catch(function () {
+          if (tm) clearTimeout(tm);
+          if (tries < 3) setTimeout(attempt, 700); else resolve(null);
+        });
+    };
+    attempt();
+  });
+}
+let crsPullBusy = false;
 async function crsCloudPull() {
-  if (crsPullOnce) return; crsPullOnce = true;
+  if (crsPullBusy) return;
+  crsPullBusy = true;
+  const local = crsStore();
   try {
-    const r = await crsApi('/backup');
-    if (!r.ok) return;
-    const cloud = await r.json();
-    const raw = cloud && cloud[CRS_LS];
-    let local = crsStore();
-    if (!raw) { crsCloudPush(); return; }
-    let rem = null;
-    try { rem = JSON.parse(raw); } catch (e) { rem = null; }
+    const raw = await crsFetchSchedule();
+    if (!raw) {
+      /* нет связи — НИЧЕГО не стираем, показываем, что есть на устройстве */
+      crsSaveStatus('offline');
+      if (!Object.keys(local.series || {}).length) crsToast('Нет связи с облаком — расписание подтянется позже');
+      return;
+    }
+    let rem = null; try { rem = JSON.parse(raw); } catch (e) { rem = null; }
     if (!rem) return;
-    const merged = crsMerge(local, rem);
+    let cloudWins = false;
+    try { cloudWins = localStorage.getItem('tingli-sched-cloudwins-v1') !== '1'; } catch (e) {}
+    const merged = cloudWins ? rem : crsMerge(local, rem);
+    if (cloudWins) { try { localStorage.setItem('tingli-sched-cloudwins-v1', '1'); } catch (e) {} }
     const changed = JSON.stringify(merged) !== JSON.stringify(local);
     crsCache = merged;
     try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
-    if (changed) { crsToast('☁️ Расписание синхронизировано'); crsCloudPush(); try { crsWantScroll = true; crsPaint(); } catch (e) {} }
-  } catch (e) {}
+    crsPullOnce = true;
+    if (changed || cloudWins) { crsWantScroll = true; try { crsPaint(true); } catch (e) {} crsCloudPush(); }
+    else crsSaveStatus('saved');
+  } catch (e) {
+    crsSaveStatus('offline');
+  }
+  crsPullBusy = false;
 }
 function crsSaveStatus(s) {
   const n = document.getElementById('crsSave');
@@ -25056,19 +25080,17 @@ function crsWeekHtml() {
     const d = crsAddDays(crsWeekStartD, i), ymd = crsYmd(d);
     const list = evs.filter(function (e) { return e.date === ymd; });
     const hw = hwOn(ymd);
-    if (!list.length && !hw.length) continue;
+    if (!list.length) continue;
     const isToday = ymd === crsYmd(new Date());
     days += '<div class="crs-day' + (isToday ? ' today' : '') + '" data-ymd="' + ymd + '">' +
       '<div class="crs-day-h">' + CRS_DOW_FULL[crsDow(ymd)].toUpperCase() + ' · ' + d.getDate() + ' ' + CRS_MON[d.getMonth() + 1] + '</div>' +
-      list.map(crsLessonCard).join('') + hw.map(crsHwCard).join('') +
+      list.map(crsLessonCard).join('') +
       '</div>';
   }
-  if (!days) days = '<div class="crs-empty" style="padding:6px 2px 10px">На этой неделе занятий нет</div>';
-  const noDate = hwAll.filter(function (h) { return !h.dueDate; });
-  const tail = noDate.length
-    ? '<div class="crs-day crs-day-nodate"><div class="crs-day-h">ДЗ БЕЗ СРОКА</div>' + noDate.map(crsHwCard).join('') + '</div>' : '';
+  if (!days) days = '<div class="crs-empty" style="padding:6px 2px 10px">' + (crsPullOnce ? 'На этой неделе занятий нет' : 'Загружаю расписание из облака…') + '</div>';
+  const tail = '';
   return '<div class="crs-cols crs-cols-one">' +
-    '<div class="crs-col" id="crsList"><div class="crs-col-h">Расписание занятий и ДЗ</div>' + days + tail +
+    '<div class="crs-col" id="crsList"><div class="crs-col-h">Расписание занятий</div>' + days + tail +
       '<button class="crs-add-big" onclick="crsForm(\'\')">+ Добавить занятие</button></div>' +
     '</div>';
 }
