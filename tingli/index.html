@@ -26823,7 +26823,7 @@ function crsHwBar() {
   return '<div class="crs-chips crs-chips-hw">' +
     [['open', 'Все открытые'], ['upcoming', 'Предстоящие'], ['overdue', 'Просроченные'], ['done', 'Выполненные'], ['del', 'Удалённые']].map(function (x) {
       return '<button class="crs-chip' + (f === x[0] ? ' on' : '') + '" onclick="crsHwSetFilter(\'' + x[0] + '\')">' + x[1] + '</button>';
-    }).join('') + crsProgChips() + '</div>';
+    }).join('') + '</div>';
 }
 function crsHwSetFilter(f) { crsHwFilter = f; crsPaint(); }
 
@@ -26832,9 +26832,7 @@ function crsWeekHtml() {
   const st = crsStore();
   const from = crsYmd(crsWeekStartD), to = crsYmd(crsAddDays(crsWeekStartD, 6));
   let evs = crsLessonList(from, to);
-  if (st.filters.prog) evs = evs.filter(function (e) { return e.program === st.filters.prog; });
   let hwAll = crsHwVisible().filter(function (h) { return h.state !== 'done'; });
-  if (st.filters.prog) hwAll = hwAll.filter(function (h) { return h.program === st.filters.prog; });
   const hwOn = function (ymd) { return hwAll.filter(function (h) { return h.dueDate === ymd; }); };
   let days = '';
   for (let i = 0; i < 7; i++) {
@@ -26982,7 +26980,6 @@ function crsMonthHtml() {
   const first = crsMonStart(crsMonthD);
   const start = crsWeekStart(first);
   let evs = crsLessonList(crsYmd(start), crsYmd(crsAddDays(start, 41)));
-  if (st.filters.prog) evs = evs.filter(function (e) { return e.program === st.filters.prog; });
   const hw = crsHwList().filter(function (h) { return h.dueDate && h.state !== 'done'; });
   let grid = '';
   for (let i = 0; i < 42; i++) {
