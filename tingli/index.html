@@ -27745,7 +27745,10 @@ function sbToggle() {
 function crsBoot() {
   try { crsStore(); } catch (e) {}
   try { crsCloudPull(); } catch (e) {}
-  setTimeout(function () { try { crsPushSyncReminders(); } catch (e) {} }, 2000);
+  setTimeout(function () {
+    try { crsPushSyncReminders(); } catch (e) {}
+    try { crsPushRefreshSoon(); } catch (e) {}
+  }, 2000);
 }
 document.addEventListener('DOMContentLoaded', crsBoot);
 /* ================= /CRS_BLOCK_V3 (часть 4) ================= */
