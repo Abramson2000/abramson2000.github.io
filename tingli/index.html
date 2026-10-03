@@ -24165,23 +24165,37 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.22.0';
+const APP_VER = '5.23.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
 try { const _h = localStorage.getItem('tingli-apihost-v1'); if (_h && API_HOSTS.indexOf(_h) >= 0) API_BASE = _h; } catch (e) {}
-async function apiFetch(path, opts) {
+async function apiFetch(path, opts, _retry) {
   const order = [API_BASE].concat(API_HOSTS.filter(function (h) { return h !== API_BASE; }));
   let lastErr = null;
   for (let i = 0; i < order.length; i++) {
     try {
-      const r = await fetch(order[i] + path, opts);
+      // Timeout: 30s (DeepSeek может думать, но не вечно)
+      const ctrl = new AbortController();
+      const timer = setTimeout(function () { ctrl.abort(); }, 30000);
+      var r;
+      try {
+        r = await fetch(order[i] + path, Object.assign({}, opts, { signal: ctrl.signal }));
+      } finally {
+        clearTimeout(timer);
+      }
       if (r.ok) {
         if (order[i] !== API_BASE) { API_BASE = order[i]; try { localStorage.setItem('tingli-apihost-v1', API_BASE); } catch (e) {} }
         return r;
       }
       lastErr = r;
-    } catch (e) { lastErr = e; }
+    } catch (e) {
+      lastErr = e;
+      // Ретрай один раз на сетевых ошибках (не на abort)
+      if (!_retry && e.name !== 'AbortError') {
+        return apiFetch(path, opts, true);
+      }
+    }
   }
   if (lastErr && lastErr.status) return lastErr;
   throw (lastErr || new Error('нет связи'));
@@ -25907,12 +25921,22 @@ async function hwCheck(i) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ q, a, text: part.fullText || '' })
     });
+    if (!r.ok) {
+      // Сервер вернул ошибку — пробуем прочитать JSON, если не выйдет — общее сообщение
+      let msg = 'Ошибка сервера (' + r.status + ')';
+      try { const d = await r.json(); if (d.error) msg = d.error; } catch (_) {}
+      vd.textContent = '⚠️ ' + msg; vd.className = 'hw-vd bad'; return;
+    }
     const d = await r.json();
     if (!d.ok) { vd.textContent = '⚠️ ' + (d.error || 'ошибка сервера'); vd.className = 'hw-vd bad'; return; }
     vd.innerHTML = (d.correct ? '✅ ' : '❌ ') + esc(d.comment);
     vd.className = 'hw-vd ' + (d.correct ? 'good' : 'bad');
   } catch (e) {
-    vd.textContent = '⚠️ Не удалось соединиться'; vd.className = 'hw-vd bad';
+    // Разные типы ошибок — разные сообщения
+    var msg = 'Не удалось соединиться';
+    if (e && e.name === 'AbortError') msg = 'Сервер долго отвечает, попробуй ещё раз';
+    else if (e && e.message === 'Failed to fetch') msg = 'Нет связи — проверь интернет';
+    vd.textContent = '⚠️ ' + msg; vd.className = 'hw-vd bad';
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '🤖 Проверить'; }
   }
