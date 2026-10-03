@@ -118,8 +118,6 @@
   .lesson-text { background: var(--card); border-radius: 20px; padding: 24px 22px; box-shadow: var(--shadow-card); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Arial, sans-serif; }
   .lesson-text p { margin: 0 0 1.1em; font-size: 20px; line-height: 1.82; letter-spacing: 0; font-family: "TLCJK", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Arial, sans-serif; }
   .lesson-text p:last-child { margin-bottom: 0; }
-  .txt-say { display:inline; border:0; background:none; cursor:pointer; font-size:18px; padding:0 3px; opacity:.45; vertical-align:baseline; -webkit-tap-highlight-color:transparent; }
-  .txt-say:hover, .txt-say:active { opacity:1; }
   .speak { background: var(--card); border-radius: 20px; padding: 18px 16px; box-shadow: var(--shadow-card); margin-top: 14px; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Arial, sans-serif; }
   .speak-h { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
   .speak-msg { font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
@@ -24167,7 +24165,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.20.0';
+const APP_VER = '5.21.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -24897,39 +24895,12 @@ function renderText(u, part) {
   else { partAudioKey = null; showPlayer(false); }
   const paras = String(part.text || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
   const pimg = part.image ? `<img class="lesson-img" src="${esc(part.image)}" alt="">` : '';
-  const hasZh = paras.some(p => /[\u4e00-\u9fff]/.test(p));
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
-    ${hasZh ? `<div class="dlg-tools"><button class="btn" onclick="txtSpeakAll()">▶ Озвучить все</button><button class="btn ghost" onclick="dlgStop()">■ Стоп</button></div>` : ''}
-    <div class="lesson-text">${pimg}${paras.map((p, i) => {
-      const isZh = /[\u4e00-\u9fff]/.test(p);
-      return `<p>${isZh ? `<button class="txt-say" onclick="txtSpeakLine(${i})">🔊</button> ` : ''}${esc(p)}</p>`;
-    }).join('')}</div>
+    <div class="lesson-text">${pimg}${paras.map(p => `<p>${esc(p)}</p>`).join('')}</div>
     ${part.speak ? speakBoxHtml() : ''}`;
-  curTextParas = paras;
   posRestore();
-}
-let curTextParas = [];
-function txtSpeakLine(i) {
-  if (!curTextParas || !curTextParas[i]) return;
-  if (!('speechSynthesis' in window) || !window.SpeechSynthesisUtterance) { alert('На этом устройстве нет встроенной озвучки.'); return; }
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(curTextParas[i]);
-  u.lang = 'zh-CN'; u.rate = .9;
-  const v = dlgVoice('A'); if (v) u.voice = v;
-  speechSynthesis.speak(u);
-}
-function txtSpeakAll() {
-  if (!curTextParas) return;
-  if (!('speechSynthesis' in window) || !window.SpeechSynthesisUtterance) { alert('На этом устройстве нет встроенной озвучки.'); return; }
-  speechSynthesis.cancel();
-  curTextParas.filter(p => /[\u4e00-\u9fff]/.test(p)).forEach(line => {
-    const u = new SpeechSynthesisUtterance(line);
-    u.lang = 'zh-CN'; u.rate = .9;
-    const v = dlgVoice('A'); if (v) u.voice = v;
-    speechSynthesis.speak(u);
-  });
 }
 
 function dlgVoice(role) {
