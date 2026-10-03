@@ -1,11 +1,13 @@
 /* Tingli — офлайн-кэш приложения.
    HTML — сеть вперёд (чтобы обновления приходили), остальное из кэша.
    Запросы к облаку (другой домен) не трогаем вообще. */
-const CACHE = 'tingli-cache-v5170-push';
+const CACHE = 'tingli-cache-v5171-msg';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './fonts/simsun-subset.woff2', './fonts/xiaoshan-title.woff2',
-  './bg.jpg', './logo.png', './sched-logo.png'
+  './bg.jpg', './logo.png', './sched-logo.png',
+  './tingli-icon-180-v3.png', './tingli-icon-192-v3.png', './tingli-icon-512-v3.png',
+  './tingli-favicon-v3.png', './tingli-favicon-32-v3.png'
 ];
 
 self.addEventListener('install', function (e) {
@@ -51,6 +53,51 @@ self.addEventListener('fetch', function (e) {
   );
 });
 
+/* Message handler: офлайн-прекеш по запросу клиента.
+   { type: 'status' } → сколько закешировано из ASSETS
+   { type: 'precache' } → докачать всё, с прогрессом через port */
+self.addEventListener('message', function (e) {
+  const msg = e.data || {};
+  const port = e.ports && e.ports[0];
+
+  if (msg.type === 'status') {
+    caches.open(CACHE).then(function (c) {
+      return Promise.all(ASSETS.map(function (u) { return c.match(u, { ignoreSearch: true }); })).then(function (hits) {
+        var have = hits.filter(function (x) { return !!x; }).length;
+        if (port) port.postMessage({ type: 'status', ready: have === ASSETS.length, have: have, total: ASSETS.length });
+      });
+    });
+    return;
+  }
+
+  if (msg.type === 'precache') {
+    caches.open(CACHE).then(function (c) {
+      var ok = 0, failed = [];
+      var done = 0;
+      var total = ASSETS.length;
+      function next(i) {
+        if (i >= ASSETS.length) {
+          if (port) port.postMessage({ type: 'done', ok: ok, failed: failed, total: total });
+          return;
+        }
+        c.match(ASSETS[i], { ignoreSearch: true }).then(function (hit) {
+          if (hit) { ok++; done++; if (port) port.postMessage({ type: 'progress', done: done, total: total }); next(i + 1); return; }
+          fetch(new Request(ASSETS[i], { cache: 'reload' })).then(function (res) {
+            if (res && res.ok) { return c.put(ASSETS[i], res.clone()).then(function () { ok++; }); }
+            else { failed.push(ASSETS[i]); }
+          }).catch(function () { failed.push(ASSETS[i]); }).then(function () {
+            done++;
+            if (port) port.postMessage({ type: 'progress', done: done, total: total });
+            next(i + 1);
+          });
+        });
+      }
+      next(0);
+    });
+    return;
+  }
+});
+
 
 /* Web Push: работает, когда Tingli закрыт. */
 self.addEventListener('push', function (e) {
@@ -67,8 +114,8 @@ self.addEventListener('push', function (e) {
 
   e.waitUntil(self.registration.showNotification(title, {
     body: body,
-    icon: data.icon || './icon-192.png',
-    badge: data.badge || './icon-192.png',
+    icon: data.icon || './tingli-icon-192-v3.png',
+    badge: data.badge || './tingli-icon-192-v3.png',
     tag: tag,
     renotify: false,
     data: { url: url, kind: kind, key: key }
