@@ -82,7 +82,9 @@ self.addEventListener('notificationclick', function (e) {
   e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (wins) {
     for (let i = 0; i < wins.length; i++) {
       if ('focus' in wins[i]) {
-        try { wins[i].postMessage({ type: 'TINGLI_PUSH_OPEN', kind: d.kind || '', key: d.key || '' }); } catch (err) {}
+        try {
+          if ('navigate' in wins[i]) return wins[i].navigate(target).then(function (w) { return w ? w.focus() : wins[i].focus(); });
+        } catch (err) {}
         return wins[i].focus();
       }
     }
