@@ -5,14 +5,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小山听力</title>
-<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png?v=5.12.6"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png?v=5.12.6">
-<link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.12.6">
+<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png?v=5.13.0"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png?v=5.13.0">
+<link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.13.0">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.12.6') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.12.6') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.13.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.13.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.12.6') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.13.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     /* ===== палитра Tingli (5.0.0) ===== */
     --paper:       #F5F4F1;
@@ -684,7 +684,7 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 </head>
 <body>
 <div id="splash"><div class="splash-in">
-  <div class="splash-logo"><img src="logo.png?v=5.12.6" alt=""></div>
+  <div class="splash-logo"><img src="logo.png?v=5.13.0" alt=""></div>
   <div class="splash-title-text">小山听力</div>
 </div></div>
 <div class="app" id="app"></div>
@@ -718,15 +718,15 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
   </div>
 </div>
 <div class="tabbar" id="tabbar">
-  <div class="sb-brand"><img src="logo.png?v=5.12.6" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.12.6" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.12.6" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
-  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.12.6" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.12.6" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.12.6" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.12.6" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
-  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.12.6" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.12.6" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
+  <div class="sb-brand"><img src="logo.png?v=5.13.0" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.13.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.13.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.13.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.13.0" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.13.0" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.13.0" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
+  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.13.0" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.13.0" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
   <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队<span class="tab-ru">группа</span></span></button>
-  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.12.6" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.12.6" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png?v=5.12.6" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png?v=5.12.6" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
-  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.12.6" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.12.6" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
+  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.13.0" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.13.0" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png?v=5.13.0" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png?v=5.13.0" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
+  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.13.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.13.0" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-offline" id="sbOffline">
     <button class="sb-offline-btn" id="sbOfflineBtn" onclick="offlineDownload()">⬇️ Скачать для полёта</button>
     <div class="sb-offline-st" id="sbOfflineSt"></div>
@@ -20701,7 +20701,914 @@ const IDV_UNITS = [
    }
   ]
  }
-
+,
+{
+ "unit": 215,
+ "label": "ТЕСТ",
+ "emoji": "📝",
+ "zh": "考试准备",
+ "ru": "Подготовка к тесту",
+ "src": "team",
+ "parts": [
+  {
+   "id": 0,
+   "kind": "words",
+   "title": "Словарь 1. Учёба и язык",
+   "titleZh": "学习和语言",
+   "words": [
+    {
+     "zh": "考试的成绩",
+     "py": "kǎoshì de chéngjì",
+     "ru": "результаты (оценки) экзамена"
+    },
+    {
+     "zh": "自学英语",
+     "py": "zìxué Yīngyǔ",
+     "ru": "изучать английский самостоятельно"
+    },
+    {
+     "zh": "放弃学英语",
+     "py": "fàngqì xué Yīngyǔ",
+     "ru": "бросить изучать английский"
+    },
+    {
+     "zh": "放弃学习",
+     "py": "fàngqì xuéxí",
+     "ru": "бросить учёбу"
+    },
+    {
+     "zh": "说得流利",
+     "py": "shuō de liúlì",
+     "ru": "говорить бегло"
+    },
+    {
+     "zh": "教育",
+     "py": "jiàoyù",
+     "ru": "образование"
+    },
+    {
+     "zh": "经验",
+     "py": "jīngyàn",
+     "ru": "опыт"
+    },
+    {
+     "zh": "记得",
+     "py": "jìde",
+     "ru": "помнить"
+    },
+    {
+     "zh": "完美主义者",
+     "py": "wánměi zhǔyìzhě",
+     "ru": "перфекционист"
+    },
+    {
+     "zh": "保持自律",
+     "py": "bǎochí zìlǜ",
+     "ru": "сохранять самодисциплину"
+    }
+   ]
+  },
+  {
+   "id": 1,
+   "kind": "words",
+   "title": "Словарь 2. Работа и команда",
+   "titleZh": "工作和团队",
+   "words": [
+    {
+     "zh": "代表公司",
+     "py": "dàibiǎo gōngsī",
+     "ru": "представлять компанию"
+    },
+    {
+     "zh": "参加者",
+     "py": "cānjiāzhě",
+     "ru": "участник"
+    },
+    {
+     "zh": "组织者",
+     "py": "zǔzhīzhě",
+     "ru": "организатор"
+    },
+    {
+     "zh": "团队气氛",
+     "py": "tuánduì qìfēn",
+     "ru": "атмосфера в команде"
+    },
+    {
+     "zh": "互相依赖",
+     "py": "hùxiāng yīlài",
+     "ru": "зависеть друг от друга"
+    },
+    {
+     "zh": "取决于",
+     "py": "qǔjuéyú",
+     "ru": "зависеть от…"
+    },
+    {
+     "zh": "方面",
+     "py": "fāngmiàn",
+     "ru": "аспект, сторона"
+    },
+    {
+     "zh": "看法",
+     "py": "kànfǎ",
+     "ru": "мнение"
+    },
+    {
+     "zh": "收入很高",
+     "py": "shōurù hěn gāo",
+     "ru": "очень высокий доход"
+    },
+    {
+     "zh": "影响",
+     "py": "yǐngxiǎng",
+     "ru": "влияние; влиять"
+    },
+    {
+     "zh": "填写表",
+     "py": "tiánxiě biǎo",
+     "ru": "заполнять анкету"
+    },
+    {
+     "zh": "付费",
+     "py": "fùfèi",
+     "ru": "платить"
+    },
+    {
+     "zh": "电子邮箱",
+     "py": "diànzǐ yóuxiāng",
+     "ru": "электронная почта"
+    },
+    {
+     "zh": "锦标赛",
+     "py": "jǐnbiāosài",
+     "ru": "чемпионат"
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "kind": "words",
+   "title": "Словарь 3. Бизнес и продажи",
+   "titleZh": "商务和销售",
+   "words": [
+    {
+     "zh": "前段时间",
+     "py": "qián duàn shíjiān",
+     "ru": "некоторое время назад"
+    },
+    {
+     "zh": "谈成生意",
+     "py": "tánchéng shēngyi",
+     "ru": "заключить сделку"
+    },
+    {
+     "zh": "遇到困难",
+     "py": "yùdào kùnnan",
+     "ru": "столкнуться с трудностями"
+    },
+    {
+     "zh": "拿……来说",
+     "py": "ná … lái shuō",
+     "ru": "если взять, например…"
+    },
+    {
+     "zh": "和客户交流",
+     "py": "hé kèhù jiāoliú",
+     "ru": "общаться с клиентами"
+    },
+    {
+     "zh": "产品",
+     "py": "chǎnpǐn",
+     "ru": "продукт"
+    },
+    {
+     "zh": "优缺点",
+     "py": "yōuquēdiǎn",
+     "ru": "плюсы и минусы"
+    },
+    {
+     "zh": "实际效果",
+     "py": "shíjì xiàoguǒ",
+     "ru": "реальный результат"
+    },
+    {
+     "zh": "并不理想",
+     "py": "bìng bù lǐxiǎng",
+     "ru": "вовсе не идеальный"
+    },
+    {
+     "zh": "介绍的方式",
+     "py": "jièshào de fāngshì",
+     "ru": "способ представления"
+    },
+    {
+     "zh": "其实",
+     "py": "qíshí",
+     "ru": "на самом деле"
+    },
+    {
+     "zh": "性别 / 年龄",
+     "py": "xìngbié / niánlíng",
+     "ru": "пол / возраст"
+    },
+    {
+     "zh": "关注点",
+     "py": "guānzhùdiǎn",
+     "ru": "то, на что обращают внимание"
+    },
+    {
+     "zh": "于是",
+     "py": "yúshì",
+     "ru": "поэтому, и тогда"
+    },
+    {
+     "zh": "进行市场调查",
+     "py": "jìnxíng shìchǎng diàochá",
+     "ru": "провести исследование рынка"
+    },
+    {
+     "zh": "根据",
+     "py": "gēnjù",
+     "ru": "на основании, исходя из"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "kind": "words",
+   "title": "Словарь 4. Город, быт, путешествия",
+   "titleZh": "城市·生活·旅行",
+   "words": [
+    {
+     "zh": "生活节奏",
+     "py": "shēnghuó jiézòu",
+     "ru": "ритм жизни"
+    },
+    {
+     "zh": "市中心",
+     "py": "shì zhōngxīn",
+     "ru": "центр города"
+    },
+    {
+     "zh": "儿童的商店",
+     "py": "értóng de shāngdiàn",
+     "ru": "детский магазин"
+    },
+    {
+     "zh": "交通问题",
+     "py": "jiāotōng wèntí",
+     "ru": "транспортные проблемы"
+    },
+    {
+     "zh": "地铁",
+     "py": "dìtiě",
+     "ru": "метро"
+    },
+    {
+     "zh": "堵车",
+     "py": "dǔchē",
+     "ru": "пробка"
+    },
+    {
+     "zh": "优点 / 缺点",
+     "py": "yōudiǎn / quēdiǎn",
+     "ru": "плюсы / минусы"
+    },
+    {
+     "zh": "很脏",
+     "py": "hěn zāng",
+     "ru": "очень грязный"
+    },
+    {
+     "zh": "超级贵",
+     "py": "chāojí guì",
+     "ru": "супердорогой"
+    },
+    {
+     "zh": "买不起",
+     "py": "mǎi bu qǐ",
+     "ru": "не по карману"
+    },
+    {
+     "zh": "博物馆",
+     "py": "bówùguǎn",
+     "ru": "музей"
+    },
+    {
+     "zh": "环境",
+     "py": "huánjìng",
+     "ru": "окружающая среда; обстановка"
+    },
+    {
+     "zh": "滑雪度假村",
+     "py": "huáxuě dùjiàcūn",
+     "ru": "горнолыжный курорт"
+    },
+    {
+     "zh": "修理店",
+     "py": "xiūlǐdiàn",
+     "ru": "ремонтная мастерская"
+    },
+    {
+     "zh": "修理师 / 修理工 / 维修师傅",
+     "py": "xiūlǐshī / xiūlǐgōng / wéixiū shīfu",
+     "ru": "мастер по ремонту"
+    },
+    {
+     "zh": "暖气",
+     "py": "nuǎnqì",
+     "ru": "центральное отопление"
+    },
+    {
+     "zh": "暖气片",
+     "py": "nuǎnqìpiàn",
+     "ru": "батарея отопления"
+    },
+    {
+     "zh": "取暖器",
+     "py": "qǔnuǎnqì",
+     "ru": "обогреватель"
+    },
+    {
+     "zh": "菜谱",
+     "py": "càipǔ",
+     "ru": "рецепт"
+    },
+    {
+     "zh": "烤肉",
+     "py": "kǎoròu",
+     "ru": "шашлык, барбекю"
+    },
+    {
+     "zh": "有益",
+     "py": "yǒuyì",
+     "ru": "полезный (对身体有益)"
+    },
+    {
+     "zh": "中式衣服",
+     "py": "zhōngshì yīfu",
+     "ru": "одежда в китайском стиле"
+    },
+    {
+     "zh": "不过",
+     "py": "búguò",
+     "ru": "однако"
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "kind": "words",
+   "title": "Словарь 5. Транспорт, погода и география",
+   "titleZh": "交通·天气·地名",
+   "words": [
+    {
+     "zh": "天气预报说",
+     "py": "tiānqì yùbào shuō",
+     "ru": "по прогнозу погоды…"
+    },
+    {
+     "zh": "一般的话",
+     "py": "yìbān de huà",
+     "ru": "обычно"
+    },
+    {
+     "zh": "三刻",
+     "py": "sān kè",
+     "ru": "45 минут"
+    },
+    {
+     "zh": "活动",
+     "py": "huódòng",
+     "ru": "мероприятие"
+    },
+    {
+     "zh": "着急",
+     "py": "zháojí",
+     "ru": "волноваться, спешить"
+    },
+    {
+     "zh": "当司机",
+     "py": "dāng sījī",
+     "ru": "работать водителем"
+    },
+    {
+     "zh": "师傅",
+     "py": "shīfu",
+     "ru": "мастер; вежливое обращение к водителю"
+    },
+    {
+     "zh": "排队",
+     "py": "páiduì",
+     "ru": "стоять в очереди"
+    },
+    {
+     "zh": "加油 / 加油站",
+     "py": "jiāyóu / jiāyóuzhàn",
+     "ru": "заправляться / АЗС"
+    },
+    {
+     "zh": "汽油 / 柴油",
+     "py": "qìyóu / cháiyóu",
+     "ru": "бензин / дизель"
+    },
+    {
+     "zh": "堪察加",
+     "py": "Kānchájiā",
+     "ru": "Камчатка"
+    },
+    {
+     "zh": "高加索",
+     "py": "Gāojiāsuǒ",
+     "ru": "Кавказ"
+    },
+    {
+     "zh": "叶卡捷琳堡（叶卡）",
+     "py": "Yèkǎjiélínbǎo",
+     "ru": "Екатеринбург"
+    },
+    {
+     "zh": "托博尔斯克",
+     "py": "Tuōbó’ěrsīkè",
+     "ru": "Тобольск"
+    },
+    {
+     "zh": "克拉斯诺亚尔斯克",
+     "py": "Kèlāsīnuòyà’ěrsīkè",
+     "ru": "Красноярск"
+    },
+    {
+     "zh": "新加坡",
+     "py": "Xīnjiāpō",
+     "ru": "Сингапур"
+    },
+    {
+     "zh": "塞浦路斯",
+     "py": "Sàipǔlùsī",
+     "ru": "Кипр"
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "kind": "words",
+   "title": "Словарь 6. В гостях · 入乡随俗",
+   "titleZh": "入乡随俗",
+   "words": [
+    {
+     "zh": "入乡随俗",
+     "py": "rù xiāng suí sú",
+     "ru": "следовать местным обычаям"
+    },
+    {
+     "zh": "可不是",
+     "py": "kě bú shì",
+     "ru": "ещё бы; именно так"
+    },
+    {
+     "zh": "既紧张又期待",
+     "py": "jì jǐnzhāng yòu qīdài",
+     "ru": "и волнуюсь, и жду с нетерпением"
+    },
+    {
+     "zh": "出门",
+     "py": "chūmén",
+     "ru": "выходить из дома"
+    },
+    {
+     "zh": "带点儿什么",
+     "py": "dài diǎnr shénme",
+     "ru": "взять что-нибудь с собой"
+    },
+    {
+     "zh": "却说",
+     "py": "què shuō",
+     "ru": "однако сказал"
+    },
+    {
+     "zh": "空着手",
+     "py": "kōngzhe shǒu",
+     "ru": "с пустыми руками"
+    },
+    {
+     "zh": "一份礼物",
+     "py": "yí fèn lǐwù",
+     "ru": "подарок"
+    },
+    {
+     "zh": "连说",
+     "py": "lián shuō",
+     "ru": "говорить без остановки"
+    },
+    {
+     "zh": "走出来",
+     "py": "zǒu chūlái",
+     "ru": "выйти"
+    },
+    {
+     "zh": "擦手",
+     "py": "cā shǒu",
+     "ru": "вытирать руки"
+    },
+    {
+     "zh": "反而",
+     "py": "fǎn’ér",
+     "ru": "наоборот"
+    },
+    {
+     "zh": "过意不去",
+     "py": "guòyì bú qù",
+     "ru": "чувствовать себя неловко"
+    },
+    {
+     "zh": "摆菜",
+     "py": "bǎi cài",
+     "ru": "расставлять блюда"
+    },
+    {
+     "zh": "丰盛",
+     "py": "fēngshèng",
+     "ru": "обильный"
+    },
+    {
+     "zh": "夹菜",
+     "py": "jiā cài",
+     "ru": "подкладывать еду палочками"
+    },
+    {
+     "zh": "再三说",
+     "py": "zàisān shuō",
+     "ru": "повторять снова и снова"
+    },
+    {
+     "zh": "主人很热情",
+     "py": "zhǔrén hěn rèqíng",
+     "ru": "хозяин очень гостеприимный"
+    },
+    {
+     "zh": "接受",
+     "py": "jiēshòu",
+     "ru": "принимать"
+    },
+    {
+     "zh": "推回去",
+     "py": "tuī huíqù",
+     "ru": "отодвинуть обратно"
+    },
+    {
+     "zh": "千万别",
+     "py": "qiānwàn bié",
+     "ru": "ни в коем случае не"
+    },
+    {
+     "zh": "尴尬",
+     "py": "gāngà",
+     "ru": "неловкий"
+    },
+    {
+     "zh": "受不了",
+     "py": "shòu bu liǎo",
+     "ru": "не выносить"
+    },
+    {
+     "zh": "重视",
+     "py": "zhòngshì",
+     "ru": "ценить, уделять внимание"
+    },
+    {
+     "zh": "盛情难却",
+     "py": "shèngqíng nán què",
+     "ru": "от радушия трудно отказаться"
+    },
+    {
+     "zh": "领情",
+     "py": "lǐngqíng",
+     "ru": "быть благодарным за заботу"
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "kind": "words",
+   "title": "Словарь 7. Онлайн-покупки",
+   "titleZh": "网上购物",
+   "words": [
+    {
+     "zh": "网上",
+     "py": "wǎngshàng",
+     "ru": "онлайн"
+    },
+    {
+     "zh": "真皮",
+     "py": "zhēnpí",
+     "ru": "натуральная кожа"
+    },
+    {
+     "zh": "包邮",
+     "py": "bāoyóu",
+     "ru": "доставка включена"
+    },
+    {
+     "zh": "划算",
+     "py": "huásuàn",
+     "ru": "выгодно"
+    },
+    {
+     "zh": "一早",
+     "py": "yìzǎo",
+     "ru": "рано утром"
+    },
+    {
+     "zh": "快递",
+     "py": "kuàidì",
+     "ru": "экспресс-доставка"
+    },
+    {
+     "zh": "给力",
+     "py": "gěilì",
+     "ru": "круто, отлично"
+    },
+    {
+     "zh": "质量",
+     "py": "zhìliàng",
+     "ru": "качество"
+    },
+    {
+     "zh": "手感",
+     "py": "shǒugǎn",
+     "ru": "ощущение на ощупь"
+    },
+    {
+     "zh": "一模一样",
+     "py": "yìmú-yíyàng",
+     "ru": "точь-в-точь"
+    },
+    {
+     "zh": "色差",
+     "py": "sèchā",
+     "ru": "разница в цвете"
+    },
+    {
+     "zh": "踩地雷",
+     "py": "cǎi dìléi",
+     "ru": "«наступить на мину», неудачная покупка"
+    },
+    {
+     "zh": "实物",
+     "py": "shíwù",
+     "ru": "реальный товар"
+    },
+    {
+     "zh": "严重不符",
+     "py": "yánzhòng bùfú",
+     "ru": "сильно не соответствует"
+    },
+    {
+     "zh": "内里 / 扎肉",
+     "py": "nèilǐ / zhāròu",
+     "ru": "подкладка / колется"
+    },
+    {
+     "zh": "退回",
+     "py": "tuìhuí",
+     "ru": "вернуть товар"
+    },
+    {
+     "zh": "卖家",
+     "py": "màijiā",
+     "ru": "продавец"
+    },
+    {
+     "zh": "幸好",
+     "py": "xìnghǎo",
+     "ru": "к счастью"
+    },
+    {
+     "zh": "七天无理由退换",
+     "py": "qī tiān wú lǐyóu tuìhuàn",
+     "ru": "возврат в течение 7 дней без объяснения причин"
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "kind": "words",
+   "title": "Словарь 8. Оправдания",
+   "titleZh": "找借口",
+   "words": [
+    {
+     "zh": "约好",
+     "py": "yuēhǎo",
+     "ru": "договориться о встрече"
+    },
+    {
+     "zh": "原因 / 理由",
+     "py": "yuányīn / lǐyóu",
+     "ru": "причина / довод"
+    },
+    {
+     "zh": "回",
+     "py": "huí",
+     "ru": "ответить"
+    },
+    {
+     "zh": "故意",
+     "py": "gùyì",
+     "ru": "нарочно"
+    },
+    {
+     "zh": "忽然",
+     "py": "hūrán",
+     "ru": "вдруг"
+    },
+    {
+     "zh": "请假",
+     "py": "qǐngjià",
+     "ru": "отпроситься"
+    },
+    {
+     "zh": "借口 / 找借口",
+     "py": "jièkǒu / zhǎo jièkǒu",
+     "ru": "отговорка / искать отговорку"
+    },
+    {
+     "zh": "发烧 / 吐",
+     "py": "fāshāo / tù",
+     "ru": "температура / рвать"
+    },
+    {
+     "zh": "发短信",
+     "py": "fā duǎnxìn",
+     "ru": "отправить SMS"
+    },
+    {
+     "zh": "本来",
+     "py": "běnlái",
+     "ru": "изначально"
+    },
+    {
+     "zh": "发现",
+     "py": "fāxiàn",
+     "ru": "обнаружить"
+    },
+    {
+     "zh": "糟",
+     "py": "zāo",
+     "ru": "ужасный"
+    },
+    {
+     "zh": "合理",
+     "py": "hélǐ",
+     "ru": "разумный"
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "kind": "words",
+   "title": "Словарь 9. Удалённая работа",
+   "titleZh": "远程办公",
+   "words": [
+    {
+     "zh": "远程办公",
+     "py": "yuǎnchéng bàngōng",
+     "ru": "удалённая работа"
+    },
+    {
+     "zh": "推行",
+     "py": "tuīxíng",
+     "ru": "внедрять"
+    },
+    {
+     "zh": "协调与实施",
+     "py": "xiétiáo yǔ shíshī",
+     "ru": "координация и реализация"
+    },
+    {
+     "zh": "疫情",
+     "py": "yìqíng",
+     "ru": "пандемия"
+    },
+    {
+     "zh": "效率",
+     "py": "xiàolǜ",
+     "ru": "эффективность"
+    },
+    {
+     "zh": "出差成本",
+     "py": "chūchāi chéngběn",
+     "ru": "расходы на командировки"
+    },
+    {
+     "zh": "前提",
+     "py": "qiántí",
+     "ru": "условие, предпосылка"
+    },
+    {
+     "zh": "沟通",
+     "py": "gōutōng",
+     "ru": "коммуникация"
+    },
+    {
+     "zh": "孤单",
+     "py": "gūdān",
+     "ru": "одиноко"
+    },
+    {
+     "zh": "实验",
+     "py": "shíyàn",
+     "ru": "эксперимент"
+    },
+    {
+     "zh": "客户满意度",
+     "py": "kèhù mǎnyìdù",
+     "ru": "удовлетворённость клиентов"
+    },
+    {
+     "zh": "推广",
+     "py": "tuīguǎng",
+     "ru": "распространять"
+    },
+    {
+     "zh": "教训",
+     "py": "jiàoxùn",
+     "ru": "урок из ошибки"
+    },
+    {
+     "zh": "被淹没",
+     "py": "bèi yānmò",
+     "ru": "утонуть (о сообщениях)"
+    },
+    {
+     "zh": "截止日期",
+     "py": "jiézhǐ rìqī",
+     "ru": "дедлайн"
+    },
+    {
+     "zh": "责任感",
+     "py": "zérèngǎn",
+     "ru": "чувство ответственности"
+    },
+    {
+     "zh": "主动",
+     "py": "zhǔdòng",
+     "ru": "инициативный"
+    },
+    {
+     "zh": "通勤",
+     "py": "tōngqín",
+     "ru": "дорога на работу"
+    },
+    {
+     "zh": "试点",
+     "py": "shìdiǎn",
+     "ru": "пилотный проект"
+    },
+    {
+     "zh": "替代 / 补充",
+     "py": "tìdài / bǔchōng",
+     "ru": "замена / дополнение"
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "kind": "text",
+   "title": "Грамматика к тесту",
+   "titleZh": "语法复习",
+   "text": "既……又…… — и…, и…：既紧张又期待；既保证了效率，又保持了团队的气氛。\n\n不但……而且/还…… — не только…, но и…：你们不但迟到，而且公司丢钱了。\n\n虽然……但(是)…… — хотя…, но…：虽然她能把优缺点说得很清楚，但实际效果并不理想。\n\n拿……来说 — взять, например…\n\n并不 / 并没有 — вовсе не：并不是唯一的；并没有变慢。\n\n反而 — наоборот, вопреки ожиданиям：客户满意度反而提高了。\n\n不是……而是…… — не…, а…：远程办公不是替代，而是补充。\n\n一……就…… — как только…, сразу：小李一开门就笑了。\n\n一边……一边…… — одновременно：一边擦手一边说。\n\n原来 — оказывается：原来是你！\n\n怪不得 — неудивительно, что…\n\n才 — только, позже ожидаемого：九点四十分才到。\n\n把-конструкция：把裙子退回去；把这儿当自己家；把责任推给别人。\n\nГлагол + 得 + оценка：说得流利，说得很清楚，来得那么晚。\n\nВозможностные дополнения：买不起，吃不下，受不了。\n\n千万别 + глагол — ни в коем случае не.\n\n……不说，而且…… — мало того что…, ещё и…：不好看不说，而且还很扎肉。"
+  },
+  {
+   "id": 10,
+   "kind": "text",
+   "title": "Тексты · что помнить",
+   "titleZh": "课文复习",
+   "text": "入乡随俗\nГерой идёт в гости к 小李, приносит чай и фрукты, хотя его просили ничего не приносить. Хозяйка постоянно подкладывает еду. Вывод: 别带东西 — лучше всё равно принести; 再吃一点儿 — можно вежливо отказаться, но 一定要领情.\n\n杨同乐\nКоллега рассказывала всем клиентам одинаково, результат был плохим. Провела 市场调查 и стала учитывать возраст и пол клиентов — результат улучшился.\n\n网上购物\nСумка — 包邮、划算、一模一样; платье — 踩地雷, его вернули по 七天无理由退换.\n\n找借口\n李强 не пришёл, потому что заболел（发烧、吐）, а телефон забыл в офисе.\n\n远程办公\nПилот на 10 человек в течение 3 месяцев. Проблемы: 沟通 и 时间管理. Итог — гибрид: 2 дня в офисе."
+  },
+  {
+   "id": 11,
+   "kind": "text",
+   "title": "Детектив 公司的案子",
+   "titleZh": "公司的案子",
+   "text": "Противоречия:\n1. 小王 говорит, что ушёл из зала в 9:00, администратор — в 8:55.\n2. 小李 говорит, что весь день был дома, сосед по комнате — что он выходил с 15:00 до 17:00 за кофе.\n3. 小张 говорит, что ушёл от 小刘 в 8:30, 小刘 — что в 11 вечера.\n4. 小张 говорит, что трубы сломались в понедельник утром, сосед — что в воскресенье вечером; около 10 часов 小张 был у соседа и ходил «к машине за инструментами».\n5. Охранник видел промокшего человека: обувь 小张 чистая, у менеджера — мокрая и грязная.\n\nВывод из материала: деньги украл 经理. 小王 и 小李 только опоздали, хотя немного соврали. 小张 соврал о времени, но не вор.\n\nОбразец ответа:\n我觉得偷钱的人不是小张，而是经理。因为保安说那个人没有雨伞，衣服都湿了，但是小张的鞋子很干净。原来经理的鞋子又湿又脏，这是最重要的证据。小李说他整天在家，但是他的室友说他下午出去买咖啡了，所以他说了谎，可是他不是小偷。小张也说了谎，因为小刘说他十一点才离开，邻居说水管星期天晚上就坏了。小王和小李星期一真的只是迟到了。所以经理遇到了麻烦，就把钱拿走，想把责任推给员工。"
+  },
+  {
+   "id": 12,
+   "kind": "text",
+   "title": "Как строить ответ",
+   "titleZh": "回答结构",
+   "text": "Общая схема:\n我觉得 / 我认为…… → 因为…… → 比如…… → 所以 / 总之……\n\nПолезные связки:\n首先……其次……最后；\n一方面……另一方面；\n对我来说；\n说实话；\n总之；\n取决于……"
+  },
+  {
+   "id": 13,
+   "kind": "text",
+   "title": "Дополнительное занятие · Почему бросаем планы",
+   "titleZh": "什么原因会让你放弃 / 拖延计划？",
+   "text": "Вопрос для обсуждения:\n什么原因会让你放弃 / 拖延你之前的计划？\nКакие причины заставляют тебя отказаться от прежнего плана или откладывать его?\n\n1. 进步缓慢 — медленный прогресс\n看不到想要的工作 / 学习效果，越学越没动力。\nНе видишь желаемого результата в работе или учёбе — чем дольше занимаешься, тем меньше мотивации.\n\n2. 时间压力 — нехватка времени, давление сроков\n原本你以为一个小时就能完成的工作，但是却发现需要三个小时。当你意识到你的时间不够用了，可是你又必须完成工作或者学习，你感到压力非常大。\nТы думал, что работа займёт час, но оказалось — три. Времени не хватает, а закончить всё равно нужно.\n\n3. 学习倦怠 — учебное выгорание\n你每天都在学习，突然陷入了一个循环：我一直在学，但根本体会不到学习的兴奋 / 新鲜的感觉，只是为了学而学。\nКаждый день учишься и попадаешь в цикл: постоянно занимаешься, но уже совсем не чувствуешь интереса или новизны — учёба ради самой учёбы.\n\n4. 落差感 — ощущение разрыва с другими\n不管怎么学都没有别人进步快，感到努力无用。比如参加一个活动，发现别人学得那么快、那么好，自己学了这么多年，为什么进步这么缓慢，干脆放弃。\nКажется, что другие прогрессируют быстрее, а твои усилия бесполезны; появляется желание просто бросить.\n\n5. 缺乏正反馈 — нехватка положительной обратной связи\n你应该知道外界的评价不重要，但就是想知道自己到底做得好不好。对自己没有客观的评价，就迫切需要有人给你正反馈。\nПонимаешь, что чужая оценка не главное, но всё равно хочется знать, насколько хорошо получается; не хватает объективной оценки и положительной обратной связи.\n\nСкажи по-китайски, какие 1–2 причины ближе тебе и почему. Используй: 根本、取决于、放弃、影响、看法、保持自律。"
+  }
+ ]
+}
 ];
 
 const BIZ_UNITS = [
@@ -23253,7 +24160,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.12.6';
+const APP_VER = '5.13.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -23593,7 +24500,7 @@ function renderUnits() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.12.6" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.13.0" alt="听"></div>
       <div class="top-title">小山听力</div><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
     ${UNITS.map(unitCard).join('')}
@@ -23609,7 +24516,7 @@ function renderIdv() {
   const list = IDV.filter(u => (u.src || 'idv') === 'idv');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.12.6" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.13.0" alt="听"></div>
       <div class="top-title">口语</div><div class="sub">口语课</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -23622,7 +24529,7 @@ function renderBiz() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.12.6" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.13.0" alt="听"></div>
       <div class="top-title">小山商务</div><div class="sub">经贸初级汉语口语</div>
     </div>
     ${BIZ.length ? BIZ.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -23636,7 +24543,7 @@ function renderTeam() {
   const list = IDV.filter(u => u.src === 'team');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.12.6" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.13.0" alt="听"></div>
       <div class="top-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -23649,7 +24556,7 @@ function renderMine() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.12.6" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.13.0" alt="听"></div>
       <div class="top-title">语法</div><div class="sub">李老师课</div>
     </div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
@@ -23684,7 +24591,7 @@ function renderDict() {
   const d = dictLoad();
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.12.6" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.13.0" alt="听"></div>
       <div class="top-title">词典</div><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
@@ -24415,7 +25322,7 @@ function renderFavs() {
   const typeName = t => t.type === 'choice' ? 'Выбор' : t.type === 'fill' ? 'Ввод' : 'Верно/Неверно';
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.12.6" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.13.0" alt="听"></div>
       <div class="top-title">句子</div><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
     </div>
     ${items.length ? items.map(it => {
@@ -25466,7 +26373,6 @@ let crsLastErr = '';
 function crsNoteErr(x) {
   crsLastErr = String(x || 'нет ответа');
   try { localStorage.setItem('tingli-sync-err-v1', crsLastErr + ' | ' + new Date().toISOString() + ' | ' + location.href); } catch (e) {}
-  try { renderCourses(); } catch (e) {}
 }
 function crsFetchSchedule() {
   /* тянем ТОЛЬКО расписание — маленький ответ, с повторами */
@@ -25476,7 +26382,7 @@ function crsFetchSchedule() {
       tries++;
       let ctl = null, tm = null;
       const opts = { cache: 'no-store' };
-      try { ctl = new AbortController(); opts.signal = ctl.signal; tm = setTimeout(function () { ctl.abort(); }, 20000); } catch (e) {}
+      try { ctl = new AbortController(); opts.signal = ctl.signal; tm = setTimeout(function () { ctl.abort(); }, 4000); } catch (e) {}
       crsApi('/backup?key=' + encodeURIComponent(CRS_LS), opts)
         .then(function (r) {
           if (!r.ok) { crsNoteErr('HTTP ' + r.status + ' ' + r.url); }
@@ -25486,7 +26392,7 @@ function crsFetchSchedule() {
           if (tm) clearTimeout(tm);
           if (j && j.ok && typeof j.value === 'string' && j.value) { crsLastErr = ''; resolve(j.value); return; }
           crsNoteErr('ответ без расписания: ' + JSON.stringify(j).slice(0, 120));
-          if (tries < 3) setTimeout(attempt, 700); else resolve(null);
+          resolve(null);
         })
         .catch(function (e) {
           if (tm) clearTimeout(tm);
@@ -25504,7 +26410,7 @@ function crsRetry() {
   crsCloudPull();
 }
 async function crsCloudPull() {
-  if (crsPullBusy) return;
+  if (crsPullBusy || crsPullOnce) return;
   crsPullBusy = true;
   const local = crsStore();
   try {
@@ -25517,15 +26423,14 @@ async function crsCloudPull() {
     }
     let rem = null; try { rem = JSON.parse(raw); } catch (e) { rem = null; }
     if (!rem) return;
-    let cloudWins = false;
-    try { cloudWins = localStorage.getItem('tingli-sched-cloudwins-v1') !== '1'; } catch (e) {}
-    const merged = cloudWins ? rem : crsMerge(local, rem);
-    if (cloudWins) { try { localStorage.setItem('tingli-sched-cloudwins-v1', '1'); } catch (e) {} }
+    // Local-first: локальное расписание уже показано. Облако только сливаем с ним.
+    const merged = crsMerge(rem, local);
     const changed = JSON.stringify(merged) !== JSON.stringify(local);
     crsCache = merged;
     try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
     crsPullOnce = true;
-    if (changed || cloudWins) { crsWantScroll = true; try { crsPaint(true); } catch (e) {} crsCloudPush(); }
+    crsEnsureTestMaterial();
+    if (changed) { try { crsPaint(false); } catch (e) {} crsCloudPush(); }
     else crsSaveStatus('saved');
   } catch (e) {
     crsSaveStatus('offline');
@@ -25604,6 +26509,27 @@ function crsLessonList(fromYmd, toYmd) {
     });
   });
   return out.sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); });
+}
+function crsEnsureTestMaterial() {
+  const day = '2026-10-09';
+  const st = crsStore();
+  let ev = null;
+  try { ev = crsLessonList(day, day).filter(function (x) { return x.program === 'team' && x.status !== 'canceled'; })[0] || null; } catch (e) {}
+  if (!ev) return false;
+  if (ev.material && +ev.material.unit === 215) return true;
+  const now = Date.now();
+  if (ev.seriesId) {
+    const key = 's:' + ev.seriesId + ':' + day;
+    st.lessons[key] = Object.assign({}, ev, {
+      id: key, date: day, dur: 60, material: { unit: 215, part: '' },
+      status: 'plan', seriesId: null, evId: undefined, upd: now
+    });
+  } else if (ev.evId && ev.evId.indexOf('l:') === 0) {
+    const id = ev.evId.slice(2);
+    if (st.lessons[id]) { st.lessons[id].material = { unit: 215, part: '' }; st.lessons[id].dur = 60; st.lessons[id].upd = now; }
+  }
+  crsSave(st, true);
+  return true;
 }
 function crsLessonState(ev) {
   const st = crsStore();
@@ -25845,8 +26771,9 @@ function renderCourses() {
   if (seg) seg.querySelectorAll('button').forEach(function (b) {
     b.onclick = function () { crsMode = b.dataset.m; renderCourses(); };
   });
-  crsCloudPull();
   crsPaint(true);
+  crsEnsureTestMaterial();
+  setTimeout(function () { crsCloudPull(); }, 0);
 }
 function crsPaint(recent) {
   const bar = document.getElementById('crsBar'), body = document.getElementById('crsBody');
@@ -25878,7 +26805,7 @@ function crsWeekBar() {
     '<div class="crs-range" onclick="crsGoToday()"><b>' + d1.getDate() + ' — ' + d2.getDate() + ' ' + CRS_MON[d2.getMonth() + 1] + '</b>' +
       '<span>' + crsTzShort(CRS_LOCAL_TZ) + ' · ' + crsTzOffText(CRS_LOCAL_TZ) + '</span></div>' +
     '<button class="crs-nb" onclick="crsWeekShift(1)" title="Следующая неделя">›</button>' +
-    '<button class="crs-today" onclick="crsGoToday()">Сегодня</button></div>' + crsProgChips();
+    '<button class="crs-today" onclick="crsGoToday()">Сегодня</button></div>';
 }
 function crsWeekShift(n) { crsWeekStartD = crsAddDays(crsWeekStartD, 7 * n); crsWantScroll = true; crsPaint(); }
 function crsGoToday() { crsWeekStartD = crsWeekStart(new Date()); crsMonthD = crsMonStart(new Date()); crsSelDay = crsYmd(new Date()); crsWantScroll = true; crsPaint(); }
@@ -25950,7 +26877,7 @@ function crsScrollToToday() {
 function crsAnyWeekLesson(from, to) { return crsLessonList(from, to).length > 0; }
 function crsLessonCard(ev) {
   const state = crsLessonState(ev);
-  const t = ev.time + (ev.dur ? ' – ' + crsEndTime(ev.date, ev.time, ev.dur, ev.tz) : '');
+  const t = ev.time;
   const t2 = (ev.tz && ev.tz !== CRS_LOCAL_TZ) ? crsTimeIn(ev.date, ev.time, ev.tz, CRS_LOCAL_TZ) + ' у тебя · ' : '';
   const moved = ev.movedFrom ? '<span class="crs-chip mv">перенесено с ' + crsDayShort(ev.movedFrom) + '</span>' : '';
   const hw = crsLessonHwBlock(ev);
@@ -25965,7 +26892,7 @@ function crsLessonCard(ev) {
     (state === 'canceled' ? '<span class="crs-chip off">отменено</span>' : '');
   return '<div class="crs-card' + (state === 'canceled' ? ' off' : '') + (state === 'done' ? ' done' : '') + '" onclick="crsOpenLesson(event,\'' + ev.evId + '\')">' +
     '<div class="crs-card-top">' +
-      '<div class="crs-c-time">' + esc(t) + '<span>' + esc(t2 || (ev.dur ? ev.dur + ' мин' : '')) + '</span></div>' +
+      '<div class="crs-c-time">' + esc(t) + (t2 ? '<span>' + esc(t2) + '</span>' : '') + '</div>' +
       '<div class="crs-c-tag">' + esc(crsProgTitle(ev.program)) + (ev.teacher ? '<span>' + esc(ev.teacher) + '</span>' : '') + '</div>' +
       '<button class="crs-more" onclick="event.stopPropagation();crsMenu(\'' + ev.evId + '\')" title="Действия">⋯</button>' +
     '</div>' +
@@ -26246,9 +27173,6 @@ function crsForm(id, preset, evId) {
       '<div><div class="crs-lbl">Дата</div><input class="crs-inp" id="crsD" type="date" value="' + f.date + '"></div>' +
       '<div><div class="crs-lbl">Начало</div><input class="crs-inp" id="crsH" type="time" value="' + f.time + '"></div>' +
     '</div>' +
-    '<div class="crs-lbl">Длительность</div><div class="crs-chips">' + [30, 45, 50, 60, 90].map(function (d) {
-      return '<button class="crs-chip' + (f.dur === d ? ' on' : '') + '" data-dur="' + d + '">' + d + ' мин</button>';
-    }).join('') + '</div>' +
     '<div class="crs-lbl">Часовой пояс</div><select class="crs-inp" id="crsTZ">' + crsTzList().map(function (z) {
       return '<option value="' + z + '"' + (f.tz === z ? ' selected' : '') + '>' + crsTzShort(z) + ' · ' + crsTzOffText(z) + '</option>';
     }).join('') + '</select>' +
@@ -26306,7 +27230,6 @@ function crsForm(id, preset, evId) {
   };
   const bind = function () {
     sheet.querySelectorAll('[data-p]').forEach(function (b) { b.onclick = function () { f.program = b.dataset.p; f.unit = ''; f.part = ''; redraw(); }; });
-    sheet.querySelectorAll('[data-dur]').forEach(function (b) { b.onclick = function () { f.dur = +b.dataset.dur; redraw(); }; });
     sheet.querySelectorAll('[data-rep]').forEach(function (b) { b.onclick = function () { f.repeatOn = b.dataset.rep !== '0'; f.every = +b.dataset.rep || 1; if (f.repeatOn && !f.days.length) f.days = [crsDow(f.date)]; redraw(); }; });
     sheet.querySelectorAll('[data-day]').forEach(function (b) { b.onclick = function () { const d = +b.dataset.day; const i = f.days.indexOf(d); if (i < 0) f.days.push(d); else f.days.splice(i, 1); redraw(); }; });
     sheet.querySelectorAll('[data-rem]').forEach(function (b) {
@@ -26335,7 +27258,7 @@ function crsFormSave(id, f, sheet) {
   const st = crsStore();
   const rem = f.remOn ? f.remOffsets.slice() : [];
   const base = {
-    program: f.program, teacher: f.teacher.trim(), dur: f.dur, tz: f.tz,
+    program: f.program, teacher: f.teacher.trim(), dur: 60, tz: f.tz,
     link: f.link.trim(), place: f.place.trim(), pass: (f.pass || '').trim(), note: f.note.trim(),
     material: (f.unit !== '' ? { unit: +f.unit, part: (f.part === '' ? '' : +f.part) } : null),
     rem: rem, upd: Date.now()
