@@ -26613,6 +26613,12 @@ function crsSeriesNext(sid, st0) {
   return hit ? hit.date : '';
 }
 function crsLessonById(id, st0) { const st = st0 || crsStore(); return st.lessons[id] || null; }
+function crsHwTitle(u, p) {
+  if (!p) return 'ДЗ · 作业';
+  const raw = String(p.title || '').trim();
+  const m = raw.match(/(?:ДЗ|作业)\s*(\d+)/i);
+  return m ? ('ДЗ ' + m[1] + ' · 作业') : 'ДЗ · 作业';
+}
 function crsHwList() {
   const st = crsStore(), out = [];
   // существующие ДЗ в уроках
@@ -26620,7 +26626,7 @@ function crsHwList() {
     (u.parts || []).forEach(function (p) {
       if (p.kind !== 'hw' && p.kind !== 'record_hw') return;
       const key = crsHwKey(u.unit, p.id);
-      out.push({ key: key, unit: u.unit, partId: p.id, title: (p.title || 'ДЗ'), program: crsProgOfUnit(u), existing: true,
+      out.push({ key: key, unit: u.unit, partId: p.id, title: crsHwTitle(u, p), program: crsProgOfUnit(u), existing: true,
                  items: p.kind === 'record_hw' ? (p.lines || []) : (p.questions || []).map(function (q) { return (typeof q === 'string' ? q : q.q); }) });
     });
   });
@@ -27022,6 +27028,9 @@ function crsFormForDay(ymd) { crsForm('', { date: ymd }); }
 /* ---------- ДЗ ---------- */
 function crsHwHtml() {
   const st = crsStore();
+  const now = Date.now();
+  const overdueTop = crsHwVisible().filter(function (h) { return h.state !== 'done' && h.dueDate && crsInstant(h.dueDate, '23:59', CRS_TZ_DEF) < now; }).sort(function (a,b){ return (a.dueDate || '').localeCompare(b.dueDate || ''); });
+  const reproach = overdueTop.length ? '<div class="crs-overdue-top"><div class="crs-overdue-h">ПРОСРОЧЕННОЕ ДЗ · ' + overdueTop.length + '</div>' + overdueTop.map(crsHwCard).join('') + '</div>' : '';
   let list = crsHwList();
   if (crsHwFilter === 'del') {
     const del = list.filter(function (h) { return h.deleted; });
@@ -27033,7 +27042,6 @@ function crsHwHtml() {
     }).join('') + '</div>';
   }
   list = list.filter(function (h) { return !h.deleted; });
-  const now = Date.now();
   const withDue = list.filter(function (h) { return h.dueDate; });
   if (crsHwFilter === 'upcoming') list = withDue.filter(function (h) { return h.state !== 'done' && crsInstant(h.dueDate, '23:59', CRS_TZ_DEF) >= now; });
   else if (crsHwFilter === 'overdue') list = withDue.filter(function (h) { return h.state !== 'done' && crsInstant(h.dueDate, '23:59', CRS_TZ_DEF) < now; });
@@ -27062,7 +27070,7 @@ function crsHwHtml() {
   }).join('');
   if (!out) out = '<div class="crs-empty">Здесь пусто</div>';
   const delN = crsHwList().filter(function (h) { return h.deleted; }).length;
-  return '<div class="crs-cols crs-cols-one">' + out +
+  return reproach + '<div class="crs-cols crs-cols-one">' + out +
     '<div class="crs-actions">' +
       '<button class="crs-b s" onclick="crsHwForm()">+ Своё задание</button>' +
       '<button class="crs-b s" onclick="crsHwDelPast()">Удалить прошедшие</button>' +
