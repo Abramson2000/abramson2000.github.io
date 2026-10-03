@@ -26745,8 +26745,6 @@ let crsHwFilter = 'open';
 let crsBusy = false;
 
 function crsShell() {
-  const st = crsStore();
-  const prog = st.filters.prog || '';
   return '<div class="topbar">' +
     '<div class="logo"><img src="sched-logo.png?v=' + APP_VER + '" alt=""></div>' +
     '<div class="top-title">课程</div><div class="sub">Расписание<br>и домашние задания</div>' +
@@ -26951,7 +26949,6 @@ function crsHwStateBtn(key) {
 function crsHwPanel(fromD, toD) {
   const st = crsStore();
   let list = crsHwVisible().filter(function (h) { return h.state !== 'done'; });
-  if (st.filters.prog) list = list.filter(function (h) { return h.program === st.filters.prog; });
   const overdue = [], soon = [], none = [];
   const now = Date.now();
   list.forEach(function (h) {
@@ -27014,7 +27011,6 @@ function crsFormForDay(ymd) { crsForm('', { date: ymd }); }
 function crsHwHtml() {
   const st = crsStore();
   let list = crsHwList();
-  if (st.filters.prog) list = list.filter(function (h) { return h.program === st.filters.prog; });
   if (crsHwFilter === 'del') {
     const del = list.filter(function (h) { return h.deleted; });
     if (!del.length) return '<div class="crs-cols crs-cols-one"><div class="crs-empty">Удалённых заданий нет</div></div>';
@@ -27048,7 +27044,7 @@ function crsHwHtml() {
       '</div></div>';
   }).join('');
   if (!out) out = '<div class="crs-empty">Здесь пусто</div>';
-  const delN = crsHwList().filter(function (h) { return h.deleted && (!st.filters.prog || h.program === st.filters.prog); }).length;
+  const delN = crsHwList().filter(function (h) { return h.deleted; }).length;
   return '<div class="crs-cols crs-cols-one">' + out +
     '<div class="crs-actions">' +
       '<button class="crs-b s" onclick="crsHwForm()">+ Своё задание</button>' +
