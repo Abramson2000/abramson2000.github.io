@@ -24868,7 +24868,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.25.0';
+const APP_VER = '5.26.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -27601,7 +27601,8 @@ function crsShell() {
         '<button data-m="month" class="' + (crsMode === 'month' ? 'on' : '') + '">Месяц</button>' +
         '<button data-m="hw" class="' + (crsMode === 'hw' ? 'on' : '') + '">ДЗ</button>' +
       '</div>' +
-      '<button class="crs-add" onclick="crsForm(\'\')">+ Занятие</button>' +
+      '<button class="crs-add" style="margin-left:auto" title="Напоминания и системные уведомления" onclick="crsPushStatusSheet(\'Настройки напоминаний\')">🔔</button>' +
+      '<button class="crs-add" style="margin-left:0" onclick="crsForm(\'\')">+ Занятие</button>' +
     '</div>' +
     '<div class="crs-bar" id="crsBar"></div>' +
     '<div id="crsBody"></div>' +
