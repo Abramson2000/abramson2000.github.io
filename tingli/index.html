@@ -25163,7 +25163,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.37.0';
+const APP_VER = '5.38.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -29017,10 +29017,33 @@ function crsB64ToU8(s) {
   return a;
 }
 async function crsPushKey() {
-  const r = await crsApi('/push/key');
-  if (!r.ok) throw new Error('API ключа ответил HTTP ' + r.status);
-  const j = await r.json();
-  if (!j || !j.key) throw new Error('сервер не вернул VAPID-ключ');
+  const endpoint = 'https://tingli-api.crmuro.ru/api/push/key';
+  let r;
+  try {
+    r = await fetch(endpoint, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
+    });
+  } catch (e) {
+    throw new Error('запрос VAPID к tingli-api.crmuro.ru не прошёл: ' + (e && e.message ? e.message : e));
+  }
+  const contentType = r.headers.get('content-type') || 'не указан';
+  if (!r.ok) throw new Error('VAPID endpoint ответил HTTP ' + r.status + ' (' + contentType + ')');
+  if (contentType.toLowerCase().indexOf('application/json') < 0) {
+    throw new Error('VAPID endpoint вернул не JSON, а ' + contentType);
+  }
+  let j;
+  try { j = await r.json(); }
+  catch (e) { throw new Error('ответ VAPID endpoint не удалось прочитать как JSON'); }
+  if (!j || typeof j.key !== 'string' || !j.key) {
+    throw new Error('в JSON VAPID endpoint нет поля key (поля: ' + (j && typeof j === 'object' ? Object.keys(j).join(', ') : typeof j) + ')');
+  }
+  let keyBytes;
+  try { keyBytes = crsB64ToU8(j.key); }
+  catch (e) { throw new Error('VAPID endpoint вернул ключ в неверном формате'); }
+  if (keyBytes.length !== 65 || keyBytes[0] !== 4) throw new Error('VAPID endpoint вернул ключ неверной длины');
   return j.key;
 }
 function crsPushSetStatus(message) {
