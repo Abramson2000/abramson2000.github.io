@@ -5,14 +5,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小山听力</title>
-<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png?v=5.30.3"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png?v=5.30.3">
-<link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.30.3">
+<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png?v=5.31.0"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png?v=5.31.0">
+<link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.31.0">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.30.3') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.30.3') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.31.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.31.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.30.3') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.31.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     /* ===== палитра Tingli (5.0.0) ===== */
     --paper:       #F5F4F1;
@@ -691,6 +691,11 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 .crs-pay-summary b { display:block; font-size:16px; color:var(--ink); }
 .crs-pay-summary span { display:block; margin-top:2px; font-size:12px; color:var(--ink-2); }
 .crs-pay-summary .crs-add { margin-left:0; }
+.crs-pay-filter { display:grid; grid-template-columns:1fr 1.35fr; gap:10px; background:var(--surface); border-radius:18px; padding:12px 14px 14px; margin-bottom:12px; box-shadow:var(--shadow-card); }
+.crs-pay-filter .crs-lbl { margin-top:0; }
+.crs-pay-period { display:flex; gap:7px; align-items:center; }
+.crs-pay-period .crs-inp { flex:1; min-width:0; }
+.crs-pay-period .crs-b { flex:0 0 auto; white-space:nowrap; padding:9px 10px; }
 .crs-pay-total { background:var(--surface); border-radius:18px; padding:4px 15px; margin-bottom:14px; box-shadow:var(--shadow-card); }
 .crs-pay-total > div { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
 .crs-pay-total > div:last-child { border-bottom:0; }
@@ -721,15 +726,14 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 .crs-pay-row-actions { flex:0 0 auto !important; display:flex; align-items:center; gap:6px; }
 .crs-pay-close { flex-shrink:0; padding:6px 9px; font-size:11px; line-height:1.1; text-align:center; }
 .crs-pay-edit { flex-shrink:0; padding:7px 9px; font-size:11px; }
-.crs-pay-done { flex:0 0 34px; width:34px; height:34px; margin:0 !important; border-radius:12px; display:inline-flex !important; align-items:center; justify-content:center; background:var(--jade-soft); color:var(--jade) !important; }
-.crs-pay-done svg { display:block; width:18px; height:18px; overflow:visible; }
-.crs-pay-done path { fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+.crs-pay-done { flex:0 0 34px; width:34px; height:34px; margin:0 !important; padding:0 !important; border-radius:12px; display:inline-flex !important; align-items:center; justify-content:center; font-size:18px !important; line-height:1 !important; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; }
 .crs-pay-closed-note { margin-top:10px; padding:10px 12px; border-radius:12px; background:var(--jade-soft); color:var(--jade); font-size:12.5px; font-weight:700; }
 .crs-pay-alert { display:flex; align-items:center; gap:10px; margin:0 0 14px; padding:11px 12px; border-radius:14px; background:var(--danger-soft); color:var(--danger); }
 .crs-pay-alert > b { font-size:11px; letter-spacing:.06em; }
 .crs-pay-alert > span { flex:1; font-size:12.5px; line-height:1.4; font-weight:650; }
 .crs-pay-alert .crs-b { flex-shrink:0; padding:7px 10px; }
 @media (max-width:520px) {
+  .crs-pay-filter { grid-template-columns:1fr; }
   .crs-pay-metrics { grid-template-columns:1fr 1fr; }
   .crs-pay-metrics > div:last-child { grid-column:1 / -1; }
   .crs-pay-head .crs-b { padding:8px 10px; }
@@ -739,7 +743,7 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 </head>
 <body>
 <div id="splash"><div class="splash-in">
-  <div class="splash-logo"><img src="logo.png?v=5.30.3" alt=""></div>
+  <div class="splash-logo"><img src="logo.png?v=5.31.0" alt=""></div>
   <div class="splash-title-text">小山听力</div>
 </div></div>
 <div class="app" id="app"></div>
@@ -773,15 +777,15 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
   </div>
 </div>
 <div class="tabbar" id="tabbar">
-  <div class="sb-brand"><img src="logo.png?v=5.30.3" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.30.3" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.30.3" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
-  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.30.3" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.30.3" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.30.3" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.30.3" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
-  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.30.3" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.30.3" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
+  <div class="sb-brand"><img src="logo.png?v=5.31.0" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.31.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.31.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.31.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.31.0" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.31.0" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.31.0" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
+  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.31.0" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.31.0" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
   <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队<span class="tab-ru">группа</span></span></button>
-  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.30.3" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.30.3" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png?v=5.30.3" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png?v=5.30.3" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
-  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.30.3" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.30.3" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
+  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.31.0" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.31.0" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png?v=5.31.0" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png?v=5.31.0" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
+  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.31.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.31.0" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-offline" id="sbOffline">
     <button class="sb-offline-btn" id="sbOfflineBtn" onclick="offlineDownload()">⬇️ Скачать для полёта</button>
     <div class="sb-offline-st" id="sbOfflineSt"></div>
@@ -24919,7 +24923,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.30.3';
+const APP_VER = '5.31.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -25273,7 +25277,7 @@ function renderUnits() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.30.3" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.31.0" alt="听"></div>
       <div class="top-title">小山听力</div><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
     ${UNITS.map(unitCard).join('')}
@@ -25289,7 +25293,7 @@ function renderIdv() {
   const list = IDV.filter(u => (u.src || 'idv') === 'idv');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.30.3" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.31.0" alt="听"></div>
       <div class="top-title">口语</div><div class="sub">口语课</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -25302,7 +25306,7 @@ function renderBiz() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.30.3" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.31.0" alt="听"></div>
       <div class="top-title">小山商务</div><div class="sub">经贸初级汉语口语</div>
     </div>
     ${BIZ.length ? BIZ.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -25316,7 +25320,7 @@ function renderTeam() {
   const list = IDV.filter(u => u.src === 'team');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.30.3" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.31.0" alt="听"></div>
       <div class="top-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -25329,7 +25333,7 @@ function renderMine() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.30.3" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.31.0" alt="听"></div>
       <div class="top-title">语法</div><div class="sub">李老师课</div>
     </div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
@@ -25364,7 +25368,7 @@ function renderDict() {
   const d = dictLoad();
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.30.3" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.31.0" alt="听"></div>
       <div class="top-title">词典</div><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
@@ -26095,7 +26099,7 @@ function renderFavs() {
   const typeName = t => t.type === 'choice' ? 'Выбор' : t.type === 'fill' ? 'Ввод' : 'Верно/Неверно';
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.30.3" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.31.0" alt="听"></div>
       <div class="top-title">句子</div><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
     </div>
     ${items.length ? items.map(it => {
@@ -27639,6 +27643,9 @@ let crsWeekStartD = crsWeekStart(new Date());
 let crsMonthD = crsMonStart(new Date());
 let crsSelDay = crsYmd(new Date());
 let crsHwFilter = 'open';
+let crsPayCourse = '';
+let crsPayMonth = (function () { const d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2); })();
+let crsPayAllTime = false;
 let crsBusy = false;
 
 function crsShell() {
@@ -27899,7 +27906,9 @@ function crsPayLedger(program) {
   const active = pays.filter(function (p) { return !p.date || p.date <= today; });
   const packs = active.map(function (p) {
     const lessons = Math.max(0, +p.lessons || 0);
-    return { id: p.id, date: p.date || today, lessons: lessons, left: lessons, amount: +p.amount || 0, closed: !!p.closed, allocated: 0,
+    const usedAtEntry = Math.min(lessons, Math.max(0, +p.usedAtEntry || 0));
+    return { id: p.id, date: p.date || today, lessons: lessons, left: Math.max(0, lessons - usedAtEntry), amount: +p.amount || 0,
+      closed: !!p.closed, allocated: 0, usedAtEntry: usedAtEntry, usedThrough: p.usedThrough || '',
       price: lessons ? ((+p.amount || 0) / lessons) : 0 };
   });
   const first = packs.length ? packs[0].date : '';
@@ -27911,14 +27920,22 @@ function crsPayLedger(program) {
       }).sort(function (a, b) { return (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')); });
     } catch (e) { events = []; }
   }
-  let spent = 0, used = 0, unpriced = 0;
+  let spent = packs.reduce(function (a, p) { return a + p.usedAtEntry * p.price; }, 0);
+  let used = packs.reduce(function (a, p) { return a + p.usedAtEntry; }, 0), unpriced = 0;
   const pricedEvents = [];
   events.forEach(function (ev) {
     let pack = null;
     for (let i = 0; i < packs.length; i++) {
-      if (packs[i].left > 0 && packs[i].date <= ev.date) { pack = packs[i]; break; }
+      // usedAtEntry — это занятия, уже проведённые на момент внесения/правки оплаты.
+      // Поэтому расписание до этой контрольной даты повторно не списываем.
+      const afterManual = !packs[i].usedThrough || ev.date > packs[i].usedThrough;
+      if (packs[i].left > 0 && packs[i].date <= ev.date && afterManual) { pack = packs[i]; break; }
     }
-    if (!pack) { unpriced++; return; }
+    if (!pack) {
+      const coveredByManual = packs.some(function (p) { return p.usedAtEntry > 0 && p.usedThrough && ev.date <= p.usedThrough; });
+      if (!coveredByManual) unpriced++;
+      return;
+    }
     pack.left--; pack.allocated++; used++; spent += pack.price;
     pricedEvents.push({ date: ev.date, price: pack.price, evId: ev.evId });
   });
@@ -27936,12 +27953,11 @@ function crsPayLedger(program) {
     paid: paid, spent: spent, leftMoney: leftMoney, unpriced: unpriced };
 }
 function crsPayBar() {
-  const d = new Date();
-  return '<div class="crs-pay-summary"><div><b>' + CRS_MON_NOM[d.getMonth() + 1] + ' ' + d.getFullYear() + '</b><span>авансовые пакеты занятий</span></div>' +
+  return '<div class="crs-pay-summary"><div><b>Оплаты</b><span>авансовые пакеты занятий</span></div>' +
     '<button class="crs-add" onclick="crsPayForm()">+ Оплата</button></div>';
 }
 function crsPayPrograms() {
-  const st = crsStore(), seen = {};
+  const seen = {};
   crsPayList().forEach(function (p) { if (p.program) seen[p.program] = true; });
   try {
     crsLessonList(crsYmd(crsAddDays(new Date(), -120)), crsYmd(crsAddDays(new Date(), 120))).forEach(function (ev) {
@@ -27950,15 +27966,30 @@ function crsPayPrograms() {
   } catch (e) {}
   return CRS_PROGS.filter(function (p) { return crsPayIsPaidProgram(p.id) && seen[p.id]; });
 }
+function crsPaySetCourse(v) { crsPayCourse = v || ''; crsPaint(); }
+function crsPaySetMonth(v) { if (v) { crsPayMonth = v; crsPayAllTime = false; crsPaint(); } }
+function crsPaySetAll(v) { crsPayAllTime = !!v; crsPaint(); }
+function crsPayFilterHtml() {
+  return '<div class="crs-pay-filter"><div><div class="crs-lbl">Курс</div><select class="crs-inp" onchange="crsPaySetCourse(this.value)">' +
+    '<option value="">Все курсы</option>' +
+    CRS_PROGS.filter(function (p) { return crsPayIsPaidProgram(p.id); }).map(function (p) {
+      return '<option value="' + p.id + '"' + (crsPayCourse === p.id ? ' selected' : '') + '>' + esc(crsProgTitle(p.id)) + '</option>';
+    }).join('') + '</select></div>' +
+    '<div><div class="crs-lbl">Период</div><div class="crs-pay-period"><input class="crs-inp" type="month" value="' + esc(crsPayMonth) + '" onchange="crsPaySetMonth(this.value)"' + (crsPayAllTime ? ' disabled' : '') + '>' +
+    '<button class="crs-b ' + (crsPayAllTime ? 'p' : 's') + '" onclick="crsPaySetAll(' + (!crsPayAllTime) + ')">Всё время</button></div></div></div>';
+}
 function crsPayHtml() {
-  const programs = crsPayPrograms();
-  const now = new Date(), ym = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
-  let monthPaid = 0, monthCost = 0, monthLessons = 0, totalLeft = 0;
-  crsPayList().forEach(function (p) { if ((p.date || '').slice(0, 7) === ym) monthPaid += +p.amount || 0; });
+  const programs = crsPayPrograms().filter(function (p) { return !crsPayCourse || p.id === crsPayCourse; });
+  const filteredPays = crsPayList(crsPayCourse).filter(function (p) {
+    return crsPayAllTime || (p.date || '').slice(0, 7) === crsPayMonth;
+  });
+  const periodPaid = filteredPays.reduce(function (a, p) { return a + (+p.amount || 0); }, 0);
+  const periodBought = filteredPays.reduce(function (a, p) { return a + (+p.lessons || 0); }, 0);
+  const periodAlready = filteredPays.reduce(function (a, p) { return a + Math.min(+p.lessons || 0, Math.max(0, +p.usedAtEntry || 0)); }, 0);
+  let totalLeft = 0;
   const cards = programs.map(function (p) {
     const l = crsPayLedger(p.id);
     totalLeft += l.left;
-    l.pricedEvents.forEach(function (e) { if ((e.date || '').slice(0, 7) === ym) { monthLessons++; monthCost += e.price; } });
     const last = l.pays.length ? l.pays[l.pays.length - 1] : null;
     const cls = l.pays.length && l.left === 0 ? ' zero' : (l.left === 1 ? ' one' : '');
     const status = !l.pays.length ? 'Оплата ещё не внесена'
@@ -27972,17 +28003,29 @@ function crsPayHtml() {
       (l.unpriced ? '<div class="crs-pay-note">Есть проведённые занятия без внесённого аванса: ' + l.unpriced + '</div>' : '') +
       '</div>';
   }).join('');
-  const hist = crsPayList().slice().reverse().slice(0, 30).map(function (p) {
-    return '<div class="crs-pay-row"><div class="crs-pay-row-info"><b>' + esc(crsProgTitle(p.program)) + '</b><span>' + esc(crsDayShort(p.date)) + ' · ' + (+p.lessons || 0) + ' уроков' + (p.closed ? ' · все проведены' : '') + '</span></div>' +
+  const hist = filteredPays.slice().reverse().map(function (p) {
+    const used0 = Math.min(+p.lessons || 0, Math.max(0, +p.usedAtEntry || 0));
+    return '<div class="crs-pay-row"><div class="crs-pay-row-info"><b>' + esc(crsProgTitle(p.program)) + '</b><span>' + esc(crsDayShort(p.date)) + ' · ' + (+p.lessons || 0) + ' уроков' +
+      (used0 ? ' · уже проведено ' + used0 : '') + (p.closed ? ' · все проведены' : '') + '</span></div>' +
       '<strong>' + crsMoney(p.amount) + '</strong><div class="crs-pay-row-actions">' +
       '<button class="crs-b s crs-pay-edit" onclick="crsPayForm(null,\'' + p.id + '\')">Изменить</button>' +
-      (p.closed ? '<span class="crs-pay-done" title="Все уроки проведены" aria-label="Все уроки проведены"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.2 10.1l3.5 3.5 8.1-8.1"/></svg></span>' : '<button class="crs-b s crs-pay-close" onclick="crsPayClose(\'' + p.id + '\')">Все уроки<br>проведены</button>') +
+      (p.closed ? '<span class="crs-b done crs-pay-done" title="Все уроки проведены" aria-label="Все уроки проведены">✓</span>' :
+        '<button class="crs-b s crs-pay-close" onclick="crsPayClose(\'' + p.id + '\')">Все уроки<br>проведены</button>') +
       '</div></div>';
   }).join('');
-  return '<div class="crs-pay-total"><div><span>Проведено в этом месяце</span><b>' + monthLessons + ' · ' + crsMoney(monthCost) + '</b></div>' +
-    '<div><span>Оплачено в этом месяце</span><b>' + crsMoney(monthPaid) + '</b></div><div><span>Оплаченных уроков осталось</span><b>' + totalLeft + '</b></div></div>' +
-    (cards || '<div class="crs-empty">Пока нет оплат. Добавь первый аванс — дальше остаток будет считаться автоматически.</div>') +
-    '<div class="crs-col-h" style="margin-top:20px">История оплат</div>' + (hist || '<div class="crs-empty">История пока пустая</div>');
+  const periodName = crsPayAllTime ? 'За всё время' : (function () {
+    const a = (crsPayMonth || '').split('-'), m = +a[1] || 1;
+    return (CRS_MON_NOM[m] || crsPayMonth) + (a[0] ? ' ' + a[0] : '');
+  })();
+  return crsPayFilterHtml() +
+    '<div class="crs-pay-total"><div><span>' + esc(periodName) + '</span><b>' + crsMoney(periodPaid) + '</b></div>' +
+    '<div><span>Оплачено уроков</span><b>' + periodBought + '</b></div>' +
+    '<div><span>Платежей</span><b>' + filteredPays.length + '</b></div>' +
+    (periodAlready ? '<div><span>Уже было проведено при оплате</span><b>' + periodAlready + '</b></div>' : '') +
+    '<div><span>Текущий остаток' + (crsPayCourse ? '' : ' по выбранным курсам') + '</span><b>' + totalLeft + ' ур.</b></div></div>' +
+    cards +
+    '<div class="crs-col-h" style="margin-top:20px">История оплат · ' + esc(periodName) + '</div>' +
+    (hist || '<div class="crs-empty">За выбранный период оплат нет</div>');
 }
 function crsPayClose(id) {
   const st = crsStore(), p = st.payments && st.payments[id];
@@ -28006,26 +28049,33 @@ function crsPayForm(program, payId) {
   const today = crsYmd(new Date());
   const oldAmount = old ? (+old.amount || 0) : '';
   const oldLessons = old ? (+old.lessons || 0) : '';
+  const oldUsed = old ? Math.min(+old.lessons || 0, Math.max(0, +old.usedAtEntry || 0)) : 0;
   const oldDate = old && old.date ? old.date : today;
   const draw = function () {
     return '<div class="crs-lbl">Курс</div><select class="crs-inp" id="crsPayProg">' +
       CRS_PROGS.filter(function (p) { return crsPayIsPaidProgram(p.id); }).map(function (p) { return '<option value="' + p.id + '"' + (p.id === prog ? ' selected' : '') + '>' + esc(crsProgTitle(p.id)) + '</option>'; }).join('') +
       '</select><div class="crs-2col"><div><div class="crs-lbl">Сумма, ₽</div><input class="crs-inp" id="crsPayAmount" type="number" min="0" step="1" inputmode="decimal" placeholder="20000" value="' + oldAmount + '"></div>' +
-      '<div><div class="crs-lbl">Уроков</div><input class="crs-inp" id="crsPayLessons" type="number" min="1" step="1" inputmode="numeric" placeholder="10" value="' + oldLessons + '"></div></div>' +
-      '<div class="crs-lbl">Дата оплаты</div><input class="crs-inp" id="crsPayDate" type="date" value="' + oldDate + '">' +
-      '<div class="crs-note" id="crsPayCalc">' + (oldAmount && oldLessons ? ('Цена урока: ' + crsMoney(oldAmount / oldLessons)) : 'Цена одного урока посчитается автоматически.') + '</div>' +
+      '<div><div class="crs-lbl">Оплачено уроков</div><input class="crs-inp" id="crsPayLessons" type="number" min="1" step="1" inputmode="numeric" placeholder="10" value="' + oldLessons + '"></div></div>' +
+      '<div class="crs-2col"><div><div class="crs-lbl">Дата оплаты</div><input class="crs-inp" id="crsPayDate" type="date" value="' + oldDate + '"></div>' +
+      '<div><div class="crs-lbl">Из них уже проведено</div><input class="crs-inp" id="crsPayUsed" type="number" min="0" step="1" inputmode="numeric" value="' + oldUsed + '"></div></div>' +
+      '<div class="crs-note" id="crsPayCalc"></div>' +
       (old && old.closed ? '<div class="crs-pay-closed-note">Этот аванс отмечен как полностью проведённый.</div>' : '') +
       '<div class="crs-actions crs-sticky"><button class="crs-b p" id="crsPayOk" style="flex:1">' + (old ? 'Сохранить изменения' : 'Сохранить оплату') + '</button>' +
       (old && old.closed ? '<button class="crs-b s" id="crsPayReopen">Вернуть в расчёт</button>' : '') +
       '<button class="crs-b s" onclick="closeCrsSheets()">Отмена</button></div>';
   };
   const sheet = crsSheet(old ? 'Изменить оплату' : 'Новая оплата', draw());
-  const amount = sheet.querySelector('#crsPayAmount'), lessons = sheet.querySelector('#crsPayLessons'), calc = sheet.querySelector('#crsPayCalc');
+  const amount = sheet.querySelector('#crsPayAmount'), lessons = sheet.querySelector('#crsPayLessons');
+  const used = sheet.querySelector('#crsPayUsed'), calc = sheet.querySelector('#crsPayCalc');
   const recalc = function () {
-    const a = +amount.value || 0, n = +lessons.value || 0;
-    calc.textContent = (a > 0 && n > 0) ? ('Цена урока: ' + crsMoney(a / n)) : 'Цена одного урока посчитается автоматически.';
+    const a = +amount.value || 0, n = Math.floor(+lessons.value || 0), u = Math.max(0, Math.floor(+used.value || 0));
+    if (u > n && n > 0) used.value = n;
+    const uu = Math.min(n, Math.max(0, +used.value || 0));
+    calc.innerHTML = (a > 0 && n > 0)
+      ? ('Цена урока: <b>' + crsMoney(a / n) + '</b><br>Остаток сразу после оплаты: <b>' + Math.max(0, n - uu) + ' уроков · ' + crsMoney((a / n) * Math.max(0, n - uu)) + '</b>')
+      : 'Укажи сумму и количество уроков.';
   };
-  amount.oninput = recalc; lessons.oninput = recalc;
+  amount.oninput = recalc; lessons.oninput = recalc; used.oninput = recalc; recalc();
   sheet.querySelector('#crsPayProg').onchange = function () { prog = this.value; };
   const reopen = sheet.querySelector('#crsPayReopen');
   if (reopen) reopen.onclick = function () {
@@ -28034,14 +28084,19 @@ function crsPayForm(program, payId) {
     crsSave(st); closeCrsSheets(); crsMode = 'pay'; renderCourses(); crsToast('Аванс возвращён в расчёт');
   };
   sheet.querySelector('#crsPayOk').onclick = function () {
-    const a = +amount.value || 0, n = Math.floor(+lessons.value || 0), date = sheet.querySelector('#crsPayDate').value || today;
+    const a = +amount.value || 0, n = Math.floor(+lessons.value || 0), u = Math.max(0, Math.floor(+used.value || 0));
+    const date = sheet.querySelector('#crsPayDate').value || today;
     if (a <= 0 || n <= 0) { crsToast('Укажи сумму и количество уроков'); return; }
+    if (u > n) { crsToast('Проведённых уроков не может быть больше оплаченных'); return; }
     const st = crsStore(); st.payments = st.payments || {};
     const id = old ? payId : crsUid('p');
     const prev = st.payments[id] || {};
+    const manualChanged = !old || u !== (+prev.usedAtEntry || 0);
     st.payments[id] = Object.assign({}, prev, { id: id, program: prog, amount: a, lessons: n, date: date,
+      usedAtEntry: u, usedThrough: u > 0 ? (manualChanged ? today : (prev.usedThrough || today)) : '',
       created: prev.created || Date.now(), upd: Date.now() });
-    crsSave(st); closeCrsSheets(); crsMode = 'pay'; renderCourses(); crsToast(old ? 'Оплата изменена' : ('Оплата добавлена: ' + n + ' уроков'));
+    crsSave(st); closeCrsSheets(); crsMode = 'pay'; renderCourses();
+    crsToast(old ? 'Оплата изменена' : ('Оплата добавлена: осталось ' + Math.max(0, n - u) + ' уроков'));
   };
 }
 function crsPayAlertsHtml() {
