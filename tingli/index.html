@@ -25044,7 +25044,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.48.0';
+const APP_VER = '5.49.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -28117,15 +28117,13 @@ function crsPayHtml() {
     '</div>';
   }).join('');
 
-  // «Все оплаты»: внизу висит только ПОСЛЕДНЯЯ оплата каждого курса (три курса закреплены, месяц не влияет).
-  const listPrograms = crsPayCourse
-    ? allPrograms.filter(function (x) { return x.id === crsPayCourse; })
-    : allPrograms;
-  const listedPays = [];
-  listPrograms.forEach(function (x) {
-    const pays = crsPayLedger(x.id).pays;
-    if (pays.length) listedPays.push(pays[pays.length - 1]);
-  });
+  // «Все оплаты»: в режиме «Всё время» — все платежи (как раньше);
+  // при выбранном месяце — по одной строке на курс (последняя оплата каждого курса).
+  const listedPays = crsPayAllTime
+    ? crsPayList(crsPayCourse).slice().reverse()
+    : (crsPayCourse ? [crsPayCourse] : allPrograms.map(function (x) { return x.id; }))
+        .map(function (id) { const pays = crsPayLedger(id).pays; return pays[pays.length - 1]; })
+        .filter(function (p) { return !!p; });
 
   const hist = listedPays.map(function (p) {
     const used0 = Math.min(+p.lessons || 0, Math.max(0, +p.usedAtEntry || 0));
