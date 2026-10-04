@@ -743,13 +743,15 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 .crs-pay-course { display:flex; align-items:stretch; background:var(--surface); border:1px solid var(--line); border-radius:13px; overflow:hidden; box-shadow:0 1px 2px rgba(29,29,33,.025); }
 .crs-pay-course.one { background:var(--ochre-soft); border-color:rgba(178,124,40,.25); }
 .crs-pay-course.zero { background:var(--danger-soft); border-color:rgba(166,59,52,.24); }
-.crs-pay-course-main { flex:1; min-width:0; border:0; background:transparent; display:grid; grid-template-columns:minmax(0,1.5fr) minmax(90px,1fr) auto 12px; align-items:center; gap:8px; padding:9px 10px; text-align:left; color:var(--ink); font:inherit; cursor:pointer; }
+.crs-pay-course-main { flex:1; min-width:0; border:0; background:transparent; display:flex; align-items:center; gap:8px; padding:9px 10px; text-align:left; color:var(--ink); font:inherit; cursor:pointer; }
+.crs-pay-course-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+.crs-pay-course-top { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
 .crs-pay-course-name { font-size:13.5px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.crs-pay-course-status { font-size:11.5px; color:var(--ink-2); white-space:nowrap; }
-.crs-pay-course.one .crs-pay-course-status { color:var(--ochre); font-weight:700; }
-.crs-pay-course.zero .crs-pay-course-status { color:var(--danger); font-weight:700; }
-.crs-pay-course-main > b { font-size:12.5px; white-space:nowrap; }
-.crs-pay-course-main > i { font-style:normal; font-size:20px; color:var(--ink-3); line-height:1; }
+.crs-pay-course-sum { font-size:13px; font-weight:800; white-space:nowrap; }
+.crs-pay-course-sub { font-size:11.5px; color:var(--ink-2); white-space:nowrap; }
+.crs-pay-course.one .crs-pay-course-sub { color:var(--ochre); font-weight:700; }
+.crs-pay-course.zero .crs-pay-course-sub { color:var(--danger); font-weight:700; }
+.crs-pay-course-main > i { font-style:normal; font-size:20px; color:var(--ink-3); line-height:1; flex:0 0 auto; }
 .crs-pay-course-add { flex:0 0 38px; border:0; border-left:1px solid var(--line); background:transparent; color:var(--seal); font:700 21px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; cursor:pointer; }
 .crs-pay-filter-compact { display:block; margin:4px 0 16px; padding:8px 10px 10px; border:1px solid var(--line); box-shadow:var(--shadow-card); }
 .crs-pay-filter-compact .crs-lbl { margin:0 0 7px; font-size:11px; font-weight:800; letter-spacing:.035em; color:var(--ink); line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -764,9 +766,11 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 .crs-pay-total-compact > div:last-child { border-right:0; }
 .crs-pay-total-compact span { display:block; font-size:10.5px; }
 .crs-pay-total-compact b { display:block; margin-top:3px; text-align:left; font-size:13px; }
-.crs-pay-history-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:13px 2px 7px; }
-.crs-pay-history-head > b { font-size:13px; color:var(--ink-2); text-transform:uppercase; letter-spacing:.035em; }
+.crs-pay-history-card { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:10px 10px 5px; margin-bottom:12px; box-shadow:var(--shadow-card); }
+.crs-pay-history-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 8px; }
+.crs-pay-history-head > b { font-size:11px; font-weight:800; letter-spacing:.035em; text-transform:uppercase; color:var(--ink); line-height:1.2; }
 .crs-pay-history-head .crs-b { padding:6px 9px; font-size:11px; }
+.crs-pay-history-list .crs-pay-row { background:var(--paper); border:1px solid var(--line); box-shadow:none; }
 .crs-pay-back { border:0; background:transparent; color:var(--seal); font:700 13.5px/1.2 inherit; padding:2px 0 7px; cursor:pointer; }
 .crs-pay-row { display:block; padding:9px 10px; margin-bottom:6px; }
 .crs-pay-row-top { display:flex; align-items:center; gap:8px; }
@@ -783,10 +787,7 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 .crs-pay-manual-note { margin-top:5px; font-size:10.5px; color:var(--ink-3); }
 .crs-pay-all-done { margin-top:6px; border:0; background:var(--jade-soft); color:var(--jade); border-radius:9px; padding:5px 8px; font:700 10.5px/1.2 inherit; cursor:pointer; }
 @media (max-width:520px) {
-  .crs-pay-course-main { grid-template-columns:minmax(0,1fr) auto 10px; gap:6px; padding:8px 9px; }
-  .crs-pay-course-status { grid-row:2; grid-column:1 / 2; }
-  .crs-pay-course-main > b { grid-row:1 / 3; grid-column:2; }
-  .crs-pay-course-main > i { grid-row:1 / 3; grid-column:3; }
+  .crs-pay-course-main { gap:6px; padding:8px 9px; }
   .crs-pay-total-compact { grid-template-columns:1fr 1fr 1fr; }
 }
 
@@ -825,7 +826,7 @@ body.in-unit .app { touch-action:pan-y; transform:none !important; box-shadow:no
 .crs-hw-bottom-actions { margin-top:8px; }
 .crs-pay-course-list { gap:4px !important; margin-bottom:7px !important; }
 .crs-pay-course { border-radius:11px !important; }
-.crs-pay-course-main { grid-template-columns:minmax(0,1fr) auto auto 10px !important; gap:6px !important; padding:6px 8px !important; min-height:42px; }
+.crs-pay-course-main { gap:6px !important; padding:6px 8px !important; min-height:42px; }
 .crs-pay-course-name { font-size:12.5px !important; }
 .crs-pay-course-all { font-size:10px; color:var(--seal); white-space:nowrap; }
 .crs-pay-course-status { font-size:10.5px !important; }
@@ -837,11 +838,6 @@ body.in-unit .app { touch-action:pan-y; transform:none !important; box-shadow:no
 @media (max-width:520px) {
   .crs-top { flex-wrap:nowrap !important; }
   .crs-seg button { padding-left:9px; padding-right:9px; }
-  .crs-pay-course-main { grid-template-columns:minmax(0,1fr) auto 10px !important; }
-  .crs-pay-course-all { grid-row:2; grid-column:1; }
-  .crs-pay-course-status { display:none; }
-  .crs-pay-course-main > b { grid-row:1 / 3; grid-column:2; }
-  .crs-pay-course-main > i { grid-row:1 / 3; grid-column:3; }
 }
 
 /* 5.35 — жёсткая вертикальная прокрутка и плотные списки */
@@ -25047,7 +25043,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.44.0';
+const APP_VER = '5.45.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -28104,14 +28100,17 @@ function crsPayHtml() {
 
   const courseRows = allPrograms.map(function (p) {
     const l = crsPayLedger(p.id);
-    const cls = l.pays.length && l.left === 0 ? ' zero' : (l.left === 1 ? ' one' : '');
-    const status = !l.pays.length ? 'нет оплат' : (l.left === 0 ? 'закончились' : (l.left === 1 ? 'остался 1 урок' : 'осталось ' + l.left + ' ур.'));
-    const payCount = l.pays.length;
+    const hasPays = l.pays.length > 0;
+    const cls = hasPays && l.left === 0 ? ' zero' : (hasPays && l.left === 1 ? ' one' : '');
+    const lastPay = hasPays ? l.pays[l.pays.length - 1] : null;
+    const lastAmount = lastPay ? crsMoney(lastPay.amount) : '—';
     return '<div class="crs-pay-course' + cls + '">' +
       '<button class="crs-pay-course-main" onclick="crsPayOpenCourse(\'' + p.id + '\')">' +
-        '<span class="crs-pay-course-name">' + esc(crsProgTitle(p.id)) + '</span><span class="crs-pay-course-all">Все оплаты · ' + payCount + '</span>' +
-        '<span class="crs-pay-course-status">' + esc(status) + '</span>' +
-        '<b>' + (l.pays.length ? crsMoney(l.leftMoney) : '—') + '</b><i>›</i>' +
+        '<span class="crs-pay-course-body">' +
+          '<span class="crs-pay-course-top"><span class="crs-pay-course-name">' + esc(crsProgTitle(p.id)) + '</span>' +
+          '<b class="crs-pay-course-sum">' + lastAmount + '</b></span>' +
+          '<span class="crs-pay-course-sub">проведено ' + l.used + ' · осталось ' + l.left + '</span>' +
+        '</span><i>›</i>' +
       '</button>' +
       '<button class="crs-pay-course-add" onclick="crsPayForm(\'' + p.id + '\')" title="Добавить оплату">+</button>' +
     '</div>';
@@ -28160,9 +28159,11 @@ function crsPayHtml() {
       '<div><span>Оплачено уроков</span><b>' + periodBought + '</b></div>' +
       '<div><span>Платежей</span><b>' + filteredPays.length + '</b></div>' +
     '</div>' +
-    '<div class="crs-pay-history-head"><b>Все оплаты' + (crsPayCourse ? ' · ' + esc(crsProgTitle(crsPayCourse)) : '') + '</b>' +
+    '<div class="crs-pay-history-card">' +
+      '<div class="crs-pay-history-head"><b>Все оплаты' + (crsPayCourse ? ' · ' + esc(crsProgTitle(crsPayCourse)) : '') + '</b>' +
       '<button class="crs-b s" onclick="crsPayForm(' + (crsPayCourse ? ('\'' + crsPayCourse + '\'') : 'null') + ')">+ Оплата</button></div>' +
-    (hist || '<div class="crs-empty">За выбранный период оплат нет</div>');
+      '<div class="crs-pay-history-list">' + (hist || '<div class="crs-empty">За выбранный период оплат нет</div>') + '</div>' +
+    '</div>';
 }
 function crsPayClose(id) {
   const st = crsStore(), p = st.payments && st.payments[id];
