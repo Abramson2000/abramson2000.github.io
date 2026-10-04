@@ -24868,7 +24868,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.24.0';
+const APP_VER = '5.25.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -27154,26 +27154,31 @@ async function crsCloudPull() {
   try {
     const raw = await crsFetchSchedule();
     if (!raw) {
-      /* нет связи — НИЧЕГО не стираем, показываем, что есть на устройстве */
+      /* Нет связи — ничего не стираем, локальные данные остаются доступными. */
       crsSaveStatus('offline');
       if (!Object.keys(local.series || {}).length) crsToast('Нет связи с облаком: ' + (crsLastErr || 'неизвестно'));
       return;
     }
     let rem = null; try { rem = JSON.parse(raw); } catch (e) { rem = null; }
     if (!rem) return;
-    // Local-first: локальное расписание уже показано. Облако только сливаем с ним.
     const merged = crsMerge(rem, local);
     const changed = JSON.stringify(merged) !== JSON.stringify(local);
     crsCache = merged;
     try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
     crsPullOnce = true;
     crsEnsureTestMaterial();
-    if (changed) { try { crsPaint(false); } catch (e) {} crsCloudPush(); }
-    else crsSaveStatus('saved');
+    if (changed) {
+      try { crsPaint(false); } catch (e) {}
+      crsCloudPush().then(function () { try { crsPushRefreshSoon(); } catch (e) {} });
+    } else {
+      crsSaveStatus('saved');
+      try { crsPushRefreshSoon(); } catch (e) {}
+    }
   } catch (e) {
     crsSaveStatus('offline');
+  } finally {
+    crsPullBusy = false;
   }
-  crsPullBusy = false;
 }
 function crsSaveStatus(s) {
   const n = document.getElementById('crsSave');
@@ -27535,6 +27540,14 @@ function crsLessonOpenEv(evId) {
 }
 
 /* ---------- напоминания ---------- */
+function crsPushDeepLink(unit, part) {
+  const u = new URL('./', location.href);
+  if (unit !== undefined && unit !== null && unit !== '') {
+    u.searchParams.set('unit', String(unit));
+    if (part !== undefined && part !== null && part !== '') u.searchParams.set('part', String(part));
+  }
+  return u.href;
+}
 function crsReminderQueue() {
   const st = crsStore(), q = [];
   const now = Date.now();
@@ -27543,13 +27556,20 @@ function crsReminderQueue() {
     if (ev.status === 'canceled' || crsIsDone(ev)) return;
     const inst = crsInstant(ev.date, ev.time, ev.tz);
     const offs = (st.rem.lessons.offsets || []).slice().sort(function (a, b) { return a - b; });
-    offs.forEach(function (m) { q.push({ at: inst - m * 60000, kind: 'lesson', key: ev.evId, id: ev.evId, when: m, title: crsProgTitle(ev.program), sub: crsLessonWhen(ev) }); });
+    const unit = ev.material && ev.material.unit;
+    const part = ev.material && ev.material.part;
+    const url = unit !== undefined && unit !== null && unit !== '' ? crsPushDeepLink(unit, part) : crsPushDeepLink();
+    offs.forEach(function (m) { q.push({ at: inst - m * 60000, kind: 'lesson', key: ev.evId, id: ev.evId, when: m, title: crsProgTitle(ev.program), sub: crsLessonWhen(ev), url: url }); });
   });
   if (st.rem.hw.on) crsHwList().forEach(function (h) {
-    if (h.state === 'done') return;
+    if (h.state === 'done' || h.deleted) return;
     const d = h.dueDate; if (!d) return;
     const inst = crsInstant(d, '23:59', CRS_TZ_DEF);
-    (st.rem.hw.offsets || []).forEach(function (m) { q.push({ at: inst - m * 60000, kind: 'hw', key: h.key, id: h.key, when: m, title: h.title, sub: 'ДЗ · к ' + d }); });
+    const m = /^u(\d+)p(\d+)$/.exec(h.key || '');
+    const unit = h.unit || (h.material && h.material.unit) || (m ? +m[1] : '');
+    const part = h.partId !== undefined ? h.partId : (m ? +m[2] : '');
+    const url = unit ? crsPushDeepLink(unit, part) : crsPushDeepLink();
+    (st.rem.hw.offsets || []).forEach(function (m) { q.push({ at: inst - m * 60000, kind: 'hw', key: h.key, id: h.key, when: m, title: h.title, sub: 'ДЗ · к ' + d, url: url }); });
   });
   return q.sort(function (a, b) { return a.at - b.at; });
 }
@@ -28357,6 +28377,11 @@ function crsSeenSet(k) { const o = crsSeen(); o[k] = Date.now(); try { localStor
 function crsSeenHas(k) { return !!crsSeen()[k]; }
 function crsPushSyncReminders() {
   if (crsBusy) return;
+  const st = crsStore();
+  // The server scheduler owns delivery once a real Web Push subscription exists.
+  // This open-page fallback is deliberately not a background scheduler.
+  if (st.push && st.push.on) return;
+  if (!window.Notification || Notification.permission !== 'granted') return;
   crsBusy = true;
   try {
     const due = crsReminderQueue().filter(function (r) { return r.at <= Date.now() && r.at > Date.now() - 6 * 3600e3; });
@@ -28365,8 +28390,12 @@ function crsPushSyncReminders() {
       if (crsSeenHas(k)) return;
       crsSeenSet(k);
       const txt = (r.kind === 'lesson' ? 'Занятие' : 'ДЗ') + ' ' + crsRemWord(r.when) + ': ' + r.title;
-      try { if (window.Notification && Notification.permission === 'granted') new Notification('小山听力 · ' + APP_VER, { body: txt, tag: k, icon: 'tab-sch.png' }); } catch (e) {}
-      crsToast('🔔 ' + txt);
+      const options = { body: txt, tag: 'tingli-local-' + k, icon: 'tingli-icon-192-v3.png', data: { url: r.url || crsPushDeepLink() } };
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(function (reg) { return reg.showNotification('小山听力 · ' + APP_VER, options); }).catch(function () {});
+      } else {
+        try { new Notification('小山听力 · ' + APP_VER, options); } catch (e) {}
+      }
     });
   } catch (e) {} finally { crsBusy = false; }
 }
@@ -28396,22 +28425,30 @@ async function crsPushKey() {
   } catch (e) { return ''; }
 }
 async function crsPushEnable() {
-  if (!crsPushSupported()) { crsPushStatusSheet('Этот браузер не умеет Web Push. Напоминания будут приходить, когда приложение открыто.'); return; }
+  if (!crsPushSupported()) { crsPushStatusSheet('Этот браузер не поддерживает Web Push. Фоновая доставка недоступна.'); return; }
   if (Notification.permission === 'denied') { crsPushStatusSheet('Уведомления запрещены в настройках браузера — включи их для crmuro.ru и повтори.'); return; }
   let perm = Notification.permission;
   if (perm !== 'granted') perm = await Notification.requestPermission();
-  if (perm !== 'granted') { crsPushStatusSheet('Разрешение не выдано — напоминания будут только внутри приложения.'); return; }
+  if (perm !== 'granted') { crsPushStatusSheet('Разрешение на системные уведомления не выдано — серверный push не включён.'); return; }
   const key = await crsPushKey();
-  if (!key) { crsPushStatusSheet('Разрешение выдано. Сервер подписки пока не отвечает — уведомления пойдут, только когда приложение открыто. Это честный статус, а не «включено».'); return; }
+  if (!key) { crsPushStatusSheet('Сервер Web Push не отвечает или не настроен. Подписка не включена.'); return; }
   try {
     const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: crsB64ToU8(key) });
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: crsB64ToU8(key) });
     const body = JSON.stringify({ sub: sub.toJSON(), tz: CRS_LOCAL_TZ, ver: APP_VER, reminders: crsUpcoming().slice(0, 200) });
     const r = await crsApi('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: body });
-    if (r.ok) { const st = crsStore(); st.push = { on: true, at: Date.now() }; crsSave(st); crsPushStatusSheet('Подписка сохранена на сервере. Напоминания придут, даже если приложение закрыто.'); }
-    else crsPushStatusSheet('Подписку не удалось сохранить на сервере (ответ ' + r.status + '). Уведомления пойдут, только когда приложение открыто.');
+    const j = await r.json().catch(function () { return null; });
+    if (r.ok && j && j.ok === true) {
+      const st = crsStore(); st.push = { on: true, at: Date.now(), synced: j.reminderCount || 0 }; crsSave(st);
+      crsPushStatusSheet('Системное Web Push подключено. Сервер сохранил подписку и ' + (j.reminderCount || 0) + ' напоминаний.');
+    } else {
+      const st = crsStore(); st.push = { on: false, at: Date.now() }; crsSave(st, true);
+      crsPushStatusSheet('Сервер не подтвердил подписку (HTTP ' + r.status + '). Фоновая доставка не включена.');
+    }
   } catch (e) {
-    crsPushStatusSheet('Браузер не дал подписаться: ' + (e && e.message ? e.message : e) + '. Уведомления пойдут, только когда приложение открыто.');
+    const st = crsStore(); st.push = { on: false, at: Date.now() }; crsSave(st, true);
+    crsPushStatusSheet('Не удалось зарегистрировать системный Web Push: ' + (e && e.message ? e.message : e));
   }
 }
 let crsPushRefreshTimer = null;
@@ -28427,12 +28464,18 @@ async function crsPushRefresh() {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (!sub) { st.push = { on: false, at: Date.now() }; crsSave(st, true); return; }
-    await crsApi('/push/subscribe', {
+    const r = await crsApi('/push/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       body: JSON.stringify({ sub: sub.toJSON(), tz: CRS_LOCAL_TZ, ver: APP_VER, reminders: crsUpcoming().slice(0, 200) })
     });
-  } catch (e) {}
+    const j = await r.json().catch(function () { return null; });
+    if (!r.ok || !j || j.ok !== true) throw new Error('server did not confirm schedule sync');
+    st.push.synced = j.reminderCount || 0; st.push.lastSync = Date.now();
+    try { localStorage.setItem(CRS_LS, JSON.stringify(st)); crsCache = st; } catch (e) {}
+  } catch (e) {
+    try { localStorage.setItem('tingli-push-sync-error-v1', String(e && e.message || e) + ' | ' + new Date().toISOString()); } catch (x) {}
+  }
 }
 async function crsPushDisable() {
   try {
@@ -28446,9 +28489,10 @@ async function crsPushDisable() {
 function crsPushStatusSheet(msg) {
   const st = crsStore();
   const s = crsPushStatus();
-  const base = Notification && Notification.permission ? Notification.permission : 'нет';
+  const base = (typeof Notification !== 'undefined' && Notification.permission) ? Notification.permission : 'нет';
   crsSheet('Напоминания', '<div class="crs-note">' + esc(msg) + '</div>' +
     '<div class="crs-note">Web Push: ' + (crsPushSupported() ? 'поддерживается' : 'не поддерживается') + ' · разрешение: ' + esc(base) + ' · подписка: ' + ((st.push && st.push.on) ? 'сохранена' : 'нет') + '</div>' +
+    '<div class="crs-note">iPhone: установи Tingli на экран «Домой» и включи системные уведомления. Доставка push требует интернет-соединения.</div>' +
     '<div class="crs-lbl">Напоминания о занятиях</div><div class="crs-chips">' +
       '<button class="crs-chip' + (st.rem.lessons.on ? ' on' : '') + '" onclick="crsRemToggle(\'lessons\')">' + (st.rem.lessons.on ? 'включены' : 'выключены') + '</button>' +
       CRS_OFFSETS.map(function (o) {
@@ -28479,11 +28523,35 @@ function crsBoot() {
   }, 2000);
 }
 document.addEventListener('DOMContentLoaded', crsBoot);
+let crsLastResumePull = 0;
+function crsRefreshOnResume() {
+  if (document.visibilityState === 'hidden') return;
+  const now = Date.now();
+  if (now - crsLastResumePull < 15000) return;
+  crsLastResumePull = now;
+  crsPullOnce = false;
+  crsCloudPull();
+}
+window.addEventListener('focus', crsRefreshOnResume);
+document.addEventListener('visibilitychange', crsRefreshOnResume);
+window.addEventListener('online', crsRefreshOnResume);
 /* ================= /CRS_BLOCK_V3 (часть 4) ================= */
 
 goTab('sched');
 tryRestore();
 updateAppBadge();
+// Web Push links can open a specific existing Tingli unit or part.
+try {
+  const pushParams = new URLSearchParams(location.search);
+  const pushUnit = Number(pushParams.get('unit'));
+  const pushPartRaw = pushParams.get('part');
+  if (Number.isInteger(pushUnit) && pushUnit > 0) setTimeout(function () {
+    if (pushPartRaw !== null && Number.isInteger(Number(pushPartRaw)) && typeof openPart === 'function') openPart(pushUnit, Number(pushPartRaw));
+    else if (typeof openUnit === 'function') openUnit(pushUnit);
+    const clean = new URL(location.href); clean.searchParams.delete('unit'); clean.searchParams.delete('part');
+    history.replaceState(null, '', clean.href);
+  }, 180);
+} catch (e) {}
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
