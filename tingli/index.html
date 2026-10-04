@@ -27999,7 +27999,7 @@ function crsPayAlertsHtml() {
     .filter(function (x) { return x.l.pays.length && x.l.left === 0; });
   if (!bad.length) return '';
   return '<div class="crs-pay-alert"><b>ОПЛАТА</b><span>' + bad.map(function (x) { return esc(crsProgTitle(x.p.id)) + ': оплаченные уроки закончились'; }).join('<br>') + '</span>' +
-    '<button class="crs-b s" onclick="crsMode=\\'pay\\';renderCourses()">Открыть</button></div>';
+    '<button class="crs-b s" onclick="crsMode=\'pay\';renderCourses()">Открыть</button></div>';
 }
 function crsPayNotify(program) {
   const l = crsPayLedger(program);
