@@ -5,14 +5,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小山听力</title>
-<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png?v=5.33.0"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png?v=5.33.0">
-<link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.33.0">
+<link rel="icon" type="image/png" sizes="64x64" href="tingli-favicon-v3.png?v=5.34.0"><link rel="icon" type="image/png" sizes="32x32" href="tingli-favicon-32-v3.png?v=5.34.0">
+<link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.34.0">
 <link rel="manifest" href="manifest.json">
 <style>
-  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.33.0') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.33.0') format('woff2'); }
+  @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.34.0') format('woff2'); }
+  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.34.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.33.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.34.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     /* ===== палитра Tingli (5.0.0) ===== */
     --paper:       #F5F4F1;
@@ -726,7 +726,6 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 .crs-pay-row-actions { flex:0 0 auto !important; display:flex; align-items:center; gap:6px; }
 .crs-pay-close { flex-shrink:0; padding:6px 9px; font-size:11px; line-height:1.1; text-align:center; }
 .crs-pay-edit { flex-shrink:0; padding:7px 9px; font-size:11px; }
-.crs-pay-done { flex:0 0 34px; width:34px; height:34px; margin:0 !important; padding:0 !important; border-radius:12px; display:inline-flex !important; align-items:center; justify-content:center; font-size:18px !important; line-height:1 !important; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; }
 .crs-pay-closed-note { margin-top:10px; padding:10px 12px; border-radius:12px; background:var(--jade-soft); color:var(--jade); font-size:12.5px; font-weight:700; }
 .crs-pay-alert { display:flex; align-items:center; gap:10px; margin:0 0 14px; padding:11px 12px; border-radius:14px; background:var(--danger-soft); color:var(--danger); }
 .crs-pay-alert > b { font-size:11px; letter-spacing:.06em; }
@@ -775,7 +774,6 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 .crs-pay-stepper b { min-width:48px; text-align:center; font-size:12px; color:var(--ink); }
 .crs-pay-left { margin-left:auto !important; font-size:11.5px !important; color:var(--ink-2) !important; white-space:nowrap; }
 .crs-pay-left b { color:var(--ink); font-size:12.5px; }
-.crs-pay-done { width:auto !important; height:auto !important; min-height:27px; padding:5px 9px !important; border-radius:10px !important; font-size:11.5px !important; font-family:inherit !important; font-weight:700 !important; line-height:1.2 !important; }
 .crs-pay-manual-note { margin-top:5px; font-size:10.5px; color:var(--ink-3); }
 .crs-pay-all-done { margin-top:6px; border:0; background:var(--jade-soft); color:var(--jade); border-radius:9px; padding:5px 8px; font:700 10.5px/1.2 inherit; cursor:pointer; }
 @media (max-width:520px) {
@@ -785,6 +783,20 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
   .crs-pay-course-main > i { grid-row:1 / 3; grid-column:3; }
   .crs-pay-total-compact { grid-template-columns:1fr 1fr 1fr; }
 }
+
+/* 5.34 — фиксация уроков по вертикали + ещё плотнее оплаты */
+html, body { max-width:100%; overflow-x:hidden; overscroll-behavior-x:none; }
+body.in-unit, body.in-unit .app { overflow-x:hidden !important; overscroll-behavior-x:none !important; }
+body.in-unit .app { touch-action:pan-y; transform:none !important; box-shadow:none !important; }
+.crs-pay-course-list { gap:3px !important; }
+.crs-pay-course { min-height:0 !important; }
+.crs-pay-course-main { padding:4px 6px !important; min-height:34px !important; gap:4px !important; }
+.crs-pay-course-name { font-size:12px !important; }
+.crs-pay-course-all { font-size:9.5px !important; }
+.crs-pay-course-main > b { font-size:11px !important; }
+.crs-pay-course-add { flex-basis:30px !important; font-size:18px !important; }
+.crs-pay-row .crs-b.done { padding:6px 9px; border-radius:10px; font-size:11px; white-space:nowrap; }
+.crs-hw-compact { max-height:82px; overflow:hidden; }
 
 /* 5.33 — плотный экран расписания / ДЗ / оплат */
 .crs-top { gap:5px !important; }
@@ -830,7 +842,7 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 </head>
 <body>
 <div id="splash"><div class="splash-in">
-  <div class="splash-logo"><img src="logo.png?v=5.33.0" alt=""></div>
+  <div class="splash-logo"><img src="logo.png?v=5.34.0" alt=""></div>
   <div class="splash-title-text">小山听力</div>
 </div></div>
 <div class="app" id="app"></div>
@@ -864,15 +876,15 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
   </div>
 </div>
 <div class="tabbar" id="tabbar">
-  <div class="sb-brand"><img src="logo.png?v=5.33.0" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.33.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.33.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
-  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.33.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.33.0" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.33.0" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.33.0" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
-  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.33.0" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.33.0" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
+  <div class="sb-brand"><img src="logo.png?v=5.34.0" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
+  <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.34.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.34.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
+  <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.34.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.34.0" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.34.0" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.34.0" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
+  <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.34.0" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.34.0" alt=""></span><span class="tab-label">口语<span class="tab-ru">с Любой</span></span></button>
   <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=1900" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=1900" alt=""></span><span class="tab-label">团队<span class="tab-ru">группа</span></span></button>
-  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.33.0" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.33.0" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
-  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png?v=5.33.0" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png?v=5.33.0" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
-  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.33.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.33.0" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
+  <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.34.0" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.34.0" alt=""></span><span class="tab-label">商务<span class="tab-ru">Самоучеба</span></span></button>
+  <button class="tab" id="tab-favs" onclick="goTab('favs')" title="句子"><span class="ic"><img class="ic-img ic-img-on" src="tab-ju.png?v=5.34.0" alt=""><img class="ic-img ic-img-off" src="tab-ju-off.png?v=5.34.0" alt=""></span><span class="tab-label">句子<span class="tab-ru">Фразы</span></span></button>
+  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.34.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.34.0" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-offline" id="sbOffline">
     <button class="sb-offline-btn" id="sbOfflineBtn" onclick="offlineDownload()">⬇️ Скачать для полёта</button>
     <div class="sb-offline-st" id="sbOfflineSt"></div>
@@ -25010,7 +25022,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.33.0';
+const APP_VER = '5.34.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -25364,7 +25376,7 @@ function renderUnits() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.33.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.34.0" alt="听"></div>
       <div class="top-title">小山听力</div><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
     ${UNITS.map(unitCard).join('')}
@@ -25380,7 +25392,7 @@ function renderIdv() {
   const list = IDV.filter(u => (u.src || 'idv') === 'idv');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.33.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.34.0" alt="听"></div>
       <div class="top-title">口语</div><div class="sub">口语课</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -25393,7 +25405,7 @@ function renderBiz() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.33.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.34.0" alt="听"></div>
       <div class="top-title">小山商务</div><div class="sub">经贸初级汉语口语</div>
     </div>
     ${BIZ.length ? BIZ.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -25407,7 +25419,7 @@ function renderTeam() {
   const list = IDV.filter(u => u.src === 'team');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.33.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.34.0" alt="听"></div>
       <div class="top-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -25420,7 +25432,7 @@ function renderMine() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.33.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.34.0" alt="听"></div>
       <div class="top-title">语法</div><div class="sub">李老师课</div>
     </div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
@@ -25455,7 +25467,7 @@ function renderDict() {
   const d = dictLoad();
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.33.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.34.0" alt="听"></div>
       <div class="top-title">词典</div><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
@@ -26186,7 +26198,7 @@ function renderFavs() {
   const typeName = t => t.type === 'choice' ? 'Выбор' : t.type === 'fill' ? 'Ввод' : 'Верно/Неверно';
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.33.0" alt="听"></div>
+      <div class="logo"><img src="logo.png?v=5.34.0" alt="听"></div>
       <div class="top-title">句子</div><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
     </div>
     ${items.length ? items.map(it => {
@@ -26504,6 +26516,14 @@ function hwRefresh() {
 }
 function hwCopy(withQ) {
   const txt = hwText(withQ);
+  // Сформировал текст для учителя = ДЗ закончено. Сразу синхронизируем это с 课程 → 作业.
+  try {
+    const key = 'u' + curUnit.unit + 'p' + curPart.id;
+    crsHwSetState(key, 'done');
+    const n = curPart.questions ? curPart.questions.length : 0;
+    saveLocal('tingli-hwmeta-' + curUnit.unit + '-' + curPart.id, JSON.stringify({ n: n, done: true, answered: hwAnswered(), submitted: Date.now() }));
+    updateAppBadge();
+  } catch (e) {}
   const out = document.getElementById('hwOut');
   if (out) {
     out.classList.add('show');
@@ -26799,68 +26819,15 @@ async function hwCheckAll() {
   window.scrollTo(0, document.body.scrollHeight);
 }
 
-/* ===== Свайпы: от левого края внутри урока = назад; влево = следующее задание ===== */
-let tsX = null, tsY = null, tsT = 0, drag = false, dragStartX = 0, dragDx = 0, dragArmed = false;
-const appEl = document.getElementById('app');
+/* ===== Навигация внутри урока =====
+   Горизонтальные свайпы отключены: экран урока двигается только вертикально.
+   Назад — штатной кнопкой ← в шапке. */
 function goBack() {
   if (!curUnit) return;
   posSave();
   if (curPart) { openUnit(curUnit.unit); return; }
-  goTab(originTab || 'lessons'); // возвращаемся на ту вкладку, откуда открыли урок
+  goTab(originTab || 'lessons');
 }
-document.addEventListener('touchstart', e => {
-  const t = e.touches[0];
-  tsX = t.clientX; tsY = t.clientY; tsT = Date.now();
-  drag = false; dragDx = 0;
-  // тянуть назад можно только внутри урока и только от левого края
-  dragArmed = !!curUnit && t.clientX < 36;
-}, { passive: true });
-document.addEventListener('touchmove', e => {
-  const t = e.touches[0];
-  const dx = t.clientX - tsX;
-  const dy = t.clientY - tsY;
-  if (!drag) {
-    if (dragArmed && dx > 15 && Math.abs(dy) < Math.abs(dx) * 1.2) {
-      drag = true; dragStartX = t.clientX; dragDx = 0;
-      appEl.style.transition = 'none';
-    } else return;
-  }
-  dragDx = t.clientX - dragStartX;
-  if (dragDx <= 0) return;
-  appEl.style.transform = 'translateX(' + Math.round(dragDx * 0.9) + 'px)';
-  appEl.style.boxShadow = Math.round(dragDx * 0.12) + 'px 0 24px rgba(29,29,33,.25)';
-  e.preventDefault();
-}, { passive: false });
-document.addEventListener('touchend', e => {
-  if (tsX === null) return;
-  const dx = e.changedTouches[0].clientX - tsX;
-  const dy = e.changedTouches[0].clientY - tsY;
-  const dt = Date.now() - tsT;
-  const wasDrag = drag;
-  tsX = null; drag = false;
-  if (wasDrag) {
-    const finish = dragDx > 90 || (dragDx > 50 && dt < 300);
-    appEl.style.transition = 'transform .28s ease, box-shadow .28s ease';
-    if (finish) {
-      appEl.style.transform = 'translateX(100%)';
-      appEl.style.boxShadow = '16px 0 40px rgba(29,29,33,.3)';
-      setTimeout(() => {
-        appEl.style.transition = 'none'; appEl.style.transform = ''; appEl.style.boxShadow = '';
-        goBack();
-      }, 290);
-    } else {
-      appEl.style.transform = ''; appEl.style.boxShadow = '';
-      setTimeout(() => { appEl.style.transition = 'none'; }, 300);
-    }
-    return;
-  }
-  if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 1.4 || dt > 700) return;
-  if (!curPart || !curPart.tasks) return;
-  // свайп влево = следующее задание / часть
-  if (dx < -70) nextTask();
-  // быстрый свайп вправо = назад
-  if (dx > 70) goBack();
-}, { passive: true });
 
 (function () {
   var s = document.getElementById('splash');
@@ -28073,8 +28040,8 @@ function crsPaySetUsed(id, value) {
   if (!p || !crsPayIsPaidProgram(p.program)) return;
   const n = Math.max(0, Math.floor(+p.lessons || 0));
   const next = Math.max(0, Math.min(n, Math.floor(+value || 0)));
-  p.closed = next >= n && n > 0 ? !!p.closed : false;
-  if (!p.closed) delete p.closedAt;
+  p.closed = next >= n && n > 0;
+  if (p.closed) p.closedAt = p.closedAt || Date.now(); else delete p.closedAt;
   p.usedAtEntry = next;
   p.usedThrough = next > 0 ? crsYmd(new Date()) : '';
   p.upd = Date.now();
@@ -28100,9 +28067,10 @@ function crsPayHtml() {
     const l = crsPayLedger(p.id);
     const cls = l.pays.length && l.left === 0 ? ' zero' : (l.left === 1 ? ' one' : '');
     const status = !l.pays.length ? 'нет оплат' : (l.left === 0 ? 'закончились' : (l.left === 1 ? 'остался 1 урок' : 'осталось ' + l.left + ' ур.'));
+    const payCount = l.pays.length;
     return '<div class="crs-pay-course' + cls + '">' +
       '<button class="crs-pay-course-main" onclick="crsPayOpenCourse(\'' + p.id + '\')">' +
-        '<span class="crs-pay-course-name">' + esc(crsProgTitle(p.id)) + '</span><span class="crs-pay-course-all">все оплаты</span>' +
+        '<span class="crs-pay-course-name">' + esc(crsProgTitle(p.id)) + '</span><span class="crs-pay-course-all">' + payCount + ' оплат' + (payCount === 1 ? 'а' : '') + ' · все</span>' +
         '<span class="crs-pay-course-status">' + esc(status) + '</span>' +
         '<b>' + (l.pays.length ? crsMoney(l.leftMoney) : '—') + '</b><i>›</i>' +
       '</button>' +
@@ -28123,7 +28091,7 @@ function crsPayHtml() {
       '<button class="crs-b s crs-pay-edit" onclick="crsPayForm(null,\'' + p.id + '\')">Изменить</button></div>' +
       '<div class="crs-pay-used-line"><span>Проведено</span>' +
         (p.closed
-          ? '<span class="crs-b done crs-pay-done">✓ Уроки проведены</span>'
+          ? '<span class="crs-b done">Уроки проведены</span>'
           : '<div class="crs-pay-stepper"><button onclick="crsPayAdjustUsed(\'' + p.id + '\',-1)">−</button><input type="number" min="0" max="' + (+p.lessons || 0) + '" value="' + totalUsed + '" onchange="crsPaySetUsed(\'' + p.id + '\',this.value)" aria-label="Проведено уроков"><b>/ ' + (+p.lessons || 0) + '</b><button onclick="crsPayAdjustUsed(\'' + p.id + '\',1)">+</button></div>') +
         '<span class="crs-pay-left">осталось <b>' + left + '</b></span>' +
       '</div>' +
@@ -28225,9 +28193,11 @@ function crsPayForm(program, payId) {
     const prev = st.payments[id] || {};
     st.payments[id] = Object.assign({}, prev, { id: id, program: prog, amount: a, lessons: n, date: date,
       usedAtEntry: u, usedThrough: u > 0 ? today : '',
+      closed: u >= n, closedAt: u >= n ? (prev.closedAt || Date.now()) : 0,
       created: prev.created || Date.now(), upd: Date.now() });
-    // Если редактируем количество проведённых — это точное состояние пакета на сегодня.
-    // Старые занятия из расписания повторно не списываются; новые завершённые будут списываться дальше автоматически.
+    if (u < n) { st.payments[id].closed = false; delete st.payments[id].closedAt; }
+    // «Из них уже проведено» — точное состояние пакета на сегодня.
+    // Всё до сегодняшней даты считаем учтённым вручную; дальше завершённые уроки списываются автоматически.
     crsSave(st); closeCrsSheets(); crsMode = 'pay'; renderCourses();
     crsToast(old ? 'Оплата изменена' : ('Оплата добавлена: осталось ' + Math.max(0, n - u) + ' уроков'));
   };
