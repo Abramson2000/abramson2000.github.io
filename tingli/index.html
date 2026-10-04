@@ -24868,7 +24868,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.28.0';
+const APP_VER = '5.29.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -28418,12 +28418,11 @@ function crsB64ToU8(s) {
   return a;
 }
 async function crsPushKey() {
-  try {
-    const r = await crsApi('/push/key');
-    if (!r.ok) return '';
-    const j = await r.json();
-    return j && j.key ? j.key : '';
-  } catch (e) { return ''; }
+  const r = await crsApi('/push/key');
+  if (!r.ok) throw new Error('API ключа ответил HTTP ' + r.status);
+  const j = await r.json();
+  if (!j || !j.key) throw new Error('сервер не вернул VAPID-ключ');
+  return j.key;
 }
 function crsPushSetStatus(message) {
   const el = document.getElementById('crs-push-status');
@@ -28435,6 +28434,15 @@ function crsPushSetStatus(message) {
     const perm = (typeof Notification !== 'undefined' && Notification.permission) ? Notification.permission : 'нет';
     state.textContent = 'Web Push: ' + (crsPushSupported() ? 'поддерживается' : 'не поддерживается') + ' · разрешение: ' + perm + ' · подписка: ' + ((s.push && s.push.on) ? 'сохранена' : 'нет');
   }
+}
+function crsPushWithTimeout(promise, timeoutMs, label) {
+  let timer;
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise(function (_, reject) {
+      timer = setTimeout(function () { reject(new Error(label + ' — таймаут ' + Math.round(timeoutMs / 1000) + ' с')); }, timeoutMs);
+    })
+  ]).finally(function () { clearTimeout(timer); });
 }
 let crsPushEnableBusy = false;
 async function crsPushEnable() {
@@ -28449,19 +28457,27 @@ async function crsPushEnable() {
     let permissionRequest;
     try { permissionRequest = perm === 'granted' ? Promise.resolve(perm) : Notification.requestPermission(); }
     catch (e) { crsPushSetStatus('Браузер не смог запросить разрешение: ' + (e && e.message ? e.message : e)); return; }
-    crsPushSetStatus('Подключаю Web Push: ожидаю разрешение браузера…');
-    try { perm = await permissionRequest; }
-    catch (e) { crsPushSetStatus('Запрос разрешения завершился ошибкой: ' + (e && e.message ? e.message : e)); return; }
+    crsPushSetStatus('Шаг 1/4: ожидаю разрешение браузера…');
+    try { perm = await crsPushWithTimeout(permissionRequest, 15000, 'Браузер не ответил на запрос разрешения'); }
+    catch (e) { throw e; }
     if (perm !== 'granted') { crsPushSetStatus('Разрешение не выдано. Подписка не создана.'); return; }
 
-    crsPushSetStatus('Разрешение получено. Регистрирую устройство на сервере…');
-    const key = await crsPushKey();
-    if (!key) throw new Error('сервер не вернул VAPID-ключ');
-    const reg = await navigator.serviceWorker.ready;
-    let sub = await reg.pushManager.getSubscription();
-    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: crsB64ToU8(key) });
+    crsPushSetStatus('Шаг 2/4: получаю ключ Web Push…');
+    const key = await crsPushWithTimeout(crsPushKey(), 15000, 'Не удалось получить ключ Web Push');
+    crsPushSetStatus('Шаг 3/4: жду активный Service Worker…');
+    const reg = await crsPushWithTimeout(navigator.serviceWorker.ready, 12000, 'Service Worker не активировался');
+    if (!reg || !reg.pushManager) throw new Error('у активного Service Worker нет PushManager');
+
+    crsPushSetStatus('Шаг 3/4: проверяю системную подписку…');
+    let sub = await crsPushWithTimeout(reg.pushManager.getSubscription(), 10000, 'Браузер не ответил при проверке push-подписки');
+    if (!sub) {
+      crsPushSetStatus('Шаг 3/4: создаю системную push-подписку…');
+      sub = await crsPushWithTimeout(reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: crsB64ToU8(key) }), 20000, 'Браузер не завершил создание push-подписки');
+    }
+
+    crsPushSetStatus('Шаг 4/4: сохраняю подписку на сервере…');
     const body = JSON.stringify({ sub: sub.toJSON(), tz: CRS_LOCAL_TZ, ver: APP_VER, reminders: crsUpcoming().slice(0, 200) });
-    const r = await crsApi('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: body });
+    const r = await crsPushWithTimeout(crsApi('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: body }), 15000, 'Сервер не подтвердил сохранение подписки');
     const j = await r.json().catch(function () { return null; });
     if (!r.ok || !j || j.ok !== true) throw new Error((j && j.error) || ('сервер ответил HTTP ' + r.status));
 
