@@ -24868,7 +24868,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.26.0';
+const APP_VER = '5.27.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -28429,10 +28429,16 @@ async function crsPushEnable() {
   if (!crsPushSupported()) { crsPushStatusSheet('Этот браузер не поддерживает Web Push. Фоновая доставка недоступна.'); return; }
   if (Notification.permission === 'denied') { crsPushStatusSheet('Уведомления запрещены в настройках браузера — включи их для crmuro.ru и повтори.'); return; }
   let perm = Notification.permission;
-  if (perm !== 'granted') perm = await Notification.requestPermission();
-  if (perm !== 'granted') { crsPushStatusSheet('Разрешение на системные уведомления не выдано — серверный push не включён.'); return; }
+  let permissionRequest;
+  try { permissionRequest = perm === 'granted' ? Promise.resolve(perm) : Notification.requestPermission(); }
+  catch (e) { crsPushStatusSheet('Браузер не смог запросить разрешение: ' + (e && e.message ? e.message : e)); return; }
+  crsPushStatusSheet('Подключаю Web Push: ожидаю разрешение браузера…');
+  try { perm = await permissionRequest; }
+  catch (e) { crsPushStatusSheet('Запрос разрешения завершился ошибкой: ' + (e && e.message ? e.message : e)); return; }
+  if (perm !== 'granted') { crsPushStatusSheet('Разрешение не выдано. Нажми «Включить Web Push» после разрешения уведомлений.'); return; }
+  crsPushStatusSheet('Разрешение получено. Регистрирую устройство на сервере…');
   const key = await crsPushKey();
-  if (!key) { crsPushStatusSheet('Сервер Web Push не отвечает или не настроен. Подписка не включена.'); return; }
+  if (!key) { crsPushStatusSheet('Не удалось получить ключ Web Push от сервера. Подписка не включена.'); return; }
   try {
     const reg = await navigator.serviceWorker.ready;
     let sub = await reg.pushManager.getSubscription();
