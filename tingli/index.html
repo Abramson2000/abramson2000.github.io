@@ -25044,7 +25044,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.46.0';
+const APP_VER = '5.47.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -27025,7 +27025,7 @@ const CRS_PROGS = [
   { id: 'biz', zh: '商务', ru: 'Самоучёба', tab: 'biz' },
   { id: 'mine', zh: '语法', ru: 'Ли Лаоши', tab: 'mine' },
   { id: 'idv', zh: '口语', ru: 'Люба', tab: 'idv' },
-  { id: 'team', zh: '团队', ru: 'группа', tab: 'team' }
+  { id: 'team', zh: '团队', ru: 'Группа', tab: 'team' }
 ];
 const CRS_OFFSETS = [ { m: 1440, t: 'за день' }, { m: 180, t: 'за 3 часа' }, { m: 60, t: 'за час' }, { m: 30, t: 'за 30 минут' } ];
 const CRS_HW_STATES = [
@@ -28117,7 +28117,16 @@ function crsPayHtml() {
     '</div>';
   }).join('');
 
-  const hist = filteredPays.slice().reverse().map(function (p) {
+  // «Все оплаты»: три курса закреплены — показываем их всегда, независимо от месяца.
+  const listPrograms = crsPayCourse
+    ? allPrograms.filter(function (x) { return x.id === crsPayCourse; })
+    : allPrograms;
+  const listedPays = [];
+  listPrograms.forEach(function (x) {
+    crsPayList(x.id).slice().reverse().forEach(function (pay) { listedPays.push(pay); });
+  });
+
+  const hist = listedPays.map(function (p) {
     const used0 = Math.min(+p.lessons || 0, Math.max(0, +p.usedAtEntry || 0));
     const ledger = crsPayLedger(p.program);
     const pack = ledger.packs.filter(function (x) { return x.id === p.id; })[0];
@@ -28163,7 +28172,7 @@ function crsPayHtml() {
         '<div><span>Оплачено уроков</span><b>' + periodBought + '</b></div>' +
         '<div><span>Платежей</span><b>' + filteredPays.length + '</b></div>' +
       '</div>' +
-      '<div class="crs-pay-history-list">' + (hist || '<div class="crs-empty">За выбранный период оплат нет</div>') + '</div>' +
+      '<div class="crs-pay-history-list">' + (hist || '<div class="crs-empty">Оплат нет</div>') + '</div>' +
     '</div>';
 }
 function crsPayClose(id) {
