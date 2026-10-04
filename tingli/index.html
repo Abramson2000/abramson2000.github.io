@@ -28078,7 +28078,7 @@ function crsPayHtml() {
       '<button class="crs-b s crs-pay-edit" onclick="crsPayForm(null,\'' + p.id + '\')">Изменить</button></div>' +
       '<div class="crs-pay-used-line"><span>Проведено</span>' +
         (p.closed
-          ? '<span class="crs-b done crs-pay-done">Уроки проведены</span>'
+          ? '<span class="crs-b done crs-pay-done">✓ Уроки проведены</span>'
           : '<div class="crs-pay-stepper"><button onclick="crsPayAdjustUsed(\'' + p.id + '\',-1)">−</button><b>' + totalUsed + ' / ' + (+p.lessons || 0) + '</b><button onclick="crsPayAdjustUsed(\'' + p.id + '\',1)">+</button></div>') +
         '<span class="crs-pay-left">осталось <b>' + left + '</b></span>' +
       '</div>' +
