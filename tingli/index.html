@@ -767,6 +767,7 @@ body { overflow-x: hidden; overscroll-behavior-x: none; }
 .crs-pay-total-compact span { display:block; font-size:10.5px; }
 .crs-pay-total-compact b { display:block; margin-top:3px; text-align:left; font-size:13px; }
 .crs-pay-history-card { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:10px 10px 5px; margin-bottom:12px; box-shadow:var(--shadow-card); }
+.crs-pay-history-card .crs-pay-total-compact { background:transparent; border-radius:0; box-shadow:none; padding:0 0 2px; margin:0 0 6px; border-bottom:1px solid var(--line); }
 .crs-pay-history-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 8px; }
 .crs-pay-history-head > b { font-size:11px; font-weight:800; letter-spacing:.035em; text-transform:uppercase; color:var(--ink); line-height:1.2; }
 .crs-pay-history-head .crs-b { padding:6px 9px; font-size:11px; }
@@ -25043,7 +25044,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.45.0';
+const APP_VER = '5.46.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -28153,15 +28154,15 @@ function crsPayHtml() {
     (!crsPayCourse ? '<div class="crs-pay-course-list">' + courseRows + '</div>' : '') +
     '<div class="crs-pay-filter crs-pay-filter-compact"><div><div class="crs-lbl">' + esc(courseTitle) + '</div>' +
       '<div class="crs-pay-period"><button class="crs-b ' + (crsPayAllTime ? 'p' : 's') + '" onclick="crsPaySetAll(' + (!crsPayAllTime) + ')">Всё время</button>' +
-      '<div class="crs-pay-month' + (crsPayAllTime ? ' disabled' : '') + '"><span class="crs-pay-month-label">' + esc(monthLabel) + '</span><input type="month" value="' + esc(crsPayMonth) + '" aria-label="Выбрать месяц" onchange="crsPaySetMonth(this.value)"' + (crsPayAllTime ? ' disabled' : '') + '></div></div></div>' +
-    '<div class="crs-pay-total crs-pay-total-compact">' +
-      '<div><span>' + esc(periodName) + '</span><b>' + crsMoney(periodPaid) + '</b></div>' +
-      '<div><span>Оплачено уроков</span><b>' + periodBought + '</b></div>' +
-      '<div><span>Платежей</span><b>' + filteredPays.length + '</b></div>' +
-    '</div>' +
+      '<div class="crs-pay-month' + (crsPayAllTime ? ' disabled' : '') + '"><span class="crs-pay-month-label">' + esc(monthLabel) + '</span><input type="month" value="' + esc(crsPayMonth) + '" aria-label="Выбрать месяц" onchange="crsPaySetMonth(this.value)"' + (crsPayAllTime ? ' disabled' : '') + '></div></div></div></div>' +
     '<div class="crs-pay-history-card">' +
       '<div class="crs-pay-history-head"><b>Все оплаты' + (crsPayCourse ? ' · ' + esc(crsProgTitle(crsPayCourse)) : '') + '</b>' +
       '<button class="crs-b s" onclick="crsPayForm(' + (crsPayCourse ? ('\'' + crsPayCourse + '\'') : 'null') + ')">+ Оплата</button></div>' +
+      '<div class="crs-pay-total crs-pay-total-compact">' +
+        '<div><span>' + esc(periodName) + '</span><b>' + crsMoney(periodPaid) + '</b></div>' +
+        '<div><span>Оплачено уроков</span><b>' + periodBought + '</b></div>' +
+        '<div><span>Платежей</span><b>' + filteredPays.length + '</b></div>' +
+      '</div>' +
       '<div class="crs-pay-history-list">' + (hist || '<div class="crs-empty">За выбранный период оплат нет</div>') + '</div>' +
     '</div>';
 }
