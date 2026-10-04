@@ -24868,7 +24868,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.27.0';
+const APP_VER = '5.28.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -28425,37 +28425,59 @@ async function crsPushKey() {
     return j && j.key ? j.key : '';
   } catch (e) { return ''; }
 }
+function crsPushSetStatus(message) {
+  const el = document.getElementById('crs-push-status');
+  if (!el) { crsPushStatusSheet(message); return; }
+  el.textContent = message;
+  const s = crsStore();
+  const state = document.getElementById('crs-push-state');
+  if (state) {
+    const perm = (typeof Notification !== 'undefined' && Notification.permission) ? Notification.permission : 'нет';
+    state.textContent = 'Web Push: ' + (crsPushSupported() ? 'поддерживается' : 'не поддерживается') + ' · разрешение: ' + perm + ' · подписка: ' + ((s.push && s.push.on) ? 'сохранена' : 'нет');
+  }
+}
+let crsPushEnableBusy = false;
 async function crsPushEnable() {
-  if (!crsPushSupported()) { crsPushStatusSheet('Этот браузер не поддерживает Web Push. Фоновая доставка недоступна.'); return; }
-  if (Notification.permission === 'denied') { crsPushStatusSheet('Уведомления запрещены в настройках браузера — включи их для crmuro.ru и повтори.'); return; }
-  let perm = Notification.permission;
-  let permissionRequest;
-  try { permissionRequest = perm === 'granted' ? Promise.resolve(perm) : Notification.requestPermission(); }
-  catch (e) { crsPushStatusSheet('Браузер не смог запросить разрешение: ' + (e && e.message ? e.message : e)); return; }
-  crsPushStatusSheet('Подключаю Web Push: ожидаю разрешение браузера…');
-  try { perm = await permissionRequest; }
-  catch (e) { crsPushStatusSheet('Запрос разрешения завершился ошибкой: ' + (e && e.message ? e.message : e)); return; }
-  if (perm !== 'granted') { crsPushStatusSheet('Разрешение не выдано. Нажми «Включить Web Push» после разрешения уведомлений.'); return; }
-  crsPushStatusSheet('Разрешение получено. Регистрирую устройство на сервере…');
-  const key = await crsPushKey();
-  if (!key) { crsPushStatusSheet('Не удалось получить ключ Web Push от сервера. Подписка не включена.'); return; }
+  if (crsPushEnableBusy) return;
+  crsPushEnableBusy = true;
+  const button = document.getElementById('crs-push-enable');
+  if (button) { button.disabled = true; button.textContent = 'Подключаю…'; }
   try {
+    if (!crsPushSupported()) { crsPushSetStatus('Этот браузер не поддерживает Web Push. Открой Tingli в Safari/Chrome; на iPhone — из иконки «На экран Домой».'); return; }
+    if (Notification.permission === 'denied') { crsPushSetStatus('Уведомления запрещены для crmuro.ru. Разреши их в настройках браузера и попробуй снова.'); return; }
+    let perm = Notification.permission;
+    let permissionRequest;
+    try { permissionRequest = perm === 'granted' ? Promise.resolve(perm) : Notification.requestPermission(); }
+    catch (e) { crsPushSetStatus('Браузер не смог запросить разрешение: ' + (e && e.message ? e.message : e)); return; }
+    crsPushSetStatus('Подключаю Web Push: ожидаю разрешение браузера…');
+    try { perm = await permissionRequest; }
+    catch (e) { crsPushSetStatus('Запрос разрешения завершился ошибкой: ' + (e && e.message ? e.message : e)); return; }
+    if (perm !== 'granted') { crsPushSetStatus('Разрешение не выдано. Подписка не создана.'); return; }
+
+    crsPushSetStatus('Разрешение получено. Регистрирую устройство на сервере…');
+    const key = await crsPushKey();
+    if (!key) throw new Error('сервер не вернул VAPID-ключ');
     const reg = await navigator.serviceWorker.ready;
     let sub = await reg.pushManager.getSubscription();
     if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: crsB64ToU8(key) });
     const body = JSON.stringify({ sub: sub.toJSON(), tz: CRS_LOCAL_TZ, ver: APP_VER, reminders: crsUpcoming().slice(0, 200) });
     const r = await crsApi('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: body });
     const j = await r.json().catch(function () { return null; });
-    if (r.ok && j && j.ok === true) {
-      const st = crsStore(); st.push = { on: true, at: Date.now(), synced: j.reminderCount || 0 }; crsSave(st);
-      crsPushStatusSheet('Системное Web Push подключено. Сервер сохранил подписку и ' + (j.reminderCount || 0) + ' напоминаний.');
-    } else {
-      const st = crsStore(); st.push = { on: false, at: Date.now() }; crsSave(st, true);
-      crsPushStatusSheet('Сервер не подтвердил подписку (HTTP ' + r.status + '). Фоновая доставка не включена.');
-    }
+    if (!r.ok || !j || j.ok !== true) throw new Error((j && j.error) || ('сервер ответил HTTP ' + r.status));
+
+    const st = crsStore(); st.push = { on: true, at: Date.now(), synced: j.reminderCount || 0 }; crsSave(st);
+    crsPushSetStatus('Web Push подключён. Сервер подтвердил подписку и сохранил ' + (j.reminderCount || 0) + ' напоминаний.');
   } catch (e) {
-    const st = crsStore(); st.push = { on: false, at: Date.now() }; crsSave(st, true);
-    crsPushStatusSheet('Не удалось зарегистрировать системный Web Push: ' + (e && e.message ? e.message : e));
+    try { const st = crsStore(); st.push = { on: false, at: Date.now() }; crsSave(st, true); } catch (saveErr) {}
+    const detail = String(e && e.message ? e.message : e).slice(0, 240);
+    console.error('Tingli Web Push activation failed:', detail);
+    try { localStorage.setItem('tingli-push-enable-error-v1', detail + ' | ' + new Date().toISOString()); } catch (storeErr) {}
+    try { crsPushSetStatus('Подключение не удалось: ' + detail + '. Подписка не активна.'); }
+    catch (uiErr) { alert('Tingli: Web Push не подключён. ' + detail); }
+  } finally {
+    crsPushEnableBusy = false;
+    const currentButton = document.getElementById('crs-push-enable');
+    if (currentButton) { currentButton.disabled = false; currentButton.textContent = 'Включить Web Push'; }
   }
 }
 let crsPushRefreshTimer = null;
@@ -28497,8 +28519,8 @@ function crsPushStatusSheet(msg) {
   const st = crsStore();
   const s = crsPushStatus();
   const base = (typeof Notification !== 'undefined' && Notification.permission) ? Notification.permission : 'нет';
-  crsSheet('Напоминания', '<div class="crs-note">' + esc(msg) + '</div>' +
-    '<div class="crs-note">Web Push: ' + (crsPushSupported() ? 'поддерживается' : 'не поддерживается') + ' · разрешение: ' + esc(base) + ' · подписка: ' + ((st.push && st.push.on) ? 'сохранена' : 'нет') + '</div>' +
+  crsSheet('Напоминания', '<div class="crs-note" id="crs-push-status" role="status" aria-live="polite">' + esc(msg) + '</div>' +
+    '<div class="crs-note" id="crs-push-state">Web Push: ' + (crsPushSupported() ? 'поддерживается' : 'не поддерживается') + ' · разрешение: ' + esc(base) + ' · подписка: ' + ((st.push && st.push.on) ? 'сохранена' : 'нет') + '</div>' +
     '<div class="crs-note">iPhone: установи Tingli на экран «Домой» и включи системные уведомления. Доставка push требует интернет-соединения.</div>' +
     '<div class="crs-lbl">Напоминания о занятиях</div><div class="crs-chips">' +
       '<button class="crs-chip' + (st.rem.lessons.on ? ' on' : '') + '" onclick="crsRemToggle(\'lessons\')">' + (st.rem.lessons.on ? 'включены' : 'выключены') + '</button>' +
@@ -28511,7 +28533,7 @@ function crsPushStatusSheet(msg) {
         return '<button class="crs-chip' + ((st.rem.hw.offsets || []).indexOf(o.m) >= 0 ? ' on' : '') + '" onclick="crsRemOff(\'hw\',' + o.m + ')">' + o.t + '</button>';
       }).join('') + '</div>' +
     '<div class="crs-note">Дальше: ' + (crsUpcoming().slice(0, 3).map(function (r) { return crsRemWord(r.when) + ' — ' + r.title; }).join('; ') || 'пока нечего напоминать') + '</div>' +
-    '<div class="crs-actions crs-sticky"><button class="crs-b p" onclick="crsPushEnable()" style="flex:1">Включить Web Push</button>' +
+    '<div class="crs-actions crs-sticky"><button id="crs-push-enable" class="crs-b p" onclick="crsPushEnable()" style="flex:1">Включить Web Push</button>' +
     '<button class="crs-b s" onclick="crsPushDisable()">Снять подписку</button></div>');
 }
 function crsRemToggle(g) { const st = crsStore(); st.rem[g].on = !st.rem[g].on; crsSave(st); crsPushStatusSheet('Настройка сохранена.'); }
