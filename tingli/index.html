@@ -30777,7 +30777,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.51.0';
+const APP_VER = '5.52.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -33032,12 +33032,13 @@ async function crsCloudPull() {
     let rem = null; try { rem = JSON.parse(raw); } catch (e) { rem = null; }
     if (!rem) return;
     const merged = crsMerge(rem, local);
-    const changed = JSON.stringify(merged) !== JSON.stringify(local);
+    const changedLocal = JSON.stringify(merged) !== JSON.stringify(local);
+    const changedRemote = JSON.stringify(merged) !== JSON.stringify(rem);
     crsCache = merged;
     try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
     crsPullOnce = true;
     crsEnsureTestMaterial();
-    if (changed) {
+    if (changedLocal || changedRemote) {
       try { crsPaint(false); } catch (e) {}
       crsCloudPush().then(function () { try { crsPushRefreshSoon(); } catch (e) {} });
     } else {
