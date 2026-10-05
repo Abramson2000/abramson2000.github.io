@@ -32935,36 +32935,49 @@ async function crsCloudPush() {
   if (crsPushBusy) return;
   crsPushBusy = true;
   crsSaveStatus('syncing');
-  const gist = crsGistOn();
   try {
     const data = {};
     for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('tingli-') === 0) data[k] = localStorage.getItem(k); }
     /* ПЕРЕД отправкой подтягиваем серверную копию и сливаем:
        иначе устройство, не видевшее запись, затирает её в облаке */
+    let useGist = crsGistOn();
+    let rs = null;
     try {
-      let rs = null;
-      if (gist) {
+      if (useGist) {
         rs = await crsGistFetch();
-      } else {
+        if (!rs) { try { localStorage.removeItem('tingli-gist-token'); } catch (e) {} useGist = false; }
+      }
+      if (!useGist) {
         const r0 = await crsApi('/backup?key=' + encodeURIComponent(CRS_LS));
         const remote = await r0.json();
         rs = remote && remote.ok && typeof remote.value === 'string' ? remote.value : null;
       }
-      if (rs) {
-        const mine = JSON.parse(data[CRS_LS] || '{}');
-        const merged = crsMerge(JSON.parse(rs), mine);
-        data[CRS_LS] = JSON.stringify(merged);
-        crsCache = merged;
-        try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
-        try { crsPaint(); } catch (e) {}
-      }
-    } catch (e) {}
-    if (gist) {
-      await crsGistPush(data[CRS_LS]);
-    } else {
-      await crsApi('/backup', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(data) });
+    } catch (e) { if (useGist) { try { localStorage.removeItem('tingli-gist-token'); } catch (x) {} useGist = false; } }
+    if (rs) {
+      const mine = JSON.parse(data[CRS_LS] || '{}');
+      const merged = crsMerge(JSON.parse(rs), mine);
+      data[CRS_LS] = JSON.stringify(merged);
+      crsCache = merged;
+      try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
+      try { crsPaint(); } catch (e) {}
     }
-    crsSaveStatus('saved');
+    try {
+      if (useGist) {
+        await crsGistPush(data[CRS_LS]);
+      } else {
+        await crsApi('/backup', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(data) });
+      }
+      crsSaveStatus('saved');
+    } catch (e) {
+      if (useGist) {
+        /* gist push не прошёл (токен отозван) — откат на Cloudflare */
+        try { localStorage.removeItem('tingli-gist-token'); } catch (x) {}
+        await crsApi('/backup', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(data) });
+        crsSaveStatus('saved');
+      } else {
+        throw e;
+      }
+    }
   } catch (e) { crsSaveStatus('offline', (e && (e.message || e.name)) || 'ошибка сети'); }
   crsPushBusy = false;
 }
@@ -33050,7 +33063,17 @@ function crsNoteErr(x) {
   try { localStorage.setItem('tingli-sync-err-v1', crsLastErr + ' | ' + new Date().toISOString() + ' | ' + location.href); } catch (e) {}
 }
 function crsFetchSchedule() {
-  if (crsGistOn()) return crsGistFetch();
+  if (crsGistOn()) {
+    return crsGistFetch().then(function (rs) {
+      if (rs) return rs;
+      /* gist недоступен (токен отозван/сеть) — откат на Cloudflare */
+      try { localStorage.removeItem('tingli-gist-token'); } catch (e) {}
+      return crsCloudFetchSchedule();
+    });
+  }
+  return crsCloudFetchSchedule();
+}
+function crsCloudFetchSchedule() {
   /* тянем ТОЛЬКО расписание — маленький ответ, с повторами */
   return new Promise(function (resolve) {
     let tries = 0;
