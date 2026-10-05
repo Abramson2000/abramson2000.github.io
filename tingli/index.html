@@ -575,6 +575,8 @@
 .crs-empty a { color: var(--red); cursor: pointer; font-weight: 700; }
 .crs-foot { display: flex; align-items: center; gap: 10px; margin: 22px 0 10px; }
 .crs-save { font-size: 11.5px; color: var(--faint); }
+.crs-sync { border: 1px solid var(--line); background: transparent; color: var(--faint); border-radius: 999px; font-size: 14px; line-height: 1; padding: 4px 9px; cursor: pointer; }
+.crs-sync:active { background: var(--line); }
 .crs-ver { margin-left: auto; font-size: 11.5px; color: var(--faint); }
 
 .crs-scrim { position: fixed; inset: 0; background: rgba(29,29,33,.32); z-index: 200; animation: crsFade .16s ease; }
@@ -30777,7 +30779,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.52.0';
+const APP_VER = '5.53.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -32878,6 +32880,7 @@ let crsPushBusy = false;
 async function crsCloudPush() {
   if (crsPushBusy) return;
   crsPushBusy = true;
+  crsSaveStatus('syncing');
   try {
     const data = {};
     for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('tingli-') === 0) data[k] = localStorage.getItem(k); }
@@ -32898,7 +32901,7 @@ async function crsCloudPush() {
     } catch (e) {}
     await crsApi('/backup', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(data) });
     crsSaveStatus('saved');
-  } catch (e) { crsSaveStatus('offline'); }
+  } catch (e) { crsSaveStatus('offline', (e && (e.message || e.name)) || 'ошибка сети'); }
   crsPushBusy = false;
 }
 function crsCopy(text, label) {
@@ -33020,12 +33023,13 @@ function crsRetry() {
 async function crsCloudPull() {
   if (crsPullBusy || crsPullOnce) return;
   crsPullBusy = true;
+  crsSaveStatus('syncing');
   const local = crsStore();
   try {
     const raw = await crsFetchSchedule();
     if (!raw) {
       /* Нет связи — ничего не стираем, локальные данные остаются доступными. */
-      crsSaveStatus('offline');
+      crsSaveStatus('offline', crsLastErr || undefined);
       if (!Object.keys(local.series || {}).length) crsToast('Нет связи с облаком: ' + (crsLastErr || 'неизвестно'));
       return;
     }
@@ -33051,10 +33055,12 @@ async function crsCloudPull() {
     crsPullBusy = false;
   }
 }
-function crsSaveStatus(s) {
+function crsSaveStatus(s, detail) {
   const n = document.getElementById('crsSave');
   if (!n) return;
-  n.textContent = s === 'saved' ? 'сохранено' : (s === 'offline' ? 'сохранено на устройстве' : 'сохраняю…');
+  n.textContent = s === 'saved' ? 'сохранено'
+    : (s === 'offline' ? ('сохранено на устройстве' + (detail ? ' — ' + detail : ''))
+    : 'сохраняю…');
   n.className = 'crs-save ' + (s || '');
 }
 function crsToast(msg) {
@@ -33489,7 +33495,7 @@ function crsShell() {
     '</div>' +
     '<div class="crs-bar" id="crsBar"></div>' +
     '<div id="crsBody"></div>' +
-    '<div class="crs-foot"><span id="crsSave" class="crs-save"></span><span class="crs-ver">Abramson © ' + APP_VER + '</span></div>';
+    '<div class="crs-foot"><button class="crs-sync" onclick="crsRetry()" title="Синхронизировать сейчас">↻</button><span id="crsSave" class="crs-save"></span><span class="crs-ver">Abramson © ' + APP_VER + '</span></div>';
 }
 function renderCourses() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
