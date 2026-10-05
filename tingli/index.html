@@ -30779,7 +30779,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.53.0';
+const APP_VER = '5.54.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -32864,8 +32864,14 @@ function crsApi(path, opts) {
       if (i >= order.length) { reject(lastErr || new Error('Нет связи')); return; }
       const base = CRS_API[order[i++]];
       const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      const tm = setTimeout(function () { if (ctl) ctl.abort(); }, 12000);
-      fetch(base + path, Object.assign({}, opts || {}, { signal: ctl ? ctl.signal : undefined }))
+      let tm;
+      const timeout = new Promise(function (_, rej) {
+        tm = setTimeout(function () {
+          if (ctl) { try { ctl.abort(); } catch (e) {} }
+          rej(new Error('таймаут'));
+        }, 12000);
+      });
+      Promise.race([fetch(base + path, Object.assign({}, opts || {}, { signal: ctl ? ctl.signal : undefined })), timeout])
         .then(function (r) { clearTimeout(tm); if (r.status === 404 || r.status === 405) return tryNext(new Error('нет пути')); crsApiBase = CRS_API.indexOf(base); resolve(r); })
         .catch(function (e) { clearTimeout(tm); tryNext(e); });
     };
