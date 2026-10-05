@@ -1824,7 +1824,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.4.1';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.5.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -1854,6 +1854,19 @@ function yearTotal(c, year) {  // Бостон + HugeMed
   const b = curYearSales(c, year), h = curYearHM(c, year);
   if (b == null && h == null) return null;
   return (b || 0) + (h || 0);
+}
+// сумма всех продаж клиники (Boston + HugeMed по всем годам) — для предупреждения при удалении
+function clinicSalesTotal(c) {
+  let total = 0, any = false;
+  MONEY_YEARS.forEach(function (y) {
+    const v = c['sales' + y];
+    if (v != null && v !== '') { const n = Number(v); if (isFinite(n)) { total += n; any = true; } }
+  });
+  HUGEMED_YEARS.forEach(function (y) {
+    const v = c['hugemed' + y];
+    if (v != null && v !== '') { const n = Number(v); if (isFinite(n)) { total += n; any = true; } }
+  });
+  return any ? total : null;
 }
 
 // ---------- счётчики записей на вкладках ----------
@@ -6403,15 +6416,21 @@ async function showPerson(id) {
 
 // ---------- delete ----------
 async function deleteClinic(id) {
+  const c = await getClinic(id);
+  if (!c) { toast('Клиника не найдена'); return; }
   if (CURRENT_ROLE !== 'admin') {
-    const c = await getClinic(id);
     const target = !c.markedDel;
     if (!confirm(target ? 'Пометить клинику на удаление?' : 'Снять пометку на удаление?')) return;
     await setClinicMarked(id, target);
     closeModal(); toast(target ? 'Помечена на удаление' : 'Пометка снята'); render(); updateFiltersUI(); refreshCounts();
     return;
   }
-  if (!confirm('Удалить клинику?')) return;
+  // если у клиники есть продажи — предупреждаем с суммой, чтобы не потерять историю
+  const sales = clinicSalesTotal(c);
+  const msg = sales
+    ? '⚠️ У этой клиники есть продажи на ' + fmtMoney(sales) + ' ₽.\nОни будут удалены безвозвратно вместе с карточкой.\n\nТочно удалить клинику?'
+    : 'Удалить клинику?';
+  if (!confirm(msg)) return;
   await removeClinic(id);
   await clearPeopleClinic(id);
   closeModal(); toast('Удалено'); render(); updateFiltersUI(); refreshCounts();
