@@ -30779,7 +30779,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.55.0';
+const APP_VER = '5.56.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -32880,6 +32880,14 @@ function crsGistPush(content) {
     body: JSON.stringify({ files: { 'tingli-schedule.json': { content: content } } })
   }).then(function (r) { if (!r.ok) throw new Error('gist write HTTP ' + r.status); return r.json(); });
 }
+const TINGLI_GIST_TOKEN_RAW = 'https://gist.githubusercontent.com/Abramson2000/' + TINGLI_GIST_ID + '/raw/token';
+function crsGistTokenReady() {
+  if (crsGistToken()) return Promise.resolve();
+  return fetch(TINGLI_GIST_TOKEN_RAW + '?t=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.text() : ''; })
+    .then(function (t) { t = (t || '').trim(); if (t) { try { localStorage.setItem('tingli-gist-token', t); } catch (e) {} } })
+    .catch(function () {});
+}
 let crsApiBase = null;
 function crsApi(path, opts) {
   const order = [];
@@ -34853,7 +34861,7 @@ function sbToggle() {
 }
 function crsBoot() {
   try { crsStore(); } catch (e) {}
-  try { crsCloudPull(); } catch (e) {}
+  crsGistTokenReady().then(function () { try { crsCloudPull(); } catch (e) {} });
   setTimeout(function () {
     try { crsPushSyncReminders(); } catch (e) {}
     try { crsPushRefreshSoon(); } catch (e) {}
@@ -34892,7 +34900,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'gist-1';
+  const SW_BUILD = 'gist-2';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
