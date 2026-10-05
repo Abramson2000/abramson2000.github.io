@@ -31092,10 +31092,21 @@ function syncToast(msg) {
 }
 async function tryRestore() {
   try {
-    const r = await apiFetch('/api/backup');
-    if (!r.ok) return;
-    const cloud = await r.json();
-    if (!cloud || !cloud[LS]) return; // облако пустое — локальное уйдёт туда само (sendBackup)
+    // Безопасная выдача: сначала имена безопасных ключей, затем их значения поштучно.
+    const lr = await apiFetch('/api/backup?list=1');
+    if (!lr.ok) return;
+    const lj = await lr.json();
+    const names = (lj && Array.isArray(lj.keys) && lj.keys) || [];
+    if (!names.length) return;
+    const cloud = {};
+    const CHUNK = 60;
+    for (let i = 0; i < names.length; i += CHUNK) {
+      const rr = await apiFetch('/api/backup?keys=' + encodeURIComponent(names.slice(i, i + CHUNK).join(',')));
+      if (!rr.ok) continue;
+      const rj = await rr.json();
+      if (rj && rj.values) Object.assign(cloud, rj.values);
+    }
+    if (!cloud[LS]) return; // облако пустое — локальное уйдёт туда само (sendBackup)
     let changed = false;
     // прогресс, избранное, словарь — объединяем (union, ничего не теряем)
     for (const k of ['tingli-progress-v1', 'tingli-favs-v1', 'tingli-dict-v1', 'tingli-manual-v1']) {
