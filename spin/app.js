@@ -1510,7 +1510,7 @@ function renderTheory() {
         ${b.ex ? `<div class="example-block"><div class="example-label">ПРИМЕР</div><div class="coach-note"><p>${esc(b.ex)}</p></div></div>` : ''}
         ${(l.course && b.practice && b.practice.length) ? blockPracticeHtml(l, bi, b) : ''}
       `).join('')}
-      ${xMode ? (xb < l.remember.length ? `<h2 class="content-heading">Запомнить</h2>
+      ${xMode ? ((xb < l.remember.length && l.remember[xb]) ? `<h2 class="content-heading">Запомнить</h2>
       <div class="question-levels">
         <div class="level-card"><span>!</span><div><p>${esc(l.remember[xb])}</p></div></div>
       </div>` : '')
