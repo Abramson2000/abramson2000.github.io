@@ -30777,7 +30777,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.50.3';
+const APP_VER = '5.51.0';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -32884,13 +32884,13 @@ async function crsCloudPush() {
     /* ПЕРЕД отправкой подтягиваем серверную копию и сливаем:
        иначе устройство, не видевшее запись, затирает её в облаке */
     try {
-      const r0 = await crsApi('/backup');
+      const r0 = await crsApi('/backup?key=' + encodeURIComponent(CRS_LS));
       const remote = await r0.json();
-      const rs = remote && remote['tingli-schedule-v1'];
+      const rs = remote && remote.ok && typeof remote.value === 'string' ? remote.value : null;
       if (rs) {
-        const mine = JSON.parse(data['tingli-schedule-v1'] || '{}');
+        const mine = JSON.parse(data[CRS_LS] || '{}');
         const merged = crsMerge(JSON.parse(rs), mine);
-        data['tingli-schedule-v1'] = JSON.stringify(merged);
+        data[CRS_LS] = JSON.stringify(merged);
         crsCache = merged;
         try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
         try { crsPaint(); } catch (e) {}
@@ -34838,7 +34838,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'msg-2';
+  const SW_BUILD = 'sync-1';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
