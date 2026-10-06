@@ -30780,9 +30780,9 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.59.1';
+const APP_VER = '5.59.2';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
-const API_HOSTS = ['https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
+const API_HOSTS = ['https://api.crmuro.ru', 'https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
 let API_BASE = API_HOSTS[0];
 try { const _h = localStorage.getItem('tingli-apihost-v1'); if (_h && API_HOSTS.indexOf(_h) >= 0) API_BASE = _h; } catch (e) {}
 async function apiFetch(path, opts) {
@@ -31044,6 +31044,8 @@ let backupTimer = null;
 let initialSyncComplete = false;
 let recoveryMode = null;
 let syncDirty = {};
+let PUSH_LOCK = true; /* до миграции на новый бэкенд любой push запрещён */
+function isUnlockMode(){ return /[#?]unlock\b/.test(location.href); }
 const TINGLI_NOSYNC = { 'tingli-apihost-v1':1,'tingli-sync-err-v1':1,'tingli-gist-token':1,'tingli-push-enable-error-v1':1,'tingli-sched-clean-v2':1,'tingli-sched-cloudwins-v1':1,'tingli-repair-history-515':1,'tingli-repair-hwdue-516':1 };
 function tingliSyncKey(k){ return !!k && k.indexOf('tingli-')===0 && !TINGLI_NOSYNC[k] && k.indexOf('tingli-safety-backup-')!==0 && k.indexOf('tingli-zz-')!==0; }
 function isCanonicalMode(){ return /[#?]canonical\b/.test(location.href); }
@@ -31073,7 +31075,7 @@ function mergeUserKey(k, localStr, remoteStr) {
   return ns;
 }
 async function sendBackup() {
-  if (!initialSyncComplete) return; // до первого pull не пушим
+  if (!initialSyncComplete || PUSH_LOCK) return; // до первого pull и до миграции — не пушим
   const dirty = Object.keys(syncDirty);
   syncDirty = {};
   if (!dirty.length) return;
@@ -31277,6 +31279,7 @@ async function restoreSchedule() {
 }
 // Единая оркестрация старта: без параллельных sync.
 async function startup() {
+  if (isUnlockMode()) PUSH_LOCK = false;
   try {
     if (isCanonicalMode()) { await canonicalUpload(); }
     else if (isCloudWinsMode()) { await cloudWinsRestore(); }
@@ -33056,7 +33059,7 @@ function crsCloudSoon() {
 }
 let crsPushBusy = false;
 async function crsCloudPush() {
-  if (!initialSyncComplete) return; // до первого pull не пушим
+  if (!initialSyncComplete || PUSH_LOCK) return; // до первого pull и до миграции — не пушим
   if (crsPushBusy) return;
   crsPushBusy = true;
   crsSaveStatus('syncing');
@@ -35033,7 +35036,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'gist-16';
+  const SW_BUILD = 'gist-17';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
