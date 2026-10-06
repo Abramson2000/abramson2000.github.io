@@ -30779,40 +30779,46 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.58.1';
+const APP_VER = '5.58.2';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
 let API_BASE = API_HOSTS[0];
 try { const _h = localStorage.getItem('tingli-apihost-v1'); if (_h && API_HOSTS.indexOf(_h) >= 0) API_BASE = _h; } catch (e) {}
-async function apiFetch(path, opts, _retry) {
-  const order = [API_BASE].concat(API_HOSTS.filter(function (h) { return h !== API_BASE; }));
-  let lastErr = null;
-  for (let i = 0; i < order.length; i++) {
-    try {
-      // Timeout: 30s (DeepSeek может думать, но не вечно)
-      const ctrl = new AbortController();
-      const timer = setTimeout(function () { ctrl.abort(); }, 8000);
-      var r;
-      try {
-        r = await fetch(order[i] + path, Object.assign({}, opts, { signal: ctrl.signal }));
-      } finally {
-        clearTimeout(timer);
-      }
-      if (r.ok) {
-        if (order[i] !== API_BASE) { API_BASE = order[i]; try { localStorage.setItem('tingli-apihost-v1', API_BASE); } catch (e) {} }
-        return r;
-      }
-      lastErr = r;
-    } catch (e) {
-      lastErr = e;
-      // Ретрай один раз на сетевых ошибках (не на abort)
-      if (!_retry && e.name !== 'AbortError') {
-        return apiFetch(path, opts, true);
-      }
-    }
-  }
-  if (lastErr && lastErr.status) return lastErr;
-  throw (lastErr || new Error('нет связи'));
+async function apiFetch(path, opts) {
+  /* Все хосты пробуем ПАРАЛЛЕЛЬНО: отвечает тот, который доступен.
+     Телефон часто не видит один из адресов (Cloudflare-домен режется сетью),
+     поэтому последовательный перебор с таймаутом давал «нет связи». */
+  return new Promise(function (resolve, reject) {
+    const hosts = API_HOSTS.slice();
+    let done = false, left = hosts.length, lastErr = null;
+    if (!left) { reject(new Error('нет связи')); return; }
+    const timers = [];
+    const stop = function () { for (let t = 0; t < timers.length; t++) clearTimeout(timers[t]); };
+    hosts.forEach(function (host) {
+      let ctrl = null;
+      try { ctrl = new AbortController(); } catch (e) {}
+      const timer = setTimeout(function () { try { if (ctrl) ctrl.abort(); } catch (e) {} }, 20000);
+      timers.push(timer);
+      const o = Object.assign({}, opts || {});
+      if (ctrl && ctrl.signal) o.signal = ctrl.signal;
+      fetch(host + path, o).then(function (r) {
+        if (done) return;
+        if (!r.ok) {
+          lastErr = new Error('HTTP ' + r.status);
+          if (--left <= 0) { stop(); reject(lastErr); }
+          return;
+        }
+        done = true; stop();
+        API_BASE = host;
+        try { localStorage.setItem('tingli-apihost-v1', host); } catch (e) {}
+        resolve(r);
+      }).catch(function (e) {
+        if (done) return;
+        lastErr = e;
+        if (--left <= 0) { stop(); reject(lastErr || new Error('нет связи')); }
+      });
+    });
+  });
 }
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
@@ -31122,7 +31128,7 @@ async function canonicalUpload() {
       if (tingliSyncKey(k)) data[k] = localStorage.getItem(k);
     }
     // ?force=1 — эталонная запись: входящее заменяет облако без union-слияния
-    await apiFetch('/api/backup?force=1', { method: 'POST', body: JSON.stringify(data) });
+    await apiFetch('/api/backup?force=1', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(data) });
     syncToast('✅ Эталон загружен: ' + Object.keys(data).length + ' ключей');
   } catch (e) {
     syncToast('⚠️ Не удалось загрузить эталон: нет связи');
@@ -35012,7 +35018,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'gist-13';
+  const SW_BUILD = 'gist-14';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
