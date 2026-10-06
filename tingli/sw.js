@@ -1,7 +1,7 @@
 /* Tingli — офлайн-кэш приложения.
    HTML — сеть вперёд (чтобы обновления приходили), остальное из кэша.
    Запросы к облаку (другой домен) не трогаем вообще. */
-const CACHE = 'tingli-cache-v5582-full';
+const CACHE = 'tingli-cache-v5590-full';
 const CORE_ASSETS = [
   './', './index.html', './manifest.json',
   './fonts/simsun-subset.woff2', './fonts/xiaoshan-title.woff2',
@@ -11,7 +11,8 @@ const CORE_ASSETS = [
   './tab-biz.png', './tab-biz-off.png', './tab-ci.png', './tab-ci-off.png',
   './tab-fa.png', './tab-fa-off.png', './tab-ju.png', './tab-ju-off.png',
   './tab-sch.png', './tab-sch-off.png', './tab-ting.png', './tab-ting-off.png',
-  './tab-tuan.png', './tab-tuan-off.png', './tab-yu.png', './tab-yu-off.png'
+  './tab-tuan.png', './tab-tuan-off.png', './tab-yu.png', './tab-yu-off.png',
+  './tab-yin.png', './tab-yin-off.png'
 ];
 
 /* Динамически собираем полный список файлов для офлайн-скачивания.
