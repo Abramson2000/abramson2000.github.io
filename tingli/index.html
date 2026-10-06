@@ -30779,7 +30779,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.57.6';
+const APP_VER = '5.57.7';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://abramson-crm.pages.dev', 'https://tingli-api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -32292,10 +32292,10 @@ function hwCopy(withQ) {
   const txt = hwText(withQ);
   // Сформировал текст для учителя = ДЗ закончено. Сразу синхронизируем это с 课程 → 作业.
   try {
-    const key = 'u' + curUnit.unit + 'p' + curPart.id;
-    crsHwSetState(key, 'done');
     const n = curPart.questions ? curPart.questions.length : 0;
     saveLocal('tingli-hwmeta-' + curUnit.unit + '-' + curPart.id, JSON.stringify({ n: n, done: true, answered: hwAnswered(), submitted: Date.now() }));
+    const key = 'u' + curUnit.unit + 'p' + curPart.id;
+    crsHwSetState(key, 'done');
     updateAppBadge();
   } catch (e) {}
   const out = document.getElementById('hwOut');
@@ -32857,7 +32857,7 @@ function crsUid(p) { return (p || 'e') + Date.now().toString(36) + Math.random()
 /* ---------- сеть: облачная копия ---------- */
 const CRS_API = (function () {
   const h = location.hostname;
-  if (/crmuro\.ru$/i.test(h)) return ['https://tingli-api.crmuro.ru/api'];
+  if (/crmuro\.ru$/i.test(h)) return ['https://abramson-crm.pages.dev/api', 'https://tingli-api.crmuro.ru/api'];
   return ['/api', 'https://tingli-api.crmuro.ru/api'];
   /* служебный адрес Cloudflare больше не используем: у домашнего DNS он не резолвится */
 })();
@@ -34933,7 +34933,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'gist-9';
+  const SW_BUILD = 'gist-10';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
