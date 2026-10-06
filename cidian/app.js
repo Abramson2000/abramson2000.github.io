@@ -73,7 +73,7 @@ let inboxAdded=0;
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.10.1',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.10.2',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -218,7 +218,8 @@ const CIDIAN_API='https://abramson-crm.pages.dev';
 let pushTimer=null,pullTs=0;
 function renumber(arr){arr.sort((a,b)=>((+a.order||0)-(+b.order||0))||String(a.hanzi).localeCompare(String(b.hanzi)));arr.forEach((w,i)=>{w.id=i+1;w.order=i+1;});return arr;}
 function newerWord(x,y){const tx=String((x&&x.updatedAt)||''),ty=String((y&&y.updatedAt)||'');if(tx&&ty)return tx>=ty;return !!tx||!ty;}
-function mergeWords(a,b){const m=new Map();const put=w=>{if(!w)return;const h=String((w.hanzi||'')).trim();if(!h)return;const ex=m.get(h);if(!ex||newerWord(w,ex))m.set(h,w);};(a||[]).forEach(put);(b||[]).forEach(put);return Array.from(m.values());}
+function wkey(w){return [String((w&&w.hanzi)||'').trim(),String((w&&w.pinyin)||'').trim(),String((w&&w.translation)||'').trim(),String((w&&w.kind)||'word')].join('\u0001');}
+function mergeWords(a,b){const m=new Map();const put=w=>{if(!w)return;const hz=String((w.hanzi)||'').trim();if(!hz)return;const h=wkey(w);const ex=m.get(h);if(!ex||newerWord(w,ex))m.set(h,w);};(a||[]).forEach(put);(b||[]).forEach(put);return Array.from(m.values());}
 function scheduleCloudPush(){if(pushTimer)clearTimeout(pushTimer);pushTimer=setTimeout(pushCloud,1500);}
 async function pushCloud(){try{const payload=JSON.stringify({'cidian-data-v1':JSON.stringify(words)});await fetch(CIDIAN_API+'/api/backup',{method:'POST',body:payload});}catch(e){}}
 async function pullCloud(force){try{
@@ -413,7 +414,7 @@ renderWords();
 if(ankiAdded||chengyuAdded||inboxAdded||namesAdded||zanghuaAdded)setTimeout(()=>{const pp=[];if(ankiAdded)pp.push(ankiAdded+' из Anki'); if(chengyuAdded)pp.push('成语 '+chengyuAdded); if(inboxAdded)pp.push('из Тингли '+inboxAdded); if(namesAdded)pp.push('названий из прописей '+namesAdded); if(zanghuaAdded)pp.push('脏话 '+zanghuaAdded);if(pp.length)toast('Добавлено: '+pp.join(' · ')+' — все как «не в Лаоши»')},400);
 if('serviceWorker' in navigator){
   let hadController=!!navigator.serviceWorker.controller, updating=false;
-  navigator.serviceWorker.register('sw.js?v=2.10.1',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=2.10.2',{updateViaCache:'none'}).then(reg=>{
     // самолечение: проверяем обновление при каждом возврате в приложение
     const chk=()=>{ if(document.visibilityState!=='visible'||updating) return; updating=true;
       if(!reg||!reg.update){ updating=false; return; }
