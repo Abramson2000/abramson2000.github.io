@@ -30779,7 +30779,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.58.0';
+const APP_VER = '5.58.1';
 // Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
 const API_HOSTS = ['https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
 let API_BASE = API_HOSTS[0];
@@ -30791,7 +30791,7 @@ async function apiFetch(path, opts, _retry) {
     try {
       // Timeout: 30s (DeepSeek может думать, но не вечно)
       const ctrl = new AbortController();
-      const timer = setTimeout(function () { ctrl.abort(); }, 30000);
+      const timer = setTimeout(function () { ctrl.abort(); }, 8000);
       var r;
       try {
         r = await fetch(order[i] + path, Object.assign({}, opts, { signal: ctrl.signal }));
@@ -35012,7 +35012,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'gist-12';
+  const SW_BUILD = 'gist-13';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
