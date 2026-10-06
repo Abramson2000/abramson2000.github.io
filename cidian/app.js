@@ -73,11 +73,11 @@ let inboxAdded=0;
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.9.1',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.10.0',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function migrate(w){const o={...w};if(!Array.isArray(o.tags))o.tags=String(o.note||'').trim()?[String(o.note).trim()]:[];o.tags=o.tags.map(t=>String(t).trim()).filter(Boolean);delete o.note;if(o.kind!=='phrase'&&o.kind!=='name')o.kind='word';o.laoshi=!!o.laoshi;o.favorite=!!o.favorite;o.comment=o.comment||'';return o;}
+function migrate(w){const o={...w};if(!Array.isArray(o.tags))o.tags=String(o.note||'').trim()?[String(o.note).trim()]:[];o.tags=o.tags.map(t=>String(t).trim()).filter(Boolean);delete o.note;if(o.kind!=='phrase'&&o.kind!=='name')o.kind='word';o.laoshi=!!o.laoshi;o.favorite=!!o.favorite;o.deleted=!!o.deleted;o.comment=o.comment||'';return o;}
 function loadWords(){let arr=null;try{const x=JSON.parse(localStorage.getItem(STORAGE)||'null');if(Array.isArray(x)&&x.length)arr=x.map(migrate);}catch(e){}
 if(!arr)arr=BASE_WORDS.map(x=>({...x}));
 /* одноразовая разметка статуса Лаоши (28.09.2026): всё внесено, кроме 尽量 и 澡堂 */
@@ -135,7 +135,7 @@ const TGL_API='https://abramson-crm.pages.dev';
 let inboxAvailTs=0,inboxAvailN=null,inboxPulling=false;
 function tglDictItems(d){
   try{
-    const raw=d&&d['tingli-dict-v1'];
+    const raw=(d&&d.value!==undefined)?d.value:((d&&d.values&&d.values['tingli-dict-v1']!==undefined)?d.values['tingli-dict-v1']:(d&&d['tingli-dict-v1']));
     let arr=raw;
     if(typeof raw==='string'){ try{arr=JSON.parse(raw);}catch(_){arr=null;} }
     if(!Array.isArray(arr)) return [];
@@ -152,7 +152,7 @@ async function inboxAvailable(){
       if(j&&Array.isArray(j.items)){ pend+=j.items.length; total+=j.items.length; }
     }catch(_){}
     try{
-      const r2=await fetch(TGL_API+'/api/backup?t='+Date.now(),{cache:'no-store'}); const d=await r2.json();
+      const r2=await fetch(TGL_API+'/api/backup?key=tingli-dict-v1&t='+Date.now(),{cache:'no-store'}); const d=await r2.json();
       const items=tglDictItems(d);
       const have=new Set(words.map(w=>String(w.hanzi||'').trim()));
       pend+=items.filter(x=>!have.has(x.hanzi)).length; total+=items.length;
@@ -171,7 +171,7 @@ async function doInboxPull(){
     nLocal=intakeItems(q,words);
     nCloud=(await checkInboxCloud(true))||0;
     try{
-      const r=await fetch(TGL_API+'/api/backup?t='+Date.now(),{cache:'no-store'}); const d=await r.json();
+      const r=await fetch(TGL_API+'/api/backup?key=tingli-dict-v1&t='+Date.now(),{cache:'no-store'}); const d=await r.json();
       const items=tglDictItems(d);
       found=items.map(x=>x.hanzi);
       const have=new Set(words.map(w=>String(w.hanzi||'').trim()));
@@ -213,20 +213,41 @@ function applyAnki(arr,force){try{
   return added;}catch(e){return 0;}}
 function applyNewFix(arr,force){try{if(!force&&localStorage.getItem(FIX_KEY)===FIX_TAG)return;const S=new Set(FIX_NEW);snapStore('перед отметкой «не в Лаоши» для новых записей',arr.map(w=>({...w})));arr.forEach(w=>{if(S.has(String(w.hanzi||'').trim()))w.laoshi=false;});localStorage.setItem(FIX_KEY,FIX_TAG);localStorage.setItem(STORAGE,JSON.stringify(arr));}catch(e){}}
 function applyContent(arr,force){try{if(!force&&localStorage.getItem(CONTENT_KEY)===CONTENT_TAG)return;const before=arr.map(w=>({...w}));const P=new Set(CONTENT_PHRASES),N=new Set(CONTENT_NAMES);arr.forEach(w=>{const hz=String(w.hanzi||'').trim();if(P.has(hz))w.kind='phrase';else if(N.has(hz))w.kind='name';});let id=Math.max(0,...arr.map(w=>+w.id||0)),ord=Math.max(0,...arr.map(w=>+w.order||0));CONTENT_NEW.forEach(n=>{if(!arr.some(w=>String(w.hanzi||'').trim()===n.hanzi)){id++;ord++;arr.push({id,order:ord,kind:'name',hanzi:n.hanzi,pinyin:n.pinyin,translation:n.translation,tags:[],comment:'',laoshi:n.laoshi!==false?false:n.laoshi,favorite:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});}});snapStore('перед добавлением фраз и названий (28.09.2026)',before);localStorage.setItem(CONTENT_KEY,CONTENT_TAG);localStorage.setItem(STORAGE,JSON.stringify(arr));}catch(e){}}
-function saveWords(){const blob=JSON.stringify(words);if(blob.length>MAX_BYTES&&!saveWords.warned){saveWords.warned=true;alert('Словарь занимает '+Math.round(blob.length/1024)+' КБ из ~5000 КБ. Сделайте резервную копию (Ещё → Резервная копия): при переполнении браузер может стереть данные.');}try{localStorage.setItem(STORAGE,blob);}catch(e){alert('Не удалось сохранить словарь на устройстве.');}updateCounts();}
+/* ── облачный синк словаря (как у Тингли): push при правках, pull при открытии/фокусе ── */
+const CIDIAN_API='https://abramson-crm.pages.dev';
+let pushTimer=null,pullTs=0;
+function renumber(arr){arr.sort((a,b)=>((+a.order||0)-(+b.order||0))||String(a.hanzi).localeCompare(String(b.hanzi)));arr.forEach((w,i)=>{w.id=i+1;w.order=i+1;});return arr;}
+function newerWord(x,y){const tx=String((x&&x.updatedAt)||''),ty=String((y&&y.updatedAt)||'');if(tx&&ty)return tx>ty;return !!tx;}
+function mergeWords(a,b){const m=new Map();const put=w=>{if(!w)return;const h=String((w.hanzi||'')).trim();if(!h)return;const ex=m.get(h);if(!ex||newerWord(w,ex))m.set(h,w);};(a||[]).forEach(put);(b||[]).forEach(put);return Array.from(m.values());}
+function scheduleCloudPush(){if(pushTimer)clearTimeout(pushTimer);pushTimer=setTimeout(pushCloud,1500);}
+async function pushCloud(){try{const payload=JSON.stringify({'cidian-data-v1':JSON.stringify(words)});await fetch(CIDIAN_API+'/api/backup',{method:'POST',body:payload});}catch(e){}}
+async function pullCloud(force){try{
+  if(!force&&Date.now()-pullTs<15000)return;pullTs=Date.now();
+  const r=await fetch(CIDIAN_API+'/api/backup?key='+encodeURIComponent('cidian-data-v1')+'&t='+Date.now(),{cache:'no-store'});
+  const j=await r.json();
+  if(!j||!j.ok||typeof j.value!=='string'){ if(words&&words.length) scheduleCloudPush(); return; }
+  let cloud=null;try{cloud=JSON.parse(j.value);}catch(e){return;}
+  if(!Array.isArray(cloud)||!cloud.length){ if(words&&words.length) scheduleCloudPush(); return; }
+  const merged=renumber(mergeWords(words.map(w=>({...w})),cloud.map(migrate)));
+  if(JSON.stringify(merged)!==JSON.stringify(words)){words=merged;saveWords();try{if(currentTab==='xl')renderXl();else if(currentTab==='more')renderMore();else if(currentTab==='words')renderWords();}catch(_){}toast('☁️ Словарь синхронизирован');}
+}catch(e){}}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) pullCloud(); });
+window.addEventListener('focus',()=>{ pullCloud(); });
+setTimeout(()=>{ pullCloud(true); },1200);
+function saveWords(){const blob=JSON.stringify(words);if(blob.length>MAX_BYTES&&!saveWords.warned){saveWords.warned=true;alert('Словарь занимает '+Math.round(blob.length/1024)+' КБ из ~5000 КБ. Сделайте резервную копию (Ещё → Резервная копия): при переполнении браузер может стереть данные.');}try{localStorage.setItem(STORAGE,blob);}catch(e){alert('Не удалось сохранить словарь на устройстве.');}updateCounts();scheduleCloudPush();}
 function snapInfo(){try{const j=JSON.parse(localStorage.getItem(SNAP)||'null');return j&&j.words?j:null;}catch(e){return null;}}
 function snapStore(reason,arr){try{localStorage.setItem(SNAP,JSON.stringify({ts:new Date().toISOString(),reason,words:arr}));}catch(e){}}
 function snapMake(reason){snapStore(reason,words);}
 function snapDate(ts){try{return new Date(ts).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){return ts;}}
 function snapRestore(){const j=snapInfo();if(!j)return;if(confirm('Вернуть словарь из автоснимка от '+snapDate(j.ts)+' ('+j.words.length+' записей)? Текущие правки будут заменены.')){snapMake('перед возвратом автоснимка');words=j.words.map(migrate);saveWords();renderMore();}}
 function toast(msg,actionLabel,action,doneMsg){const old=document.getElementById('toast');if(old)old.remove();const d=document.createElement('div');d.id='toast';d.className='toast';d.innerHTML='<span>'+esc(msg)+'</span>';const timer=setTimeout(()=>d.remove(),action?7000:3500);if(actionLabel&&action){const b=document.createElement('button');b.className='toast-act';b.textContent=actionLabel;b.onclick=()=>{clearTimeout(timer);d.remove();action();if(doneMsg)toast(doneMsg);};d.appendChild(b);}document.body.appendChild(d);}
-function countOf(k){let n=0;for(const w of words)if(w.kind===k)n++;return n;}
-function newOf(k){let n=0;for(const w of words)if(w.kind===k&&!w.laoshi)n++;return n;}
-function updateCounts(){const el=$('#count');if(el){const m=KMAP[kind]||KMAP.word;el.textContent=countOf(kind).toLocaleString('ru-RU')+' '+pl(countOf(kind),m.forms);}const sc=$('#settingsCount');if(sc)sc.textContent=words.length.toLocaleString('ru-RU');}
+function countOf(k){let n=0;for(const w of words)if(w.kind===k&&!w.deleted)n++;return n;}
+function newOf(k){let n=0;for(const w of words)if(w.kind===k&&!w.laoshi&&!w.deleted)n++;return n;}
+function updateCounts(){const el=$('#count');if(el){const m=KMAP[kind]||KMAP.word;el.textContent=countOf(kind).toLocaleString('ru-RU')+' '+pl(countOf(kind),m.forms);}const sc=$('#settingsCount');if(sc)sc.textContent=words.filter(w=>!w.deleted).length.toLocaleString('ru-RU');}
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
 function pl(n,f){const a=Math.abs(n)%100,b=a%10;if(a>10&&a<20)return f[2];if(b>1&&b<5)return f[1];if(b===1)return f[0];return f[2];}
-function tagPool(){const m=new Map();for(const w of words)for(const t of(w.tags||[]))m.set(t,(m.get(t)||0)+1);return [...m.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ru'));}
-function getFiltered(){let a=words.filter(w=>w.kind===kind);const q=norm(query.trim());if(q)a=a.filter(w=>norm(w.hanzi+' '+w.pinyin+' '+w.translation+' '+w.comment+' '+(w.tags||[]).join(' ')).includes(q));if(filter==='new')a=a.filter(w=>!w.laoshi);if(filter==='done')a=a.filter(w=>w.laoshi);if(tagFilter.length)a=a.filter(w=>(w.tags||[]).some(t=>tagFilter.includes(t)));if(sortMode==='order')a.sort((x,y)=>(x.order||0)-(y.order||0));if(sortMode==='new')a.sort((x,y)=>(y.order||0)-(x.order||0));if(sortMode==='hanzi')a.sort((x,y)=>String(x.hanzi).localeCompare(String(y.hanzi),'zh-CN'));return a;}
+function tagPool(){const m=new Map();for(const w of words)if(!w.deleted)for(const t of(w.tags||[]))m.set(t,(m.get(t)||0)+1);return [...m.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ru'));}
+function getFiltered(){let a=words.filter(w=>w.kind===kind&&!w.deleted);const q=norm(query.trim());if(q)a=a.filter(w=>norm(w.hanzi+' '+w.pinyin+' '+w.translation+' '+w.comment+' '+(w.tags||[]).join(' ')).includes(q));if(filter==='new')a=a.filter(w=>!w.laoshi);if(filter==='done')a=a.filter(w=>w.laoshi);if(tagFilter.length)a=a.filter(w=>(w.tags||[]).some(t=>tagFilter.includes(t)));if(sortMode==='order')a.sort((x,y)=>(x.order||0)-(y.order||0));if(sortMode==='new')a.sort((x,y)=>(y.order||0)-(x.order||0));if(sortMode==='hanzi')a.sort((x,y)=>String(x.hanzi).localeCompare(String(y.hanzi),'zh-CN'));return a;}
 function headHtml(){return `<div class="head"><img src="icon-192-v4.png" class="app-icon" alt="词 — Мой словарь" width="112" height="112"><div class="headtext"><div class="title-row"><div class="title">Мой словарь</div><div class="ver">v${VERSION}</div></div><div class="subtitle">我的生词</div></div></div>`;}
 function kindsHtml(){return `<div class="kinds">${KINDS.map(m=>`<button class="kindbtn ${kind===m.k?'on':''}" data-kind="${m.k}"><b>${m.ru} <span class="zh">${m.zh}</span></b><small>${countOf(m.k).toLocaleString('ru-RU')}</small></button>`).join('')}</div>`;}
 function tagsBarHtml(){return (tagFilter.length?tagFilter.map(t=>`<button class="chip tag on" data-untag="${esc(t)}">#${esc(t)} ✕</button>`).join(''):'')+`<button class="chip" id="tagBtn"># тэги${tagFilter.length?' ('+tagFilter.length+')':''}</button>`;}
@@ -234,7 +255,7 @@ function tagsBarHtml(){return (tagFilter.length?tagFilter.map(t=>`<button class=
 function xlRowHtml(w){const second=(w.pinyin?('('+w.pinyin+') '):'')+(w.translation||'');
   return `<div class="xlt"><div class="xlh">${esc(w.hanzi)}</div><div class="xlr">${esc(second)}</div></div>`;}
 function renderXl(){currentTab='xl';setTabs();
-  const rows=words.filter(w=>(w.kind||'word')==='word').slice().sort((a,b)=>(+a.order||0)-(+b.order||0));
+  const rows=words.filter(w=>!w.deleted&&(w.kind||'word')==='word').slice().sort((a,b)=>(+a.order||0)-(+b.order||0));
   const box=$('#content');
   if(box)box.innerHTML=`<div class="xlwrap"><div class="xlhead"><div>Слово</div><div>(пиньинь) перевод</div></div>${rows.map(xlRowHtml).join('')}</div>`;
   requestAnimationFrame(()=>{try{window.scrollTo({top:document.documentElement.scrollHeight,behavior:'auto'});}catch(_){}});}
@@ -253,7 +274,7 @@ function manageTags(){const pool=tagPool();$('#modal').innerHTML=`<div class="sh
 function bkrsInfo(hz){try{var d=(typeof BKRS!=='undefined')?BKRS[String(hz||'').trim()]:null;return (d&&(d.ru||(d.ex&&d.ex.length)))?d:null;}catch(e){return null;}}
 function normRu(t){t=String(t||'').trim();var m=t.match(/^\s*(?:[IVX]+|\d+)\s*[).]\s*([\s\S]+)$/);if(m&&!/\s(?:[IVX]+|\d+)\s*[).]\s/.test(' '+m[1]))t=m[1].trim();return t;}
 function bkrsBlockHtml(w){var d=bkrsInfo(w.hanzi);if(!d)return '';var ex=(d.ex&&d.ex.length)?('<div class="bkr-ex">'+d.ex.map(function(p){return '<div class="bkr-pair"><span class="bkr-zh">'+esc(p[0])+'</span><span class="bkr-ru2">'+esc(p[1])+'</span></div>';}).join('')+'</div>'):'';return '<div class="info"><div class="k">Значение и примеры</div>'+(d.ru?('<div class="bkr-ru">'+esc(normRu(d.ru))+'</div>'):'')+ex+'</div>';}
-function openDetail(id){const w=words.find(x=>x.id===id);if(!w)return;const k=KMAP[w.kind]||KMAP.word;$('#modal').innerHTML=`<div class="sheet"><div class="grab"></div><div class="big-hanzi">${esc(w.hanzi)}</div><div class="big-py">${esc(w.pinyin||'')}</div><div class="big-tr">${esc(w.translation||'')}</div>${bkrsBlockHtml(w)}<div class="info"><div class="k">Тэги</div><div class="tagline">${(w.tags||[]).length?(w.tags||[]).map(t=>`<span class="tg">#${esc(t)} <button class="tgx" data-rm="${esc(t)}" aria-label="Убрать">✕</button></span>`).join(''):'<span class="muted">пока нет</span>'}</div><div class="tagadd"><input id="newTag" placeholder="новый тэг" autocomplete="off" list="tagList"><button class="small-btn" id="addTag">Добавить</button></div></div>${w.comment?`<div class="info"><div class="k">Заметка</div>${esc(w.comment)}</div>`:''}<div class="info"><div class="k">Раздел — переложить в…</div><div class="kindmove">${KINDS.map(m=>`<button class="kindbtn ${w.kind===m.k?'on':''}" data-move="${m.k}"><b>${m.ru} <span class="zh">${m.zh}</span></b></button>`).join('')}</div></div><div class="info"><div class="k">Статус</div>${w.laoshi?'Уже в Лаоши ✓':'Ещё не внесено в Лаоши'}</div><div class="info"><div class="k">Порядок в словаре</div>№ ${w.order}</div><datalist id="tagList">${tagPool().map(t=>`<option value="${esc(t[0])}"></option>`).join('')}</datalist><div class="actions"><button class="primary" id="laoshiBtn" style="margin-top:0">${w.laoshi?'Снять отметку «в Лаоши»':'✓ Внести в Лаоши'}</button><button class="secondary" id="editWord" style="margin-top:0">Редактировать</button><button class="danger" id="deleteWord">Удалить</button></div></div>`;$('#modal').classList.remove('hidden');const _cb=$('#closeModal');if(_cb)_cb.onclick=closeModal;$('#laoshiBtn').onclick=()=>toggleLaoshi(id);$('#editWord').onclick=()=>{closeModal();renderAdd(id);};$$('[data-move]').forEach(b=>b.onclick=()=>{const k=b.dataset.move;if(!KMAP[k]||k===w.kind)return;snapMake('перед переносом «'+w.hanzi+'»');const from=(KMAP[w.kind]||KMAP.word).ru;w.kind=k;w.updatedAt=new Date().toISOString();saveWords();openDetail(id);toast('«'+w.hanzi+'»: '+from+' → '+KMAP[k].ru);});$('#addTag').onclick=()=>{const t=$('#newTag').value.trim();if(!t)return;const add=parseTags(t);add.forEach(x=>{if(!(w.tags||[]).includes(x))w.tags.push(x);});w.updatedAt=new Date().toISOString();saveWords();openDetail(id);};$$('[data-rm]').forEach(b=>b.onclick=()=>{const t=b.dataset.rm;w.tags=(w.tags||[]).filter(x=>x!==t);w.updatedAt=new Date().toISOString();saveWords();openDetail(id);});$('#deleteWord').onclick=()=>{const nm=w.hanzi;if(confirm('Удалить «'+nm+'»?')){snapMake('перед удалением «'+nm+'»');const before=words.slice();words=words.filter(x=>x.id!==id);saveWords();closeModal();renderWords();toast('Удалено: '+nm,'Вернуть',()=>{words=before;saveWords();renderWords();},'Восстановлено: '+nm);}};}
+function openDetail(id){const w=words.find(x=>x.id===id);if(!w)return;const k=KMAP[w.kind]||KMAP.word;$('#modal').innerHTML=`<div class="sheet"><div class="grab"></div><div class="big-hanzi">${esc(w.hanzi)}</div><div class="big-py">${esc(w.pinyin||'')}</div><div class="big-tr">${esc(w.translation||'')}</div>${bkrsBlockHtml(w)}<div class="info"><div class="k">Тэги</div><div class="tagline">${(w.tags||[]).length?(w.tags||[]).map(t=>`<span class="tg">#${esc(t)} <button class="tgx" data-rm="${esc(t)}" aria-label="Убрать">✕</button></span>`).join(''):'<span class="muted">пока нет</span>'}</div><div class="tagadd"><input id="newTag" placeholder="новый тэг" autocomplete="off" list="tagList"><button class="small-btn" id="addTag">Добавить</button></div></div>${w.comment?`<div class="info"><div class="k">Заметка</div>${esc(w.comment)}</div>`:''}<div class="info"><div class="k">Раздел — переложить в…</div><div class="kindmove">${KINDS.map(m=>`<button class="kindbtn ${w.kind===m.k?'on':''}" data-move="${m.k}"><b>${m.ru} <span class="zh">${m.zh}</span></b></button>`).join('')}</div></div><div class="info"><div class="k">Статус</div>${w.laoshi?'Уже в Лаоши ✓':'Ещё не внесено в Лаоши'}</div><div class="info"><div class="k">Порядок в словаре</div>№ ${w.order}</div><datalist id="tagList">${tagPool().map(t=>`<option value="${esc(t[0])}"></option>`).join('')}</datalist><div class="actions"><button class="primary" id="laoshiBtn" style="margin-top:0">${w.laoshi?'Снять отметку «в Лаоши»':'✓ Внести в Лаоши'}</button><button class="secondary" id="editWord" style="margin-top:0">Редактировать</button><button class="danger" id="deleteWord">Удалить</button></div></div>`;$('#modal').classList.remove('hidden');const _cb=$('#closeModal');if(_cb)_cb.onclick=closeModal;$('#laoshiBtn').onclick=()=>toggleLaoshi(id);$('#editWord').onclick=()=>{closeModal();renderAdd(id);};$$('[data-move]').forEach(b=>b.onclick=()=>{const k=b.dataset.move;if(!KMAP[k]||k===w.kind)return;snapMake('перед переносом «'+w.hanzi+'»');const from=(KMAP[w.kind]||KMAP.word).ru;w.kind=k;w.updatedAt=new Date().toISOString();saveWords();openDetail(id);toast('«'+w.hanzi+'»: '+from+' → '+KMAP[k].ru);});$('#addTag').onclick=()=>{const t=$('#newTag').value.trim();if(!t)return;const add=parseTags(t);add.forEach(x=>{if(!(w.tags||[]).includes(x))w.tags.push(x);});w.updatedAt=new Date().toISOString();saveWords();openDetail(id);};$$('[data-rm]').forEach(b=>b.onclick=()=>{const t=b.dataset.rm;w.tags=(w.tags||[]).filter(x=>x!==t);w.updatedAt=new Date().toISOString();saveWords();openDetail(id);});$('#deleteWord').onclick=()=>{const nm=w.hanzi;if(confirm('Удалить «'+nm+'»?')){snapMake('перед удалением «'+nm+'»');w.deleted=true;w.updatedAt=new Date().toISOString();saveWords();closeModal();renderWords();toast('Удалено: '+nm,'Вернуть',()=>{w.deleted=false;w.updatedAt=new Date().toISOString();saveWords();renderWords();},'Восстановлено: '+nm);}};}
 function closeModal(){$('#modal').classList.add('hidden');$('#modal').innerHTML='';}
 function showSort(){$('#modal').innerHTML=`<div class="sheet"><div class="grab"></div><div class="sheet-title">Сортировка</div><button class="sortopt ${sortMode==='order'?'on':''}" data-sort="order">По мере добавления — основной</button><button class="sortopt ${sortMode==='new'?'on':''}" data-sort="new">Последние добавленные сверху</button><button class="sortopt ${sortMode==='hanzi'?'on':''}" data-sort="hanzi">По китайскому алфавиту</button></div>`;$('#modal').classList.remove('hidden');$$('.sortopt').forEach(b=>b.onclick=()=>{sortMode=b.dataset.sort;closeModal();visible=120;renderList();});$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 // ===== шторки: смахнуть за левый край (вправо) или за верхний (вниз) + анимация =====
@@ -392,7 +413,7 @@ renderWords();
 if(ankiAdded||chengyuAdded||inboxAdded||namesAdded||zanghuaAdded)setTimeout(()=>{const pp=[];if(ankiAdded)pp.push(ankiAdded+' из Anki'); if(chengyuAdded)pp.push('成语 '+chengyuAdded); if(inboxAdded)pp.push('из Тингли '+inboxAdded); if(namesAdded)pp.push('названий из прописей '+namesAdded); if(zanghuaAdded)pp.push('脏话 '+zanghuaAdded);if(pp.length)toast('Добавлено: '+pp.join(' · ')+' — все как «не в Лаоши»')},400);
 if('serviceWorker' in navigator){
   let hadController=!!navigator.serviceWorker.controller, updating=false;
-  navigator.serviceWorker.register('sw.js?v=2.9.1',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=2.10.0',{updateViaCache:'none'}).then(reg=>{
     // самолечение: проверяем обновление при каждом возврате в приложение
     const chk=()=>{ if(document.visibilityState!=='visible'||updating) return; updating=true;
       if(!reg||!reg.update){ updating=false; return; }
