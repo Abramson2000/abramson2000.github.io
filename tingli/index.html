@@ -30780,9 +30780,9 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.59.3';
-// Облачный API живёт только на CF-домене: с crmuro.ru (GitHub Pages) относительный /api/* отдаёт 404
-const API_HOSTS = ['https://api.crmuro.ru', 'https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
+const APP_VER = '5.59.4';
+// '' = same-origin (crmuro.ru/api/* обслуживает наш воркер), остальные — запасные
+const API_HOSTS = ['', 'https://api.crmuro.ru', 'https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
 let API_BASE = API_HOSTS[0];
 try { const _h = localStorage.getItem('tingli-apihost-v1'); if (_h && API_HOSTS.indexOf(_h) >= 0) API_BASE = _h; } catch (e) {}
 async function apiFetch(path, opts) {
@@ -33018,7 +33018,7 @@ function crsUid(p) { return (p || 'e') + Date.now().toString(36) + Math.random()
 /* ---------- сеть: облачная копия ---------- */
 const CRS_API = (function () {
   const h = location.hostname;
-  if (/crmuro\.ru$/i.test(h)) return ['https://api.crmuro.ru/api', 'https://tingli-api.crmuro.ru/api'];
+  if (/crmuro\.ru$/i.test(h)) return ['/api', 'https://api.crmuro.ru/api', 'https://tingli-api.crmuro.ru/api'];
   return ['/api', 'https://api.crmuro.ru/api', 'https://tingli-api.crmuro.ru/api'];
   /* служебный адрес Cloudflare больше не используем: у домашнего DNS он не резолвится */
 })();
@@ -35036,7 +35036,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'gist-18';
+  const SW_BUILD = 'gist-19';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
