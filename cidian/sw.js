@@ -1,7 +1,7 @@
 // Сервис-воркер словаря /cidian/.
 // Версию приложения (V) синхронно проставляет scripts/cidian_bump.py:
 // из неё собираются и ссылки ?v=, и имя кэша — так обновления доезжают до телефона.
-const V = '2.10.21';
+const V = '2.11.0';
 const CACHE = 'cidian-cache-v' + V;
 
 // ВАЖНО: Cloudflare (и иногда GitHub) отдают файлы сжатыми (content-encoding: br/gzip),
@@ -27,6 +27,7 @@ const ASSETS = [
   './index.html',
   './styles.css?v=' + V,
   './app.js?v=' + V,
+  './sync-core.js?v=' + V,
   './data-bkrs.js?v=' + V,
   './manifest.json',
   './icon-192-v4.png',
@@ -40,7 +41,8 @@ const ASSETS = [
 const DATA_FILES = ['./data.js?v=' + V];
 const CORE = ASSETS.concat(DATA_FILES);
 // минимум, без которого приложение не считается готовым к офлайну
-const REQUIRED = ['./index.html', './app.js?v=' + V, './data.js?v=' + V];
+const REQUIRED = ['./index.html', './app.js?v=' + V,
+  './sync-core.js?v=' + V, './data.js?v=' + V];
 
 self.addEventListener('install', event => event.waitUntil((async () => {
   const cache = await caches.open(CACHE);

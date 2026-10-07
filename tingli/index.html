@@ -30728,6 +30728,7 @@ const BIZ_UNITS = [
 ];
 
 </script>
+<script src="sync-core.js?v=5.60.0"></script>
 <script>
 const LS = 'tingli-progress-v1';
 const LS_FAV = 'tingli-favs-v1';
@@ -30780,46 +30781,30 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.59.9';
+const APP_VER = '5.60.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
-const API_HOSTS = ['https://api.crmuro.ru', 'https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
+const API_HOSTS = ['https://api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
-try { const _h = localStorage.getItem('tingli-apihost-v1'); if (_h && API_HOSTS.indexOf(_h) >= 0) API_BASE = _h; } catch (e) {}
 async function apiFetch(path, opts) {
-  /* Все хосты пробуем ПАРАЛЛЕЛЬНО: отвечает тот, который доступен.
-     Телефон часто не видит один из адресов (Cloudflare-домен режется сетью),
-     поэтому последовательный перебор с таймаутом давал «нет связи». */
-  return new Promise(function (resolve, reject) {
-    const hosts = API_HOSTS.slice();
-    let done = false, left = hosts.length, lastErr = null;
-    if (!left) { reject(new Error('нет связи')); return; }
-    const timers = [];
-    const stop = function () { for (let t = 0; t < timers.length; t++) clearTimeout(timers[t]); };
-    hosts.forEach(function (host) {
-      let ctrl = null;
-      try { ctrl = new AbortController(); } catch (e) {}
-      const timer = setTimeout(function () { try { if (ctrl) ctrl.abort(); } catch (e) {} }, 20000);
-      timers.push(timer);
-      const o = Object.assign({}, opts || {});
-      if (ctrl && ctrl.signal) o.signal = ctrl.signal;
-      fetch(host + path, o).then(function (r) {
-        if (done) return;
-        if (!r.ok) {
-          lastErr = new Error('HTTP ' + r.status);
-          if (--left <= 0) { stop(); reject(lastErr); }
-          return;
-        }
-        done = true; stop();
-        API_BASE = host;
-        try { localStorage.setItem('tingli-apihost-v1', host); } catch (e) {}
-        resolve(r);
-      }).catch(function (e) {
-        if (done) return;
-        lastErr = e;
-        if (--left <= 0) { stop(); reject(lastErr || new Error('нет связи')); }
-      });
-    });
-  });
+  const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const host=/^\/api\/(push\/|tingli-check|tingli-speak)/.test(path)?'https://tingli-api.crmuro.ru':API_BASE;
+    const r = await fetch(host + path, Object.assign({}, opts || {}, {cache:'no-store', signal:ctrl.signal}));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r;
+  } finally { clearTimeout(timer); }
+}
+async function syncRequest(path, opts) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const r = await fetch('https://api.crmuro.ru' + path, Object.assign({}, opts || {}, {
+      cache:'no-store', signal:ctrl.signal, headers:{'Content-Type':'text/plain;charset=UTF-8'}
+    }));
+    const data = await r.json();
+    if (!r.ok && r.status !== 409) throw new Error('HTTP ' + r.status);
+    return Object.assign({}, data, {status:r.status});
+  } finally { clearTimeout(timer); }
 }
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
@@ -31040,150 +31025,67 @@ document.addEventListener('click', function (e) {
 /* ===== Экраны ===== */
 
 // ---- облачный бэкап прогресса (авто) ----
-let backupTimer = null;
 let initialSyncComplete = false;
 let recoveryMode = null;
-let syncDirty = {};
-let PUSH_LOCK = false; /* 07.10.2026: замок снят. Он же стал причиной потери ДЗ: ответы не уходили в облако, а #cloudwins затирал локаль. */
+let PUSH_LOCK = false;
+const TINGLI_NOSYNC = { 'tingli-apihost-v1':1,'tingli-sync-err-v1':1,'tingli-gist-token':1,'tingli-push-enable-error-v1':1,'tingli-sched-clean-v2':1,'tingli-sched-cloudwins-v1':1,'tingli-repair-history-515':1,'tingli-repair-hwdue-516':1,'tingli-diag-report':1 };
+function tingliSyncKey(k) {
+  return !!k && k.indexOf('tingli-') === 0 && !TINGLI_NOSYNC[k]
+    && !/token|secret|password|passwd|auth|credential|vapid|private/i.test(k)
+    && !/^tingli-(sync-v2|conflicts-v2|safety-backup-|zz-|diag)/.test(k);
+}
 function isUnlockMode(){ return /[#?]unlock\b/.test(location.href); }
-const TINGLI_NOSYNC = { 'tingli-apihost-v1':1,'tingli-sync-err-v1':1,'tingli-gist-token':1,'tingli-push-enable-error-v1':1,'tingli-sched-clean-v2':1,'tingli-sched-cloudwins-v1':1,'tingli-repair-history-515':1,'tingli-repair-hwdue-516':1 };
-function tingliSyncKey(k){ return !!k && k.indexOf('tingli-')===0 && !TINGLI_NOSYNC[k] && k.indexOf('tingli-safety-backup-')!==0 && k.indexOf('tingli-zz-')!==0; }
 function isCanonicalMode(){ return /[#?]canonical\b/.test(location.href); }
 function isCloudWinsMode(){ return /[#?]cloudwins\b/.test(location.href); }
-function saveLocal(k, v) {
-  try { localStorage.setItem(k, v); } catch (e) {}
-  scheduleBackup(k);
-}
-function scheduleBackup(key) {
-  if (key) syncDirty[key] = true;
-  if (backupTimer) clearTimeout(backupTimer);
-  backupTimer = setTimeout(sendBackup, 1200);
-}
-// merge-sensitive ключи (manual/progress/favs/dict): перед записью сначала remote, потом union
-function mergeUserKey(k, localStr, remoteStr) {
-  let lv, rv;
-  try { lv = JSON.parse(localStr); } catch (e) { return null; }
-  try { rv = JSON.parse(remoteStr); } catch (e) { return null; }
-  let nv = null;
-  if (k === 'tingli-progress-v1') nv = mergeProgress(lv || {}, rv || {});
-  else if (k === 'tingli-manual-v1') nv = mergeMan(lv || {}, rv || {});
-  else if (k === 'tingli-favs-v1') nv = Array.from(new Set([...(Array.isArray(lv) ? lv : []), ...(Array.isArray(rv) ? rv : [])]));
-  else if (k === 'tingli-dict-v1') { const seen = new Set((Array.isArray(lv) ? lv : []).map(function (w) { return w && w.zh; })); nv = (Array.isArray(lv) ? lv : []).concat((Array.isArray(rv) ? rv : []).filter(function (w) { return !seen.has(w && w.zh); })); }
-  if (nv === null) return null;
-  const ns = JSON.stringify(nv);
-  if (ns !== localStorage.getItem(k)) { try { localStorage.setItem(k, ns); } catch (e) {} }
-  return ns;
-}
-async function sendBackup() {
-  if (!initialSyncComplete || PUSH_LOCK) return; // до первого pull и до миграции — не пушим
-  const dirty = Object.keys(syncDirty);
-  syncDirty = {};
-  if (!dirty.length) return;
-  const payload = {};
-  for (let i = 0; i < dirty.length; i++) {
-    const k = dirty[i];
-    if (!tingliSyncKey(k) || k === 'tingli-schedule-v1') continue; // расписание — отдельно, через crsCloudPush
-    const v = localStorage.getItem(k);
-    if (v !== null) payload[k] = v;
+function localKeys() { const keys=[]; for(let i=0;i<localStorage.length;i++) keys.push(localStorage.key(i)); return keys; }
+function saveLocal(k,v) { localStorage.setItem(k,v); scheduleBackup(k); }
+function scheduleBackup(key) { if (!key || tingliSyncKey(key)) tingliSync.mark(); }
+function initialTingliMerge(k, local, remote) {
+  if (k === 'tingli-schedule-v1') return JSON.stringify(CrmSyncCore.mergeSchedule(JSON.parse(remote), JSON.parse(local)));
+  if (k === 'tingli-manual-v1') return JSON.stringify(mergeMan(JSON.parse(local), JSON.parse(remote)));
+  if (k === 'tingli-progress-v1') return JSON.stringify(mergeProgress(JSON.parse(local), JSON.parse(remote)));
+  if (k === 'tingli-favs-v1') return JSON.stringify([...new Set([...JSON.parse(local), ...JSON.parse(remote)])]);
+  if (k === 'tingli-dict-v1') {
+    const map=new Map(); JSON.parse(remote).concat(JSON.parse(local)).forEach(w=>map.set(w.zh,w));
+    return JSON.stringify([...map.values()]);
   }
-  const keys = Object.keys(payload);
-  if (!keys.length) return;
-  try {
-    const mergeKeys = ['tingli-manual-v1', 'tingli-progress-v1', 'tingli-favs-v1', 'tingli-dict-v1'];
-    const needRemote = keys.filter(function (k) { return mergeKeys.indexOf(k) >= 0; });
-    if (needRemote.length) {
-      const rr = await apiFetch('/api/backup?keys=' + encodeURIComponent(needRemote.join(',')));
-      if (rr && rr.ok) {
-        const rj = await rr.json();
-        if (rj && rj.values) {
-          for (let i = 0; i < needRemote.length; i++) {
-            const k = needRemote[i];
-            if (typeof rj.values[k] === 'string' && typeof payload[k] === 'string') {
-              const m = mergeUserKey(k, payload[k], rj.values[k]);
-              if (m !== null) payload[k] = m;
-            }
-          }
-        }
-      }
-    }
-  } catch (e) {}
-  try { await apiFetch('/api/backup', { method: 'POST', body: JSON.stringify(payload) }); } catch (e) {}
-}
-// ---- режим «это устройство — эталон» (запуск на телефоне): облако = локальное, без merge ----
-async function canonicalUpload() {
-  recoveryMode = 'canonical';
-  try {
-    // safety backup текущего облака
-    try {
-      const lr = await apiFetch('/api/backup?list=1');
-      if (lr && lr.ok) {
-        const lj = await lr.json();
-        const names = ((lj && lj.keys) || []).filter(tingliSyncKey);
-        const snap = {};
-        for (let i = 0; i < names.length; i += 60) {
-          const rr = await apiFetch('/api/backup?keys=' + encodeURIComponent(names.slice(i, i + 60).join(',')));
-          if (rr && rr.ok) { const rj = await rr.json(); if (rj && rj.values) Object.assign(snap, rj.values); }
-        }
-        try { await apiFetch('/api/backup', { method: 'POST', body: JSON.stringify({ ['tingli-safety-backup-' + Date.now()]: JSON.stringify(snap) }) }); } catch (e) {}
-      }
-    } catch (e) {}
-    const data = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (tingliSyncKey(k)) data[k] = localStorage.getItem(k);
-    }
-    // ?force=1 — эталонная запись: входящее заменяет облако без union-слияния
-    await apiFetch('/api/backup?force=1', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(data) });
-    syncToast('✅ Эталон загружен: ' + Object.keys(data).length + ' ключей');
-  } catch (e) {
-    syncToast('⚠️ Не удалось загрузить эталон: нет связи');
-  } finally {
-    initialSyncComplete = true;
-    recoveryMode = null;
+  if (/^tingli-hwmeta-/.test(k)) {
+    const l=JSON.parse(local), r=JSON.parse(remote);
+    return JSON.stringify(Object.assign({},r,l,{done:!!(l.done||r.done),submitted:Math.max(+l.submitted||0,+r.submitted||0)}));
   }
+  return local || remote;
 }
-// ---- режим «облако побеждает» (запуск на компьютере): локальное = облако, без merge ----
-async function cloudWinsRestore() {
-  recoveryMode = 'cloudwins';
-  try {
-    const lr = await apiFetch('/api/backup?list=1');
-    if (!lr || !lr.ok) { syncToast('⚠️ Нет связи с облаком'); return; }
-    const lj = await lr.json();
-    const names = ((lj && lj.keys) || []).filter(tingliSyncKey);
-    const cloud = {};
-    for (let i = 0; i < names.length; i += 60) {
-      const rr = await apiFetch('/api/backup?keys=' + encodeURIComponent(names.slice(i, i + 60).join(',')));
-      if (rr && rr.ok) { const rj = await rr.json(); if (rj && rj.values) Object.assign(cloud, rj.values); }
-    }
-    // СНАЧАЛА страхуем локальное состояние в облако, потом заменяем.
-    // Раньше здесь был полный wipe — и он стёр несинхронизированные ответы на ДЗ.
-    const localSnap = {};
-    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (tingliSyncKey(k)) localSnap[k] = localStorage.getItem(k); }
-    if (Object.keys(localSnap).length) {
-      try { await apiFetch('/api/backup', { method: 'POST', body: JSON.stringify({ ['tingli-safety-backup-' + Date.now()]: JSON.stringify(localSnap) }) }); } catch (e) {}
-    }
-    let n = 0, kept = 0;
-    for (const k in cloud) { if (tingliSyncKey(k)) { try { localStorage.setItem(k, cloud[k]); } catch (e) {} n++; } }
-    // локальные ключи, которых нет в облаке, НЕ удаляем — это может быть несохранённая работа
-    for (const k in localSnap) { if (!(k in cloud)) kept++; }
-    prog = load(); man = loadMan();
-    if (typeof crsCache !== 'undefined') { crsCache = null; try { crsStore(); } catch (e) {} }
-    syncToast('☁️ Из облака: ' + n + ' ключей' + (kept ? ', локальных сохранено: ' + kept : ''));
-    const cur = typeof tab !== 'undefined' ? tab : 'lessons';
-    if (cur === 'sched') { try { renderCourses(); } catch (e) {} }
-    else if (cur === 'lessons') { try { renderUnits(); } catch (e) {} }
-    else if (cur === 'mine') { try { renderMine(); } catch (e) {} }
-    else if (cur === 'idv') { try { renderIdv(); } catch (e) {} }
-    else if (cur === 'team') { try { renderTeam(); } catch (e) {} }
-    else if (cur === 'favs') { try { renderFavs(); } catch (e) {} }
-    else { try { renderDict(); } catch (e) {} }
-  } catch (e) {
-    syncToast('⚠️ Не удалось восстановить из облака');
-  } finally {
-    initialSyncComplete = true;
-    recoveryMode = null;
-  }
+function keepSyncConflict(k, local, remote) {
+  if (!/^tingli-(hw-|due-|record)/.test(k) || local===remote) return;
+  const key='tingli-conflicts-v2', list=JSON.parse(localStorage.getItem(key)||'[]');
+  if (list.some(x=>x.key===k&&x.local===local&&x.remote===remote)) return;
+  list.push({key:k,local:local,remote:remote,ts:Date.now()});
+  localStorage.setItem(key,JSON.stringify(list));
 }
+let syncPaintTimer = null;
+function tingliSyncChanged(k) {
+  if (k === LS) prog=load();
+  if (k === LS_MAN) man=loadMan();
+  if (k === 'tingli-schedule-v1') crsCache=null;
+  clearTimeout(syncPaintTimer);
+  syncPaintTimer=setTimeout(()=>{
+    // Never recreate a textarea while the user is typing an answer.
+    if (document.activeElement && /^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName)) return;
+    if (curUnit && curPart) { if (curPart.kind==='hw') renderHw(curUnit,curPart); return; }
+    refreshAfterMan();
+  },100);
+}
+const tingliSync = CrmSyncCore.create({
+  stateKey:'tingli-sync-v2', storage:localStorage, keys:localKeys, allowed:tingliSyncKey,
+  get:k=>localStorage.getItem(k), set:(k,v)=>localStorage.setItem(k,v),
+  request:syncRequest, initialMerge:initialTingliMerge, conflict:keepSyncConflict,
+  changed:tingliSyncChanged, status:(s,e)=>crsSaveStatus(s,e)
+});
+function sendBackup() { return tingliSync.run(); }
+// Old recovery links now use the same non-destructive protocol as normal startup.
+function canonicalUpload() { return tingliSync.run(); }
+function cloudWinsRestore() { return tingliSync.run(); }
+
 // ---- облачный синк прогресса (merge при старте) ----
 function mergeProgress(a, b) {
   const out = {};
@@ -31223,81 +31125,8 @@ function syncToast(msg) {
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2600);
 }
-async function restoreCoreData() {
-  try {
-    // Безопасная выдача: сначала имена безопасных ключей, затем их значения поштучно.
-    const lr = await apiFetch('/api/backup?list=1');
-    if (!lr.ok) return;
-    const lj = await lr.json();
-    const names = (lj && Array.isArray(lj.keys) && lj.keys) || [];
-    if (!names.length) return;
-    const cloud = {};
-    const CHUNK = 60;
-    for (let i = 0; i < names.length; i += CHUNK) {
-      const rr = await apiFetch('/api/backup?keys=' + encodeURIComponent(names.slice(i, i + CHUNK).join(',')));
-      if (!rr.ok) continue;
-      const rj = await rr.json();
-      if (rj && rj.values) Object.assign(cloud, rj.values);
-    }
-    let changed = false;
-    // прогресс, избранное, словарь, галочки — объединяем (union, ничего не теряем)
-    for (const k of ['tingli-progress-v1', 'tingli-favs-v1', 'tingli-dict-v1', 'tingli-manual-v1']) {
-      if (!cloud[k]) continue;
-      let cv, lv;
-      try { cv = JSON.parse(cloud[k]); } catch (e) { continue; }
-      try { lv = JSON.parse(localStorage.getItem(k) || ((k === 'tingli-progress-v1' || k === 'tingli-manual-v1') ? '{}' : '[]')); } catch (e) { lv = null; }
-      let nv = null;
-      if (k === 'tingli-progress-v1') nv = mergeProgress(lv || {}, cv);
-      else if (k === 'tingli-manual-v1') nv = mergeMan(lv || {}, cv);
-      else if (k === 'tingli-favs-v1') nv = Array.from(new Set([...(lv || []), ...(cv || [])]));
-      else if (k === 'tingli-dict-v1') { const seen = new Set((lv || []).map(w => w.zh)); nv = (lv || []).concat((cv || []).filter(w => !seen.has(w.zh))); }
-      const ns = JSON.stringify(nv);
-      if (localStorage.getItem(k) !== ns) { try { localStorage.setItem(k, ns); } catch (e) {} changed = true; }
-    }
-    // прочие безопасные tingli-* ключи облака — подтягиваем, если локально их нет.
-    // Расписание сюда НЕ входит — его тянет restoreSchedule() отдельно.
-    for (const k in cloud) {
-      if (!tingliSyncKey(k) || k === CRS_LS) continue;
-      const local = localStorage.getItem(k);
-      if (local === null) { try { localStorage.setItem(k, cloud[k]); } catch (e) {} changed = true; continue; }
-      // Отметка о сдаче ДЗ: облачное done/submitted сильнее локального «не сделано».
-      // Раньше застрявший локальный {"done":false} не исправлялся никогда.
-      if (k.indexOf('tingli-hwmeta-') === 0) {
-        let lv = null, cv = null;
-        try { lv = JSON.parse(local); } catch (e) {}
-        try { cv = JSON.parse(cloud[k]); } catch (e) {}
-        if (lv && cv && !lv.done && (cv.done || cv.submitted)) {
-          const nv = Object.assign({}, lv, cv);
-          nv.done = true;
-          nv.submitted = Math.max(+lv.submitted || 0, +cv.submitted || 0);
-          try { localStorage.setItem(k, JSON.stringify(nv)); } catch (e) {}
-          changed = true;
-        }
-      }
-    }
-    if (!changed) return;
-    prog = load(); man = loadMan();
-    syncToast('☁️ Прогресс синхронизирован');
-    const cur = typeof tab !== 'undefined' ? tab : 'lessons';
-    if (cur === 'sched') renderCourses();
-    else if (cur === 'lessons') renderUnits(); else if (cur === 'mine') renderMine();
-    else if (cur === 'idv') renderIdv(); else if (cur === 'team') renderTeam(); else if (cur === 'favs') renderFavs();
-    else renderDict();
-  } catch (e) {}
-}
-// Расписание: pull → merge → локально (без push). push только после initialSyncComplete.
-async function restoreSchedule() {
-  if (recoveryMode) return;
-  const local = crsStore();
-  const raw = await crsFetchSchedule();
-  if (!raw) return;
-  let rem = null; try { rem = JSON.parse(raw); } catch (e) { return; }
-  const merged = crsMerge(rem, local);
-  crsCache = merged;
-  try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
-  crsEnsureTestMaterial();
-  try { crsPaint(false); } catch (e) {}
-}
+function restoreCoreData() { return tingliSync.run(); }
+function restoreSchedule() { return tingliSync.run(); }
 
 // ---- диагностика (#diag): отправляет состояние устройства в облако ----
 function tingliLocalStat() {
@@ -31346,15 +31175,17 @@ async function tingliDiag() {
 
 // Единая оркестрация старта: без параллельных sync.
 async function startup() {
-  if (isUnlockMode()) PUSH_LOCK = false;
-  try {
-    if (isCanonicalMode()) { await canonicalUpload(); }
-    else if (isCloudWinsMode()) { await cloudWinsRestore(); }
-    else { await restoreCoreData(); await restoreSchedule(); }
-  } catch (e) {}
-  initialSyncComplete = true; // только теперь разрешаем авто-push
-  if (/[#?]diag\b/.test(location.href)) { try { await tingliDiag(); } catch (e) {} }
+  const ok=await tingliSync.run(); initialSyncComplete=ok;
+  if (/[#?]diag\b/.test(location.href)) await tingliDiag();
 }
+window.addEventListener('online',()=>tingliSync.run());
+window.addEventListener('focus',()=>tingliSync.run());
+window.addEventListener('storage',e=>{
+  if(e.key&&tingliSyncKey(e.key)){ tingliSyncChanged(e.key); tingliSync.mark(); }
+});
+document.addEventListener('visibilitychange',()=>tingliSync.run());
+window.addEventListener('pagehide',()=>tingliSync.run());
+
 
 function renderUnits() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
@@ -31543,7 +31374,10 @@ function cidianSend(items, label) {
     added++;
   });
   try { localStorage.setItem(CIDIAN_INBOX, JSON.stringify(q)); } catch (e) {}
-  try { apiFetch('/api/cidian-inbox', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(q) }); } catch (e) {}
+  // Durable outgoing words use the same retryable sync as homework/progress.
+  const outbox=JSON.parse(localStorage.getItem('tingli-cidian-outbox-v2')||'{}');
+  q.forEach(item=>{outbox[item.hanzi]=item;});
+  saveLocal('tingli-cidian-outbox-v2',JSON.stringify(outbox));
   return { added: added, dup: dup, total: q.length };
 }
 function cidianToast(msg) {
@@ -33129,80 +32963,11 @@ function crsSave(o, quiet) {
 function crsUid(p) { return (p || 'e') + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
 /* ---------- сеть: облачная копия ---------- */
-const CRS_API = (function () {
-  const h = location.hostname;
-  if (/crmuro\.ru$/i.test(h)) return ['https://api.crmuro.ru/api', 'https://tingli-api.crmuro.ru/api'];
-  return ['/api', 'https://api.crmuro.ru/api', 'https://tingli-api.crmuro.ru/api'];
-  /* служебный адрес Cloudflare больше не используем: у домашнего DNS он не резолвится */
-})();
-
-/* ---------- Gist sync полностью отключён (05.10.2026) — расписание только через Cloudflare backend ---------- */
+const CRS_API = ['https://api.crmuro.ru/api'];
 function crsGistOn() { return false; }
-let crsApiBase = null;
-function crsApi(path, opts) {
-  const order = [];
-  for (let i = 0; i < CRS_API.length; i++) order.push(i);
-  if (crsApiBase !== null && crsApiBase > 0) {
-    const k = order.indexOf(crsApiBase);
-    if (k > 0) { order.splice(k, 1); order.unshift(crsApiBase); }
-  }
-  return new Promise(function (resolve, reject) {
-    let i = 0;
-    const tryNext = function (lastErr) {
-      if (i >= order.length) { reject(lastErr || new Error('Нет связи')); return; }
-      const base = CRS_API[order[i++]];
-      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      let tm;
-      const timeout = new Promise(function (_, rej) {
-        tm = setTimeout(function () {
-          if (ctl) { try { ctl.abort(); } catch (e) {} }
-          rej(new Error('таймаут'));
-        }, 12000);
-      });
-      Promise.race([fetch(base + path, Object.assign({}, opts || {}, { signal: ctl ? ctl.signal : undefined })), timeout])
-        .then(function (r) { clearTimeout(tm); if (r.status === 404 || r.status === 405) return tryNext(new Error('нет пути')); crsApiBase = CRS_API.indexOf(base); resolve(r); })
-        .catch(function (e) { clearTimeout(tm); tryNext(e); });
-    };
-    tryNext();
-  });
-}
-function crsCloudSoon() {
-  if (crsPushTimer) clearTimeout(crsPushTimer);
-  crsPushTimer = setTimeout(crsCloudPush, 1500);
-}
-let crsPushBusy = false;
-async function crsCloudPush() {
-  if (!initialSyncComplete || PUSH_LOCK) return; // до первого pull и до миграции — не пушим
-  if (crsPushBusy) return;
-  crsPushBusy = true;
-  crsSaveStatus('syncing');
-  try {
-    // Работаем ТОЛЬКО с расписанием (tingli-schedule-v1). Никаких других ключей.
-    const data = {};
-    const local = localStorage.getItem(CRS_LS);
-    if (local) data[CRS_LS] = local;
-    // Перед отправкой подтягиваем серверную копию и сливаем (pull → merge → push).
-    let rs = null;
-    try {
-      const r0 = await crsApi('/backup?key=' + encodeURIComponent(CRS_LS));
-      const remote = await r0.json();
-      rs = remote && remote.ok && typeof remote.value === 'string' ? remote.value : null;
-    } catch (e) {}
-    if (rs) {
-      const mine = JSON.parse(data[CRS_LS] || '{}');
-      const merged = crsMerge(JSON.parse(rs), mine);
-      data[CRS_LS] = JSON.stringify(merged);
-      crsCache = merged;
-      try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
-      try { crsPaint(); } catch (e) {}
-    }
-    if (data[CRS_LS]) {
-      await crsApi('/backup', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(data) });
-    }
-    crsSaveStatus('saved');
-  } catch (e) { crsSaveStatus('offline', (e && (e.message || e.name)) || 'ошибка сети'); }
-  crsPushBusy = false;
-}
+function crsApi(path,opts) { return apiFetch('/api'+path,opts); }
+function crsCloudSoon() { tingliSync.mark(); }
+function crsCloudPush() { return tingliSync.run(); }
 function crsCopy(text, label) {
   const done = function () { crsToast((label || 'Скопировано') + ': ' + text); };
   const fallback = function () {
@@ -33217,58 +32982,7 @@ function crsCopy(text, label) {
   } catch (e) {}
   fallback();
 }
-function crsMerge(a, b) {                    // объединение без дублей, свежая правка побеждает
-  const out = Object.assign({}, a);
-  const keys = ['lessons', 'series', 'hw', 'payments'];
-  keys.forEach(function (g) {
-    out[g] = Object.assign({}, a[g] || {});
-    const B = b[g] || {};
-    Object.keys(B).forEach(function (id) {
-      const x = out[g][id], y = B[id];
-      if (!x) { out[g][id] = y; return; }
-      if ((y.upd || 0) > (x.upd || 0)) out[g][id] = y;
-    });
-  });
-  ['hwstate', 'hwdue', 'hwdel'].forEach(function (g) {
-    out[g] = Object.assign({}, a[g] || {});
-    const B = b[g] || {};
-    Object.keys(B).forEach(function (id) {
-      const x = out[g][id], y = B[id];
-      if (!x || ((y && y.upd) || 0) > ((x && x.upd) || 0)) out[g][id] = y;
-    });
-    // Явная сдача сильнее любого todo/doing, даже если «не сделано» помечено позже
-    if (g === 'hwstate') {
-      [a[g] || {}, B].forEach(function (src) {
-        Object.keys(src).forEach(function (id) {
-          const y = src[id], x = out[g][id];
-          if (y && y.state === 'done' && x && x.state !== 'done') out[g][id] = y;
-        });
-      });
-    }
-  });
-  // Отметка «Урок прошел» — отдельные данные. Раньше merge их вообще терял.
-  out.done = Object.assign({}, a.done || {});
-  Object.keys(b.done || {}).forEach(function (id) {
-    out.done[id] = Math.max(+out.done[id] || 0, +(b.done || {})[id] || 0);
-  });
-  out.rem = Object.assign({}, a.rem, b.rem);
-  out.subs = Object.assign({}, a.subs || {}, b.subs || {});
-  out.upd = Math.max(a.upd || 0, b.upd || 0);
-  // надгробия: удалённое на одном устройстве не возвращается с другого
-  out.killed = Object.assign({}, b.killed || {});
-  Object.keys(a.killed || {}).forEach(function (k) {
-    out.killed[k] = Math.max(a.killed[k] || 0, (b.killed || {})[k] || 0);
-  });
-  Object.keys(out.killed).forEach(function (k) {
-    if (out.lessons[k] && out.killed[k] >= (out.lessons[k].upd || 0)) delete out.lessons[k];
-    if (out.series[k] && out.killed[k] >= (out.series[k].upd || 0)) delete out.series[k];
-  });
-  Object.keys(out.lessons || {}).forEach(function (id) {
-    const m = /^s:([^:]+):/.exec(id);
-    if (m && out.killed[m[1]] && out.killed[m[1]] >= ((out.lessons[id] || {}).upd || 0)) delete out.lessons[id];
-  });
-  return out;
-}
+function crsMerge(a,b) { return CrmSyncCore.mergeSchedule(a,b); }
 function crsDelete(evId, scope) {
   const st = crsStore();
   st.killed = st.killed || {};
@@ -33296,78 +33010,15 @@ function crsNoteErr(x) {
 function crsFetchSchedule() {
   return crsCloudFetchSchedule();
 }
-function crsCloudFetchSchedule() {
-  /* тянем ТОЛЬКО расписание — маленький ответ, с повторами */
-  return new Promise(function (resolve) {
-    let tries = 0;
-    const attempt = function () {
-      tries++;
-      let ctl = null, tm = null;
-      const opts = { cache: 'no-store' };
-      try { ctl = new AbortController(); opts.signal = ctl.signal; tm = setTimeout(function () { ctl.abort(); }, 4000); } catch (e) {}
-      crsApi('/backup?key=' + encodeURIComponent(CRS_LS), opts)
-        .then(function (r) {
-          if (!r.ok) { crsNoteErr('HTTP ' + r.status + ' ' + r.url); }
-          return r.json();
-        })
-        .then(function (j) {
-          if (tm) clearTimeout(tm);
-          if (j && j.ok && typeof j.value === 'string' && j.value) { crsLastErr = ''; resolve(j.value); return; }
-          crsNoteErr('ответ без расписания: ' + JSON.stringify(j).slice(0, 120));
-          resolve(null);
-        })
-        .catch(function (e) {
-          if (tm) clearTimeout(tm);
-          crsNoteErr((e && e.name === 'AbortError') ? 'таймаут' : ((e && e.message) || e));
-          if (tries < 3) setTimeout(attempt, 700); else resolve(null);
-        });
-    };
-    attempt();
-  });
-}
-let crsPullBusy = false;
-function crsRetry() {
-  crsPullBusy = false; crsPullOnce = false;
-  try { renderCourses(); } catch (e) {}
-  crsCloudPull();
-}
-async function crsCloudPull() {
-  if (recoveryMode) return; // во время восстановления не сливаем
-  if (crsPullBusy || crsPullOnce) return;
-  crsPullBusy = true;
-  crsSaveStatus('syncing');
-  const local = crsStore();
+async function crsCloudFetchSchedule() {
   try {
-    const raw = await crsFetchSchedule();
-    if (!raw) {
-      /* Нет связи — ничего не стираем, локальные данные остаются доступными. */
-      crsSaveStatus('offline', crsLastErr || undefined);
-      if (!Object.keys(local.series || {}).length) crsToast('Нет связи с облаком: ' + (crsLastErr || 'неизвестно'));
-      return;
-    }
-    let rem = null; try { rem = JSON.parse(raw); } catch (e) { rem = null; }
-    if (!rem) return;
-    const merged = crsMerge(rem, local);
-    const changedLocal = JSON.stringify(merged) !== JSON.stringify(local);
-    const changedRemote = JSON.stringify(merged) !== JSON.stringify(rem);
-    crsCache = merged;
-    try { localStorage.setItem(CRS_LS, JSON.stringify(merged)); } catch (e) {}
-    crsPullOnce = true;
-    crsEnsureTestMaterial();
-    if (changedLocal || changedRemote) {
-      try { crsPaint(false); } catch (e) {}
-      crsCloudPush().then(function () { try { crsPushRefreshSoon(); } catch (e) {} });
-    } else {
-      crsSaveStatus('saved');
-      try { crsPushRefreshSoon(); } catch (e) {}
-    }
-  } catch (e) {
-    crsSaveStatus('offline');
-  } finally {
-    crsPullBusy = false;
-    initialSyncComplete = true;
-  }
+    const j=await syncRequest('/api/sync?keys='+encodeURIComponent(CRS_LS));
+    return j.ok&&j.records[CRS_LS]?j.records[CRS_LS].value:null;
+  } catch(e) { crsNoteErr(e.message); return null; }
 }
+let crsPullBusy=false;
+function crsRetry() { return tingliSync.run(); }
+function crsCloudPull() { return tingliSync.run(); }
 function crsSaveStatus(s, detail) {
   const n = document.getElementById('crsSave');
   if (!n) return;
@@ -35158,7 +34809,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'gist-24';
+  const SW_BUILD = 'sync-5.60.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
