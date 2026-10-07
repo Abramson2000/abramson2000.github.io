@@ -10,9 +10,9 @@ shared=[hashlib.sha256((root/p).read_bytes()).hexdigest() for p in ['tingli/sync
 assert len(set(shared))==1,'client/server protocol mismatch'
 assert "APP_VER = '5.64.0'" in (root/'tingli/index.html').read_text()
 assert 'tingli-cache-v5640-full' in (root/'tingli/sw.js').read_text()
-assert "VERSION='2.15.0'" in (root/'cidian/app.js').read_text()
-assert "const V = '2.15.0'" in (root/'cidian/sw.js').read_text()
+assert "VERSION='2.15.1'" in (root/'cidian/app.js').read_text()
+assert "const V = '2.15.1'" in (root/'cidian/sw.js').read_text()
 print('All script syntax, protocol copies and release versions OK')
 
-for a,b in [('cidian/app.js','cidian/app.2.15.0.js'),('cidian/sw.js','cidian/sw.2.15.0.js'),('cidian/word-sync.js','cidian/word-sync.2.15.0.js'),('cidian/word-sync.js','tingli/word-sync.js'),('tingli/word-sync.js','tingli/word-sync.5.64.0.js')]:
+for a,b in [('cidian/app.js','cidian/app.2.15.1.js'),('cidian/sw.js','cidian/sw.2.15.1.js'),('cidian/word-sync.js','cidian/word-sync.2.15.1.js'),('cidian/word-sync.js','tingli/word-sync.js'),('tingli/word-sync.js','tingli/word-sync.5.64.0.js')]:
     assert (root/a).read_bytes()==(root/b).read_bytes(),f'{a} differs from {b}'
