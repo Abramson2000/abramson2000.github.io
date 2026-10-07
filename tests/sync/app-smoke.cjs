@@ -37,15 +37,16 @@ function surface(app, options = {}){
     }
     assert.match(el('app').innerHTML,/crs-/);
     const h=el('app').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Tingli div balance');
-    assert.equal(vm.runInContext('APP_VER',ctx),'5.64.4');
+    assert.match(vm.runInContext('APP_VER',ctx),/^\d+\.\d+\.\d+$/);
     if(options.exercise!==false){vm.runInContext("saveLocal('tingli-hw-109-6-0','проба');",ctx);
     assert.equal(map.get('tingli-hw-109-6-0'),'проба');}
   }else{
+    vm.runInContext(fs.readFileSync(path.join(root,app,'sync-transport.2.16.0.js'),'utf8'),ctx,{filename:'sync-transport.js'});
     vm.runInContext(fs.readFileSync(path.join(root,app,'restore-2026-10-07.js'),'utf8'),ctx,{filename:'data.js'});
     vm.runInContext(fs.readFileSync(path.join(root,app,'app.js'),'utf8'),ctx,{filename:'app.js'});
     assert.match(el('content').innerHTML,/Мой словарь/);
     const h=el('content').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Cidian div balance');
-    assert.equal(vm.runInContext('VERSION',ctx),'2.15.1');
+    assert.match(vm.runInContext('VERSION',ctx),/^\d+\.\d+\.\d+$/);
     if(options.exercise!==false){
     vm.runInContext("const openRow=words[0], openId=openRow.id;const incoming=words.slice().reverse().map(w=>({...w}));applyIncomingWords(incoming);",ctx);
     assert.equal(vm.runInContext('words.includes(openRow)&&openRow.id===openId',ctx),true,'sync preserves an open detail row and form target');

@@ -1,9 +1,9 @@
 /* Tingli — офлайн-кэш приложения.
    HTML — сеть вперёд (чтобы обновления приходили), остальное из кэша.
    Запросы к облаку (другой домен) не трогаем вообще. */
-const CACHE = 'tingli-cache-v5660-full';
+const CACHE = 'tingli-cache-v5670-full';
 const CORE_ASSETS = [
-  './', './index.html', './sync-check.html', './sync-check.js?v=1', './manifest.json', './sync-core.js?v=5.64.0', './word-sync.5.64.0.js',
+  './', './index.html', './sync-check.html', './sync-check.js?v=2', './sync-transport.5.67.0.js', './manifest.json', './sync-core.js?v=5.64.0', './word-sync.5.64.0.js',
   './fonts/zhimang-course.ttf', './fonts/simsun-subset.woff2', './fonts/xiaoshan-title.woff2',
   './bg.jpg', './logo.png', './sched-logo.png',
   './tingli-icon-180-v3.png', './tingli-icon-192-v3.png', './tingli-icon-512-v3.png',
@@ -14,6 +14,8 @@ const CORE_ASSETS = [
   './tab-tuan.png', './tab-tuan-off.png', './tab-yu.png', './tab-yu-off.png',
   './tab-yin.png', './tab-yin-off.png'
 ];
+const REQUIRED_ASSETS = ['./index.html', './sync-transport.5.67.0.js',
+  './sync-core.js?v=5.64.0', './word-sync.5.64.0.js'];
 
 /* Динамически собираем полный список файлов для офлайн-скачивания.
    Парсим index.html, вытаскиваем audio/*.mp3 и все PNG/SVG/JPG. */
@@ -53,7 +55,11 @@ async function gatherAllAssets() {
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
-    return Promise.all(CORE_ASSETS.map(function (u) { return c.add(new Request(u, { cache: 'reload' })).catch(function () {}); }));
+    return Promise.all(CORE_ASSETS.map(function (u) { return c.add(new Request(u, { cache: 'reload' })).catch(function () {}); })).then(function () {
+      return Promise.all(REQUIRED_ASSETS.map(async function (u) {
+        if (!(await c.match(u))) throw new Error('tingli shell missing ' + u);
+      }));
+    });
   }).then(function () { return self.skipWaiting(); }));
 });
 
@@ -71,12 +77,13 @@ self.addEventListener('fetch', function (e) {
   if (u.origin !== self.location.origin) return;
   const isHtml = req.mode === 'navigate' || /\.html?$/.test(u.pathname) || u.pathname.endsWith('/');
   if (isHtml) {
+    const cacheKey = u.pathname.endsWith('/sync-check.html') ? './sync-check.html' : './index.html';
     e.respondWith(
       fetch(req).then(function (res) {
         const cp = res.clone();
-        caches.open(CACHE).then(function (c) { c.put('./index.html', cp); });
+        if (res.ok) caches.open(CACHE).then(function (c) { c.put(cacheKey, cp); });
         return res;
-      }).catch(function () { return caches.match('./index.html'); })
+      }).catch(function () { return caches.match(cacheKey); })
     );
     return;
   }

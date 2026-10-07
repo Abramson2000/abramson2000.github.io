@@ -2,12 +2,12 @@ const test=require('node:test'),assert=require('node:assert/strict'),vm=require(
 const {surface}=require('./app-smoke.cjs');
 const ev=(s,j)=>vm.runInContext(j,s.ctx);
 function cloud(){
- const rows=new Map(),revs=new Map(),posts=[];let fail=false;
+ const rows=new Map(),revs=new Map(),posts=[];let fail=0;
  const fetch=async(url,opts={})=>{
   const u=new URL(url);let j,status=200;
   if(opts.method==='POST'){
    const p=JSON.parse(opts.body);posts.push(p);
-   if(p.key==='cidian-data-v3'||fail){fail=false;throw Error('large transfer blocked');}
+   if(p.key==='cidian-data-v3'||fail){if(fail)fail--;throw Error('large transfer blocked');}
    const old=rows.get(p.key)??null;
    if(old!==p.base){status=409;j={ok:false,value:old,rev:revs.get(p.key)||0};}
    else{rows.set(p.key,p.value);revs.set(p.key,(revs.get(p.key)||0)+1);j={ok:true,value:p.value,rev:revs.get(p.key)};}
@@ -18,7 +18,7 @@ function cloud(){
   }else j={ok:false};
   return new Response(JSON.stringify(j),{status});
  };
- return {rows,posts,fetch,failNext(){fail=true;}};
+ return {rows,posts,fetch,failNext(){fail=2;}};
 }
 test('manual form word reaches an independent phone even when full dictionary requests fail',async()=>{
  const c=cloud(),a=surface('cidian',{exercise:false,quiet:true,fetch:c.fetch}),b=surface('cidian',{exercise:false,quiet:true,fetch:c.fetch});

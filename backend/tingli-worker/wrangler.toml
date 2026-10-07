@@ -2,6 +2,7 @@ name = "crmuro-ru-api"
 account_id = "b838a60f5d32401754de0b1236134221"
 main = "worker.js"
 compatibility_date = "2026-10-06"
+workers_dev = true
 
 # Единственный источник данных для обоих приложений; DNS сайта не изменяется.
 routes = [
