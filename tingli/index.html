@@ -30780,7 +30780,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.59.6';
+const APP_VER = '5.59.7';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = ['https://api.crmuro.ru', 'https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
 let API_BASE = API_HOSTS[0];
@@ -31298,6 +31298,42 @@ async function restoreSchedule() {
   crsEnsureTestMaterial();
   try { crsPaint(false); } catch (e) {}
 }
+
+// ---- диагностика (#diag): отправляет состояние устройства в облако ----
+function tingliLocalStat() {
+  const out = { keys: 0, manualUnits: 0, manualParts: 0, progItems: 0, progDone: 0, hwmeta: 0, hwmetaDone: 0, hwAnswers: 0, hwAnswersFilled: 0 };
+  try {
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (tingliSyncKey(k)) out.keys++; }
+    const m = localStorage.getItem('tingli-manual-v1');
+    if (m) { const o = JSON.parse(m) || {}; Object.keys(o).forEach(function (u) { const v = o[u] || {}; if (v.u === 1) out.manualUnits++; const p = v.p || {}; Object.keys(p).forEach(function (x) { if (p[x] === 1) out.manualParts++; }); }); }
+    const pr = localStorage.getItem('tingli-progress-v1');
+    if (pr) { const o = JSON.parse(pr) || {}; Object.keys(o).forEach(function (u) { const parts = o[u] || {}; Object.keys(parts).forEach(function (pt) { const arr = parts[pt] || {}; Object.keys(arr).forEach(function (it) { out.progItems++; if (arr[it] === true) out.progDone++; }); }); }); }
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k) continue;
+      if (k.indexOf('tingli-hwmeta-') === 0) { out.hwmeta++; try { if (JSON.parse(localStorage.getItem(k) || '{}').done) out.hwmetaDone++; } catch (e) {} }
+      if (k.indexOf('tingli-hw-') === 0 && k.indexOf('tingli-hwmeta-') !== 0) { out.hwAnswers++; if ((localStorage.getItem(k) || '').trim()) out.hwAnswersFilled++; }
+    }
+  } catch (e) {}
+  return out;
+}
+async function tingliDiag() {
+  const rep = { ver: APP_VER, url: location.href, hostname: location.hostname, apiBase: API_BASE, ts: Date.now() };
+  try { rep.local = tingliLocalStat(); } catch (e) { rep.local = 'err'; }
+  try {
+    const lr = await apiFetch('/api/backup?list=1');
+    rep.cloudKeys = lr && lr.ok ? ((await lr.json()).keys || []).length : -1;
+    const rr = await apiFetch('/api/backup?keys=' + encodeURIComponent('tingli-manual-v1,tingli-progress-v1,tingli-schedule-v1'));
+    if (rr && rr.ok) {
+      const rj = await rr.json(); const v = (rj && rj.values) || {};
+      if (typeof v['tingli-manual-v1'] === 'string') { const o = JSON.parse(v['tingli-manual-v1']) || {}; let uu = 0, pp = 0; Object.keys(o).forEach(function (u) { const x = o[u] || {}; if (x.u === 1) uu++; const p = x.p || {}; Object.keys(p).forEach(function (y) { if (p[y] === 1) pp++; }); }); rep.cloudManual = { units: uu, parts: pp }; }
+      if (typeof v['tingli-progress-v1'] === 'string') { const o = JSON.parse(v['tingli-progress-v1']) || {}; let it = 0, dn = 0; Object.keys(o).forEach(function (u) { const parts = o[u] || {}; Object.keys(parts).forEach(function (pt) { const arr = parts[pt] || {}; Object.keys(arr).forEach(function (k) { it++; if (arr[k] === true) dn++; }); }); }); rep.cloudProgress = { items: it, done: dn }; }
+      if (typeof v['tingli-schedule-v1'] === 'string') { const o = JSON.parse(v['tingli-schedule-v1']) || {}; const hs = o.hwstate || {}; let dn = 0; Object.keys(hs).forEach(function (k) { if (hs[k] && hs[k].state === 'done') dn++; }); rep.cloudHwstate = { total: Object.keys(hs).length, done: dn }; }
+    }
+  } catch (e) { rep.cloudErr = String((e && e.message) || e); }
+  try { await apiFetch('/api/_report', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(rep) }); syncToast('📊 Диагностика отправлена'); } catch (e) { syncToast('⚠️ Диагностика не ушла'); }
+}
+
 // Единая оркестрация старта: без параллельных sync.
 async function startup() {
   if (isUnlockMode()) PUSH_LOCK = false;
@@ -31307,6 +31343,7 @@ async function startup() {
     else { await restoreCoreData(); await restoreSchedule(); }
   } catch (e) {}
   initialSyncComplete = true; // только теперь разрешаем авто-push
+  if (/[#?]diag\b/.test(location.href)) { try { await tingliDiag(); } catch (e) {} }
 }
 
 function renderUnits() {
@@ -35066,7 +35103,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'gist-21';
+  const SW_BUILD = 'gist-22';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
