@@ -342,7 +342,7 @@
   .tabbar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sbw); max-width: 82vw; box-shadow: 0 0 44px rgba(29,29,33,.22); background: rgba(255,255,255,.93); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-right: 1px solid rgba(29,29,33,.07); display: none; flex-direction: column; align-items: stretch; gap: 2px; padding: calc(12px + env(safe-area-inset-top)) 10px 14px; z-index: 60; overflow-y: auto; }
   .sb-brand { display: flex; align-items: center; gap: 16px; padding: 4px 8px 22px; }
   .sb-brand img { width: 61px; height: 61px; object-fit: contain; flex-shrink: 0; }
-  .sb-name { font-size: 50px; font-weight: 400; line-height: 1.1; letter-spacing: 3px; font-family: "XSHand", "TLCJK", "Zhi Mang Xing", serif; }
+  .sb-name { font-size: min(42px, 10vw); font-weight: 400; line-height: 1.1; letter-spacing: 3px; white-space: nowrap; font-family: "XSHand", "TLCJK", "Zhi Mang Xing", serif; }
   .sb-sub { font-size: 15px; color: var(--muted); font-weight: 700; letter-spacing: .2px; }
   .tab { display: flex; flex-direction: row; align-items: center; gap: 16px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 14px 12px; border-radius: 19px; width: 100%; text-align: left; transition: background .15s ease; }
   .tab:hover { background: rgba(29,29,33,.04); }
@@ -377,6 +377,7 @@
     .tab-label { font-size: 24px; }
     .tab-ru { font-size: 15px; }
     .sb-brand img { width: 70px; height: 70px; }
+  .sb-name { font-size: 50px; }
   }
   /* Кнопка ☰ — только для узких окон с мышью (на телефоне её нет, там свайп) */
   .menu-btn { display: none; position: fixed; top: calc(10px + env(safe-area-inset-top)); left: 10px; z-index: 65; width: 46px; height: 46px; border-radius: 14px; border: 1px solid rgba(29,29,33,.08); background: rgba(255,255,255,.92); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 6px 18px rgba(29,29,33,.14); font-size: 20px; line-height: 1; color: var(--ink-2); cursor: pointer; align-items: center; justify-content: center; }
@@ -30796,7 +30797,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.64.3';
+const APP_VER = '5.64.4';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = ['https://api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -34944,7 +34945,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.64.3';
+  const SW_BUILD = 'sync-5.64.4';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
