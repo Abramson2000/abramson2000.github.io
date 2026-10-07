@@ -37,7 +37,7 @@ function surface(app, options = {}){
     }
     assert.match(el('app').innerHTML,/crs-/);
     const h=el('app').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Tingli div balance');
-    assert.equal(vm.runInContext('APP_VER',ctx),'5.64.2');
+    assert.equal(vm.runInContext('APP_VER',ctx),'5.64.3');
     if(options.exercise!==false){vm.runInContext("saveLocal('tingli-hw-109-6-0','проба');",ctx);
     assert.equal(map.get('tingli-hw-109-6-0'),'проба');}
   }else{
