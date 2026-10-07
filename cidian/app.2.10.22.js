@@ -82,7 +82,7 @@ let inboxAdded=0;
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.10.21',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.10.22',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -240,8 +240,8 @@ let pushTimer=null,pullTs=0;
 let initialSyncComplete=false,cidianRecoveryMode=null,PUSH_LOCK=(localStorage.getItem('cidian-sync-enabled')!=='1');
 let cidianLastHost='';
 /* последовательно: сначала канонический хост, резервные — только если он упал.
-   Никакой гонки, побеждает ВСЕГДА правильный источник. */
-async function cidianFetch(path,opts){let lastErr=null;for(let i=0;i<CIDIAN_API.length;i++){const host=CIDIAN_API[i];try{const r=await fetch(host+path,opts);if(r&&r.ok){cidianLastHost=host;return r;}lastErr=new Error('HTTP '+(r?r.status:'?'));}catch(e){lastErr=e;}}throw lastErr||new Error('нет связи');}
+   Никакой гонки, побеждает ВСЕГДА правильный источник. Повтор при шаткой сети. */
+async function cidianFetch(path,opts){let lastErr=null;for(let attempt=0;attempt<3;attempt++){for(let i=0;i<CIDIAN_API.length;i++){const host=CIDIAN_API[i];try{const r=await fetch(host+path,opts);if(r&&r.ok){cidianLastHost=host;return r;}lastErr=new Error('HTTP '+(r?r.status:'?'));}catch(e){lastErr=e;}}if(attempt<2){try{await new Promise(function(r){setTimeout(r,800);});}catch(e){}}}throw lastErr||new Error('нет связи');}
 function renumber(arr){arr.sort((a,b)=>((+a.order||0)-(+b.order||0))||String(a.hanzi).localeCompare(String(b.hanzi)));arr.forEach((w,i)=>{w.id=i+1;w.order=i+1;});return arr;}
 function newerWord(x,y){const tx=String((x&&x.updatedAt)||''),ty=String((y&&y.updatedAt)||'');if(tx&&ty)return tx>=ty;return !!tx||!ty;}
 function makeUid(){return 'w'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
@@ -287,9 +287,19 @@ async function cidianCanonicalUpload(){cidianRecoveryMode='canonical';try{
 async function cidianReport(extra){try{
   const byKind={},lF={},lT={};
   for(const w of words){const k=String(w.kind||'word');byKind[k]=(byKind[k]||0)+1;if(w.laoshi)lT[k]=(lT[k]||0)+1;else lF[k]=(lF[k]||0)+1;}
-  const rep=Object.assign({ver:VERSION,url:location.href,lastHost:cidianLastHost,hostname:location.hostname,total:words.length,byKind:byKind,laoshiTrue:lT,laoshiFalse:lF},extra||{});
-  await cidianFetch('/api/_report',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(rep)});
+  const rep=Object.assign({ver:VERSION,url:location.href,lastHost:cidianLastHost,hostname:location.hostname,total:words.length,byKind:byKind,laoshiTrue:lT,laoshiFalse:lF,ts:Date.now()},extra||{});
+  await cidianFetch('/api/backup',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({'cidian-diag-last':JSON.stringify(rep)})});
 }catch(e){}}
+function cmpVer(a,b){const A=String(a||'').split('.').map(function(x){return parseInt(x,10)||0;}),B=String(b||'').split('.').map(function(x){return parseInt(x,10)||0;});for(let i=0;i<Math.max(A.length,B.length);i++){const x=A[i]||0,y=B[i]||0;if(x!==y)return x<y?-1:1;}return 0;}
+/* удалённый «принудительный апдейт»: в облаке лежит cidian-required-version.
+   Если телефон старее — один раз за сессию перезагружаемся (буст против CDN max-age=600,
+   который игнорирует query-строку в ключе кэша). sessionStorage-флаг не даёт крутиться в цикле. */
+async function cidianCheckRequired(){try{
+  if(sessionStorage.getItem('cidian-req-reload')==='1')return false;
+  const r=await cidianFetch('/api/backup?key='+encodeURIComponent('cidian-required-version')+'&t='+Date.now(),{cache:'no-store'});
+  const j=await r.json();
+  if(j&&j.ok&&typeof j.value==='string'){const req=String(j.value).trim();if(req&&cmpVer(VERSION,req)<0){sessionStorage.setItem('cidian-req-reload','1');let base=location.href.split('#')[0];base=base+(base.indexOf('?')>=0?'&':'?')+'__force='+Date.now();location.replace(base+(location.hash||''));return true;}}
+}catch(e){}return false;}
 async function cidianCloudWins(){cidianRecoveryMode='cloudwins';let _err=null;try{
   const r=await cidianFetch('/api/backup?key='+encodeURIComponent('cidian-data-v1')+'&t='+Date.now(),{cache:'no-store'});
   const j=await r.json();
@@ -307,8 +317,9 @@ async function cidianCloudWins(){cidianRecoveryMode='cloudwins';let _err=null;tr
   try{localStorage.setItem('cidian-sync-enabled','1');}catch(_){}
   PUSH_LOCK=false;
 }catch(e){_err=String((e&&e.message)||e);toast('⚠️ Не удалось восстановить из облака');}finally{initialSyncComplete=true;cidianRecoveryMode=null;}
-await cidianReport({mode:'cloudwins',err:_err,cloudBytes:(typeof _cloudBytes!=='undefined'?_cloudBytes:-1)});}
-setTimeout(()=>{
+await cidianReport({mode:'cloudwins',err:_err,cloudBytes:(typeof _cloudBytes!=='undefined'?_cloudBytes:-1),cloudCount:Array.isArray(cloud)?cloud.length:-1});}
+setTimeout(async ()=>{
+  try{ if(await cidianCheckRequired()) return; }catch(_){}
   if(/[#?]unlock\b/.test(location.href))PUSH_LOCK=false;
   if(/[#?]diag\b/.test(location.href)){cidianDiag();return;}
   if(cidianIsCanonical()){cidianCanonicalUpload();return;}
@@ -330,7 +341,7 @@ async function cidianDiag(){try{
     let cnt=-1;try{cnt=JSON.parse(j0.value).length;}catch(e){}
     rep.cloud={host:cidianLastHost,ok:!!j0.ok,bytes:typeof j0.value==='string'?j0.value.length:-1,count:cnt};
   }catch(e){rep.cloud={error:String((e&&e.message)||e)};}
-  await cidianFetch('/api/_report',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(rep)});
+  await cidianFetch('/api/backup',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({'cidian-diag-last':JSON.stringify(rep)})});
   toast('📊 Диагностика отправлена: '+words.length+' записей');
 }catch(e){toast('⚠️ Диагностика не ушла');}}
 function saveWords(){const blob=JSON.stringify(words);if(blob.length>MAX_BYTES&&!saveWords.warned){saveWords.warned=true;alert('Словарь занимает '+Math.round(blob.length/1024)+' КБ из ~5000 КБ. Сделайте резервную копию (Ещё → Резервная копия): при переполнении браузер может стереть данные.');}try{localStorage.setItem(STORAGE,blob);}catch(e){alert('Не удалось сохранить словарь на устройстве.');}updateCounts();scheduleCloudPush();}
@@ -510,13 +521,13 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#modal').class
 sheetSwipe();
 renderWords();
 /* ленивая подгрузка БКРС (533 КБ) — не блокируем первый показ словаря */
-(function(){try{if(typeof BKRS!=='undefined')return;const s=document.createElement('script');s.src='data-bkrs.js?v=2.10.17';s.async=true;document.head.appendChild(s);}catch(_){}})();
+(function(){try{if(typeof BKRS!=='undefined')return;const s=document.createElement('script');s.src='data-bkrs.2.10.22.js';s.async=true;document.head.appendChild(s);}catch(_){}})();
 if(ankiAdded||chengyuAdded||inboxAdded||namesAdded||zanghuaAdded)setTimeout(()=>{const pp=[];if(ankiAdded)pp.push(ankiAdded+' из Anki'); if(chengyuAdded)pp.push('成语 '+chengyuAdded); if(inboxAdded)pp.push('из Тингли '+inboxAdded); if(namesAdded)pp.push('названий из прописей '+namesAdded); if(zanghuaAdded)pp.push('脏话 '+zanghuaAdded);if(pp.length)toast('Добавлено: '+pp.join(' · ')+' — все как «не в Лаоши»')},400);
 if('serviceWorker' in navigator){
   let hadController=!!navigator.serviceWorker.controller, updating=false;
   let _swReloaded=false;
   try{navigator.serviceWorker.addEventListener('controllerchange',function(){if(_swReloaded)return;_swReloaded=true;location.reload();});}catch(e){}
-  navigator.serviceWorker.register('sw.js?v='+VERSION,{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.2.10.22.js',{updateViaCache:'none'}).then(reg=>{
     // самолечение: проверяем обновление при каждом возврате в приложение
     const chk=()=>{ if(document.visibilityState!=='visible'||updating) return; updating=true;
       if(!reg||!reg.update){ updating=false; return; }
