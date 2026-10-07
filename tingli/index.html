@@ -30797,7 +30797,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.64.4';
+const APP_VER = '5.65.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = ['https://api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -31193,7 +31193,7 @@ async function tingliDiag() {
 // Единая оркестрация старта: без параллельных sync.
 async function startup() {
   const ok=await tingliSync.run(); initialSyncComplete=ok;
-  if (/[#?]diag\b/.test(location.href)) await tingliDiag();
+
 }
 window.addEventListener('online',()=>tingliSync.run());
 window.addEventListener('focus',()=>tingliSync.run());
@@ -34928,7 +34928,9 @@ window.addEventListener('online', crsRefreshOnResume);
 /* ================= /CRS_BLOCK_V3 (часть 4) ================= */
 
 goTab('sched');
-startup();
+if (/[#?]diag\b/.test(location.href)) location.replace('sync-check.html');
+else startup();
+window.addEventListener('hashchange',()=>{if(/[#?]diag\b/.test(location.href))location.assign('sync-check.html');});
 updateAppBadge();
 // Web Push links can open a specific existing Tingli unit or part.
 try {
@@ -34945,7 +34947,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.64.4';
+  const SW_BUILD = 'sync-5.65.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
