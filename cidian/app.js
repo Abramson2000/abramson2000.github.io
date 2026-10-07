@@ -73,7 +73,7 @@ let inboxAdded=0;
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.10.16',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.10.17',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -225,7 +225,7 @@ function applyContent(arr,force){try{if(!force&&localStorage.getItem(CONTENT_KEY
 /* ── облачный синк словаря (как у Тингли): push при правках, pull при открытии/фокусе ── */
 const CIDIAN_API=['https://api.crmuro.ru','https://tingli-api.crmuro.ru','https://abramson-crm.pages.dev'];
 let pushTimer=null,pullTs=0;
-let initialSyncComplete=false,cidianRecoveryMode=null,PUSH_LOCK=true;
+let initialSyncComplete=false,cidianRecoveryMode=null,PUSH_LOCK=(localStorage.getItem('cidian-sync-enabled')!=='1');
 let cidianLastHost='';
 async function cidianFetch(path,opts){return new Promise(function(resolve,reject){let done=false,left=CIDIAN_API.length,lastErr=null;if(!left){reject(new Error('нет связи'));return;}const timers=[];const stop=function(){timers.forEach(function(t){clearTimeout(t);});};CIDIAN_API.forEach(function(host){let ctrl=null;try{ctrl=new AbortController();}catch(e){}const tm=setTimeout(function(){try{if(ctrl)ctrl.abort();}catch(e){}},20000);timers.push(tm);const o=Object.assign({},opts||{});if(ctrl&&ctrl.signal)o.signal=ctrl.signal;fetch(host+path,o).then(function(r){if(done)return;if(!r.ok){lastErr=new Error('HTTP '+r.status);if(--left<=0){stop();reject(lastErr);}return;}done=true;cidianLastHost=host;stop();resolve(r);}).catch(function(e){if(done)return;lastErr=e;if(--left<=0){stop();reject(lastErr||new Error('нет связи'));}});});});}
 function renumber(arr){arr.sort((a,b)=>((+a.order||0)-(+b.order||0))||String(a.hanzi).localeCompare(String(b.hanzi)));arr.forEach((w,i)=>{w.id=i+1;w.order=i+1;});return arr;}
@@ -286,6 +286,8 @@ async function cidianCloudWins(){cidianRecoveryMode='cloudwins';let _err=null;tr
   saveWords();
   try{if(currentTab==='xl')renderXl();else if(currentTab==='more')renderMore();else if(currentTab==='words')renderWords();}catch(_){}
   toast('☁️ Восстановлено из облака: '+words.filter(w=>!w.deleted).length+' записей');
+  try{localStorage.setItem('cidian-sync-enabled','1');}catch(_){}
+  PUSH_LOCK=false;
 }catch(e){_err=String((e&&e.message)||e);toast('⚠️ Не удалось восстановить из облака');}finally{initialSyncComplete=true;cidianRecoveryMode=null;}
 await cidianReport({mode:'cloudwins',err:_err,cloudBytes:(typeof _cloudBytes!=='undefined'?_cloudBytes:-1)});}
 setTimeout(()=>{
@@ -486,6 +488,8 @@ function sheetSwipe(){
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#modal').classList.contains('hidden')) closeModal(); });
 sheetSwipe();
 renderWords();
+/* ленивая подгрузка БКРС (533 КБ) — не блокируем первый показ словаря */
+(function(){try{if(typeof BKRS!=='undefined')return;const s=document.createElement('script');s.src='data-bkrs.js?v=2.10.17';s.async=true;document.head.appendChild(s);}catch(_){}})();
 if(ankiAdded||chengyuAdded||inboxAdded||namesAdded||zanghuaAdded)setTimeout(()=>{const pp=[];if(ankiAdded)pp.push(ankiAdded+' из Anki'); if(chengyuAdded)pp.push('成语 '+chengyuAdded); if(inboxAdded)pp.push('из Тингли '+inboxAdded); if(namesAdded)pp.push('названий из прописей '+namesAdded); if(zanghuaAdded)pp.push('脏话 '+zanghuaAdded);if(pp.length)toast('Добавлено: '+pp.join(' · ')+' — все как «не в Лаоши»')},400);
 if('serviceWorker' in navigator){
   let hadController=!!navigator.serviceWorker.controller, updating=false;
