@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" href="tingli-icon-180-v3.png?v=5.35.0">
 <link rel="manifest" href="manifest.json">
 <style>
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.35.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
@@ -363,6 +364,7 @@
   .sb-offline-btn.ready { color: var(--ink-2); border-color: rgba(29,29,33,.1); background: var(--paper); cursor: default; }
   .sb-offline-st { margin-top: 6px; font-size: 11px; color: var(--ink-3); text-align: center; line-height: 1.35; }
   .ic-tuan { background: var(--red); color: var(--surface); font-size: 27px; font-weight: 800; font-family: "TLCJK", "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
+  #tabbar .tab-label { font-family: "Zhi Mang Xing", "TLCJK", serif; font-weight: 400; }
   /* меню — оверлей поверх контента; контент справа полупрозрачный, пока меню открыто */
   .app, .player { transition: opacity .3s ease; }
   body.sb-open .app, body.sb-open .player { opacity: .45; }
@@ -30729,7 +30731,7 @@ const BIZ_UNITS = [
 ];
 
 </script>
-<script src="sync-core.js?v=5.62.0"></script>
+<script src="sync-core.js?v=5.63.0"></script>
 <script>
 const LS = 'tingli-progress-v1';
 // Fresh personal collections: never import the retired v1 cloud/local lists.
@@ -30792,7 +30794,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.62.0';
+const APP_VER = '5.63.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = ['https://api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -31055,7 +31057,7 @@ function initialTingliMerge(k, local, remote) {
   if (k === 'tingli-schedule-v1') return JSON.stringify(CrmSyncCore.mergeSchedule(JSON.parse(remote), JSON.parse(local)));
   if (k === 'tingli-manual-v1') return JSON.stringify(mergeMan(JSON.parse(local), JSON.parse(remote)));
   if (k === 'tingli-progress-v1') return JSON.stringify(mergeProgress(JSON.parse(local), JSON.parse(remote)));
-  if (k === LS_FAV || k === DICT_KEY) {
+  if (k === LS_FAV || k === DICT_KEY || k === 'tingli-cidian-outbox-v3') {
     return JSON.stringify(Object.assign({}, JSON.parse(remote), JSON.parse(local)));
   }
   if (/^tingli-hwmeta-/.test(k)) {
@@ -31187,7 +31189,7 @@ async function tingliDiag() {
 
 // Единая оркестрация старта: без параллельных sync.
 async function startup() {
-  const ok=await tingliSync.run(); initialSyncComplete=ok;
+  const ok=await flushCidianOutbox(); initialSyncComplete=ok;
   if (/[#?]diag\b/.test(location.href)) await tingliDiag();
 }
 window.addEventListener('online',()=>tingliSync.run());
@@ -31344,6 +31346,7 @@ function renderDict() {
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
     ${d.length ? `<div class="dict-export">
+      <button class="btn" id="dictSendAll" onclick="dictSendAll()">Отправить в Словарь</button>
       <button class="btn ghost" onclick="dictCopyExcel()">📊 В Excel</button>
       
       
@@ -31362,14 +31365,26 @@ function renderDict() {
           <button class="dict-del" onclick="dictRemove(${i})" title="Удалить">✕</button>
         </div>
       </div>`).join('')
-      : '<div class="empty">Словарь пуст.</div>'}
+      : '<div class="empty">Словарь пуст. Добавьте слова кнопкой + в уроке.</div>'}
 `;
 }
 
 /* ===== Личный словарь Tingli: отдельная коллекция, не копия Cidian ===== */
 function dictLoad() { try { return Object.values(JSON.parse(localStorage.getItem(DICT_KEY) || '{}')); } catch (e) { return []; } }
-function dictSave(d) { try { saveLocal(DICT_KEY, JSON.stringify(Object.fromEntries(d.map(w => [w.zh, w])))); } catch (e) {} }
+function dictSave(d) { try { saveLocal(DICT_KEY, JSON.stringify(Object.fromEntries(d.map(w => [w.zh, w])))); } catch (e) { alert('Не удалось сохранить слово на устройстве: '+e.message);throw e; } }
 function dictHas(zh) { return dictLoad().some(w => w.zh === zh); }
+function dictAdd(items,label){
+  const d=dictLoad();let added=0,dup=0;
+  items.forEach(w=>{const zh=String(w.zh||'').trim();if(!zh)return;if(d.some(x=>x.zh===zh)){dup++;return;}d.push({zh,py:w.py||'',ru:w.ru||'',src:label||'',added:Date.now()});added++;});
+  dictSave(d);return {added,dup};
+}
+function dictToast(msg){
+  const old=document.getElementById('tlToast');if(old)old.remove();
+  const d=document.createElement('div');d.id='tlToast';d.className='tl-toast';
+  const text=document.createElement('div');text.textContent=msg;d.appendChild(text);
+  const b=document.createElement('button');b.className='btn ghost';b.textContent='Открыть словарь Tingli →';b.onclick=()=>{goTab('dict');d.remove();};d.appendChild(b);
+  document.body.appendChild(d);setTimeout(()=>d.remove(),5000);
+}
 
 /* ===== мост в приложение «Мои слова» (cidian) =====
    Оба приложения живут на одном адресе, поэтому передаём через localStorage:
@@ -31404,28 +31419,33 @@ function sendWordOne(el) {
   const row = el.closest('.word'); if (!row || !curPart) return;
   const w = curPart.words[Number(row.dataset.i)]; if (!w) return;
   const label = dictSrcLabel();
-  const res = cidianSend([w], label);
+  const res = dictAdd([w], label);
   row.classList.add('indict'); el.textContent = '✓';
-  cidianToast(res.added ? ('В «Мои слова» отправлено: ' + w.zh) : ('В «Мои слова» уже есть: ' + w.zh));
+  dictToast(res.added ? ('В словарь Tingli добавлено: ' + w.zh) : ('В словаре Tingli уже есть: ' + w.zh));
 }
 function sendAllWords() {
   if (!curPart || !curPart.words || !curPart.words.length) return;
   const label = dictSrcLabel();
   const items = curPart.words.map(w => ({ zh: w.zh, py: w.py, ru: w.ru }));
-  const res = cidianSend(items, label);
+  const res = dictAdd(items, label);
   document.querySelectorAll('#wordList .word').forEach(el => { el.classList.add('indict'); const a = el.querySelector('.w-add'); if (a) a.textContent = '✓'; });
-  cidianToast('Отправлен весь список (' + items.length + ') · новых в словаре: ' + res.added);
+  dictToast('В словарь Tingli добавлено: ' + res.added);
 }
-function dictSendOne(i) {
+async function flushCidianOutbox(){for(let n=0;n<3;n++){if(!await tingliSync.run())return false;if(!tingliSync.pending().includes('tingli-cidian-outbox-v3'))return true;}return false;}
+async function dictSendOne(i) {
   const d = dictLoad(); const w = d[i]; if (!w) return;
   const res = cidianSend([w], w.src || 'Тингли');
-  if (res.added) { const b = document.getElementById('dictItem-' + i); if (b) b.classList.add('sent'); }
-  cidianToast(res.added ? ('В «Мои слова» отправлено: ' + w.zh) : ('В «Мои слова» уже есть: ' + w.zh));
+  const ok=await flushCidianOutbox();
+  if(ok){const b=document.getElementById('dictItem-'+i);if(b)b.classList.add('sent');}
+  cidianToast(ok?'В Словарь отправлено: '+w.zh:'Слово в очереди отправки. Передадим при восстановлении связи.');
 }
-function dictSendAll() {
+async function dictSendAll() {
   const d = dictLoad(); if (!d.length) return;
   const res = cidianSend(d, 'Тингли · словарь');
-  cidianToast('В «Мои слова» отправлено ' + d.length + ' · новых: ' + res.added);
+  const b=document.getElementById('dictSendAll');if(b){b.disabled=true;b.textContent='Отправляю…';}
+  const ok=await flushCidianOutbox();
+  if(b){b.disabled=false;b.textContent='Отправить в Словарь';}
+  cidianToast(ok?'В Словарь отправлено: '+d.length+' · новые слова появятся в «не в Лаоши»':'Слова в очереди отправки. Передадим при восстановлении связи.');
 }
 function selWord(el) {
   el.classList.toggle('sel');
@@ -31444,10 +31464,10 @@ function sendToDict() {
     el.classList.add('indict');
     const a = el.querySelector('.w-add'); if (a) a.textContent = '✓';
   });
-  const res = cidianSend(picked, dictSrcLabel());
+  const res = dictAdd(picked, dictSrcLabel());
   const bar = document.getElementById('dictBar');
   if (bar) bar.style.display = 'none';
-  cidianToast('В «Мои слова» отправлено: ' + res.added + (res.dup ? ' · уже было: ' + res.dup : ''));
+  dictToast('В словарь Tingli добавлено: ' + res.added + (res.dup ? ' · уже было: ' + res.dup : ''));
 }
 function dictEdit(i) {
   const d = dictLoad(), w = d[i];
@@ -31811,7 +31831,7 @@ function renderWords(u, part) {
         return `
         <div class="word ${inDict ? 'indict' : ''}" data-i="${i}">
           <span class="zh">${esc(w.zh)}</span><span class="py">${esc(w.py)}</span><span class="ru">${esc(w.ru)}</span>
-          <button class="w-add" onclick="event.stopPropagation();sendWordOne(this)" title="${inDict ? 'Уже в «Моих словах»' : 'Добавить в «Мои слова»'}">${inDict ? '✓' : '＋'}</button>
+          <button class="w-add" onclick="event.stopPropagation();sendWordOne(this)" title="${inDict ? 'Уже в словаре Tingli' : 'Добавить в словарь Tingli'}">${inDict ? '✓' : '＋'}</button>
           ${w.ex ? `<span class="word-ex">${esc(w.ex)}</span>` : ''}
         </div>`;
       }).join('')}
@@ -34832,7 +34852,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.62.0';
+  const SW_BUILD = 'sync-5.63.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }

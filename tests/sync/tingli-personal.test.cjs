@@ -60,14 +60,31 @@ test('stale old device cannot restore cleared lists; intentional new additions/d
   const reloaded=surface('tingli',{seed:Object.fromEntries(b.map),fetch:c.fetch,quiet:true});await sync(reloaded);empty(reloaded);
   const fresh=surface('tingli',{fetch:c.fetch,quiet:true});await sync(fresh);empty(fresh);
 });
-test('sending one, all or selected words to Cidian never fills personal Tingli dictionary',async()=>{
+test('lesson + adds to Tingli; review removes extras; explicit send reaches Cidian and a second device',async()=>{
   const c=cloud(), s=surface('tingli',{fetch:c.fetch,quiet:true});await sync(s);
   evaluate(s,`curUnit=ALL_UNITS[0];curPart={title:'test',words:[{zh:'只发一个',py:'yi',ru:'один'}]};
     sendWordOne({closest:()=>({dataset:{i:'0'},classList:{add(){}}})});
-    curPart.words=[{zh:'全部',py:'quan',ru:'все'}];sendAllWords();`);
+    curPart.words=[{zh:'全部测试新词',py:'quan',ru:'все'}];sendAllWords();`);
   s.document.querySelectorAll=()=>[{dataset:{i:'0'},classList:{remove(){},add(){}},querySelector:()=>null}];
-  evaluate(s,`curPart.words=[{zh:'选择',py:'xuan',ru:'выбранное'}];sendToDict();`);
-  assert.equal(evaluate(s,'dictLoad().length'),0);
-  assert.deepEqual(JSON.parse(s.map.get('cidian-inbox-v3')).map(w=>w.hanzi),['只发一个','全部','选择']);
-  await sync(s);assert.equal(c.rows.get(dict),'{}');assert.equal(evaluate(s,'loadFavs().length'),0);
+  evaluate(s,`curPart.words=[{zh:'选择测试新词',py:'xuan',ru:'выбранное'}];sendToDict();`);
+  assert.equal(evaluate(s,'dictLoad().length'),3);
+  assert.equal(s.map.has('cidian-inbox-v3'),false);assert.equal(s.map.has('tingli-cidian-outbox-v3'),false);
+  evaluate(s,'dictRemove(0)');
+  assert.equal(evaluate(s,'dictLoad().length'),2);
+  assert.match(s.el('app').innerHTML,/Отправить в Словарь/);
+  const html=s.el('app').innerHTML;assert.equal((html.match(/<div\b/g)||[]).length,(html.match(/<\/div>/g)||[]).length);
+  await evaluate(s,'dictSendAll()');
+  assert.deepEqual(Object.keys(JSON.parse(c.rows.get('tingli-cidian-outbox-v3'))),['全部测试新词','选择测试新词']);
+  assert.equal(evaluate(s,'dictLoad().length'),2);
+  const a=surface('cidian',{exercise:false,fetch:c.fetch,quiet:true});
+  assert.equal(await evaluate(a,'checkInboxCloud(true)'),2);
+  assert.equal(await evaluate(a,'cidianSync.run()'),true);
+  const b=surface('cidian',{exercise:false,fetch:c.fetch,quiet:true});
+  assert.equal(await evaluate(b,'cidianSync.run()'),true);
+  assert.equal(evaluate(b,"words.some(w=>w.hanzi==='只发一个')"),false);
+  assert.equal(evaluate(b,"words.filter(w=>['全部测试新词','选择测试新词'].includes(w.hanzi)&&!w.laoshi).length"),2);
+  evaluate(b,"mutateWord(words.find(w=>w.hanzi==='选择测试新词'),{translation:'исправлено',laoshi:true});saveWords()");
+  assert.equal(await evaluate(b,'cidianSync.run()'),true);assert.equal(await evaluate(a,'cidianSync.run()'),true);
+  assert.equal(evaluate(a,"words.find(w=>w.hanzi==='选择测试新词').translation"),'исправлено');
+  assert.equal(evaluate(a,"words.find(w=>w.hanzi==='选择测试新词').laoshi"),true);
 });
