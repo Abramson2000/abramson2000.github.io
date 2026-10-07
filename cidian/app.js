@@ -73,7 +73,7 @@ let inboxAdded=0;
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.10.12',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.10.13',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -270,17 +270,24 @@ async function cidianCanonicalUpload(){cidianRecoveryMode='canonical';try{
   await cidianFetch('/api/backup?force=1',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:payload});
   toast('✅ Эталон загружен: '+words.filter(w=>!w.deleted).length+' записей');
 }catch(e){toast('⚠️ Не удалось загрузить эталон');}finally{initialSyncComplete=true;cidianRecoveryMode=null;}}
-async function cidianCloudWins(){cidianRecoveryMode='cloudwins';try{
+async function cidianReport(extra){try{
+  const byKind={},lF={},lT={};
+  for(const w of words){const k=String(w.kind||'word');byKind[k]=(byKind[k]||0)+1;if(w.laoshi)lT[k]=(lT[k]||0)+1;else lF[k]=(lF[k]||0)+1;}
+  const rep=Object.assign({ver:VERSION,url:location.href,lastHost:cidianLastHost,hostname:location.hostname,total:words.length,byKind:byKind,laoshiTrue:lT,laoshiFalse:lF},extra||{});
+  await cidianFetch('/api/_report',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(rep)});
+}catch(e){}}
+async function cidianCloudWins(){cidianRecoveryMode='cloudwins';let _err=null;try{
   const r=await cidianFetch('/api/backup?key='+encodeURIComponent('cidian-data-v1')+'&t='+Date.now(),{cache:'no-store'});
   const j=await r.json();
   if(!j||!j.ok||typeof j.value!=='string'){toast('⚠️ Нет связи с облаком');return;}
-  let cloud=null;try{cloud=JSON.parse(j.value);}catch(e){toast('⚠️ Облако повреждено');return;}
+  let _cloudBytes=typeof j.value==='string'?j.value.length:-1;let cloud=null;try{cloud=JSON.parse(j.value);}catch(e){toast('⚠️ Облако повреждено');return;}
   if(!Array.isArray(cloud)){toast('⚠️ Облако повреждено');return;}
   words=renumber(cloud.map(migrate));
   saveWords();
   try{if(currentTab==='xl')renderXl();else if(currentTab==='more')renderMore();else if(currentTab==='words')renderWords();}catch(_){}
   toast('☁️ Восстановлено из облака: '+words.filter(w=>!w.deleted).length+' записей');
-}catch(e){toast('⚠️ Не удалось восстановить из облака');}finally{initialSyncComplete=true;cidianRecoveryMode=null;}}
+}catch(e){_err=String((e&&e.message)||e);toast('⚠️ Не удалось восстановить из облака');}finally{initialSyncComplete=true;cidianRecoveryMode=null;}
+await cidianReport({mode:'cloudwins',err:_err,cloudBytes:(typeof _cloudBytes!=='undefined'?_cloudBytes:-1)});}
 setTimeout(()=>{
   if(/[#?]unlock\b/.test(location.href))PUSH_LOCK=false;
   if(/[#?]diag\b/.test(location.href))cidianDiag();
@@ -481,7 +488,7 @@ renderWords();
 if(ankiAdded||chengyuAdded||inboxAdded||namesAdded||zanghuaAdded)setTimeout(()=>{const pp=[];if(ankiAdded)pp.push(ankiAdded+' из Anki'); if(chengyuAdded)pp.push('成语 '+chengyuAdded); if(inboxAdded)pp.push('из Тингли '+inboxAdded); if(namesAdded)pp.push('названий из прописей '+namesAdded); if(zanghuaAdded)pp.push('脏话 '+zanghuaAdded);if(pp.length)toast('Добавлено: '+pp.join(' · ')+' — все как «не в Лаоши»')},400);
 if('serviceWorker' in navigator){
   let hadController=!!navigator.serviceWorker.controller, updating=false;
-  navigator.serviceWorker.register('sw.js?v=2.10.12',{updateViaCache:'none'}).then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=2.10.13',{updateViaCache:'none'}).then(reg=>{
     // самолечение: проверяем обновление при каждом возврате в приложение
     const chk=()=>{ if(document.visibilityState!=='visible'||updating) return; updating=true;
       if(!reg||!reg.update){ updating=false; return; }
