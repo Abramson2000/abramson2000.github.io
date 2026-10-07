@@ -364,7 +364,8 @@
   .sb-offline-btn.ready { color: var(--ink-2); border-color: rgba(29,29,33,.1); background: var(--paper); cursor: default; }
   .sb-offline-st { margin-top: 6px; font-size: 11px; color: var(--ink-3); text-align: center; line-height: 1.35; }
   .ic-tuan { background: var(--red); color: var(--surface); font-size: 27px; font-weight: 800; font-family: "TLCJK", "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
-  #tabbar .tab-label { font-family: "Zhi Mang Xing", "TLCJK", serif; font-weight: 400; }
+  #tabbar .tab-label { font-family: "Zhi Mang Xing", "TLCJK", serif; font-weight: 400; font-size:26.4px; }
+  @media(min-width:900px){#tabbar .tab-label{font-size:28.8px;}}
   /* меню — оверлей поверх контента; контент справа полупрозрачный, пока меню открыто */
   .app, .player { transition: opacity .3s ease; }
   body.sb-open .app, body.sb-open .player { opacity: .45; }
@@ -30731,7 +30732,8 @@ const BIZ_UNITS = [
 ];
 
 </script>
-<script src="sync-core.js?v=5.63.0"></script>
+<script src="sync-core.js?v=5.64.0"></script>
+<script src="word-sync.5.64.0.js"></script>
 <script>
 const LS = 'tingli-progress-v1';
 // Fresh personal collections: never import the retired v1 cloud/local lists.
@@ -30794,7 +30796,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.63.0';
+const APP_VER = '5.64.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = ['https://api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -31041,7 +31043,7 @@ document.addEventListener('click', function (e) {
 let initialSyncComplete = false;
 let recoveryMode = null;
 let PUSH_LOCK = false;
-const TINGLI_NOSYNC = { 'tingli-favs-v1':1,'tingli-dict-v1':1,'tingli-cidian-outbox-v2':1, 'tingli-apihost-v1':1,'tingli-sync-err-v1':1,'tingli-gist-token':1,'tingli-push-enable-error-v1':1,'tingli-sched-clean-v2':1,'tingli-sched-cloudwins-v1':1,'tingli-repair-history-515':1,'tingli-repair-hwdue-516':1,'tingli-diag-report':1 };
+const TINGLI_NOSYNC = { 'tingli-favs-v1':1,'tingli-dict-v1':1,'tingli-cidian-outbox-v2':1,'tingli-cidian-outbox-v4':1,'tingli-cidian-send-v4':1, 'tingli-apihost-v1':1,'tingli-sync-err-v1':1,'tingli-gist-token':1,'tingli-push-enable-error-v1':1,'tingli-sched-clean-v2':1,'tingli-sched-cloudwins-v1':1,'tingli-repair-history-515':1,'tingli-repair-hwdue-516':1,'tingli-diag-report':1 };
 function tingliSyncKey(k) {
   return !!k && k.indexOf('tingli-') === 0 && !TINGLI_NOSYNC[k]
     && !/token|secret|password|passwd|auth|credential|vapid|private/i.test(k)
@@ -31189,7 +31191,7 @@ async function tingliDiag() {
 
 // Единая оркестрация старта: без параллельных sync.
 async function startup() {
-  const ok=await flushCidianOutbox(); initialSyncComplete=ok;
+  const ok=await tingliSync.run(); initialSyncComplete=ok;
   if (/[#?]diag\b/.test(location.href)) await tingliDiag();
 }
 window.addEventListener('online',()=>tingliSync.run());
@@ -31391,21 +31393,29 @@ function dictToast(msg){
    кладём слова в очередь cidian-inbox-v1, а «Мои слова» при открытии их забирает. */
 const CIDIAN_INBOX = 'cidian-inbox-v3';
 function cidianQueue() { try { return JSON.parse(localStorage.getItem(CIDIAN_INBOX)) || []; } catch (e) { return []; } }
-function cidianSend(items, label) {
-  const q = cidianQueue(); let added = 0, dup = 0;
-  items.forEach(it => {
-    const h = String(it.zh || it.hanzi || '').trim(); if (!h) return;
-    if (q.some(x => x.hanzi === h)) { dup++; return; }
-    q.push({ hanzi: h, pinyin: String(it.py || it.pinyin || '').trim(), ru: String(it.ru || it.translation || '').trim(), src: label || '', ts: Date.now() });
-    added++;
-  });
-  try { localStorage.setItem(CIDIAN_INBOX, JSON.stringify(q)); } catch (e) {}
-  // Durable outgoing words use the same retryable sync as homework/progress.
-  const outbox=JSON.parse(localStorage.getItem('tingli-cidian-outbox-v3')||'{}');
-  q.forEach(item=>{outbox[item.hanzi]=item;});
-  saveLocal('tingli-cidian-outbox-v3',JSON.stringify(outbox));
-  return { added: added, dup: dup, total: q.length };
+const CIDIAN_SEND_KEY='tingli-cidian-outbox-v4';
+function cidianPending(){try{return JSON.parse(localStorage.getItem(CIDIAN_SEND_KEY)||'{}');}catch(_){return {};}}
+const cidianSender=CrmWordSync.create({
+ stateKey:'tingli-cidian-send-v4',storage:localStorage,request:syncRequest,sender:true,
+ selection:()=>Object.values(cidianPending()).map(w=>w.uid)
+});
+function cidianSend(items,label){
+ const pending=cidianPending(),sent=[];
+ for(const it of items){
+  const h=String(it.zh||it.hanzi||'').trim();if(!h)continue;
+  const uid='t3-'+h,now=new Date().toISOString();
+  if(!pending[uid])pending[uid]={uid,hanzi:h,pinyin:String(it.py||it.pinyin||''),translation:String(it.ru||it.translation||''),kind:'word',tags:[],comment:'из Тингли: '+(it.src||label||''),laoshi:false,favorite:false,deleted:false,createdAt:now,updatedAt:now};
+  sent.push(pending[uid]);
+ }
+ localStorage.setItem(CIDIAN_SEND_KEY,JSON.stringify(pending));
+ cidianSender.stage(sent,true);
+ return {added:sent.length,uids:sent.map(w=>w.uid)};
 }
+cidianSender.stage(Object.values(cidianPending()),true);
+setTimeout(()=>cidianSender.run(),200);
+window.addEventListener('online',()=>cidianSender.run());
+window.addEventListener('focus',()=>cidianSender.run());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)cidianSender.run();});
 function cidianToast(msg) {
   const old = document.getElementById('tlToast'); if (old) old.remove();
   const d = document.createElement('div'); d.id = 'tlToast'; d.className = 'tl-toast';
@@ -31431,21 +31441,25 @@ function sendAllWords() {
   document.querySelectorAll('#wordList .word').forEach(el => { el.classList.add('indict'); const a = el.querySelector('.w-add'); if (a) a.textContent = '✓'; });
   dictToast('В словарь Tingli добавлено: ' + res.added);
 }
-async function flushCidianOutbox(){for(let n=0;n<3;n++){if(!await tingliSync.run())return false;if(!tingliSync.pending().includes('tingli-cidian-outbox-v3'))return true;}return false;}
-async function dictSendOne(i) {
-  const d = dictLoad(); const w = d[i]; if (!w) return;
-  const res = cidianSend([w], w.src || 'Тингли');
-  const ok=await flushCidianOutbox();
-  if(ok){const b=document.getElementById('dictItem-'+i);if(b)b.classList.add('sent');}
-  cidianToast(ok?'В Словарь отправлено: '+w.zh:'Слово в очереди отправки. Передадим при восстановлении связи.');
+async function sendReviewedWords(d,label){
+ const res=cidianSend(d,label);
+ for(let n=0;n<3;n++){
+  if(!await cidianSender.run())return false;
+  if(!cidianSender.pending().length){await cidianSender.confirm(res.uids);return true;}
+ }
+ return false;
 }
-async function dictSendAll() {
-  const d = dictLoad(); if (!d.length) return;
-  const res = cidianSend(d, 'Тингли · словарь');
-  const b=document.getElementById('dictSendAll');if(b){b.disabled=true;b.textContent='Отправляю…';}
-  const ok=await flushCidianOutbox();
-  if(b){b.disabled=false;b.textContent='Отправить в Словарь';}
-  cidianToast(ok?'В Словарь отправлено: '+d.length+' · новые слова появятся в «не в Лаоши»':'Слова в очереди отправки. Передадим при восстановлении связи.');
+async function dictSendOne(i){
+ const w=dictLoad()[i];if(!w)return;
+ try{const ok=await sendReviewedWords([w],w.src||'Тингли');cidianToast(ok?'Словарь получил: '+w.zh:'Не отправлено. Слово сохранено в очереди; повторим при подключении.');}
+ catch(e){cidianToast('Не отправлено: '+e.message);}
+}
+async function dictSendAll(){
+ const d=dictLoad();if(!d.length)return;
+ const b=document.getElementById('dictSendAll');if(b){b.disabled=true;b.textContent='Отправляю…';}
+ try{const ok=await sendReviewedWords(d,'Тингли · словарь');cidianToast(ok?'Словарь получил '+d.length+' слов. Открой «не в Лаоши».':'Не отправлено. Слова сохранены в очереди; повторим при подключении.');}
+ catch(e){cidianToast('Не отправлено: '+e.message);}
+ finally{if(b){b.disabled=false;b.textContent='Отправить в Словарь';}}
 }
 function selWord(el) {
   el.classList.toggle('sel');
@@ -31608,7 +31622,7 @@ function openUnit(n) {
       return `
       <div class="part" onclick="openPart(${u.unit},${part.id})">
         <div class="part-head">
-          <div class="part-check ${pMark ? 'on' : ''}" onclick="manTogglePart(${u.unit},${part.id},event)" title="${isHw ? (pMark ? 'Снять отметку ДЗ выполнено' : 'Отметить ДЗ выполненным') : (pMark ? 'Снять отметку части' : 'Отметить часть пройденной')}">✓</div>
+          ${isHw ? crsHwDoneButton(crsHwKey(u.unit,part.id)) : `<div class="part-check ${pMark ? 'on' : ''}" onclick="manTogglePart(${u.unit},${part.id},event)" title="${pMark ? 'Снять отметку части' : 'Отметить часть пройденной'}">✓</div>`}
           <div class="part-num">${num}</div>
           <div style="flex:1">
             <div class="part-title">${esc(part.title)}</div>
@@ -33236,13 +33250,13 @@ function crsHwSetState(key, state) {
 }
 function crsHwDoneButton(key) {
   const done = crsHwState(key) === 'done';
-  return '<button type="button" class="crs-b hw-done-btn' + (done ? ' done' : '') + '" role="checkbox" aria-checked="' + done + '" data-hw-done="' + esc(key) + '" onclick="crsHwToggleDone(\'' + key + '\',event)">' + (done ? '✓ ДЗ выполнено' : '□ Отметить ДЗ выполненным') + '</button>';
+  return '<button type="button" title="' + (done ? 'Снять отметку выполнения' : 'Отметить выполненным') + '" class="hw-done-btn' + (done ? ' done' : '') + '" role="checkbox" aria-checked="' + done + '" data-hw-done="' + esc(key) + '" onclick="crsHwToggleDone(\'' + key + '\',event)">' + '✓ Готово' + '</button>';
 }
 function crsHwRefreshButtons() {
   document.querySelectorAll('[data-hw-done]').forEach(el => {
     const done = crsHwState(el.getAttribute('data-hw-done')) === 'done';
     el.setAttribute('aria-checked', String(done)); el.classList.toggle('done', done);
-    el.textContent = done ? '✓ ДЗ выполнено' : '□ Отметить ДЗ выполненным';
+    el.textContent = '✓ Готово';el.title=done?'Снять отметку выполнения':'Отметить выполненным';
   });
 }
 function crsHwToggleDone(key, ev) {
@@ -33612,7 +33626,7 @@ function crsHwCard(h) {
     '<div class="crs-card-top"><div class="crs-c-time hw">ДЗ</div><div class="crs-c-tag">' + esc(crsProgTitle(h.program)) + '</div></div>' +
     '<div class="crs-mat">' + esc(h.title) + '</div>' +
     '<div class="crs-place">' + (h.dueDate ? 'к ' + crsDayShort(h.dueDate) : 'без срока') + ' · ' + esc(crsStateWord(h.state)) + '</div>' +
-    crsHwDoneButton(h.key) + '</div>';
+    '' + '</div>';
 }
 function crsScrollToToday() {
   const box = document.getElementById('crsList');
@@ -33682,7 +33696,7 @@ function crsLessonHwBlock(ev) {
   const canOpen = !!(ev.material && ev.material.unit !== undefined && ev.material.unit !== null && ev.material.unit !== '');
   const click = canOpen ? ' onclick="event.stopPropagation();crsLessonOpenEv(\'' + ev.evId + '\')" title="Открыть урок с этим ДЗ"' : '';
   return '<div class="crs-hw-in compact crs-hw-link"' + click + '><span class="crs-chip hw">ДЗ: ' + list.length + (un ? '' : ' ✓') + '</span>' +
-    (un ? '<span class="crs-chip">не сдано: ' + un + '</span>' : '<span class="crs-chip">ДЗ выполнено</span>') + list.map(h => crsHwDoneButton(h.key)).join('') + '</div>';
+    (un ? '<span class="crs-chip">не сдано: ' + un + '</span>' : '<span class="crs-chip">ДЗ выполнено</span>') + '' + '</div>';
 }
 function crsOpenLesson(e, evId) {
   if (e && e.target && e.target.closest && (e.target.closest('button') || e.target.closest('a'))) return;
@@ -33714,7 +33728,7 @@ function crsHwPanel(fromD, toD) {
       return '<div class="crs-hw-row"><div class="crs-hw-row-t">' + esc(h.title) + '</div>' +
         '<div class="crs-hw-row-s">' + esc(crsProgTitle(h.program)) + ' · ' + (h.dueDate ? 'к ' + crsDayShort(h.dueDate) : 'без срока') + ' · ' + esc(crsStateWord(h.state)) + '</div>' +
         '<div class="crs-actions"><button class="crs-b s" onclick="crsHwOpen(\'' + h.key + '\')">Открыть задание</button>' +
-        crsHwDoneButton(h.key) +
+        '' +
         '<button class="crs-b s" onclick="crsHwDueSheet(\'' + h.key + '\')">Срок</button></div></div>';
     }).join('');
   };
@@ -34053,7 +34067,7 @@ function crsMonthHtml() {
   if (dayEvs.length) list += dayEvs.map(crsLessonCard).join('');
   if (dayHw.length) list += '<div class="crs-hw-grp">ДЗ к этому дню</div>' + dayHw.map(function (h) {
     return '<div class="crs-hw-row"><div class="crs-hw-row-t">' + esc(h.title) + '</div><div class="crs-hw-row-s">' + esc(crsProgTitle(h.program)) + ' · ' + esc(crsStateWord(h.state)) + '</div>' +
-      '<div class="crs-actions"><button class="crs-b s" onclick="crsHwOpen(\'' + h.key + '\')">Открыть задание</button>' + crsHwDoneButton(h.key) + '</div></div>';
+      '<div class="crs-actions"><button class="crs-b s" onclick="crsHwOpen(\'' + h.key + '\')">Открыть задание</button>' + '' + '</div></div>';
   }).join('');
   if (!list) list = '<div class="crs-empty">На этот день ничего нет — <a onclick="crsFormForDay(\'' + sel + '\')">добавить занятие</a></div>';
   return '<div class="crs-month">' + grid + '</div>' +
@@ -34097,7 +34111,7 @@ function crsHwHtml() {
       '<div class="crs-hw-title">' + esc(h.title) + '</div>' +
       '<div class="crs-hw-foot"><span class="' + (overdue ? 'bad' : (h.state === 'done' ? 'ok' : '')) + '">' +
         (overdue ? 'Долг!' : (h.state === 'done' ? '✓ Выполнено' : 'Сделать')) + '</span>' +
-        (h.items && h.items.length > 1 ? '<span>ещё ' + (h.items.length - 1) + '</span>' : '') + crsHwDoneButton(h.key) + '</div>' +
+        (h.items && h.items.length > 1 ? '<span>ещё ' + (h.items.length - 1) + '</span>' : '') + '' + '</div>' +
       '</div>';
   }).join('');
   if (!out) out = '<div class="crs-empty">Здесь пусто</div>';
@@ -34115,7 +34129,7 @@ function crsHwMenu(key) {
   crsSheet(esc(h.title), '<div class="crs-note">' + esc(crsProgTitle(h.program)) + (h.dueDate ? ' · к ' + crsDayShort(h.dueDate) : ' · без срока') + '</div>' +
     '<div class="crs-menu">' +
       (custom ? '<button onclick="closeCrsSheets();crsHwForm(\'' + key + '\')">Изменить</button>' : '') +
-      crsHwDoneButton(key) + '<button onclick="closeCrsSheets();crsHwDueSheet(\'' + key + '\')">Срок</button>' +
+      '' + '<button onclick="closeCrsSheets();crsHwDueSheet(\'' + key + '\')">Срок</button>' +
       (custom ? '<button class="danger" onclick="closeCrsSheets();crsHwDel(\'' + key + '\')">Удалить совсем</button>'
               : '<button class="danger" onclick="closeCrsSheets();crsHwDel(\'' + key + '\')">Убрать из расписания</button>') +
     '</div>');
@@ -34207,7 +34221,7 @@ function crsForm(id, preset, evId) {
         '<div class="crs-hw-row-s">' + esc(crsProgTitle(h.program)) + (h.dueDate ? ' · к ' + crsDayShort(h.dueDate) : '') + '</div>' +
         '<div class="crs-actions">' +
           (h.existing ? '<button type="button" class="crs-b s" onclick="crsHwOpen(\'' + h.key + '\')">Открыть</button>' : '') +
-          crsHwDoneButton(h.key) +
+          '' +
         '</div></div>';
     }).join('');
   };
@@ -34852,7 +34866,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.63.0';
+  const SW_BUILD = 'sync-5.64.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
