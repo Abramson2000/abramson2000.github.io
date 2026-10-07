@@ -30780,7 +30780,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.59.7';
+const APP_VER = '5.59.8';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = ['https://api.crmuro.ru', 'https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
 let API_BASE = API_HOSTS[0];
@@ -31358,9 +31358,39 @@ function renderUnits() {
 `;
   refreshUnitBadges();
 }
+/* ===== Курс 声音 (самоучёба): рассказы для аудирования ===== */
+const YIN_UNITS = [
+ {
+  "unit": 401,
+  "label": "Рассказ 1",
+  "emoji": "🎧",
+  "zh": "那个下雪的星期六",
+  "ru": "Аудирование",
+  "src": "yin",
+  "parts": [
+   {
+    "id": 1,
+    "kind": "listen",
+    "title": "Аудирование",
+    "titleZh": "听力 · 听",
+    "audio": "yin-1.mp3",
+    "hint": "Слушай много раз, не глядя в текст. Когда начнёшь понимать почти всё — переходи к «Чтению» и слушай, следя глазами."
+   },
+   {
+    "id": 2,
+    "kind": "text",
+    "title": "Чтение",
+    "titleZh": "阅读 · 看",
+    "audio": "yin-1.mp3",
+    "text": "说实话，我以前不太喜欢去澡堂。那时候我还小，每个星期六爷爷都带我去。他年纪大了，走得慢，总是拉着我的手，怕我跑丢。\n有一次下大雪，我们走到半路，爷爷突然停下来，说他忘了带钱。幸好旁边有个小卖部，老板认识爷爷，答应让我们先进去，下次再给钱。\n澡堂里水很热。爷爷使劲儿给我搓背，一边搓一边说：“身体好了，做什么都有意思。”那时候我不懂这句话。现在我也快到老年了，才明白他的意思。\n去年爷爷走了。我常常想起他，忘不了他拉着我的手。有时候在街上看到老人和孩子一起走路，我就想起那个下雪的星期六。看来，有些事真的很有益，一辈子也忘不了。\n总之，人老了，思念就多了。"
+   }
+  ]
+ }
+];
 const IDV = (typeof IDV_UNITS !== 'undefined') ? IDV_UNITS : [];
 const BIZ = (typeof BIZ_UNITS !== 'undefined') ? BIZ_UNITS : [];
-const ALL_UNITS = UNITS.concat(EXTRA, IDV, BIZ);
+const YIN = (typeof YIN_UNITS !== 'undefined') ? YIN_UNITS : [];
+const ALL_UNITS = UNITS.concat(EXTRA, IDV, BIZ, YIN);
 function renderIdv() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
   curUnit = null; curPart = null;
@@ -31391,13 +31421,15 @@ function renderBiz() {
 function renderYin() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
   curUnit = null; curPart = null;
+  const list = YIN.filter(u => (u.src || 'yin') === 'yin');
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
-      <div class="top-title">声音</div><div class="sub">Звуки · наполнение позже</div>
+      <div class="top-title">声音</div><div class="sub">Звуки · аудирование</div>
     </div>
-    <div class="empty">Раздел готовится.<br>Наполним уроками позже.</div>
+    ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.</div>'}
 `;
+  refreshUnitBadges();
 }
 
 function renderTeam() {
@@ -31738,8 +31770,21 @@ function openPart(unitN, partId) {
   else if (part.kind === 'hw') renderHw(u, part);
   else if (part.kind === 'record_hw') renderRecordHw(u, part);
   else if (part.kind === 'text') renderText(u, part);
+  else if (part.kind === 'listen') renderListen(u, part);
   else if (part.kind === 'match') renderMatch(u, part);
   else openTask(u, part, 0);
+}
+
+function renderListen(u, part) {
+  showTabbar(false);
+  if (part.audio) { setPartAudio(u, part); showPlayer(true); }
+  else { partAudioKey = null; showPlayer(false); }
+  const hint = part.hint || 'Слушай много раз, не глядя в текст.';
+  app.innerHTML = `
+    <div class="topbar"><button class="back" onclick="goBack()">←</button>
+      <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
+    <div class="lesson-text"><p>${esc(hint)}</p></div>`;
+  posRestore();
 }
 
 function renderText(u, part) {
@@ -35103,7 +35148,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'gist-22';
+  const SW_BUILD = 'gist-23';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
