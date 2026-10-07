@@ -11,7 +11,9 @@ async function check({fail=false,broken=false}={}){
   else {const k=u.searchParams.get('keys');j={ok:true,records:{[k]:{value:cloud.get(k)||null,rev:0}}};}
   return new Response(JSON.stringify(j));
  };
- vm.runInNewContext(source,{document:{getElementById:get,createElement:()=>({style:{},focus(){},select(){}})},localStorage:{getItem:k=>map.get(k)??null,get length(){return map.size},key:i=>[...map.keys()][i]},location:{origin:'https://crmuro.ru'},navigator:{},crypto:{randomUUID:()=> 'unique-check'},fetch,AbortController,setTimeout,clearTimeout,URL,Date,JSON,Set,Math,Error});
+ const context=vm.createContext({document:{getElementById:get,createElement:()=>({style:{},focus(){},select(){}})},localStorage:{getItem:k=>map.get(k)??null,get length(){return map.size},key:i=>[...map.keys()][i]},location:{origin:'https://crmuro.ru'},navigator:{},crypto:{randomUUID:()=> 'unique-check'},fetch,AbortController,setTimeout,clearTimeout,URL,Date,JSON,Set,Math,Error});
+ vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../tingli/sync-transport.5.67.0.js'),'utf8'),context);
+ vm.runInContext(source,context);
  for(let i=0;i<60&&get('again').disabled;i++)await new Promise(resolve=>setImmediate(resolve));
  assert.equal(get('again').disabled,false,'diagnostic must finish visibly');assert.deepEqual(Object.fromEntries(map),original,'personal data unchanged');return {el,requests};
 }

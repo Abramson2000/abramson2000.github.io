@@ -1,7 +1,7 @@
 /* A diagnostic page that runs independently of application startup and sync state. */
 (function(){
 'use strict';
-const API='https://api.crmuro.ru',lines=[],log=document.getElementById('log'),result=document.getElementById('result');
+const transport=CrmSyncTransport.create(),lines=[],log=document.getElementById('log'),result=document.getElementById('result');
 let report={};
 const write=s=>{lines.push(s);log.textContent=lines.join('\n');};
 function stored(k){try{return localStorage.getItem(k);}catch(e){throw Error('Память устройства: '+e.message);}}
@@ -19,17 +19,17 @@ function inspect(){
  return {origin:location.origin,storageBytes:bytes,storageKeys:keys.length,words:rows.length,wordPackets:wordKeys.length,wordBaselines:Object.keys(wordState.base||{}).length,tingliPending:keys.filter(allowed).filter(k=>stored(k)!==(baseline.base||{})[k]),completedToday:Object.keys(schedule.done||{}).filter(k=>k.includes('2026-10-07')),scheduleUpdated:schedule.upd||null,lastTingliError:stored('tingli-sync-err-v1')||null};
 }
 async function request(path,options={}){
- const c=new AbortController(),t=setTimeout(()=>c.abort(),10000);
- try{const r=await fetch(API+path,{...options,cache:'no-store',signal:c.signal,headers:{'Content-Type':'text/plain;charset=UTF-8'}});const s=await r.text();let j;try{j=JSON.parse(s);}catch(_){throw Error('HTTP '+r.status+': сервер вернул не JSON');}if(!r.ok)throw Error('HTTP '+r.status+': '+(j.error||'ошибка сервера'));if(!j.ok)throw Error(j.error||'сервер не подтвердил запрос');return j;}
- catch(e){throw Error(e.name==='AbortError'?'Сервер не ответил за 10 секунд':e.message);}
- finally{clearTimeout(t);}
+ const j=await transport.json(path,options);
+ if(!j.ok)throw Error(j.error||'сервер не подтвердил запрос');
+ return j;
 }
+
 async function run(){
  const again=document.getElementById('again');again.disabled=true;lines.length=0;log.textContent='';report={type:'sync-check-v1',ts:Date.now(),localErrors:[],checks:[]};result.textContent='Проверяю…';
  try{report.local=inspect();write('Локальные данные: '+report.local.words+' записей Словаря; '+report.local.tingliPending.length+' изменений Тингли ожидают отправки.');write('Память: '+Math.round(report.local.storageBytes/1024)+' КБ.');if(report.localErrors.length)write('Ошибки данных: '+report.localErrors.join('\n'));}catch(e){report.localError=e.message;write(e.message);}
  let stage='Чтение списка изменений';
  try{
-  const catalog=await request('/api/sync?list=1&check='+Date.now());if(catalog.protocol!==2||!catalog.revisions)throw Error('Неверный протокол синхронизации');report.checks.push({stage,ok:true});write('✓ Сервер синхронизации отвечает.');
+  const catalog=await request('/api/sync?list=1&check='+Date.now());if(catalog.protocol!==2||!catalog.revisions)throw Error('Неверный протокол синхронизации');report.checks.push({stage,ok:true});report.apiHost=transport.host();write('✓ Сервер синхронизации отвечает: '+report.apiHost);
   const cloud=await request('/api/sync?keys=tingli-schedule-v1&check='+Date.now());const raw=cloud.records&&cloud.records['tingli-schedule-v1'];const sch=raw&&raw.value?JSON.parse(raw.value):{};
   report.cloud={scheduleRevision:raw&&raw.rev,completedToday:Object.keys(sch.done||{}).filter(k=>k.includes('2026-10-07')),wordPackets:Object.keys(catalog.revisions).filter(k=>k.startsWith('cidian-word-v4-')).length};write('Отметки за 7 октября: на устройстве '+((report.local||{}).completedToday||[]).length+', в облаке '+report.cloud.completedToday.length+'.');
   const id=crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);const key='tingli-diag-probe-'+id,value=JSON.stringify({type:'sync-check-v1',id,ts:report.ts});
@@ -37,7 +37,7 @@ async function run(){
   stage='Отправка новой записи';const ack=await request('/api/sync',{method:'POST',body:JSON.stringify({key,base:null,value})});if(ack.value!==value)throw Error('Запись не подтверждена');report.checks.push({stage,ok:true});write('✓ Новая запись отправлена и подтверждена.');
   stage='Независимое чтение новой записи';const after=await request('/api/sync?keys='+key+'&check='+Date.now());if(!after.records||after.records[key].value!==value)throw Error('Отправленная запись не получена обратно');report.checks.push({stage,ok:true});write('✓ Новая запись прочитана с сервера.');report.probeKey=key;
  }catch(e){report.checks.push({stage,ok:false,error:e.message});write('✗ '+stage+': '+e.message);}
- report.finished=Date.now();
+ report.finished=Date.now();report.networkAttempts=transport.attempts();
  try{await request('/api/_report',{method:'POST',body:JSON.stringify(report)});write('✓ Отчёт отправлен. Можно вернуться в чат.');result.textContent=report.checks.some(c=>!c.ok)||report.localError||report.localErrors.length?'Проверка завершена: найдена ошибка. Отчёт отправлен.':'Связь с сервером работает. Отчёт отправлен.';}
  catch(e){write('✗ Отправка отчёта: '+e.message);result.textContent='Отчёт не отправлен. Скопируй его кнопкой ниже и пришли в чат.';}
  again.disabled=false;

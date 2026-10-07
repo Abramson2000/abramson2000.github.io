@@ -2,11 +2,11 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),vm=requir
 const {surface}=require('./app-smoke.cjs');
 const evaluate=(s,js)=>vm.runInContext(js,s.ctx);
 function cloud(seed={}){
- const rows=new Map(Object.entries(seed)),rev=new Map([...rows.keys()].map(k=>[k,1]));let fail=false;
+ const rows=new Map(Object.entries(seed)),rev=new Map([...rows.keys()].map(k=>[k,1]));let fail=0;
  const fetch=async(url,opts={})=>{
   const u=new URL(url);let d,status=200;
   if(u.pathname==='/api/sync'&&opts.method==='POST'){
-   if(fail){fail=false;throw Error('lost connection');}
+   if(fail){fail--;throw Error('lost connection');}
    const {key,base,value}=JSON.parse(opts.body),remote=rows.get(key)??null;
    if(base!==remote){status=409;d={ok:false,value:remote,rev:rev.get(key)||0};}
    else{rows.set(key,value);rev.set(key,(rev.get(key)||0)+1);d={ok:true,value,rev:rev.get(key)};}
@@ -15,7 +15,7 @@ function cloud(seed={}){
   else d={ok:false};
   return new Response(JSON.stringify(d),{status});
  };
- return{rows,fetch,failNext(){fail=true;}};
+ return{rows,fetch,failNext(){fail=2;}};
 }
 async function sync(s,app='tingli'){assert.equal(await evaluate(s,app==='tingli'?'tingliSync.run()':'cidianSync.run()'),true);}
 function markup(s){const html=s.el('app').innerHTML;assert.equal((html.match(/<div\b/g)||[]).length,(html.match(/<\/div>/g)||[]).length);return html;}
