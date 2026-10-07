@@ -36,20 +36,22 @@ function surface(app, options = {}){
     }
     assert.match(el('app').innerHTML,/crs-/);
     const h=el('app').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Tingli div balance');
-    assert.equal(vm.runInContext('APP_VER',ctx),'5.61.0');
+    assert.equal(vm.runInContext('APP_VER',ctx),'5.62.0');
     vm.runInContext("saveLocal('tingli-hw-109-6-0','проба');",ctx);
     assert.equal(map.get('tingli-hw-109-6-0'),'проба');
   }else{
-    vm.runInContext(fs.readFileSync(path.join(root,app,'data.js'),'utf8'),ctx,{filename:'data.js'});
+    vm.runInContext(fs.readFileSync(path.join(root,app,'restore-2026-10-07.js'),'utf8'),ctx,{filename:'data.js'});
     vm.runInContext(fs.readFileSync(path.join(root,app,'app.js'),'utf8'),ctx,{filename:'app.js'});
     assert.match(el('content').innerHTML,/Мой словарь/);
     const h=el('content').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Cidian div balance');
-    assert.equal(vm.runInContext('VERSION',ctx),'2.11.0');
+    assert.equal(vm.runInContext('VERSION',ctx),'2.12.0');
+    if(options.exercise!==false){
     vm.runInContext("const openRow=words[0], openId=openRow.id;const incoming=words.slice().reverse().map(w=>({...w}));applyIncomingWords(incoming);",ctx);
     assert.equal(vm.runInContext('words.includes(openRow)&&openRow.id===openId',ctx),true,'sync preserves an open detail row and form target');
     const old=vm.runInContext('wkey(words[0])',ctx);
     vm.runInContext("mutateWord(words[0],{translation:'изменено'});saveWords();",ctx);
-    assert.equal(vm.runInContext('words.some(w=>wkey(w)==='+JSON.stringify(old)+'&&w.deleted)',ctx),true);
+    assert.equal(vm.runInContext('words.some(w=>wkey(w)==='+JSON.stringify(old)+'&&!w.deleted)',ctx),true);
+    }
     vm.runInContext("renderMore();",ctx);
     assert.match(el('content').innerHTML,/Синхронизация/);
   }

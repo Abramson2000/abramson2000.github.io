@@ -31,14 +31,14 @@ function empty(s) {
 }
 test('fresh/private and existing devices ignore retired personal lists and keep checkmarks',async()=>{
   const c=cloud();
-  for(const seed of [{},{[oldDict]:c.rows.get(oldDict),[oldFav]:c.rows.get(oldFav),'cidian-data-v1':'[{"hanzi":"词"}]','cidian-inbox-v1':'[]'}]) {
+  for(const seed of [{},{[oldDict]:c.rows.get(oldDict),[oldFav]:c.rows.get(oldFav),'cidian-data-v1':'[{"hanzi":"词"}]','cidian-inbox-v3':'[]'}]) {
     const s=surface('tingli',{seed,fetch:c.fetch,quiet:true}); await sync(s); empty(s);
     assert.equal(evaluate(s,'man[109].u'),1);
     assert.equal(evaluate(s,'man[109].p[6]'),1);
     assert.equal(s.map.has(oldDict),false); assert.equal(s.map.has(oldFav),false);
     if(seed['cidian-data-v1']) assert.equal(s.map.get('cidian-data-v1'),seed['cidian-data-v1']);
-    else assert.equal(s.map.has('cidian-inbox-v1'),false);
-    assert.equal(s.map.has('tingli-cidian-outbox-v2'),false);
+    else assert.equal(s.map.has('cidian-inbox-v3'),false);
+    assert.equal(s.map.has('tingli-cidian-outbox-v3'),false);
     await sync(s); empty(s);
   }
   assert.equal(c.rows.get(dict),'{}'); assert.equal(c.rows.get(fav),'{}');
@@ -68,6 +68,6 @@ test('sending one, all or selected words to Cidian never fills personal Tingli d
   s.document.querySelectorAll=()=>[{dataset:{i:'0'},classList:{remove(){},add(){}},querySelector:()=>null}];
   evaluate(s,`curPart.words=[{zh:'选择',py:'xuan',ru:'выбранное'}];sendToDict();`);
   assert.equal(evaluate(s,'dictLoad().length'),0);
-  assert.deepEqual(JSON.parse(s.map.get('cidian-inbox-v1')).map(w=>w.hanzi),['只发一个','全部','选择']);
+  assert.deepEqual(JSON.parse(s.map.get('cidian-inbox-v3')).map(w=>w.hanzi),['只发一个','全部','选择']);
   await sync(s);assert.equal(c.rows.get(dict),'{}');assert.equal(evaluate(s,'loadFavs().length'),0);
 });
