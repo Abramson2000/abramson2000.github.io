@@ -1,7 +1,7 @@
 // Сервис-воркер словаря /cidian/.
 // Версию приложения (V) синхронно проставляет scripts/cidian_bump.py:
 // из неё собираются и ссылки ?v=, и имя кэша — так обновления доезжают до телефона.
-const V = '2.10.13';
+const V = '2.10.14';
 const CACHE = 'cidian-cache-v' + V;
 
 // ВАЖНО: Cloudflare (и иногда GitHub) отдают файлы сжатыми (content-encoding: br/gzip),
@@ -69,26 +69,16 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin || !url.pathname.startsWith('/cidian/')) return;
   if (request.mode === 'navigate') {
+    // СЕТЬ-ВПЕРЁД: иначе новая версия приложения доезжает только со второго открытия
     event.respondWith((async () => {
       const cache = await caches.open(CACHE);
-      const hit = (await cache.match('./index.html')) || (await cache.match('./'));
-      if (hit) {
-        // свежую версию тянем фоном; строковый URL — чтобы не тащить navigate-режим
-        setTimeout(() => {
-          fetch(request.url, { cache: 'no-store' })
-            .then(res => putClean(cache, './index.html', res))
-            .catch(() => {});
-        }, 0);
-        return hit;
-      }
       try {
-        const res = await fetch(request, { cache: 'no-store' });
-        if (res && res.ok) await putClean(cache, './index.html', res);
-        return res;
-      } catch (_) {
-        return new Response('<h1>Нет сети</h1><p>Словарь не был открыт онлайн на этом устройстве.</p>',
-          { status: 503, headers: { 'content-type': 'text/html;charset=utf-8' } });
-      }
+        const res = await fetch(request.url, { cache: 'no-store' });
+        if (res && res.ok) { await putClean(cache, './index.html', res); return res; }
+      } catch (_) {}
+      const hit = (await cache.match('./index.html')) || (await cache.match('./'));
+      return hit || new Response('<h1>Нет сети</h1><p>Словарь не был открыт онлайн на этом устройстве.</p>',
+        { status: 503, headers: { 'content-type': 'text/html;charset=utf-8' } });
     })());
     return;
   }
