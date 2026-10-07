@@ -30728,15 +30728,22 @@ const BIZ_UNITS = [
 ];
 
 </script>
-<script src="sync-core.js?v=5.60.0"></script>
+<script src="sync-core.js?v=5.61.0"></script>
 <script>
 const LS = 'tingli-progress-v1';
-const LS_FAV = 'tingli-favs-v1';
+// Fresh personal collections: never import the retired v1 cloud/local lists.
+// Object storage lets the shared sync engine merge additions and deletions by item.
+const LS_FAV = 'tingli-favs-v2';
+const DICT_KEY = 'tingli-dict-v2';
+for (const key of [LS_FAV, DICT_KEY]) {
+  if (localStorage.getItem(key) === null) localStorage.setItem(key, '{}');
+}
+for (const key of ['tingli-favs-v1', 'tingli-dict-v1']) localStorage.removeItem(key);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const load = () => { try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch { return {}; } };
 const save = p => saveLocal(LS, JSON.stringify(p));
-const loadFavs = () => { try { return JSON.parse(localStorage.getItem(LS_FAV) || '[]'); } catch { return []; } };
-const saveFavs = f => saveLocal(LS_FAV, JSON.stringify(f));
+const loadFavs = () => { try { return Object.keys(JSON.parse(localStorage.getItem(LS_FAV) || '{}')); } catch { return []; } };
+const saveFavs = f => saveLocal(LS_FAV, JSON.stringify(Object.fromEntries(f.map(k => [k, true]))));
 /* ===== Ручные отметки «пройдено» (галочки) =====
    man = { "<unit>": { u:1, p:{ "<partId>":1 } } }  — u: урок пройден, p: части */
 const LS_MAN = 'tingli-manual-v1';
@@ -30768,6 +30775,7 @@ function refreshAfterMan() {
   else if (tab === 'team') renderTeam();
   else if (tab === 'biz') renderBiz();
   else if (tab === 'favs') renderFavs();
+  else if (tab === 'dict') renderDict();
   else renderUnits();
 }
 const POS_KEY = 'tingli-pos-v1';
@@ -30781,7 +30789,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.60.0';
+const APP_VER = '5.61.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = ['https://api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -31028,7 +31036,7 @@ document.addEventListener('click', function (e) {
 let initialSyncComplete = false;
 let recoveryMode = null;
 let PUSH_LOCK = false;
-const TINGLI_NOSYNC = { 'tingli-apihost-v1':1,'tingli-sync-err-v1':1,'tingli-gist-token':1,'tingli-push-enable-error-v1':1,'tingli-sched-clean-v2':1,'tingli-sched-cloudwins-v1':1,'tingli-repair-history-515':1,'tingli-repair-hwdue-516':1,'tingli-diag-report':1 };
+const TINGLI_NOSYNC = { 'tingli-favs-v1':1,'tingli-dict-v1':1, 'tingli-apihost-v1':1,'tingli-sync-err-v1':1,'tingli-gist-token':1,'tingli-push-enable-error-v1':1,'tingli-sched-clean-v2':1,'tingli-sched-cloudwins-v1':1,'tingli-repair-history-515':1,'tingli-repair-hwdue-516':1,'tingli-diag-report':1 };
 function tingliSyncKey(k) {
   return !!k && k.indexOf('tingli-') === 0 && !TINGLI_NOSYNC[k]
     && !/token|secret|password|passwd|auth|credential|vapid|private/i.test(k)
@@ -31044,10 +31052,8 @@ function initialTingliMerge(k, local, remote) {
   if (k === 'tingli-schedule-v1') return JSON.stringify(CrmSyncCore.mergeSchedule(JSON.parse(remote), JSON.parse(local)));
   if (k === 'tingli-manual-v1') return JSON.stringify(mergeMan(JSON.parse(local), JSON.parse(remote)));
   if (k === 'tingli-progress-v1') return JSON.stringify(mergeProgress(JSON.parse(local), JSON.parse(remote)));
-  if (k === 'tingli-favs-v1') return JSON.stringify([...new Set([...JSON.parse(local), ...JSON.parse(remote)])]);
-  if (k === 'tingli-dict-v1') {
-    const map=new Map(); JSON.parse(remote).concat(JSON.parse(local)).forEach(w=>map.set(w.zh,w));
-    return JSON.stringify([...map.values()]);
+  if (k === LS_FAV || k === DICT_KEY) {
+    return JSON.stringify(Object.assign({}, JSON.parse(remote), JSON.parse(local)));
   }
   if (/^tingli-hwmeta-/.test(k)) {
     const l=JSON.parse(local), r=JSON.parse(remote);
@@ -31350,14 +31356,13 @@ function renderDict() {
           <button class="dict-del" onclick="dictRemove(${i})" title="Удалить">✕</button>
         </div>
       </div>`).join('')
-      : '<div class="empty">Словарь пуст.<br>Открой список слов, выдели слово и нажми «📖 Отправить в словарь».</div>'}
+      : '<div class="empty">Словарь пуст.</div>'}
 `;
 }
 
-/* ===== Словарь: localStorage 'tingli-dict-v1' ===== */
-const DICT_KEY = 'tingli-dict-v1';
-function dictLoad() { try { return JSON.parse(localStorage.getItem(DICT_KEY)) || []; } catch (e) { return []; } }
-function dictSave(d) { try { saveLocal(DICT_KEY, JSON.stringify(d)); } catch (e) {} }
+/* ===== Личный словарь Tingli: отдельная коллекция, не копия Cidian ===== */
+function dictLoad() { try { return Object.values(JSON.parse(localStorage.getItem(DICT_KEY) || '{}')); } catch (e) { return []; } }
+function dictSave(d) { try { saveLocal(DICT_KEY, JSON.stringify(Object.fromEntries(d.map(w => [w.zh, w])))); } catch (e) {} }
 function dictHas(zh) { return dictLoad().some(w => w.zh === zh); }
 
 /* ===== мост в приложение «Мои слова» (cidian) =====
@@ -31394,7 +31399,6 @@ function sendWordOne(el) {
   const w = curPart.words[Number(row.dataset.i)]; if (!w) return;
   const label = dictSrcLabel();
   const res = cidianSend([w], label);
-  if (!dictHas(w.zh)) { const d = dictLoad(); d.push({ zh: w.zh, py: w.py, ru: w.ru, src: label, ts: Date.now() }); dictSave(d); }
   row.classList.add('indict'); el.textContent = '✓';
   cidianToast(res.added ? ('В «Мои слова» отправлено: ' + w.zh) : ('В «Мои слова» уже есть: ' + w.zh));
 }
@@ -31403,9 +31407,6 @@ function sendAllWords() {
   const label = dictSrcLabel();
   const items = curPart.words.map(w => ({ zh: w.zh, py: w.py, ru: w.ru }));
   const res = cidianSend(items, label);
-  const d = dictLoad(); let addedT = 0;
-  items.forEach(it => { if (!d.some(x => x.zh === it.zh)) { d.push({ zh: it.zh, py: it.py, ru: it.ru, src: label, ts: Date.now() }); addedT++; } });
-  dictSave(d);
   document.querySelectorAll('#wordList .word').forEach(el => { el.classList.add('indict'); const a = el.querySelector('.w-add'); if (a) a.textContent = '✓'; });
   cidianToast('Отправлен весь список (' + items.length + ') · новых в словаре: ' + res.added);
 }
@@ -31427,28 +31428,20 @@ function selWord(el) {
   if (bar) { bar.style.display = n ? 'block' : 'none'; const c = document.getElementById('dictCnt'); if (c) c.textContent = n; }
 }
 function sendToDict() {
-  const part = curPart;
-  const d = dictLoad();
-  let added = 0, dup = 0;
+  if (!curPart || !curPart.words) return;
   const picked = [];
   document.querySelectorAll('#wordList .word.sel').forEach(el => {
-    const w = part.words[Number(el.dataset.i)];
+    const w = curPart.words[Number(el.dataset.i)];
     if (!w) return;
     picked.push({ zh: w.zh, py: w.py, ru: w.ru });
-    if (d.some(x => x.zh === w.zh)) { dup++; return; }
-    d.push({ zh: w.zh, py: w.py, ru: w.ru, src: unitLabel(curUnit) + ' · ' + part.title, ts: Date.now() });
-    added++;
     el.classList.remove('sel');
     el.classList.add('indict');
     const a = el.querySelector('.w-add'); if (a) a.textContent = '✓';
   });
-  dictSave(d);
   const res = cidianSend(picked, dictSrcLabel());
   const bar = document.getElementById('dictBar');
   if (bar) bar.style.display = 'none';
-  if (res.added) cidianToast('В «Мои слова» отправлено: ' + res.added + (res.dup ? ' · уже было: ' + res.dup : ''));
-  const btn = document.querySelector('#dictBar .btn');
-  if (btn && added) { const old = btn.textContent; btn.textContent = '✅ Добавлено: ' + added + (dup ? ' (повтор: ' + dup + ')' : ''); setTimeout(() => { btn.textContent = old; }, 1600); }
+  cidianToast('В «Мои слова» отправлено: ' + res.added + (res.dup ? ' · уже было: ' + res.dup : ''));
 }
 function dictEdit(i) {
   const d = dictLoad(), w = d[i];
@@ -34809,7 +34802,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.60.0';
+  const SW_BUILD = 'sync-5.61.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }

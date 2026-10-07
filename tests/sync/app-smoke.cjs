@@ -1,7 +1,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
 const root=path.resolve(__dirname,'../..');
-function surface(app){
-  const map=new Map(),els=new Map(),events=[],timers=[],errors=[];
+function surface(app, options = {}){
+  const map=new Map(Object.entries(options.seed || {})),els=new Map(),events=[],timers=[],errors=[];
   const el=id=>{
     if(els.has(id))return els.get(id);
     const x={id,tagName:'DIV',innerHTML:'',textContent:'',value:'',dataset:{},style:{},offsetWidth:100,
@@ -22,7 +22,7 @@ function surface(app){
     addEventListener:(k,f)=>events.push([k,f]),removeEventListener(){},scrollTo(){},scrollY:0,innerHeight:800,innerWidth:400,
     getComputedStyle:()=>({getPropertyValue:()=>''}),matchMedia:()=>({matches:false,addEventListener(){}}),
     setTimeout:(f,ms)=>{timers.push({f,ms});return timers.length;},clearTimeout(){},setInterval:()=>1,clearInterval(){},
-    alert:x=>errors.push(x),confirm:()=>false,fetch:async()=>{throw Error('offline test');},history:{replaceState(){}},
+    alert:x=>errors.push(x),confirm:()=>false,fetch:options.fetch || (async()=>{throw Error('offline test');}),history:{replaceState(){}},
     requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){}};
   context.window=context;context.self=context;context.globalThis=context;
   const ctx=vm.createContext(context);
@@ -36,7 +36,7 @@ function surface(app){
     }
     assert.match(el('app').innerHTML,/crs-/);
     const h=el('app').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Tingli div balance');
-    assert.equal(vm.runInContext('APP_VER',ctx),'5.60.0');
+    assert.equal(vm.runInContext('APP_VER',ctx),'5.61.0');
     vm.runInContext("saveLocal('tingli-hw-109-6-0','проба');",ctx);
     assert.equal(map.get('tingli-hw-109-6-0'),'проба');
   }else{
@@ -54,6 +54,8 @@ function surface(app){
     assert.match(el('content').innerHTML,/Синхронизация/);
   }
   assert.equal(errors.length,0,errors.join('\n'));
-  console.log(app+': real scripts boot and rendering OK');
+  if (!options.quiet) console.log(app+': real scripts boot and rendering OK');
+  return {ctx,map,el,document};
 }
-surface('tingli');surface('cidian');
+if (require.main === module) { surface('tingli');surface('cidian'); }
+module.exports = {surface};
