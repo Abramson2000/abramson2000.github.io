@@ -82,7 +82,7 @@ let inboxAdded=0;
 const CONTENT_PHRASES=['一路平安','一路顺风','不知不觉','不管怎么说','人山人海','入乡随俗','欲速不达','恭喜发财','万事如意','早日康复'];
 const CONTENT_NAMES=['川菜','鲁菜','苏菜','粤菜','浙菜','闽菜','湘菜','徽菜','秦菜','东北菜','京菜','豫菜','沪菜','楚菜','津菜','滇菜'];
 const CONTENT_NEW=[{hanzi:'鲁菜',pinyin:'Lǔcài',translation:'Шаньдунская кухня',laoshi:false},{hanzi:'苏菜',pinyin:'Sūcài',translation:'Цзянсуская кухня',laoshi:false},{hanzi:'粤菜',pinyin:'Yuècài',translation:'Кантонская кухня',laoshi:false},{hanzi:'闽菜',pinyin:'Mǐncài',translation:'Фуцзяньская кухня',laoshi:false}];
-const STORAGE='cidian-data-v1',VERSION='2.10.20',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
+const STORAGE='cidian-data-v1',VERSION='2.10.21',SNAP='cidian-backup-auto',MAX_BYTES=4200000,MIGR_KEY='cidian-migr',MIGR_TAG='laoshi-2026-09-28';
 let words=loadWords(),currentTab='words',kind='word',addKind='word',addKindOwner=null,sortMode='order',filter='all',tagFilter=[],query='',visible=120,editingId=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -296,7 +296,11 @@ async function cidianCloudWins(){cidianRecoveryMode='cloudwins';let _err=null;tr
   if(!j||!j.ok||typeof j.value!=='string'){toast('⚠️ Нет связи с облаком');return;}
   let _cloudBytes=typeof j.value==='string'?j.value.length:-1;let cloud=null;try{cloud=JSON.parse(j.value);}catch(e){toast('⚠️ Облако повреждено');return;}
   if(!Array.isArray(cloud)){toast('⚠️ Облако повреждено');return;}
-  words=renumber(cloud.map(migrate));
+  /* облако — эталон; НО свои слова, которых нет в облаке, оставляем (не теряем правки офлайн) */
+  const migratedCloud=cloud.map(migrate);
+  const cloudMap=new Map(migratedCloud.map(function(w){return [wkey(w),w];}));
+  const localOnly=(words||[]).filter(function(w){const h=wkey(w);return h&&!cloudMap.has(h)&&!w.deleted;}).map(function(w){return Object.assign({},w);});
+  words=renumber(migratedCloud.concat(localOnly));
   saveWords();
   try{if(currentTab==='xl')renderXl();else if(currentTab==='more')renderMore();else if(currentTab==='words')renderWords();}catch(_){}
   toast('☁️ Восстановлено из облака: '+words.filter(w=>!w.deleted).length+' записей');
@@ -309,12 +313,11 @@ setTimeout(()=>{
   if(/[#?]diag\b/.test(location.href)){cidianDiag();return;}
   if(cidianIsCanonical()){cidianCanonicalUpload();return;}
   if(cidianIsCloudWins()){cidianCloudWins();return;}
-  /* принудительное «облако — истина» при смене версии: гарантированно перезаписывает
-     застрявший неправильный локальный кэш на телефоне верными данными (без действий юзера) */
-  const cv='cidian-cloudwins-'+VERSION;
-  if(localStorage.getItem(cv)!=='1'){try{localStorage.setItem(cv,'1');}catch(e){}cidianCloudWins();return;}
-  if(PUSH_LOCK)cidianCloudWins();   /* РЕЖИМ ВОССТАНОВЛЕНИЯ: пока замок стоит, облако — истина */
-  else pullCloud(true);
+  /* ОБЛАКО — ИСТИНА при КАЖДОМ открытии. Локальный кэш на телефоне мог быть испорчен
+     старыми миграциями (laoshi=false); эталон — бэкап Саши (4052/0). БЕЗ гейта по
+     флагу/версии: если облако недоступно в этот раз — повтор при следующем открытии.
+     Свои слова, которых нет в облаке, телефон сохраняет (cidianCloudWins сам). */
+  cidianCloudWins();
 },1200);
 
 async function cidianDiag(){try{
