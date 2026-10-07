@@ -74,10 +74,10 @@ test('lesson + adds to Tingli; review removes extras; explicit send reaches Cidi
   assert.match(s.el('app').innerHTML,/Отправить в Словарь/);
   const html=s.el('app').innerHTML;assert.equal((html.match(/<div\b/g)||[]).length,(html.match(/<\/div>/g)||[]).length);
   await evaluate(s,'dictSendAll()');
-  assert.deepEqual(Object.keys(JSON.parse(c.rows.get('tingli-cidian-outbox-v3'))),['全部测试新词','选择测试新词']);
+  assert.deepEqual([...c.rows.entries()].filter(([k])=>k.startsWith('cidian-word-v4-')).map(([,v])=>JSON.parse(v).hanzi),['全部测试新词','选择测试新词']);
   assert.equal(evaluate(s,'dictLoad().length'),2);
   const a=surface('cidian',{exercise:false,fetch:c.fetch,quiet:true});
-  assert.equal(await evaluate(a,'checkInboxCloud(true)'),2);
+  assert.equal(await evaluate(a,'cidianSync.run()'),true);
   assert.equal(await evaluate(a,'cidianSync.run()'),true);
   const b=surface('cidian',{exercise:false,fetch:c.fetch,quiet:true});
   assert.equal(await evaluate(b,'cidianSync.run()'),true);

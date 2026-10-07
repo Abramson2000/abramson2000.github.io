@@ -27,6 +27,7 @@ function surface(app, options = {}){
   context.window=context;context.self=context;context.globalThis=context;
   const ctx=vm.createContext(context);
   vm.runInContext(fs.readFileSync(path.join(root,app,'sync-core.js'),'utf8'),ctx);
+  if(app==='cidian')vm.runInContext(fs.readFileSync(path.join(root,app,'word-sync.js'),'utf8'),ctx);
   if(app==='tingli'){
     const html=fs.readFileSync(path.join(root,'tingli/index.html'),'utf8');
     for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){
@@ -36,7 +37,7 @@ function surface(app, options = {}){
     }
     assert.match(el('app').innerHTML,/crs-/);
     const h=el('app').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Tingli div balance');
-    assert.equal(vm.runInContext('APP_VER',ctx),'5.63.0');
+    assert.equal(vm.runInContext('APP_VER',ctx),'5.64.0');
     vm.runInContext("saveLocal('tingli-hw-109-6-0','проба');",ctx);
     assert.equal(map.get('tingli-hw-109-6-0'),'проба');
   }else{
@@ -44,7 +45,7 @@ function surface(app, options = {}){
     vm.runInContext(fs.readFileSync(path.join(root,app,'app.js'),'utf8'),ctx,{filename:'app.js'});
     assert.match(el('content').innerHTML,/Мой словарь/);
     const h=el('content').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Cidian div balance');
-    assert.equal(vm.runInContext('VERSION',ctx),'2.14.0');
+    assert.equal(vm.runInContext('VERSION',ctx),'2.15.0');
     if(options.exercise!==false){
     vm.runInContext("const openRow=words[0], openId=openRow.id;const incoming=words.slice().reverse().map(w=>({...w}));applyIncomingWords(incoming);",ctx);
     assert.equal(vm.runInContext('words.includes(openRow)&&openRow.id===openId',ctx),true,'sync preserves an open detail row and form target');

@@ -20,18 +20,19 @@ function cloud(seed={}){
 async function sync(s,app='tingli'){assert.equal(await evaluate(s,app==='tingli'?'tingliSync.run()':'cidianSync.run()'),true);}
 function markup(s){const html=s.el('app').innerHTML;assert.equal((html.match(/<div\b/g)||[]).length,(html.match(/<\/div>/g)||[]).length);return html;}
 
-test('homework checkbox covers every text, voice and record assignment and all card surfaces',()=>{
+test('compact homework completion is in course lesson cards and absent from schedule',()=>{
  const s=surface('tingli',{quiet:true});
  const parts=JSON.parse(evaluate(s,"JSON.stringify(ALL_UNITS.flatMap(u=>u.parts.filter(p=>p.kind==='hw'||p.kind==='record_hw').map(p=>({u:u.unit,p:p.id,kind:p.kind}))))"));
  assert.ok(parts.length>30);
  for(const p of parts){evaluate(s,`const ru${p.u}_${p.p}=crsUnit(${p.u});const rp${p.u}_${p.p}=ru${p.u}_${p.p}.parts.find(x=>x.id===${p.p});${p.kind==='record_hw'?'renderRecordHw':'renderHw'}(ru${p.u}_${p.p},rp${p.u}_${p.p})`);assert.match(markup(s),new RegExp(`data-hw-done="u${p.u}p${p.p}"`));}
  evaluate(s,"crsMode='hw';crsHwFilter='all';curUnit=null;curPart=null;renderCourses()");
- assert.match(s.el('crsBody').innerHTML,/aria-checked="false"/);
+ assert.doesNotMatch(s.el('crsBody').innerHTML,/data-hw-done=/);
  const sample=evaluate(s,"crsHwList().find(h=>h.existing).key");
- assert.match(evaluate(s,`crsHwCard(crsHwList().find(h=>h.key===${JSON.stringify(sample)}))`),/data-hw-done=/);
+ assert.doesNotMatch(evaluate(s,`crsHwCard(crsHwList().find(h=>h.key===${JSON.stringify(sample)}))`),/data-hw-done=/);
+ const ref=JSON.parse(evaluate(s,"JSON.stringify(ALL_UNITS.find(u=>u.parts.some(p=>p.kind==='hw')))"));evaluate(s,`openUnit(${ref.unit})`);assert.match(markup(s),/data-hw-done=/);assert.doesNotMatch(markup(s),/Отметить ДЗ выполненным/);
  evaluate(s,`crsHwSetState(${JSON.stringify(sample)},'done')`);
  assert.match(evaluate(s,`crsHwDoneButton(${JSON.stringify(sample)})`),/aria-checked="true"/);
- assert.match(evaluate(s,`crsHwDoneButton(${JSON.stringify(sample)})`),/✓ ДЗ выполнено/);
+ assert.match(evaluate(s,`crsHwDoneButton(${JSON.stringify(sample)})`),/✓ Готово/);
 });
 
 test('homework completion, uncheck and answer preservation propagate across devices and restart',async()=>{
@@ -72,7 +73,7 @@ test('Cidian restores exact main backup on a fresh or stale device, preserving c
   assert.equal(evaluate(s,"newOf('word')+newOf('phrase')+newOf('name')"),0);
   assert.equal(evaluate(s,"words.some(w=>w.hanzi==='污染')"),false);
  }
- assert.equal(JSON.parse(c.rows.get('cidian-data-v3')).length,4052);
+ assert.equal(c.rows.has('cidian-data-v3'),false,'the static restore seed is not re-uploaded as a large file');
  assert.equal(c.rows.get('cidian-data-v1'),wrong);
 });
 
