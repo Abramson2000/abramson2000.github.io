@@ -24,7 +24,7 @@ test('manual form word reaches an independent phone even when full dictionary re
  const c=cloud(),a=surface('cidian',{exercise:false,quiet:true,fetch:c.fetch}),b=surface('cidian',{exercise:false,quiet:true,fetch:c.fetch});
  ev(a,'renderAdd()');a.el('fHanzi').value='手机独立校验';a.el('fTr').value='на телефоне';ev(a,'saveForm(false)');
  assert.equal(await ev(a,'cidianLegacySync.run()'),false);
- assert.equal(await ev(a,'cidianSync.run()'),true);assert.equal(await ev(b,'cidianSync.run()'),true);
+ assert.equal(await ev(a,'cidianSync.run()'),true);assert.equal(ev(a,'syncState'),'saved');assert.equal(await ev(b,'cidianSync.run()'),true);
  assert.equal(ev(b,"words.some(w=>w.hanzi==='手机独立校验'&&!w.laoshi)"),true);
  assert.equal(ev(b,"getFiltered()[0].hanzi"),'手机独立校验');
  assert.ok(c.posts.every(p=>p.key!=='cidian-data-v3'&&p.value.length<1500));
