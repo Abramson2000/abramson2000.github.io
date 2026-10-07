@@ -1,10 +1,10 @@
 /* Tingli — офлайн-кэш приложения.
    HTML — сеть вперёд (чтобы обновления приходили), остальное из кэша.
    Запросы к облаку (другой домен) не трогаем вообще. */
-const CACHE = 'tingli-cache-v5620-full';
+const CACHE = 'tingli-cache-v5630-full';
 const CORE_ASSETS = [
-  './', './index.html', './manifest.json', './sync-core.js?v=5.62.0',
-  './fonts/simsun-subset.woff2', './fonts/xiaoshan-title.woff2',
+  './', './index.html', './manifest.json', './sync-core.js?v=5.63.0',
+  './fonts/zhimang-course.ttf', './fonts/simsun-subset.woff2', './fonts/xiaoshan-title.woff2',
   './bg.jpg', './logo.png', './sched-logo.png',
   './tingli-icon-180-v3.png', './tingli-icon-192-v3.png', './tingli-icon-512-v3.png',
   './tingli-favicon-v3.png', './tingli-favicon-32-v3.png',

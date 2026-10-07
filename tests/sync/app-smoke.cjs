@@ -14,7 +14,7 @@ function surface(app, options = {}){
   const document={hidden:false,visibilityState:'visible',body:el('body'),head:el('head'),documentElement:el('html'),activeElement:null,
     getElementById:id=>el(id),querySelector:s=>el(s.startsWith('#')?s.slice(1):s),querySelectorAll:()=>[],createElement:t=>el('created-'+t),
     addEventListener:(k,f)=>events.push([k,f]),removeEventListener(){}};
-  const localStorage={getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,String(v)),removeItem:k=>map.delete(k),key:i=>[...map.keys()][i],get length(){return map.size;}};
+  const localStorage={getItem:k=>map.get(k)??null,setItem:(k,v)=>{const next=new Map(map);next.set(k,String(v));if(options.quota && [...next].reduce((n,[key,val])=>n+2*(key.length+val.length),0)>options.quota)throw Error('QuotaExceededError');map.set(k,String(v));},removeItem:k=>map.delete(k),key:i=>[...map.keys()][i],get length(){return map.size;}};
   const context={console,document,localStorage,location:new URL('https://crmuro.ru/'+app+'/'),navigator:{onLine:true,language:'ru-RU'},
     URL,URLSearchParams,Intl,Date,Math,JSON,Set,Map,Promise,Number,String,Object,Array,RegExp,Error,Blob,Response,Request,Headers,AbortController,
     Audio:class{constructor(){this.paused=true;}addEventListener(){}pause(){}play(){return Promise.resolve();}},
@@ -36,7 +36,7 @@ function surface(app, options = {}){
     }
     assert.match(el('app').innerHTML,/crs-/);
     const h=el('app').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Tingli div balance');
-    assert.equal(vm.runInContext('APP_VER',ctx),'5.62.0');
+    assert.equal(vm.runInContext('APP_VER',ctx),'5.63.0');
     vm.runInContext("saveLocal('tingli-hw-109-6-0','проба');",ctx);
     assert.equal(map.get('tingli-hw-109-6-0'),'проба');
   }else{
@@ -44,7 +44,7 @@ function surface(app, options = {}){
     vm.runInContext(fs.readFileSync(path.join(root,app,'app.js'),'utf8'),ctx,{filename:'app.js'});
     assert.match(el('content').innerHTML,/Мой словарь/);
     const h=el('content').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Cidian div balance');
-    assert.equal(vm.runInContext('VERSION',ctx),'2.13.0');
+    assert.equal(vm.runInContext('VERSION',ctx),'2.14.0');
     if(options.exercise!==false){
     vm.runInContext("const openRow=words[0], openId=openRow.id;const incoming=words.slice().reverse().map(w=>({...w}));applyIncomingWords(incoming);",ctx);
     assert.equal(vm.runInContext('words.includes(openRow)&&openRow.id===openId',ctx),true,'sync preserves an open detail row and form target');
