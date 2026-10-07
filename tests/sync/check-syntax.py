@@ -10,6 +10,6 @@ shared=[hashlib.sha256((root/p).read_bytes()).hexdigest() for p in ['tingli/sync
 assert len(set(shared))==1,'client/server protocol mismatch'
 assert "APP_VER = '5.62.0'" in (root/'tingli/index.html').read_text()
 assert 'tingli-cache-v5620-full' in (root/'tingli/sw.js').read_text()
-assert "VERSION='2.12.0'" in (root/'cidian/app.js').read_text()
-assert "const V = '2.12.0'" in (root/'cidian/sw.js').read_text()
+assert "VERSION='2.13.0'" in (root/'cidian/app.js').read_text()
+assert "const V = '2.13.0'" in (root/'cidian/sw.js').read_text()
 print('All script syntax, protocol copies and release versions OK')

@@ -97,3 +97,14 @@ test('Cidian accepts explicit new Tingli sends but ignores retired queues and ne
  assert.equal(await evaluate(s,'checkInboxCloud(true)'),0);
  evaluate(s,"words[words.length-1].deleted=true;saveWords()");assert.equal(await evaluate(s,'checkInboxCloud(true)'),0,'permanent outbox does not resurrect deletion');
 });
+
+test('fresh Cidian synchronizes existing inbox records before accepting a repeated transfer',async()=>{
+ const c=cloud(),a=surface('cidian',{exercise:false,fetch:c.fetch,quiet:true});await sync(a,'cidian');
+ c.rows.set('tingli-cidian-outbox-v3',JSON.stringify({new:{hanzi:'再发送',pinyin:'zai',ru:'повтор',ts:Date.now()}}));
+ await evaluate(a,'checkInboxCloud(true)');await sync(a,'cidian');
+ evaluate(a,"words.find(w=>w.hanzi==='再发送').laoshi=true;saveWords()");await sync(a,'cidian');
+ const fresh=surface('cidian',{exercise:false,fetch:c.fetch,quiet:true});
+ await evaluate(fresh,'checkInboxCloud(true)');await sync(fresh,'cidian');
+ assert.equal(evaluate(fresh,"words.find(w=>w.hanzi==='再发送').laoshi"),true);
+ assert.equal(evaluate(fresh,"words.filter(w=>w.hanzi==='再发送').length"),1);
+});

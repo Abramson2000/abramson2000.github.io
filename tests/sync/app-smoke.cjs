@@ -44,7 +44,7 @@ function surface(app, options = {}){
     vm.runInContext(fs.readFileSync(path.join(root,app,'app.js'),'utf8'),ctx,{filename:'app.js'});
     assert.match(el('content').innerHTML,/Мой словарь/);
     const h=el('content').innerHTML;assert.equal((h.match(/<div\b/g)||[]).length,(h.match(/<\/div>/g)||[]).length,'Cidian div balance');
-    assert.equal(vm.runInContext('VERSION',ctx),'2.12.0');
+    assert.equal(vm.runInContext('VERSION',ctx),'2.13.0');
     if(options.exercise!==false){
     vm.runInContext("const openRow=words[0], openId=openRow.id;const incoming=words.slice().reverse().map(w=>({...w}));applyIncomingWords(incoming);",ctx);
     assert.equal(vm.runInContext('words.includes(openRow)&&openRow.id===openId',ctx),true,'sync preserves an open detail row and form target');
