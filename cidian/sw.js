@@ -1,7 +1,7 @@
 // Сервис-воркер словаря /cidian/.
 // Версию приложения (V) синхронно проставляет scripts/cidian_bump.py:
 // из неё собираются и ссылки ?v=, и имя кэша — так обновления доезжают до телефона.
-const V = '2.10.14';
+const V = '2.10.15';
 const CACHE = 'cidian-cache-v' + V;
 
 // ВАЖНО: Cloudflare (и иногда GitHub) отдают файлы сжатыми (content-encoding: br/gzip),
@@ -74,7 +74,12 @@ self.addEventListener('fetch', event => {
       const cache = await caches.open(CACHE);
       try {
         const res = await fetch(request.url, { cache: 'no-store' });
-        if (res && res.ok) { await putClean(cache, './index.html', res); return res; }
+        if (res && res.ok) {
+          // ВАЖНО: в кэш отдаём КЛОН — иначе тело оригинала «съедается»
+          // и Safari падает с "Response is disturbed or locked".
+          try { await putClean(cache, './index.html', res.clone()); } catch (_) {}
+          return res;
+        }
       } catch (_) {}
       const hit = (await cache.match('./index.html')) || (await cache.match('./'));
       return hit || new Response('<h1>Нет сети</h1><p>Словарь не был открыт онлайн на этом устройстве.</p>',
@@ -88,7 +93,7 @@ self.addEventListener('fetch', event => {
     if (hit) return hit;
     try {
       const res = await fetch(request);
-      if (res && res.ok) await putClean(cache, request, res);
+      if (res && res.ok) { try { await putClean(cache, request, res.clone()); } catch (_) {} }
       return res;
     } catch (_) {
       const loose = await cache.match(request, { ignoreSearch: true });
