@@ -31,6 +31,19 @@
     }
     return clone(local);
   }
+  function wordRecordMap(a) {
+    const m = {};
+    (a || []).forEach(w => {
+      const k = w.uid || wordKey(w), old = m[k];
+      if (!old || String(w.updatedAt || '') >= String(old.updatedAt || '')) m[k] = w;
+    });
+    return m;
+  }
+  function mergeWordRecords(a,b) {
+    const m=wordRecordMap(a);
+    Object.entries(wordRecordMap(b)).forEach(([k,w])=>{if(!m[k]||String(w.updatedAt||'')>=String(m[k].updatedAt||''))m[k]=w;});
+    return Object.values(m);
+  }
   function mergeWords(a, b) {
     const m = wordMap(a);
     Object.values(wordMap(b)).forEach(w => {
@@ -48,8 +61,7 @@
       Object.keys(b[g] || {}).forEach(id => {
         const x = out[g][id], y = b[g][id];
         if (!x || (+y.upd || 0) > (+x.upd || 0)) out[g][id] = y;
-        if (g === 'hwstate' && x && x.state === 'done' && y.state !== 'done') out[g][id] = x;
-        if (g === 'hwstate' && y.state === 'done' && (!x || x.state !== 'done')) out[g][id] = y;
+
       });
     });
     ['done','killed'].forEach(g => {
@@ -74,6 +86,7 @@
     if (remoteRaw === baseRaw || localRaw === remoteRaw) return localRaw;
     try {
       const b = JSON.parse(baseRaw), l = JSON.parse(localRaw), r = JSON.parse(remoteRaw);
+      if (key === 'cidian-data-v3') return JSON.stringify(Object.values(threeWay(wordRecordMap(b),wordRecordMap(l),wordRecordMap(r))));
       if (key === 'cidian-data-v1') return JSON.stringify(Object.values(threeWay(wordMap(b), wordMap(l), wordMap(r))));
       if (key === 'tingli-favs-v1') {
         const map = arr => Object.fromEntries((arr || []).map(x => [x, true]));
@@ -151,7 +164,7 @@
     }
     return { run, mark: () => { if (busy) rerun = true; else schedule(); }, stop: () => clearTimeout(timer), pending: () => config.keys().filter(config.allowed).filter(k => config.get(k) !== state.base[k]) };
   }
-  const api = {create, threeWay, reconcile, mergeWords, mergeSchedule, wordKey};
+  const api = {create, threeWay, reconcile, mergeWords, mergeSchedule, wordKey, mergeWordRecords};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.CrmSyncCore = api;
 })(typeof globalThis !== 'undefined' ? globalThis : self);

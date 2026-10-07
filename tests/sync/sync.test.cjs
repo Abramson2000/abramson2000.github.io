@@ -105,7 +105,7 @@ test('Tingli: new local data is uploaded even when the first pull finds an empty
 test('Tingli: schedule preserves payments, done numbers, homework and tombstones',()=>{
   const a={upd:1,payments:{p:{amount:100,upd:1}},done:{x:1000},hwstate:{h:{state:'done',upd:1}},lessons:{l:{upd:1},'s:sid:2026':{upd:1}}};
   const b={upd:2,payments:{q:{amount:200,upd:2}},done:{y:2000},hwstate:{h:{state:'todo',upd:2}},killed:{l:2,sid:2},hwdue:{h:{date:'2026-10-09',upd:2}},hwdel:{z:{upd:2}}};
-  const m=Core.mergeSchedule(a,b);assert.deepEqual(Object.keys(m.payments),['p','q']);assert.deepEqual(m.done,{x:1000,y:2000});assert.equal(m.hwstate.h.state,'done');assert.deepEqual(m.lessons,{});assert.equal(m.hwdue.h.date,'2026-10-09');assert.ok(m.hwdel.z);
+  const m=Core.mergeSchedule(a,b);assert.deepEqual(Object.keys(m.payments),['p','q']);assert.deepEqual(m.done,{x:1000,y:2000});assert.equal(m.hwstate.h.state,'todo');assert.deepEqual(m.lessons,{});assert.equal(m.hwdue.h.date,'2026-10-09');assert.ok(m.hwdel.z);
 });
 test('API: legacy schedule POST uses the same merge as the clients',async()=>{
   const env=dbEnv(),key='tingli-schedule-v1';seed(env,key,{payments:{p:{upd:2,amount:200}},done:{x:1000}});
