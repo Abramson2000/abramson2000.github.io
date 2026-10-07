@@ -30780,7 +30780,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.59.5';
+const APP_VER = '5.59.6';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = ['https://api.crmuro.ru', 'https://tingli-api.crmuro.ru', 'https://abramson-crm.pages.dev'];
 let API_BASE = API_HOSTS[0];
@@ -31044,7 +31044,7 @@ let backupTimer = null;
 let initialSyncComplete = false;
 let recoveryMode = null;
 let syncDirty = {};
-let PUSH_LOCK = true; /* до миграции на новый бэкенд любой push запрещён */
+let PUSH_LOCK = false; /* 07.10.2026: замок снят. Он же стал причиной потери ДЗ: ответы не уходили в облако, а #cloudwins затирал локаль. */
 function isUnlockMode(){ return /[#?]unlock\b/.test(location.href); }
 const TINGLI_NOSYNC = { 'tingli-apihost-v1':1,'tingli-sync-err-v1':1,'tingli-gist-token':1,'tingli-push-enable-error-v1':1,'tingli-sched-clean-v2':1,'tingli-sched-cloudwins-v1':1,'tingli-repair-history-515':1,'tingli-repair-hwdue-516':1 };
 function tingliSyncKey(k){ return !!k && k.indexOf('tingli-')===0 && !TINGLI_NOSYNC[k] && k.indexOf('tingli-safety-backup-')!==0 && k.indexOf('tingli-zz-')!==0; }
@@ -31155,14 +31155,20 @@ async function cloudWinsRestore() {
       const rr = await apiFetch('/api/backup?keys=' + encodeURIComponent(names.slice(i, i + 60).join(',')));
       if (rr && rr.ok) { const rj = await rr.json(); if (rj && rj.values) Object.assign(cloud, rj.values); }
     }
-    const wipe = [];
-    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (tingliSyncKey(k)) wipe.push(k); }
-    wipe.forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
-    let n = 0;
+    // СНАЧАЛА страхуем локальное состояние в облако, потом заменяем.
+    // Раньше здесь был полный wipe — и он стёр несинхронизированные ответы на ДЗ.
+    const localSnap = {};
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (tingliSyncKey(k)) localSnap[k] = localStorage.getItem(k); }
+    if (Object.keys(localSnap).length) {
+      try { await apiFetch('/api/backup', { method: 'POST', body: JSON.stringify({ ['tingli-safety-backup-' + Date.now()]: JSON.stringify(localSnap) }) }); } catch (e) {}
+    }
+    let n = 0, kept = 0;
     for (const k in cloud) { if (tingliSyncKey(k)) { try { localStorage.setItem(k, cloud[k]); } catch (e) {} n++; } }
+    // локальные ключи, которых нет в облаке, НЕ удаляем — это может быть несохранённая работа
+    for (const k in localSnap) { if (!(k in cloud)) kept++; }
     prog = load(); man = loadMan();
     if (typeof crsCache !== 'undefined') { crsCache = null; try { crsStore(); } catch (e) {} }
-    syncToast('☁️ Восстановлено из облака: ' + n + ' ключей');
+    syncToast('☁️ Из облака: ' + n + ' ключей' + (kept ? ', локальных сохранено: ' + kept : ''));
     const cur = typeof tab !== 'undefined' ? tab : 'lessons';
     if (cur === 'sched') { try { renderCourses(); } catch (e) {} }
     else if (cur === 'lessons') { try { renderUnits(); } catch (e) {} }
@@ -31252,7 +31258,22 @@ async function restoreCoreData() {
     // Расписание сюда НЕ входит — его тянет restoreSchedule() отдельно.
     for (const k in cloud) {
       if (!tingliSyncKey(k) || k === CRS_LS) continue;
-      if (localStorage.getItem(k) === null) { try { localStorage.setItem(k, cloud[k]); } catch (e) {} changed = true; }
+      const local = localStorage.getItem(k);
+      if (local === null) { try { localStorage.setItem(k, cloud[k]); } catch (e) {} changed = true; continue; }
+      // Отметка о сдаче ДЗ: облачное done/submitted сильнее локального «не сделано».
+      // Раньше застрявший локальный {"done":false} не исправлялся никогда.
+      if (k.indexOf('tingli-hwmeta-') === 0) {
+        let lv = null, cv = null;
+        try { lv = JSON.parse(local); } catch (e) {}
+        try { cv = JSON.parse(cloud[k]); } catch (e) {}
+        if (lv && cv && !lv.done && (cv.done || cv.submitted)) {
+          const nv = Object.assign({}, lv, cv);
+          nv.done = true;
+          nv.submitted = Math.max(+lv.submitted || 0, +cv.submitted || 0);
+          try { localStorage.setItem(k, JSON.stringify(nv)); } catch (e) {}
+          changed = true;
+        }
+      }
     }
     if (!changed) return;
     prog = load(); man = loadMan();
@@ -33123,6 +33144,15 @@ function crsMerge(a, b) {                    // объединение без д
       const x = out[g][id], y = B[id];
       if (!x || ((y && y.upd) || 0) > ((x && x.upd) || 0)) out[g][id] = y;
     });
+    // Явная сдача сильнее любого todo/doing, даже если «не сделано» помечено позже
+    if (g === 'hwstate') {
+      [a[g] || {}, B].forEach(function (src) {
+        Object.keys(src).forEach(function (id) {
+          const y = src[id], x = out[g][id];
+          if (y && y.state === 'done' && x && x.state !== 'done') out[g][id] = y;
+        });
+      });
+    }
   });
   // Отметка «Урок прошел» — отдельные данные. Раньше merge их вообще терял.
   out.done = Object.assign({}, a.done || {});
@@ -35036,7 +35066,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'gist-20';
+  const SW_BUILD = 'gist-21';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
