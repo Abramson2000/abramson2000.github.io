@@ -364,8 +364,8 @@
   .sb-offline-btn.ready { color: var(--ink-2); border-color: rgba(29,29,33,.1); background: var(--paper); cursor: default; }
   .sb-offline-st { margin-top: 6px; font-size: 11px; color: var(--ink-3); text-align: center; line-height: 1.35; }
   .ic-tuan { background: var(--red); color: var(--surface); font-size: 27px; font-weight: 800; font-family: "TLCJK", "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
-  #tabbar .tab-label { font-family: "Zhi Mang Xing", "TLCJK", serif; font-weight: 400; font-size:26.4px; }
-  @media(min-width:900px){#tabbar .tab-label{font-size:28.8px;}}
+  #tabbar .tab-label { font-family: "Zhi Mang Xing", "TLCJK", serif; font-weight: 400; font-size:31.68px; }
+  @media(min-width:900px){#tabbar .tab-label{font-size:34.56px;}}
   /* меню — оверлей поверх контента; контент справа полупрозрачный, пока меню открыто */
   .app, .player { transition: opacity .3s ease; }
   body.sb-open .app, body.sb-open .player { opacity: .45; }
@@ -30796,7 +30796,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.64.0';
+const APP_VER = '5.64.1';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = ['https://api.crmuro.ru'];
 let API_BASE = API_HOSTS[0];
@@ -31240,6 +31240,84 @@ const YIN_UNITS = [
     "titleZh": "阅读 · 看",
     "audio": "yin-1.mp3",
     "text": "说实话，我以前不太喜欢去澡堂。那时候我还小，每个星期六爷爷都带我去。他年纪大了，走得慢，总是拉着我的手，怕我跑丢。\n有一次下大雪，我们走到半路，爷爷突然停下来，说他忘了带钱。幸好旁边有个小卖部，老板认识爷爷，答应让我们先进去，下次再给钱。\n澡堂里水很热。爷爷使劲儿给我搓背，一边搓一边说：“身体好了，做什么都有意思。”那时候我不懂这句话。现在我也快到老年了，才明白他的意思。\n去年爷爷走了。我常常想起他，忘不了他拉着我的手。有时候在街上看到老人和孩子一起走路，我就想起那个下雪的星期六。看来，有些事真的很有益，一辈子也忘不了。\n总之，人老了，思念就多了。"
+   }
+  ]
+ },
+ {
+  "unit": 402,
+  "label": "Рассказ 2",
+  "emoji": "🎧",
+  "zh": "快递到了",
+  "ru": "Аудирование",
+  "src": "yin",
+  "parts": [
+   {
+    "id": 1,
+    "kind": "listen",
+    "title": "Аудирование",
+    "titleZh": "听力 · 听",
+    "audio": "yin-2.mp3",
+    "hint": "Слушай много раз, не глядя в текст. Когда начнёшь понимать почти всё — переходи к «Чтению» и слушай, следя глазами."
+   },
+   {
+    "id": 2,
+    "kind": "text",
+    "title": "Чтение",
+    "titleZh": "阅读 · 看",
+    "audio": "yin-2.mp3",
+    "text": "上个礼拜，我的旧外套破了，得买一件新的。昨天我在网上看了一件衣服，朋友说那家店很好，卖家说包邮，价钱也很划算，我马上就买了，想着周末就能穿。\n今天一早，快递就到了，真快。可是我打开一看，颜色不对，大小也不符。我有点生气，想马上给他发消息，问他是怎么回事。\n后来我冷静下来，先拍了几张照片，再问卖家怎么办。他说：“真对不起，是我发错了。你退回给我，我马上换一件，你不用再花钱。”\n原来只是个误会，他也不容易。第二天，新的衣服果然到了，这次颜色和大小都完全对。顺便说一下，现在买东西真方便，不过也得看清楚再买，别像我这样着急。总的来说，慢一点，事情反而更顺。"
+   }
+  ]
+ },
+ {
+  "unit": 403,
+  "label": "Рассказ 3",
+  "emoji": "🎧",
+  "zh": "差点迟到",
+  "ru": "Аудирование",
+  "src": "yin",
+  "parts": [
+   {
+    "id": 1,
+    "kind": "listen",
+    "title": "Аудирование",
+    "titleZh": "听力 · 听",
+    "audio": "yin-3.mp3",
+    "hint": "Слушай много раз, не глядя в текст. Когда начнёшь понимать почти всё — переходи к «Чтению» и слушай, следя глазами."
+   },
+   {
+    "id": 2,
+    "kind": "text",
+    "title": "Чтение",
+    "titleZh": "阅读 · 看",
+    "audio": "yin-3.mp3",
+    "text": "上个礼拜，我差点迟到。那天晚上我看电影看得太晚，一早就没听见闹钟。等我睁开眼睛，已经八点半了，上班是九点。我一下子就慌了。\n我飞快地穿好衣服，连早饭也没吃，就冲出了门。外面在下雨，路上的人特别多，车也开得很慢。我心里想：今天肯定要迟到了。\n幸好我住得离公司不远。我使劲儿跑了一段路，正好赶上一班公交车。车上人很多，我站在门口，一边看表一边着急。\n到了公司，我看了一眼手机，竟然是八点五十八分。我松了一口气，冷静下来。同事看见我满头是汗，笑着问我怎么了。我说：“别提了，今天真是惊险。”\n看来，一般来说，早睡早起还是最好的。总之，我再也不敢看电影看到那么晚了。"
+   }
+  ]
+ },
+ {
+  "unit": 404,
+  "label": "Рассказ 4",
+  "emoji": "🎧",
+  "zh": "第一次坐飞机",
+  "ru": "Аудирование",
+  "src": "yin",
+  "parts": [
+   {
+    "id": 1,
+    "kind": "listen",
+    "title": "Аудирование",
+    "titleZh": "听力 · 听",
+    "audio": "yin-4.mp3",
+    "hint": "Слушай много раз, не глядя в текст. Когда начнёшь понимать почти всё — переходи к «Чтению» и слушай, следя глазами."
+   },
+   {
+    "id": 2,
+    "kind": "text",
+    "title": "Чтение",
+    "titleZh": "阅读 · 看",
+    "audio": "yin-4.mp3",
+    "text": "上个礼拜，我第一次坐飞机去看朋友。说实话，我有点紧张。朋友们再三说，坐飞机很安全，一点也不可怕，可我心里还是不安。\n那天我尽量早到了机场，可是手续太多，我根本不知道先去哪儿。幸好有工作人员帮我，我才慢慢办好。在我看来，出门在外，多问一句总没错。\n飞机起飞的时候，我紧紧抓住扶手，一动也不敢动。过了一会儿，我从窗户往下看，房子变得很小很小，像玩具一样。我保持这个姿势看了很久，心里想：原来天空这么宽。\n两个小时后，飞机到了。朋友来接我，笑着问我怎么样。我说：“可不是，一开始我很害怕，后来觉得特别有意思。”\n总得来说，有些事自己没做过，就会害怕。可是只要试一次，你会发现，它其实没有那么难。"
    }
   ]
  }
@@ -34866,7 +34944,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.64.0';
+  const SW_BUILD = 'sync-5.64.1';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
