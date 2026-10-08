@@ -929,6 +929,11 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .nd-over { background: linear-gradient(135deg, #dc2626, #f97316); }
 .nd-today { background: linear-gradient(135deg, #16a34a, #4ade80); }
 .nd-future { background: linear-gradient(135deg, #64748b, #94a3b8); }
+/* v4.6.0: несуществующая клиника (метка «нет») — красноватая плашка в общих списках */
+.list-row.gone-row { background: linear-gradient(135deg, #fff5f4, #fde9e7) !important; }
+.list-row.gone-row .list-row-name { color: #b3261e; }
+.list-row.gone-row .list-row-sub { color: #9c4f47; }
+.list-row.gone-row.selected { box-shadow: inset 3px 0 0 #b3261e; }
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 </head>
@@ -1824,7 +1829,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.5.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.6.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3287,6 +3292,38 @@ function closeTopLayer() {
 })();
 
 // ---------- render ----------
+// ===== v4.6.0: несуществующие клиники (метка «нет») — красноватая плашка в общих списках =====
+// Метка «нет» ставится в карточке клиники (тег в tags). Здесь только подсветка списков,
+// данные не меняются: строки с data-kind="clinic" / "refclinic" получают класс .gone-row.
+function goneClinicIds() {
+  const out = new Set();
+  try {
+    const arr = (typeof RC !== 'undefined' && RC && RC.data && RC.data['t:clinics']) || [];
+    arr.forEach(r => {
+      const tg = Array.isArray(r.tags) ? r.tags : [];
+      if (tg.some(t => String(t == null ? '' : t).trim().toLowerCase() === 'нет')) out.add(Number(r.id));
+    });
+  } catch (_) {}
+  return out;
+}
+function decorateGoneRows() {
+  try {
+    const ids = goneClinicIds();
+    if (!ids.size) return;
+    document.querySelectorAll('.list-row[data-kind="clinic"], .list-row[data-kind="refclinic"]').forEach(el => {
+      el.classList.toggle('gone-row', ids.has(Number(el.dataset.id)));
+    });
+  } catch (_) {}
+}
+(function () {
+  try {
+    let raf = 0;
+    const schedule = () => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; decorateGoneRows(); }); };
+    new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true });
+    setTimeout(decorateGoneRows, 1000);
+    setTimeout(decorateGoneRows, 3000);
+  } catch (_) {}
+})();
 async function render() {
   if (isRefEdit() && REFEDIT_DENIED.includes(state.view)) { state.view = 'clinics'; }
   const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'money', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
@@ -6607,7 +6644,7 @@ async function offFlush() {
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-22';
+  const SW_BUILD = 'offline-safe-23';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
