@@ -31033,7 +31033,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.67.2';
+const APP_VER = '5.67.3';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32957,10 +32957,11 @@ function renderHw(u, part) {
     ${part.questions.map((q, i) => {
       const qs = typeof q === 'string' ? q : q.q;
       const ex = (q && typeof q === 'object' && q.ex) ? q.ex : '';
+      const exOpen = !!(ex && hwExOpen[hwExKey(u, part, i)]);
       return `
       <div class="hw-item">
         <div class="hw-q zh-opt">${i + 1}. ${esc(qs)}</div>
-        ${ex ? `<div class="hw-ex-wrap"><button class="hw-ex-btn" onclick="hwExToggle(this)">👁 Показать ответ</button><div class="hw-ex" style="display:none">${esc(ex)}</div></div>` : ''}
+        ${ex ? `<div class="hw-ex-wrap"><button class="hw-ex-btn" onclick="hwExToggle(this,${i})">${exOpen ? '🙈 Скрыть ответ' : '👁 Показать ответ'}</button><div class="hw-ex" style="display:${exOpen ? 'block' : 'none'}">${esc(ex)}</div></div>` : ''}
         <textarea class="hw-ans" data-i="${i}" rows="2" placeholder="Твой ответ иероглифами…">${esc(hwLoad(u.unit, part.id, i))}</textarea>
         ${aiCheck ? `<div class="hw-tools">
           <button class="hw-chk" data-i="${i}" onclick="hwCheck(${i})">🤖 Проверить</button>
@@ -32989,12 +32990,18 @@ function renderHw(u, part) {
   posRestore();
 }
 
-function hwExToggle(btn) {
+/* Раскрытые ответы должны переживать повторный рендер части (его делает синк). */
+const hwExOpen = {};
+function hwExKey(u, part, i) { return u.unit + '-' + part.id + '-' + i; }
+function hwExToggle(btn, i) {
   const box = btn.parentNode.querySelector('.hw-ex');
   if (!box) return;
   const shown = box.style.display !== 'none';
   box.style.display = shown ? 'none' : 'block';
   btn.textContent = shown ? '👁 Показать ответ' : '🙈 Скрыть ответ';
+  if (i !== undefined && i !== null && curUnit && curPart) {
+    hwExOpen[hwExKey(curUnit, curPart, i)] = !shown;
+  }
 }
 
 /* ===== ИИ-проверка ответов (DeepSeek через /api/tingli-check) ===== */
@@ -35178,7 +35185,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.67.2';
+  const SW_BUILD = 'sync-5.67.3';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
