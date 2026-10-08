@@ -31040,7 +31040,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.67.4';
+const APP_VER = '5.67.5';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32359,7 +32359,9 @@ function taskHtml(u, part, t, ti) {
         <button class="tf-btn" data-v="1" onclick="pickTf(this)">✓ Верно</button>
         <button class="tf-btn" data-v="0" onclick="pickTf(this)">✗ Неверно</button></div>`;
   }
-  const hasText = part.text ? `<span class="link" onclick="document.getElementById('scriptBox').classList.toggle('show')">📄 Показать текст</span><div class="script zh-opt" id="scriptBox">${esc(part.text)}</div>` : '';
+  const sKey = u.unit + '-' + part.id + '-' + ti;
+  const sOn = !!scriptOpen[sKey];
+  const hasText = part.text ? `<span class="link" onclick="scriptToggle(this,'${sKey}')">${sOn ? '📕 Скрыть текст' : '📄 Показать текст'}</span><div class="script zh-opt${sOn ? ' show' : ''}" id="scriptBox">${esc(part.text)}</div>` : '';
   return body + `
     <div class="task-result" id="taskResult"></div>
     <div class="btn-row">
@@ -33031,6 +33033,15 @@ function renderHw(u, part) {
 
 /* Раскрытые ответы должны переживать повторный рендер части (его делает синк). */
 const hwExOpen = {};
+/* Раскрытие текста задания: подпись и пиктограмма меняются вместе с состоянием. */
+const scriptOpen = {};
+function scriptToggle(el, key) {
+  const box = document.getElementById('scriptBox');
+  if (!box) return;
+  const shown = box.classList.toggle('show');
+  el.textContent = shown ? '📕 Скрыть текст' : '📄 Показать текст';
+  if (key) scriptOpen[key] = shown;
+}
 function hwExKey(u, part, i) { return u.unit + '-' + part.id + '-' + i; }
 function hwExToggle(btn, i) {
   const box = btn.parentNode.querySelector('.hw-ex');
@@ -35224,7 +35235,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.67.4';
+  const SW_BUILD = 'sync-5.67.5';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
