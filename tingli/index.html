@@ -459,6 +459,13 @@
   .unit-bar-info { font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
   .part-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); color: transparent; font-size: 13px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 11px; cursor: pointer; transition: background .12s ease, border-color .12s ease, transform .12s ease; }
   .part-check.on { background: var(--done); border-color: var(--done); color: var(--surface); }
+  /* v5.67.4: в списке частей отметка ДЗ — такой же кружок, как у остальных частей,
+     иначе номера и заголовки «гуляют» вправо на ширину кнопки «Готово» */
+  .part-head .hw-done-btn { width: 24px; height: 24px; min-height: 24px; padding: 0; margin: 0 11px 0 0;
+    border: 2px solid var(--line); border-radius: 50%; background: var(--surface); color: transparent;
+    font-size: 13px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; max-width: none; }
+  .part-head .hw-done-btn.done { background: var(--done); border-color: var(--done); color: var(--surface); }
   .part-check:active { transform: scale(.9); }
 /* ==== CRS_CSS_V3 — лист 课程 (расписание и ДЗ) ==== */
 
@@ -31033,7 +31040,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.67.3';
+const APP_VER = '5.67.4';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -31266,6 +31273,38 @@ document.addEventListener('click', function (e) {
       else if (sbTouch.mode === 'open' && dx > 55) sbOpen();
     }
     sbTouch = null;
+  }, { passive: true });
+})();
+
+/* Свайп от левого края внутри урока/упражнения — назад на предыдущий экран (Саша, 08.10.2026) */
+(function () {
+  let st = null;
+  const narrow = () => window.innerWidth < 900;
+  const tabbarVisible = () => {
+    const sb = document.getElementById('tabbar');
+    return !!(sb && getComputedStyle(sb).display !== 'none');
+  };
+  document.addEventListener('touchstart', function (e) {
+    if (!narrow()) return;
+    if (!curUnit && !curPart) return;
+    if (tabbarVisible()) return;
+    const t = e.touches[0];
+    if (t.clientX > 28) return;
+    st = { x: t.clientX, y: t.clientY, armed: false };
+  }, { passive: true });
+  document.addEventListener('touchmove', function (e) {
+    if (!st) return;
+    const t = e.touches[0];
+    const dx = t.clientX - st.x, dy = Math.abs(t.clientY - st.y);
+    if (Math.abs(dx) < 12 || Math.abs(dx) < dy) return;
+    st.armed = true;
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (!st) return;
+    const dx = e.changedTouches[0].clientX - st.x;
+    const armed = st.armed;
+    st = null;
+    if (armed && dx > 60) goBack();
   }, { passive: true });
 })();
 
@@ -31932,7 +31971,7 @@ function openUnit(n) {
       return `
       <div class="part" onclick="openPart(${u.unit},${part.id})">
         <div class="part-head">
-          ${isHw ? crsHwDoneButton(crsHwKey(u.unit,part.id)) : `<div class="part-check ${pMark ? 'on' : ''}" onclick="manTogglePart(${u.unit},${part.id},event)" title="${pMark ? 'Снять отметку части' : 'Отметить часть пройденной'}">✓</div>`}
+          ${isHw ? crsHwDoneButton(crsHwKey(u.unit,part.id), true) : `<div class="part-check ${pMark ? 'on' : ''}" onclick="manTogglePart(${u.unit},${part.id},event)" title="${pMark ? 'Снять отметку части' : 'Отметить часть пройденной'}">✓</div>`}
           <div class="part-num">${num}</div>
           <div style="flex:1">
             <div class="part-title">${esc(part.title)}</div>
@@ -33565,15 +33604,15 @@ function crsHwSetState(key, state) {
   updateAppBadge();
   return state;
 }
-function crsHwDoneButton(key) {
+function crsHwDoneButton(key, compact) {
   const done = crsHwState(key) === 'done';
-  return '<button type="button" title="' + (done ? 'Снять отметку выполнения' : 'Отметить выполненным') + '" class="hw-done-btn' + (done ? ' done' : '') + '" role="checkbox" aria-checked="' + done + '" data-hw-done="' + esc(key) + '" onclick="crsHwToggleDone(\'' + key + '\',event)">' + '✓ Готово' + '</button>';
+  return '<button type="button" title="' + (done ? 'Снять отметку выполнения' : 'Отметить выполненным') + '" class="hw-done-btn' + (compact ? ' hw-done-compact' : '') + (done ? ' done' : '') + '" role="checkbox" aria-checked="' + done + '" data-hw-done="' + esc(key) + '" onclick="crsHwToggleDone(\'' + key + '\',event)">' + (compact ? '✓' : '✓ Готово') + '</button>';
 }
 function crsHwRefreshButtons() {
   document.querySelectorAll('[data-hw-done]').forEach(el => {
     const done = crsHwState(el.getAttribute('data-hw-done')) === 'done';
     el.setAttribute('aria-checked', String(done)); el.classList.toggle('done', done);
-    el.textContent = '✓ Готово';el.title=done?'Снять отметку выполнения':'Отметить выполненным';
+    el.textContent = el.classList.contains('hw-done-compact') ? '✓' : '✓ Готово';el.title=done?'Снять отметку выполнения':'Отметить выполненным';
   });
 }
 function crsHwToggleDone(key, ev) {
@@ -35185,7 +35224,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.67.3';
+  const SW_BUILD = 'sync-5.67.4';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
