@@ -22004,6 +22004,49 @@ const IDV_UNITS = [
    ]
   },
   {
+   "id": 14,
+   "kind": "words",
+   "title": "Словарь 10. Одежда, цвет, погода",
+   "titleZh": "衣服·颜色·天气",
+   "words": [
+    {
+     "zh": "米色",
+     "py": "mǐsè",
+     "ru": "Бежевый"
+    },
+    {
+     "zh": "粉红色",
+     "py": "fěnhóngsè",
+     "ru": "Розовый"
+    },
+    {
+     "zh": "帆布鞋",
+     "py": "fānbùxié",
+     "ru": "Кеды, парусиновая обувь"
+    },
+    {
+     "zh": "印花T恤",
+     "py": "yìnhuā T xù",
+     "ru": "Футболка с принтом"
+    },
+    {
+     "zh": "市场定位",
+     "py": "shìchǎng dìngwèi",
+     "ru": "Позиционирование на рынке"
+    },
+    {
+     "zh": "背心",
+     "py": "bèixīn",
+     "ru": "Майка, жилет"
+    },
+    {
+     "zh": "太阳下",
+     "py": "tàiyáng xià",
+     "ru": "На солнце, под солнцем"
+    }
+   ]
+  },
+  {
    "id": 9,
    "kind": "text",
    "title": "Грамматика к тесту",
@@ -31040,7 +31083,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.67.8';
+const APP_VER = '5.67.9';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -35237,7 +35280,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.67.8';
+  const SW_BUILD = 'sync-5.67.9';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
