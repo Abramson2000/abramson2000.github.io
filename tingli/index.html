@@ -444,6 +444,15 @@
 .match-tile.matched { opacity: .35; border-color: rgba(61,121,95,.24); background: var(--ok-soft); pointer-events: none; }
 .match-tile.badflash { border-color: var(--bad); background: var(--bad-soft); animation: badShake .4s ease; }
 @keyframes badShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+  /* 5.67.12 — анимация возврата свайпом от левого края.
+     Анимируем свойство translate (не transform): правило body.in-unit .app { transform:none !important }
+     анимации не отменяет, а translate — отдельное свойство и с ним не конфликтует. */
+  @keyframes edgeBackOut { from { translate: var(--drag-x, 0px) 0; opacity: 1; } to { translate: 100% 0; opacity: .5; } }
+  @keyframes edgeBackIn  { from { translate: -22% 0; opacity: .35; } to { translate: 0 0; opacity: 1; } }
+  #app.edge-back-out { animation: edgeBackOut .16s ease-in both; }
+  #app.edge-back-in  { animation: edgeBackIn .24s cubic-bezier(.2,.7,.3,1) both; }
+  @media (prefers-reduced-motion: reduce) { #app.edge-back-out, #app.edge-back-in { animation: none !important; } }
 .match-end { text-align: center; padding: 18px 16px 30px; }
 .match-end .big { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
 .match-end .sub { color: var(--muted); margin-bottom: 16px; }
@@ -31057,7 +31066,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.67.11';
+const APP_VER = '5.67.12';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -31295,33 +31304,95 @@ document.addEventListener('click', function (e) {
 
 /* Свайп от левого края внутри урока/упражнения — назад на предыдущий экран (Саша, 08.10.2026) */
 (function () {
-  let st = null;
+  let st = null, raf = 0;
   const narrow = () => window.innerWidth < 900;
   const tabbarVisible = () => {
     const sb = document.getElementById('tabbar');
     return !!(sb && getComputedStyle(sb).display !== 'none');
   };
+  const appEl = () => document.getElementById('app');
+  const COMMIT_PX = 60;      // порог, после которого возврат срабатывает
+  const DAMP = 0.42;         // насколько палец «тянет» экран
+  const MAX_SHIFT = 0.34;    // максимум, на сколько уезжает экран (доля ширины)
+
+  function paintShift(px) {
+    const a = appEl(); if (!a) return;
+    a.classList.add('edge-drag');
+    a.style.setProperty('--drag-x', px + 'px');
+    a.style.translate = px + 'px 0';
+    a.style.opacity = String(Math.max(.62, 1 - Math.abs(px) / (window.innerWidth * 1.7)));
+  }
+  function clearShift(animated) {
+    const a = appEl(); if (!a) return;
+    if (!animated) {
+      a.style.transition = ''; a.style.translate = ''; a.style.opacity = '';
+      a.classList.remove('edge-drag'); a.style.removeProperty('--drag-x');
+      return;
+    }
+    a.style.transition = 'translate .22s cubic-bezier(.2,.7,.3,1), opacity .22s ease';
+    a.style.translate = '0px 0'; a.style.opacity = '1';
+    setTimeout(function () {
+      const b = appEl(); if (!b) return;
+      b.style.transition = ''; b.style.translate = ''; b.style.opacity = '';
+      b.classList.remove('edge-drag'); b.style.removeProperty('--drag-x');
+    }, 240);
+  }
+  function edgeBack() {
+    const a = appEl();
+    if (!a) { goBack(); return; }
+    a.style.transition = '';
+    a.classList.remove('edge-drag');
+    a.classList.add('edge-back-out');       // текущий экран уезжает вправо
+    setTimeout(function () {
+      const b = appEl();
+      if (b) {
+        b.classList.remove('edge-back-out');
+        b.style.translate = ''; b.style.opacity = ''; b.style.removeProperty('--drag-x');
+      }
+      goBack();                              // предыдущий экран
+      const c = appEl();
+      if (c) {                               // …въезжает слева
+        c.classList.add('edge-back-in');
+        setTimeout(function () { c.classList.remove('edge-back-in'); }, 270);
+      }
+    }, 165);
+  }
+
   document.addEventListener('touchstart', function (e) {
     if (!narrow()) return;
     if (!curUnit && !curPart) return;
     if (tabbarVisible()) return;
     const t = e.touches[0];
     if (t.clientX > 28) return;
-    st = { x: t.clientX, y: t.clientY, armed: false };
+    st = { x: t.clientX, y: t.clientY, armed: false, dx: 0 };
   }, { passive: true });
+
   document.addEventListener('touchmove', function (e) {
     if (!st) return;
     const t = e.touches[0];
     const dx = t.clientX - st.x, dy = Math.abs(t.clientY - st.y);
-    if (Math.abs(dx) < 12 || Math.abs(dx) < dy) return;
-    st.armed = true;
+    if (!st.armed) {
+      if (Math.abs(dx) < 12 || Math.abs(dx) < dy) return;
+      if (dx < 0) { st = null; return; }     // влево — не наш жест
+      st.armed = true;
+    }
+    const max = window.innerWidth * MAX_SHIFT;
+    st.dx = Math.min(max, Math.max(0, dx * DAMP));
+    if (!raf) raf = requestAnimationFrame(function () { raf = 0; paintShift(st ? st.dx : 0); });
   }, { passive: true });
+
   document.addEventListener('touchend', function (e) {
     if (!st) return;
     const dx = e.changedTouches[0].clientX - st.x;
     const armed = st.armed;
     st = null;
-    if (armed && dx > 60) goBack();
+    if (!armed) return;
+    if (dx > COMMIT_PX) edgeBack(); else clearShift(true);
+  }, { passive: true });
+
+  document.addEventListener('touchcancel', function () {
+    if (!st) return;
+    st = null; clearShift(true);
   }, { passive: true });
 })();
 
@@ -31606,6 +31677,32 @@ const YIN_UNITS = [
     "titleZh": "阅读 · 看",
     "audio": "yin-4.mp3",
     "text": "上个礼拜，我第一次坐飞机去看朋友。说实话，我有点紧张。朋友们再三说，坐飞机很安全，一点也不可怕，可我心里还是不安。\n那天我尽量早到了机场，可是手续太多，我根本不知道先去哪儿。幸好有工作人员帮我，我才慢慢办好。在我看来，出门在外，多问一句总没错。\n飞机起飞的时候，我紧紧抓住扶手，一动也不敢动。过了一会儿，我从窗户往下看，房子变得很小很小，像玩具一样。我保持这个姿势看了很久，心里想：原来天空这么宽。\n两个小时后，飞机到了。朋友来接我，笑着问我怎么样。我说：“可不是，一开始我很害怕，后来觉得特别有意思。”\n总得来说，有些事自己没做过，就会害怕。可是只要试一次，你会发现，它其实没有那么难。"
+   }
+  ]
+ },
+ {
+  "unit": 405,
+  "label": "Рассказ 5",
+  "emoji": "🎧",
+  "zh": "U盘不见了",
+  "ru": "Аудирование",
+  "src": "yin",
+  "parts": [
+   {
+    "id": 1,
+    "kind": "listen",
+    "title": "Аудирование",
+    "titleZh": "听力 · 听",
+    "audio": "yin-5.mp3",
+    "hint": "Слушай много раз, не глядя в текст. Когда начнёшь понимать почти всё — переходи к «Чтению» и слушай, следя глазами."
+   },
+   {
+    "id": 2,
+    "kind": "text",
+    "title": "Чтение",
+    "titleZh": "阅读 · 看",
+    "audio": "yin-5.mp3",
+    "text": "上周三上午，我和丈夫一起陪妈妈去医院。我们七点就出门了，可是路上堵车，一共开了一个半小时。\n医院在马路对面，门口旁边有一家小咖啡店。我说：先吃一点儿东西吧。店里有面包、蛋糕和一些水果，我们要了两个三明治和一份三文鱼。那家店的三明治好吃极了。\n进去以后，我们找不到电梯。门口的牌子上边写着：电梯在走廊中间。我一会儿看左边，一会儿看右边，还是没找到。一位护士笑了笑，指了指前边说：楼梯后边就是。我们说了谢谢，就上去了。\n妈妈的X光片放在一个白色的袋子里。她看完，心里一定松了一口气，因为结果很好。我们在医院外边坐了一会儿，丈夫一直拉着她的手。\n回家的路上，我发现自己的U盘不见了。我一般把U盘放在书包里边，里边存着我一年半的工作文件，一共三万多份，很重要。\n我们赶紧回去找。大厅柜台的下边、椅子旁边、门外的台阶上，都看了，没有。后来一个保安走过来，说：你看一下儿，是不是这个？他从口袋里拿出一个小小的U盘——跟我的是一样的颜色。\n我高兴极了，说：谢谢你！保安说：下次一定放好，别再丢了。\n晚上回家，我把文件又存了一次，一份在电脑里，一份在U盘里。人一着急，就容易忘事，所以多存一份总是好的。"
    }
   ]
  }
@@ -35254,7 +35351,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.67.11';
+  const SW_BUILD = 'sync-5.67.12';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
