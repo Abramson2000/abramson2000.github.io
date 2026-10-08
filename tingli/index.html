@@ -31040,7 +31040,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.67.5';
+const APP_VER = '5.67.6';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33059,6 +33059,8 @@ async function hwCheck(i) {
   const part = curPart;
   const q0 = part.questions[i];
   const q = typeof q0 === 'string' ? q0 : q0.q;
+  // Эталонный ответ (если он есть у задания) — ИИ сверяется с ним, а не угадывает по тексту
+  const ref = (q0 && typeof q0 === 'object' && q0.ex) ? String(q0.ex) : '';
   const a = hwLoad(curUnit.unit, part.id, i).trim();
   const btn = document.querySelector('.hw-chk[data-i="' + i + '"]');
   const vd = document.querySelector('.hw-vd[data-i="' + i + '"]');
@@ -33070,7 +33072,7 @@ async function hwCheck(i) {
     const r = await apiFetch('/api/tingli-check', {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ q, a, text: part.fullText || '' })
+      body: JSON.stringify({ q, a, ref, text: part.fullText || '' })
     });
     if (!r.ok) {
       // Сервер вернул ошибку — пробуем прочитать JSON, если не выйдет — общее сообщение
@@ -35235,7 +35237,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.67.5';
+  const SW_BUILD = 'sync-5.67.6';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
