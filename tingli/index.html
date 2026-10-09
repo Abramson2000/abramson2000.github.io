@@ -20774,6 +20774,17 @@ const IDV_UNITS = [
       "ru": "это дело, эта история"
      }
     ]
+   },
+   {
+    "id": 1,
+    "kind": "record_hw",
+    "ico": "音",
+    "title": "ДЗ · аудио",
+    "titleZh": "作业 · 录音",
+    "text": "Расскажи про привычки жены (老婆). Запиши аудио-ответ по-китайски. Когда запись готова, нажми «Отправить в Telegram» и выбери Telegram в системном меню «Поделиться».",
+    "lines": [
+     "说说老婆的习惯。"
+    ]
    }
   ]
  },
@@ -31259,7 +31270,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.69.3';
+const APP_VER = '5.69.4';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32942,11 +32953,11 @@ async function recHwShare() {
     const blob = await recHwGet(recHwKey(curUnit,curPart,i));
     if (!blob) { alert('Не удалось найти запись № ' + (i+1) + ' на этом устройстве. Перезапиши её.'); return; }
     const ext = recHwExt(blob.type);
-    files.push(new File([blob], 'Tingli_team_online-shopping_A_' + (i+1) + '.' + ext, {type:blob.type || 'audio/webm'}));
+    files.push(new File([blob], 'Tingli_' + (curUnit ? curUnit.unit : 'hw') + '_hw_' + (i+1) + '.' + ext, {type:blob.type || 'audio/webm'}));
   }
   try {
     if (navigator.share && (!navigator.canShare || navigator.canShare({files:files}))) {
-      await navigator.share({title:'团队 · 网上购物 · ДЗ роль A', text:'ДЗ Tingli: роль A, 4 фразы', files:files});
+      await navigator.share({title:((curUnit && curUnit.label) || 'ДЗ') + ' · аудио-ДЗ', text:'ДЗ Tingli: ' + ((curUnit && curUnit.label) || 'аудио') + ' — ' + files.length + ' зап.', files:files});
       return;
     }
   } catch (e) { if (e && e.name === 'AbortError') return; }
@@ -35572,7 +35583,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.69.3';
+  const SW_BUILD = 'sync-5.69.4';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
