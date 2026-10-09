@@ -31146,7 +31146,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.68.0';
+const APP_VER = '5.69.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -31482,7 +31482,7 @@ document.addEventListener('click', function (e) {
 let initialSyncComplete = false;
 let recoveryMode = null;
 let PUSH_LOCK = false;
-const TINGLI_NOSYNC = { 'tingli-favs-v1':1,'tingli-dict-v1':1,'tingli-cidian-outbox-v2':1,'tingli-cidian-outbox-v4':1,'tingli-cidian-send-v4':1, 'tingli-apihost-v1':1,'tingli-sync-err-v1':1,'tingli-gist-token':1,'tingli-push-enable-error-v1':1,'tingli-sched-clean-v2':1,'tingli-sched-cloudwins-v1':1,'tingli-repair-history-515':1,'tingli-repair-hwdue-516':1,'tingli-diag-report':1 };
+const TINGLI_NOSYNC = { 'tingli-favs-v1':1,'tingli-dict-v1':1,'tingli-cidian-outbox-v2':1,'tingli-cidian-outbox-v4':1,'tingli-cidian-send-v4':1, 'tingli-apihost-v1':1,'tingli-sync-err-v1':1,'tingli-gist-token':1,'tingli-push-enable-error-v1':1,'tingli-sched-clean-v2':1,'tingli-sched-cloudwins-v1':1,'tingli-repair-history-515':1,'tingli-repair-hwdue-516':1,'tingli-repair-oct9':1,'tingli-diag-report':1 };
 function tingliSyncKey(k) {
   return !!k && k.indexOf('tingli-') === 0 && !TINGLI_NOSYNC[k]
     && !/token|secret|password|passwd|auth|credential|vapid|private/i.test(k)
@@ -33910,6 +33910,54 @@ function crsRepairHwDue516() {
   if (changed) crsSave(st);
   try { localStorage.setItem('tingli-repair-hwdue-516', '1'); } catch (e) {}
 }
+function crsRepairOct9() {
+  try { if (localStorage.getItem('tingli-repair-oct9') === '1') return; } catch (e) {}
+  const st = crsStore();
+  let changed = false;
+  try {
+    // 1) Дедупликация оплат: одна логическая оплата = program|date|amount|lessons.
+    //    После ручного восстановления оплат в разных id могли разойтись — сворачиваем.
+    const sigMap = {}, dedup = {};
+    const DET = /^p\d{8}-(mine|idv|team)$/;
+    Object.keys(st.payments || {}).forEach(function (id) {
+      const p = st.payments[id];
+      if (!p || !crsPayIsPaidProgram(p.program)) { dedup[id] = p; return; }
+      const sig = [p.program, p.date, +p.amount || 0, +p.lessons || 0].join('|');
+      const curId = sigMap[sig];
+      if (!curId) { sigMap[sig] = id; dedup[id] = p; return; }
+      const cp = st.payments[curId];
+      const keepId = (DET.test(id) && !DET.test(curId)) ? id : curId;
+      const dropId = keepId === curId ? id : curId;
+      const merged = Object.assign({}, cp, p, { id: keepId });
+      merged.usedAtEntry = Math.max(+cp.usedAtEntry || 0, +p.usedAtEntry || 0);
+      merged.upd = Math.max(+cp.upd || 0, +p.upd || 0);
+      if ((+cp.usedAtEntry || 0) > (+p.usedAtEntry || 0)) merged.usedThrough = cp.usedThrough || '';
+      dedup[keepId] = merged;
+      delete dedup[dropId];
+      sigMap[sig] = keepId;
+      changed = true;
+    });
+    if (Object.keys(dedup).length !== Object.keys(st.payments || {}).length) { st.payments = dedup; changed = true; }
+
+    // 2) Ретро-проведение: уже «пройденные» уроки → помечаем занятие в расписании проведённым.
+    const today = crsYmd(new Date());
+    const from = crsYmd(crsAddDays(new Date(), -30));
+    Object.keys(man || {}).forEach(function (u) {
+      if (!man[u] || !man[u].u) return;
+      const evs = crsLessonList(from, today).filter(function (ev) {
+        return ev.status !== 'canceled' && crsPayIsPaidProgram(ev.program)
+          && ev.material && +ev.material.unit === +u && crsLessonState(ev) !== 'done';
+      }).sort(function (a, b) { return (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')); });
+      if (!evs.length) return;
+      const evId = evs[0].evId;
+      st.done = st.done || {};
+      if (!st.done[evId]) { st.done[evId] = Date.now(); changed = true; }
+      if (evId.indexOf('l:') === 0 && st.lessons[evId.slice(2)]) st.lessons[evId.slice(2)].done = true;
+    });
+  } catch (e) {}
+  if (changed) crsSave(st);
+  try { localStorage.setItem('tingli-repair-oct9', '1'); } catch (e) {}
+}
 function crsHwList() {
   const st = crsStore(), out = [];
   // существующие ДЗ в уроках
@@ -34092,6 +34140,7 @@ function renderCourses() {
   });
   crsRepairHistory515();
   crsRepairHwDue516();
+  crsRepairOct9();
   crsPaint(true);
   crsEnsureTestMaterial();
   setTimeout(function () { crsCloudPull().then(function(){ crsRepairHistory515(); }); }, 0);
@@ -35432,7 +35481,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.68.0';
+  const SW_BUILD = 'sync-5.69.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
