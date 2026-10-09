@@ -31086,9 +31086,33 @@ function manSave() { saveLocal(LS_MAN, JSON.stringify(man)); }
 function manToggleUnit(n, ev) {
   if (ev && ev.stopPropagation) ev.stopPropagation();
   const k = String(n); man[k] = man[k] || {};
+  const wasDone = !!man[k].u;
   if (man[k].u) delete man[k].u; else man[k].u = 1;
   if (!man[k].u && !(man[k].p && Object.keys(man[k].p).length)) delete man[k];
-  manSave(); refreshAfterMan();
+  manSave();
+  if (!wasDone && man[k] && man[k].u) crsAutoDoneForUnit(n);
+  refreshAfterMan();
+}
+// «Отметил урок пройденным» → помечаем связанное занятие в расписании «проведённым»,
+// тогда оплата спишется автоматически (без ручного «Проведено» в оплатах).
+function crsAutoDoneForUnit(n) {
+  try {
+    const st = crsStore();
+    const today = crsYmd(new Date());
+    const from = crsYmd(crsAddDays(new Date(), -30));
+    const evs = crsLessonList(from, today).filter(function (ev) {
+      return ev.status !== 'canceled'
+        && crsPayIsPaidProgram(ev.program)
+        && ev.material && +ev.material.unit === +n
+        && crsLessonState(ev) !== 'done';
+    }).sort(function (a, b) { return (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')); });
+    if (!evs.length) return;
+    const evId = evs[0].evId;
+    st.done = st.done || {};
+    st.done[evId] = Date.now();
+    if (evId.indexOf('l:') === 0 && st.lessons[evId.slice(2)]) st.lessons[evId.slice(2)].done = true;
+    crsSave(st);
+  } catch (e) {}
 }
 function manTogglePart(n, pid, ev) {
   if (ev && ev.stopPropagation) ev.stopPropagation();
@@ -31122,7 +31146,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.67.13';
+const APP_VER = '5.68.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -35408,7 +35432,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.67.13';
+  const SW_BUILD = 'sync-5.68.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
