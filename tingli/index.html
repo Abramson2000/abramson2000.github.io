@@ -20674,7 +20674,110 @@ const IDV_UNITS = [
     ]
    }
   ]
+ }, {
+  "unit": 217,
+  "label": "Урок 11",
+  "emoji": "🎬",
+  "zh": "",
+  "ru": "Мультфильм и кино",
+  "src": "idv",
+  "parts": [
+   {
+    "id": 0,
+    "title": "Новые слова",
+    "titleZh": "生词 · 新词",
+    "kind": "words",
+    "words": [
+     {
+      "zh": "讨论问题",
+      "py": "tǎolùn wèntí",
+      "ru": "обсуждать вопрос"
+     },
+     {
+      "zh": "应该",
+      "py": "yīnggāi",
+      "ru": "следует, должен"
+     },
+     {
+      "zh": "奖励",
+      "py": "jiǎnglì",
+      "ru": "награда, поощрение; награждать"
+     },
+     {
+      "zh": "关于这个话题我想讲一个故事",
+      "py": "guānyú zhè huàtí wǒ xiǎng jiǎng yí ge gùshi",
+      "ru": "на эту тему я хочу рассказать одну историю"
+     },
+     {
+      "zh": "此外",
+      "py": "cǐwài",
+      "ru": "кроме того, помимо этого"
+     },
+     {
+      "zh": "想法",
+      "py": "xiǎngfǎ",
+      "ru": "мысль, идея, мнение"
+     },
+     {
+      "zh": "人品好",
+      "py": "rénpǐn hǎo",
+      "ru": "хороший человек, порядочный"
+     },
+     {
+      "zh": "他很善良",
+      "py": "tā hěn shànliáng",
+      "ru": "он очень добрый"
+     },
+     {
+      "zh": "享受每一秒",
+      "py": "xiǎngshòu měi yì miǎo",
+      "ru": "наслаждаться каждой секундой"
+     },
+     {
+      "zh": "一天内",
+      "py": "yì tiān nèi",
+      "ru": "в течение одного дня, за день"
+     },
+     {
+      "zh": "一下子",
+      "py": "yíxiàzi",
+      "ru": "сразу, вдруг, в один момент"
+     },
+     {
+      "zh": "打扰我",
+      "py": "dǎrǎo wǒ",
+      "ru": "мешать мне, беспокоить меня"
+     },
+     {
+      "zh": "暂停",
+      "py": "zàntíng",
+      "ru": "пауза; поставить на паузу, приостановить"
+     },
+     {
+      "zh": "这部动画片",
+      "py": "zhè bù dònghuàpiàn",
+      "ru": "этот мультфильм"
+     },
+     {
+      "zh": "电影",
+      "py": "diànyǐng",
+      "ru": "фильм, кино"
+     },
+     {
+      "zh": "字幕",
+      "py": "zìmù",
+      "ru": "субтитры"
+     },
+     {
+      "zh": "这件事",
+      "py": "zhè jiàn shì",
+      "ru": "это дело, эта история"
+     }
+    ]
+   }
+  ]
  },
+
  {
   "unit": 211,
   "label": "入乡随俗",
@@ -31156,7 +31259,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.69.2';
+const APP_VER = '5.69.3';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -35469,7 +35572,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.69.2';
+  const SW_BUILD = 'sync-5.69.3';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
