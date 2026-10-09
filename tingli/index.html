@@ -31270,7 +31270,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.69.4';
+const APP_VER = '5.69.5';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -31885,6 +31885,60 @@ const YIN_UNITS = [
     "titleZh": "阅读 · 看",
     "audio": "yin-4.mp3",
     "text": "上个礼拜，我第一次坐飞机去看朋友。说实话，我有点紧张。朋友们再三说，坐飞机很安全，一点也不可怕，可我心里还是不安。\n那天我尽量早到了机场，可是手续太多，我根本不知道先去哪儿。幸好有工作人员帮我，我才慢慢办好。在我看来，出门在外，多问一句总没错。\n飞机起飞的时候，我紧紧抓住扶手，一动也不敢动。过了一会儿，我从窗户往下看，房子变得很小很小，像玩具一样。我保持这个姿势看了很久，心里想：原来天空这么宽。\n两个小时后，飞机到了。朋友来接我，笑着问我怎么样。我说：“可不是，一开始我很害怕，后来觉得特别有意思。”\n总得来说，有些事自己没做过，就会害怕。可是只要试一次，你会发现，它其实没有那么难。"
+   }
+  ]
+ },
+ {
+  "unit": 405,
+  "label": "Рассказ 5",
+  "emoji": "🎧",
+  "zh": "第一次做饭",
+  "ru": "Впервые готовлю сам",
+  "src": "yin",
+  "parts": [
+   {
+    "id": 1,
+    "kind": "listen",
+    "title": "Аудирование",
+    "titleZh": "听力 · 听",
+    "audio": "yin-5.mp3",
+    "image": "img/yin-5.jpg",
+    "hint": "Слушай много раз, не глядя в текст. Когда начнёшь понимать почти всё — переходи к «Чтению» и слушай, следя глазами."
+   },
+   {
+    "id": 2,
+    "kind": "text",
+    "title": "Чтение",
+    "titleZh": "阅读 · 看",
+    "audio": "yin-5.mp3",
+    "text": "说实话，我以前不太会做饭。三十岁以前，我不是叫外卖，就是去楼下的饭馆吃饭。朋友常常笑我：你连鸡蛋都不会炒，以后怎么办？\n\n去年，我妈来看我，住了几天。临走前，她把我拉到厨房，说：“我教你做一道最简单的菜——西红柿炒鸡蛋。”我有点紧张，怕自己学不会。妈妈笑着说：“别怕，做饭没那么难，慢慢来。”\n\n那天晚上，我按照妈妈教的方法，第一次做了一盘西红柿炒鸡蛋。虽然盐放多了，鸡蛋也有点糊，但我特别高兴——我终于会做饭了。\n\n后来，我每个星期都试着做两道新菜，还学会了几个拿手菜。上个月我请朋友来家里吃饭，大家都说好吃。看来，有些事看起来很难，真正做了才知道，其实没那么难。"
+   }
+  ]
+ },
+ {
+  "unit": 406,
+  "label": "Рассказ 6",
+  "emoji": "🎧",
+  "zh": "爬山",
+  "ru": "Поход в горы",
+  "src": "yin",
+  "parts": [
+   {
+    "id": 1,
+    "kind": "listen",
+    "title": "Аудирование",
+    "titleZh": "听力 · 听",
+    "audio": "yin-6.mp3",
+    "image": "img/yin-6.jpg",
+    "hint": "Слушай много раз, не глядя в текст. Когда начнёшь понимать почти всё — переходи к «Чтению» и слушай, следя глазами."
+   },
+   {
+    "id": 2,
+    "kind": "text",
+    "title": "Чтение",
+    "titleZh": "阅读 · 看",
+    "audio": "yin-6.mp3",
+    "text": "我平时不太喜欢运动，一到周末就想在家里躺着。朋友约我去爬山，我总说：“下次吧，最近太累了。”\n\n上个月，朋友们又约我去爬山，说山上的风景特别美。我不好意思再拒绝，就答应了。那天早上，我们六点就出发了。开始的时候，我走得挺快，还觉得爬山没什么难的。\n\n可是走了不到一个小时，我就累得不行了，两条腿像灌了铅一样。朋友笑着等我，说：“别急，慢慢走，我们又不赶时间。”我一边喘气一边走，好几次都想放弃。\n\n最后，我们终于到了山顶。站在山上往下看，整个城市都变得很小，风也很凉快。那一刻，我忽然觉得，所有的累都值得了。\n\n从那以后，我每个周末都想去户外走一走。看来，人不能总待在家里，多出去走走，心情也会好很多。"
    }
   ]
  }
@@ -35583,7 +35637,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.69.4';
+  const SW_BUILD = 'sync-5.69.5';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
