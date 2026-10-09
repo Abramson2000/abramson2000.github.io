@@ -1,12 +1,11 @@
 /* Tingli — офлайн-кэш приложения.
    HTML — сеть вперёд (чтобы обновления приходили), остальное из кэша.
    Запросы к облаку (другой домен) не трогаем вообще. */
-const CACHE = 'tingli-cache-v5700-full';
+const CACHE = 'tingli-cache-v5694-full';
 const CORE_ASSETS = [
-  './', './index.html', './sync-check.html', './sync-check.js?v=2', './sync-transport.5.67.0.js', './manifest.json', './manifest.5.70.0.json', './sync-core.js?v=5.64.0', './word-sync.5.64.0.js',
+  './', './index.html', './sync-check.html', './sync-check.js?v=2', './sync-transport.5.67.0.js', './manifest.json', './sync-core.js?v=5.64.0', './word-sync.5.64.0.js',
   './fonts/zhimang-course.ttf', './fonts/simsun-subset.woff2', './fonts/xiaoshan-title.woff2',
   './bg.jpg', './logo.png', './sched-logo.png',
-  './apple-touch-icon-5.70.0-152.png', './apple-touch-icon-5.70.0-167.png', './apple-touch-icon-5.70.0-180.png',
   './tingli-icon-180-v3.png', './tingli-icon-192-v3.png', './tingli-icon-512-v3.png',
   './tingli-favicon-v3.png', './tingli-favicon-32-v3.png',
   './tab-biz.png', './tab-biz-off.png', './tab-ci.png', './tab-ci-off.png',
