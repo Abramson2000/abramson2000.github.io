@@ -27,6 +27,12 @@ for(const app of ['tingli','cidian'])test(`${app} keeps the old worker when a ma
   await assert.rejects(w.install(),/shell missing .*sync-transport/);
   assert.equal(w.skipped(),false);
 });
+for(const app of ['tingli','cidian'])test(`${app} worker leaves other applications and their icons to the network`,()=>{
+  const w=worker(app),other=app==='tingli'?'cidian':'tingli';
+  for(const path of ['/'+other+'/', '/'+other+'/apple-touch-icon.png', '/icon.svg']) {
+    assert.equal(w.navigate(path),undefined);
+  }
+});
 test('opening Tingli diagnostics preserves the offline application and its separate diagnostic page',async()=>{
   const w=worker('tingli');await w.install();
   assert.equal(await (await w.navigate('sync-check.html')).text(),'diagnostic');
