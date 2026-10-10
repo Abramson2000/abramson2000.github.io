@@ -1,11 +1,13 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const shellHtml="application\nconst APP_VER = '5.71.0';";
 function worker(app,{missing=null}={}) {
   const base=`https://crmuro.ru/${app}/`,handlers={},rows=new Map();let skipped=false,offline=false;
   const key=x=>new URL(typeof x==='string'?x:x.url,base).href;
   const fetch=async input=>{
     const url=key(input);
     if(offline||missing&&url.includes(missing))throw Error('offline');
-    return new Response(url.endsWith('sync-check.html')?'diagnostic':'application');
+    if(url.endsWith('offline-manifest.5.71.0.json'))return new Response(fs.readFileSync(__dirname+'/../../tingli/offline-manifest.5.71.0.json','utf8'));
+    return new Response(url.endsWith('sync-check.html')?'diagnostic':url.endsWith('index.html')?shellHtml:'application');
   };
   const cache={
     async add(req){rows.set(key(req),await fetch(req));},
@@ -13,7 +15,7 @@ function worker(app,{missing=null}={}) {
     async match(k){return rows.get(key(k))?.clone();}
   };
   class LocalRequest extends Request {constructor(url,opts){super(new URL(url,base),opts);}}
-  const ctx=vm.createContext({URL,Request:LocalRequest,Response,Headers,fetch,
+  const ctx=vm.createContext({URL,Request:LocalRequest,Response,Headers,fetch,AbortController,setTimeout,clearTimeout,
     caches:{open:async()=>cache,match:cache.match,keys:async()=>[],delete:async()=>true},
     self:{location:{origin:'https://crmuro.ru',href:base},addEventListener:(k,fn)=>handlers[k]=fn,
       skipWaiting:async()=>{skipped=true;},clients:{claim:async()=>{}}}});
@@ -37,8 +39,8 @@ test('opening Tingli diagnostics preserves the offline application and its separ
   const w=worker('tingli');await w.install();
   assert.equal(await (await w.navigate('sync-check.html')).text(),'diagnostic');
   await Promise.resolve();
-  assert.equal(await w.rows.get(w.key('./index.html')).clone().text(),'application');
+  assert.equal(await w.rows.get(w.key('./index.html')).clone().text(),shellHtml);
   w.offline();
-  assert.equal(await (await w.navigate('./')).text(),'application');
+  assert.equal(await (await w.navigate('./')).text(),shellHtml);
   assert.equal(await (await w.navigate('sync-check.html')).text(),'diagnostic');
 });
