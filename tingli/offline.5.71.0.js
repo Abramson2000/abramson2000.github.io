@@ -37,6 +37,11 @@
   function paint(result, verified) {
     const { status, button } = elements();
     if (!status) return;
+    if (result && !result.error && result.version !== '5.71.0') {
+      status.textContent = 'Подготавливаю новый офлайн-режим. Старое «42 из 42» не подтверждает готовность.';
+      if (button) { button.textContent = 'Подготовка офлайн…'; button.classList.remove('ready'); }
+      return;
+    }
     if (!result || result.error) {
       status.textContent = result && result.error || 'Не удалось проверить сохранённые файлы';
       if (button) { button.textContent = 'Проверить и докачать'; button.classList.remove('ready'); }
@@ -56,6 +61,8 @@
   async function downloadAll() {
     if (allBusy || unitBusy) return;
     const { status, button } = elements();
+    const prepared = await message({ type: 'status' });
+    if (!prepared || prepared.error || prepared.version !== '5.71.0') { paint(prepared, false); return; }
     if (navigator.onLine === false) { await refresh(true); return; }
     allBusy = true;
     await protectStorage();
@@ -77,7 +84,7 @@
   async function unitState(names) {
     if (!names.length) return null;
     const result = await message({ type: 'unit-status', urls: urls(names) });
-    return result && !result.error ? { names, done: result.have, total: result.total, outdated: result.outdated || 0 } : { names, done: 0, total: names.length, unknown: true };
+    return result && !result.error && result.version === '5.71.0' ? { names, done: result.have, total: result.total, outdated: result.outdated || 0 } : { names, done: 0, total: names.length, unknown: true };
   }
   async function refreshUnits(namesForUnit) {
     for (const card of document.querySelectorAll('.unit-card')) {
@@ -116,4 +123,7 @@
     } finally { unitBusy = false; if (button) button.disabled = false; await refreshUnits(namesForUnit); }
   }
   root.TingliOffline = { message, refresh, downloadAll, unitState, refreshUnits, downloadUnit };
+  if (navigator.serviceWorker && navigator.serviceWorker.addEventListener) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => refresh(false));
+  }
 })(window);

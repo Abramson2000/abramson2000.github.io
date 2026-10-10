@@ -138,3 +138,17 @@ test('downloader progress extends the inactivity deadline beyond 30 seconds', as
   for (const time of [20000, 40000, 60000, 80000]) { now = time; for (const [id, t] of [...timers]) if (t.at <= now) { timers.delete(id); t.fn(); } port.receive({ type: 'progress', done: time / 20000, total: 10 }); }
   port.receive({ type: 'done', ok: 10 }); assert.equal((await result).ok, 10); assert.equal(timers.size, 0);
 });
+test('a legacy worker 42/42 report cannot mark the new application ready', async () => {
+  const status = { textContent: '' }, button = { textContent: '', classList: { remove() {}, toggle() {} } };
+  let version;
+  class Channel { constructor() { this.port1 = { close() {} }; this.port2 = { receive: data => this.port1.onmessage({ data }) }; } }
+  const callbacks = {};
+  const context = { window: {}, document: { getElementById: id => id === 'sbOfflineSt' ? status : button }, navigator: { serviceWorker: {
+    addEventListener: (type, callback) => callbacks[type] = callback,
+    ready: Promise.resolve({ active: { postMessage(data, ports) { Promise.resolve().then(() => ports[0].receive({ type: 'status', version, ready: true, have: version ? 410 : 42, total: version ? 410 : 42 })); } } })
+  } }, MessageChannel: Channel, setTimeout, clearTimeout };
+  vm.runInNewContext(fs.readFileSync(root + '/tingli/offline.5.71.0.js', 'utf8'), context);
+  await context.window.TingliOffline.refresh(false); assert.match(status.textContent, /Подготавливаю/); assert.notEqual(button.textContent, '✓ Доступно без интернета');
+  version = '5.71.0'; await callbacks.controllerchange(); await Promise.resolve(); await Promise.resolve();
+  assert.equal(button.textContent, '✓ Доступно без интернета'); assert.match(status.textContent, /410 из 410/);
+});

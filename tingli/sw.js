@@ -236,7 +236,7 @@ async function status(selected) {
     else missing.push(item.url);
   }
   const total = items.length + (selection ? 0 : list.shell.length);
-  return { type: 'status', have, total, outdated, missing, totalBytes, savedBytes, ready: have === total && !outdated };
+  return { type: 'status', version: VERSION, have, total, outdated, missing, totalBytes, savedBytes, ready: have === total && !outdated };
 }
 async function runDownload(selected, notify) {
   const list = await manifest(), shell = await caches.open(CACHE), media = await caches.open(MEDIA_CACHE);
