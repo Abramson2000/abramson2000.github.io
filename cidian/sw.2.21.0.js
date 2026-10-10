@@ -24,7 +24,7 @@ async function putClean(cache, key, res) {
 }
 const ASSETS = [
   './favicon-20261010.ico', './favicon.ico', './apple-touch-icon-20261010.png', './apple-touch-icon.png',
-  './manifest.icons-20261010.json', './icon-check-20261010.js',
+  './manifest.icons-20261010.json',
   './',
   './index.html',
   './styles.css?v=' + V,
