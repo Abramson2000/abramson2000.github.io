@@ -938,10 +938,12 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.59.0" alt=""></span><span class="tab-label">词典<span class="tab-ru">Словарь</span></span></button>
   <div class="sb-offline" id="sbOffline">
     <button class="sb-offline-btn" id="sbOfflineBtn" onclick="offlineDownload()">⬇️ Скачать для полёта</button>
-    <div class="sb-offline-st" id="sbOfflineSt"></div>
+    <button class="sb-offline-btn" onclick="offlineVerify()" style="margin-top:6px">Проверить перед полётом</button>
+    <div class="sb-offline-st" id="sbOfflineSt" role="status" aria-live="polite"></div>
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
+<script src="offline.5.71.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -31518,7 +31520,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.69.11';
+const APP_VER = '5.71.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33888,140 +33890,22 @@ function goBack() {
   var s = document.getElementById('splash');
   if (s) { setTimeout(function () { s.classList.add('hide'); }, 2400); setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 2950); }
 })();
-/* ===== Офлайн-аудио по урокам ===== */
+/* Offline materials live in their own durable cache; no changes to user data or sync. */
 function dlSvg(kind) {
-  const p = kind === 'check'
-    ? '<path d="M5 13l5 5L20 7"/>'
-    : '<path d="M12 4v11"/><path d="M6 11l6 6 6-6"/><path d="M5 21h14"/>';
-  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+  const path = kind === 'check' ? '<path d="M5 13l5 5L20 7"/>' : '<path d="M12 4v11"/><path d="M6 11l6 6 6-6"/><path d="M5 21h14"/>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
 }
 function unitAudioNames(n) {
-  const u = ALL_UNITS.find(x => x.unit === n);
-  if (!u) return [];
-  const s = new Set();
-  for (const p of (u.parts || [])) if (p.audio) s.add(p.audio);
-  return [...s];
+  const unit = ALL_UNITS.find(x => x.unit === n);
+  return unit ? [...new Set((unit.parts || []).filter(p => p.audio).map(p => p.audio))] : [];
 }
-function tingliCacheName() {
-  return caches.keys().then(ks => ks.find(k => k.indexOf('tingli-cache') === 0) || '');
-}
-async function unitDlState(n) {
-  const names = unitAudioNames(n);
-  if (!names.length) return null;
-  const cn = await tingliCacheName();
-  if (!cn) return { names: names, done: 0, total: names.length };
-  const c = await caches.open(cn);
-  let done = 0;
-  for (const nm of names) { try { if (await c.match(audUrl(nm))) done++; } catch (e) {} }
-  return { names: names, done: done, total: names.length };
-}
-async function refreshUnitBadges() {
-  const cards = document.querySelectorAll('.unit-card');
-  for (const card of cards) {
-    const n = Number(card.getAttribute('data-u'));
-    if (!n) continue;
-    const btn = card.querySelector('.unit-dl');
-    if (!btn) continue;
-    const st = await unitDlState(n);
-    if (!st) { btn.style.display = 'none'; continue; }
-    btn.style.display = '';
-    if (st.done >= st.total) { btn.innerHTML = dlSvg('check'); btn.className = 'unit-dl done'; btn.title = 'Скачано — нажми, чтобы удалить'; }
-    else if (st.done > 0) { btn.innerHTML = dlSvg('dl'); btn.className = 'unit-dl part'; btn.title = 'Скачано ' + st.done + ' из ' + st.total + ' — нажми, чтобы докачать'; }
-    else { btn.innerHTML = dlSvg('dl'); btn.className = 'unit-dl'; btn.title = 'Скачать аудио урока — будет работать без интернета'; }
-  }
-}
-let dlUnit = null;
-async function offlineUnit(n, ev) {
-  if (ev && ev.stopPropagation) ev.stopPropagation();
-  if (dlUnit) return;
-  const st = await unitDlState(n);
-  if (!st || !st.names.length) return;
-  // уже скачано — удаляем
-  if (st.done >= st.total) {
-    if (!confirm('Удалить скачанное аудио урока? Без интернета оно больше не откроется.')) return;
-    const cn = await tingliCacheName();
-    if (cn) {
-      const c = await caches.open(cn);
-      for (const nm of st.names) { try { await c.delete(audUrl(nm)); } catch (e) {} }
-    }
-    await refreshUnitBadges();
-    return;
-  }
-  if (!navigator.onLine) { alert('Нет сети — скачивание начнётся, когда появится интернет.'); return; }
-  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-  dlUnit = n;
-  const btn = document.querySelector('.unit-card[data-u="' + n + '"] .unit-dl');
-  if (btn) { btn.disabled = true; btn.textContent = '0%'; btn.className = 'unit-dl part'; btn.style.fontSize = '11px'; btn.style.fontWeight = '700'; }
-  let done = st.done;
-  const names = st.names;
-  let fail = 0;
-  for (let i = st.done; i < names.length; i++) {
-    try {
-      const r = await fetch(audUrl(names[i]));
-      if (!r.ok) { fail++; if (fail > 2) break; }
-      else { done = i + 1; fail = 0; }
-    } catch (e) { fail++; if (fail > 2) break; }
-    if (btn && (i % 2 === 0 || i === names.length - 1)) {
-      btn.textContent = Math.round(done / names.length * 100) + '%';
-    }
-  }
-  dlUnit = null;
-  if (btn) btn.disabled = false;
-  await refreshUnitBadges();
-}
-
-// ===== офлайн: скачать всё приложение (оболочка, данные, шрифты, картинки) =====
-function swPost(msg, onProgress) {
-  return new Promise((resolve) => {
-    if (!('serviceWorker' in navigator)) return resolve(null);
-    const send = (sw) => {
-      if (!sw) return resolve(null);
-      let ch;
-      try { ch = new MessageChannel(); } catch (e) { return resolve(null); }
-      ch.port1.onmessage = (e) => {
-        const d = e.data || {};
-        if (d.type === 'progress') { if (onProgress) onProgress(d); return; }
-        resolve(d);
-      };
-      try { sw.postMessage(msg, [ch.port2]); } catch (e) { return resolve(null); }
-      setTimeout(() => resolve(null), 30000);
-    };
-    navigator.serviceWorker.ready
-      .then((reg) => send(reg.active || navigator.serviceWorker.controller))
-      .catch(() => send(navigator.serviceWorker.controller));
-  });
-}
-function offEls() { return { st: document.getElementById('sbOfflineSt'), btn: document.getElementById('sbOfflineBtn') }; }
-async function offlineRefreshStatus() {
-  const { st, btn } = offEls();
-  if (!st) return;
-  const r = await swPost({ type: 'status' });
-  if (!r) { st.textContent = 'Проверить не удалось'; return; }
-  if (r.ready) {
-    st.textContent = 'Всё скачано: ' + r.total + ' из ' + r.total;
-    if (btn) { btn.textContent = '✓ Доступно без интернета'; btn.classList.add('ready'); }
-  } else {
-    st.textContent = 'Скачано ' + r.have + ' из ' + r.total;
-    if (btn) { btn.textContent = '⬇️ Скачать для полёта (' + (r.total - r.have) + ')'; btn.classList.remove('ready'); }
-  }
-}
-async function offlineDownload() {
-  const { st, btn } = offEls();
-  if (!navigator.onLine) { if (st) st.textContent = 'Нет сети — подключитесь и нажмите ещё раз.'; return; }
-  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-  if (btn) { btn.disabled = true; btn.textContent = 'Скачиваю…'; btn.classList.remove('ready'); }
-  const r = await swPost({ type: 'precache' }, (d) => { if (st) st.textContent = 'Скачиваю… ' + d.done + ' из ' + d.total; });
-  if (btn) btn.disabled = false;
-  if (!r) { if (st) st.textContent = 'Не получилось — обновите страницу при интернете.'; if (btn) btn.textContent = '⬇️ Скачать для полёта'; return; }
-  const bad = (r.failed && r.failed.length) || 0;
-  if (bad) {
-    if (st) st.textContent = 'Скачано ' + r.ok + ' из ' + r.total + ', ошибок: ' + bad;
-    if (btn) btn.textContent = '⬇️ Докачать';
-  } else {
-    if (st) st.textContent = 'Всё скачано: ' + r.total + ' из ' + r.total;
-    if (btn) { btn.textContent = '✓ Доступно без интернета'; btn.classList.add('ready'); }
-  }
-}
+function unitDlState(n) { return TingliOffline.unitState(unitAudioNames(n)); }
+function refreshUnitBadges() { return TingliOffline.refreshUnits(unitAudioNames); }
+function offlineUnit(n, event) { return TingliOffline.downloadUnit(n, event, unitAudioNames(n), unitAudioNames); }
+function swPost(data, progress) { return TingliOffline.message(data, progress); }
+function offlineRefreshStatus() { return TingliOffline.refresh(false); }
+function offlineDownload() { return TingliOffline.downloadAll(); }
+function offlineVerify() { return TingliOffline.refresh(true); }
 const sbVerEl = document.getElementById('sbVer');
 if (sbVerEl) sbVerEl.textContent = '';
 const sbVerLine = document.getElementById('sbVerLine');
@@ -36053,7 +35937,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.69.11';
+  const SW_BUILD = 'offline-5.71.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
