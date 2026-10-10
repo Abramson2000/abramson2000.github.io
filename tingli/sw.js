@@ -1,8 +1,9 @@
 /* Tingli — офлайн-кэш приложения.
    HTML — сеть вперёд (чтобы обновления приходили), остальное из кэша.
    Запросы к облаку (другой домен) не трогаем вообще. */
-const CACHE = 'tingli-cache-v5697-full';
+const CACHE = 'tingli-cache-v5697-icons-20261010';
 const CORE_ASSETS = [
+  './favicon-20261010.ico', './favicon.ico', './apple-touch-icon-20261010.png', './apple-touch-icon.png', './manifest.icons-20261010.json', './icon-check-20261010.js',
   './', './index.html', './sync-check.html', './sync-check.js?v=2', './sync-transport.5.67.0.js', './manifest.json', './sync-core.js?v=5.64.0', './word-sync.5.64.0.js',
   './fonts/zhimang-course.ttf', './fonts/simsun-subset.woff2', './fonts/xiaoshan-title.woff2',
   './bg.jpg', './logo.png', './sched-logo.png',
@@ -74,7 +75,7 @@ self.addEventListener('fetch', function (e) {
   if (req.method !== 'GET') return;
   let u;
   try { u = new URL(req.url); } catch (err) { return; }
-  if (u.origin !== self.location.origin) return;
+  if (u.origin !== self.location.origin || !u.pathname.startsWith('/tingli/')) return;
   const isHtml = req.mode === 'navigate' || /\.html?$/.test(u.pathname) || u.pathname.endsWith('/');
   if (isHtml) {
     const cacheKey = u.pathname.endsWith('/sync-check.html') ? './sync-check.html' : './index.html';

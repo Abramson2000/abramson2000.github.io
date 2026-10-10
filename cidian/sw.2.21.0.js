@@ -2,7 +2,7 @@
 // Версию приложения (V) синхронно проставляет scripts/cidian_bump.py:
 // из неё собираются и ссылки ?v=, и имя кэша — так обновления доезжают до телефона.
 const V = '2.21.0';
-const CACHE = 'cidian-cache-v' + V;
+const CACHE = 'cidian-cache-v' + V + '-icons-20261010';
 
 // ВАЖНО: Cloudflare (и иногда GitHub) отдают файлы сжатыми (content-encoding: br/gzip),
 // а Cache API хранит уже РАСПАКОВАННОЕ тело. Если отдать такое из кэша, браузер
@@ -23,6 +23,8 @@ async function putClean(cache, key, res) {
   try { await cache.put(key, await cleanResponse(res)); } catch (_) {}
 }
 const ASSETS = [
+  './favicon-20261010.ico', './favicon.ico', './apple-touch-icon-20261010.png', './apple-touch-icon.png',
+  './manifest.icons-20261010.json', './icon-check-20261010.js',
   './',
   './index.html',
   './styles.css?v=' + V,
