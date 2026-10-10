@@ -8,8 +8,8 @@ for name in ['tingli/sw.js','tingli/sync-core.js','tingli/word-sync.js','cidian/
     subprocess.run(['node','--check',str(root/name)],check=True)
 shared=[hashlib.sha256((root/p).read_bytes()).hexdigest() for p in ['tingli/sync-core.js','cidian/sync-core.js','backend/tingli-worker/sync-core.js']]
 assert len(set(shared))==1,'client/server protocol mismatch'
-assert "APP_VER = '5.69.7'" in (root/'tingli/index.html').read_text()
-assert 'tingli-cache-v5697-icons-20261010' in (root/'tingli/sw.js').read_text()
+assert "APP_VER = '5.69.8'" in (root/'tingli/index.html').read_text()
+assert 'tingli-cache-v5698-full' in (root/'tingli/sw.js').read_text()
 assert "VERSION='2.21.0'" in (root/'cidian/app.js').read_text()
 assert "const V = '2.21.0'" in (root/'cidian/sw.js').read_text()
 print('All script syntax, protocol copies and release versions OK')

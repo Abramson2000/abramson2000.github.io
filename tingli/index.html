@@ -31273,7 +31273,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.69.7';
+const APP_VER = '5.69.8';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -34963,7 +34963,7 @@ function crsForm(id, preset, evId) {
   const src = (id && st.lessons[id]) ? st.lessons[id]
     : (ser ? {
       program: ser.program, teacher: ser.teacher, date: (ev ? ev.date : ser.from), time: ser.time, dur: ser.dur,
-      tz: ser.tz, link: ser.link, place: ser.place, note: ser.note, material: ser.material, rem: ser.rem,
+      tz: ser.tz, link: ser.link, place: ser.place, pass: ser.pass, note: ser.note, material: ser.material, rem: ser.rem,
       repeat: { on: true, days: (ser.days || []).slice(), every: ser.every || 1, to: ser.to || '' }
     } : null);
   const s = src || Object.assign({
@@ -35640,7 +35640,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.69.7-icons-20261010';
+  const SW_BUILD = 'sync-5.69.8';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
