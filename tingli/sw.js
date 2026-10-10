@@ -1,7 +1,7 @@
 /* Tingli — офлайн-кэш приложения.
    HTML — сеть вперёд (чтобы обновления приходили), остальное из кэша.
    Запросы к облаку (другой домен) не трогаем вообще. */
-const CACHE = 'tingli-cache-v5699-full';
+const CACHE = 'tingli-cache-v56910-full';
 const CORE_ASSETS = [
   './favicon-20261010.ico', './favicon.ico', './apple-touch-icon-20261010.png', './apple-touch-icon.png', './manifest.icons-20261010.json',
   './', './index.html', './sync-check.html', './sync-check.js?v=2', './sync-transport.5.67.0.js', './manifest.json', './sync-core.js?v=5.64.0', './word-sync.5.64.0.js',

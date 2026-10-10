@@ -31518,7 +31518,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.69.9';
+const APP_VER = '5.69.10';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32189,7 +32189,35 @@ const YIN_UNITS = [
     "text": "我平时不太喜欢运动，一到周末就想在家里躺着。朋友约我去爬山，我总说：“下次吧，最近太累了。”\n\n上个月，朋友们又约我去爬山，说山上的风景特别美。我不好意思再拒绝，就答应了。那天早上，我们六点就出发了。开始的时候，我走得挺快，还觉得爬山没什么难的。\n\n可是走了不到一个小时，我就累得不行了，两条腿像灌了铅一样。朋友笑着等我，说：“别急，慢慢走，我们又不赶时间。”我一边喘气一边走，好几次都想放弃。\n\n最后，我们终于到了山顶。站在山上往下看，整个城市都变得很小，风也很凉快。那一刻，我忽然觉得，所有的累都值得了。\n\n从那以后，我每个周末都想去户外走一走。看来，人不能总待在家里，多出去走走，心情也会好很多。"
    }
   ]
- }
+ },
+{
+ "unit": 407,
+ "label": "Шэдоуинг 1",
+ "emoji": "🎙️",
+ "zh": "春天的周末",
+ "ru": "Повторяй за диктором",
+ "src": "yin",
+ "parts": [
+  {
+   "id": 1,
+   "kind": "listen",
+   "title": "Шэдоуинг",
+   "titleZh": "影子跟读",
+   "audio": "yin-7.mp3",
+   "image": "img/yin-7.jpg",
+   "hint": "Метод «тень» (shadowing): слушай фразу и сразу повторяй её вслух, копируя произношение и интонацию диктора. После каждой фразы — пауза, чтобы ты успел повторить. Не смотри в текст, пока не будешь повторять уверенно."
+  },
+  {
+   "id": 2,
+   "kind": "text",
+   "title": "Чтение",
+   "titleZh": "阅读 · 看",
+   "audio": "yin-7.mp3",
+   "image": "img/yin-7.jpg",
+   "text": "最近天气越来越暖和了。\n春天真的到了。\n草变绿了。\n花也开了。\n我穿上一条新裙子。\n我和朋友去公园玩。\n我们拍了很多照片。\n照片拍得真不错。\n中午我们去了一家咖啡馆。\n我点了一杯咖啡。\n朋友点了一块蛋糕。\n蛋糕又便宜又好吃。\n下午我们一起看了比赛。\n是精彩的足球比赛。\n比赛让人很激动。\n晚上我有点儿累。\n但是我特别开心。\n我越来越喜欢春天了。"
+  }
+ ]
+}
 ];
 const IDV = (typeof IDV_UNITS !== 'undefined') ? IDV_UNITS : [];
 const BIZ = (typeof BIZ_UNITS !== 'undefined') ? BIZ_UNITS : [];
@@ -35885,7 +35913,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'sync-5.69.9';
+  const SW_BUILD = 'sync-5.69.10';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
