@@ -27,3 +27,8 @@ for a,b in [('cidian/app.js','cidian/app.2.22.0.js'),('cidian/sw.js','cidian/sw.
     assert (root/a).read_bytes()==(root/b).read_bytes(),f'{a} differs from {b}'
 
 assert (root/"tingli/sync-transport.5.67.0.js").read_bytes()==(root/"cidian/sync-transport.2.22.0.js").read_bytes()
+
+subprocess.run(['node', '--check', str(root/'sw.js')], check=True)
+for js in re.findall(r'<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', (root/'index.html').read_text(), re.I):
+    subprocess.run(['node', '--check'], input=js, text=True, check=True)
+assert "const APP_VER = '4.7.0'" in (root/'index.html').read_text()

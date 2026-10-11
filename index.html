@@ -1829,7 +1829,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.6.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.7.0';  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2314,9 +2314,13 @@ async function healSession(silent) {
   if (!sb || !sb.auth) return;
   // сначала пробуем молча восстановить сессию по refresh-токену
   try {
+    const existing = await withTimeout(sb.auth.getSession(), 1500, 'relogin-session');
+    const active = existing && existing.data && existing.data.session;
+    if (active && active.user && (active.user.email || '').toLowerCase() === (CURRENT_EMAIL || '').toLowerCase()) { SESSION_FROM_STORAGE = false; offFlush(); return; }
+    if (active && active.user) { showReLogin(); return; }
     const r = await withTimeout(sb.auth.refreshSession(), 8000, 'relogin-refresh');
     const s2 = r && r.data && r.data.session;
-    if (s2 && s2.user) { try { localStorage.removeItem(RELOGIN_SNOOZE_KEY); } catch (e) {} location.reload(); return; }
+    if (s2 && s2.user && (s2.user.email || '').toLowerCase() === (CURRENT_EMAIL || '').toLowerCase()) { SESSION_FROM_STORAGE = false; hideReLogin(false); offFlush(); offReloadData(); return; }
   } catch (e) {}
   if (reloginSnoozed()) return;        // уже просили недавно
   showReLogin();
@@ -2352,7 +2356,7 @@ async function crmReLogin() {
   location.reload();
 }
 
-async function bootstrap() {
+async function bootstrap(preferredUser) {
   if (window.__d) window.__d.m.push('boot ' + (Date.now() - window.__d.t) + 'ms');
   if (!sb) {  // SDK не загрузился — понятное сообщение вместо краха
     toast('⚠️ Не удалось загрузить библиотеку Supabase. Обнови страницу.');
@@ -2362,16 +2366,19 @@ async function bootstrap() {
   // Офлайн сначала доверяем локальной сохранённой сессии.
   // getUser() требует сеть и на iOS в авиарежиме может зависать.
   CURRENT_ROLE = 'manager';
-  let user = null;
-  try {
-    const { data } = await sb.auth.getSession();
-    if (data && data.session && data.session.user) user = data.session.user;
-  } catch (_) {}
+  let user = preferredUser || null;
+  SESSION_FROM_STORAGE = false;
   if (!user) {
     try {
       const raw = localStorage.getItem('crm-offline-user');
       const saved = raw ? JSON.parse(raw) : null;
       if (saved && saved.email) { user = { email: saved.email }; SESSION_FROM_STORAGE = true; }
+    } catch (_) {}
+  }
+  if (!user) {
+    try {
+      const { data } = await withTimeout(sb.auth.getSession(), 1500, 'bootstrap-session');
+      if (data && data.session && data.session.user) user = data.session.user;
     } catch (_) {}
   }
   if (window.__d) window.__d.m.push('user ' + (Date.now() - window.__d.t) + 'ms');
@@ -2443,6 +2450,9 @@ async function init() {
   // экран входа показываем СРАЗУ — не ждём ответа от базы (медленная сеть = 20 мин ожидания)
   showLogin();
   try {
+    const raw = localStorage.getItem('crm-offline-user');
+    const saved = raw ? JSON.parse(raw) : null;
+    if (saved && saved.email) { await bootstrap(); return; }
     const session = await withTimeout(
       sb.auth.getSession().then(r => r.data.session),
       10000, 'session'
@@ -2482,8 +2492,8 @@ async function doLogin() {
   const btn = document.getElementById('loginBtn');
   btn.disabled = true; btn.textContent = 'Вход…'; err.textContent = '';
   try {
-    await signIn(email, password);
-    await bootstrap();
+    const user = await signIn(email, password);
+    await bootstrap(user);
   } catch (e) {
     // При отсутствии сети разрешаем вход только ранее подтверждённому на этом устройстве пользователю
     // и только если введённый пароль совпадает с локальным SHA-256 проверочным значением.
@@ -2511,8 +2521,8 @@ if (document.getElementById('loginBtn')) {
 
 // авто-переключение при смене сессии
 if (sb) {
-  sb.auth.onAuthStateChange((event) => {
-    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') { bootstrap(); }
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') { bootstrap(session && session.user); }
     else if (event === 'SIGNED_OUT') {
       let hasOfflineUser = false;
       try {
@@ -6632,19 +6642,26 @@ async function offReloadData() { try { await render(); await refreshCounts(); } 
 async function offFlush() {
   if (!navigator.onLine || OFF.busy) return;
   OFF.busy = true; offRender();
-  const r = await swAsk({ type: 'flush' });
+  let authorization = null;
+  try {
+    const session = await withTimeout(sb.auth.getSession(), 1500, 'flush-session');
+    const token = session && session.data && session.data.session && session.data.session.access_token;
+    if (token) authorization = 'Bearer ' + token;
+  } catch (_) {}
+  const r = await swAsk({ type: 'flush', authorization: authorization });
   OFF.busy = false;
   if (r) {
     if (r.left != null) OFF.n = r.left;
     offRender();
-    if (r.ok) toast('Отправлено правок: ' + r.ok + (r.failed ? ' · отклонено базой: ' + r.failed : ''));
+    if (r.blocked) toast((r.blocked === 401 || r.blocked === 403) ? 'Правки сохранены на устройстве. Нужна проверка входа и прав доступа.' : 'Правки сохранены на устройстве. Сервер отклонил отправку: ' + r.blocked);
+    else if (r.ok) toast('Отправлено правок: ' + r.ok);
   }
   if (!OFF.n) await offReloadData();
 }
 window.addEventListener('online', () => { offRender(); offFlush(); });
 window.addEventListener('offline', () => { offRender(); toast('Нет сети — правки сохранятся на устройстве и уйдут, когда появится связь'); });
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-safe-23';
+  const SW_BUILD = 'offline-safe-24';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', (e) => {
     const d = e.data || {};
