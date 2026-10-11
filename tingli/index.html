@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.77.0.css">
+<link rel="stylesheet" href="writing.5.78.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -944,8 +944,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.77.0.js"></script>
-<script src="writing.5.77.0.js"></script>
+<script src="offline.5.78.0.js"></script>
+<script src="writing.5.78.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -31522,7 +31522,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.77.0';
+const APP_VER = '5.78.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33779,6 +33779,16 @@ function TingliWritingHeading() {
   const course = program === 'yin' ? { ru: 'Звуки' } : program ? crsProg(program) : { ru: '' };
   return { title: titles[program] || '作业', subtitle: course.ru || '', label: curPart ? curPart.title || '' : '' };
 }
+/* Тип задания — по префиксу вопроса, для компактной группировки ДЗ. */
+function hwQType(q) {
+  const s = String(q || '').trim();
+  if (/^собери/i.test(s)) return { id: 'build', label: 'собери предложение' };
+  if (/^переведи/i.test(s)) return { id: 'tr', label: 'переведи' };
+  if (/^вставь/i.test(s)) return { id: 'fill', label: 'вставь иероглиф' };
+  if (/^выбери/i.test(s)) return { id: 'choose', label: 'выбери верное' };
+  if (/^(составь|опиши|расскажи|напиши|ответь|преврати|назови|задай|спроси)/i.test(s)) return { id: 'say', label: 'опиши' };
+  return { id: 'other', label: 'задание' };
+}
 function renderHw(u, part) {
   if (part && part.voiceHomework) { renderVoiceHw(u, part); return; }
   showTabbar(false); showPlayer(!!(part && part.audio));
@@ -33786,23 +33796,41 @@ function renderHw(u, part) {
   app.classList.add('hw-page');
   const heading = TingliWritingHeading();
   const aiCheck = part.aiCheck !== false;
+  const qs = part.questions;
+  // Компактная сводка: диапазоны по типам заданий.
+  const groups = [];
+  qs.forEach((q, i) => {
+    const t = hwQType(typeof q === 'string' ? q : q.q);
+    const last = groups[groups.length - 1];
+    if (last && last.t.id === t.id) { last.to = i + 1; }
+    else { groups.push({ t: t, from: i + 1, to: i + 1 }); }
+  });
+  const ranges = groups.map(g => (g.from === g.to ? g.from : g.from + '–' + g.to) + ' ' + g.t.label).join(' · ');
   app.innerHTML = `
     <div class="topbar hw-course-head"><button class="back" onclick="goBack()">←</button>
       <div class="logo"><img src="logo.png?v=5.35.0" alt=""></div>
       <div style="flex:1;min-width:0"><div class="top-title">${esc(heading.title)}</div><div class="sub">${esc(heading.subtitle)}</div></div></div>
-    <div class="u-title hw-part-title">${esc(part.title)}</div>
-    <div class="u-sub hw-lesson-title">${esc(u.zh || '')}</div>
+    <div class="hw-compact-head">
+      <div class="hw-lesson">${esc(u.zh || '')}</div>
+      <div class="hw-part-line">${esc(part.title)} · ${qs.length} заданий</div>
+    </div>
     ${dueBarHtml(u, part)}
-    ${part.text ? `<div class="script zh-opt show">${esc(part.text)}</div>` : ''}
-    ${part.questions.map((q, i) => {
-      const qs = typeof q === 'string' ? q : q.q;
+    <div class="hw-summary">${esc(ranges)}</div>
+    ${part.text ? `<details class="hw-src"><summary>📄 Текст задания</summary><div class="script zh-opt">${esc(part.text)}</div></details>` : ''}
+    ${qs.map((q, i) => {
+      const qsText = typeof q === 'string' ? q : q.q;
       const ex = (q && typeof q === 'object' && q.ex) ? q.ex : '';
+      const t = hwQType(qsText);
+      const saved = hwLoad(u.unit, part.id, i).trim();
       const exOpen = !!(ex && hwExOpen[hwExKey(u, part, i)]);
       return `
       <div class="hw-item">
-        <div class="hw-q zh-opt">${i + 1}. ${esc(qs)}</div>
-        ${ex ? `<div class="hw-ex-wrap"><button class="hw-ex-btn" onclick="hwExToggle(this,${i})">${exOpen ? '🙈 Скрыть ответ' : '👁 Показать ответ'}</button><div class="hw-ex" style="display:${exOpen ? 'block' : 'none'}">${esc(ex)}</div></div>` : ''}
-        <textarea class="hw-ans" data-i="${i}" rows="2" placeholder="Твой ответ иероглифами…">${esc(hwLoad(u.unit, part.id, i))}</textarea>
+        <div class="hw-q zh-opt"><span class="hw-num">${i + 1}</span><span class="hw-tag">${esc(t.label)}</span>${esc(qsText)}</div>
+        <div class="hw-row">
+          <button type="button" class="hw-ans-btn${saved ? '' : ' empty'}" data-i="${i}">${saved ? '✏️ ' + esc(saved.length > 40 ? saved.slice(0, 40) + '…' : saved) : '✏️ Написать ответ'}</button>
+          ${ex ? `<button type="button" class="hw-ex-btn" onclick="hwExToggle(this,${i})" title="${exOpen ? 'Скрыть ответ' : 'Показать ответ'}">${exOpen ? '🙈' : '👁'}</button>` : ''}
+        </div>
+        ${ex ? `<div class="hw-ex" style="display:${exOpen ? 'block' : 'none'}">${esc(ex)}</div>` : ''}
         ${aiCheck ? `<div class="hw-tools">
           <button class="hw-chk" data-i="${i}" onclick="hwCheck(${i})">🤖 Проверить</button>
           <div class="hw-vd" data-i="${i}"></div>
@@ -33823,9 +33851,6 @@ function renderHw(u, part) {
       </div>
       <div class="hw-out" id="hwOut"></div>
     </div>`;
-  document.querySelectorAll('.hw-ans').forEach(ta => {
-    ta.addEventListener('input', () => hwSave(Number(ta.dataset.i)));
-  });
   hwRefresh();
   posRestore();
 }
@@ -33843,11 +33868,12 @@ function scriptToggle(el, key) {
 }
 function hwExKey(u, part, i) { return u.unit + '-' + part.id + '-' + i; }
 function hwExToggle(btn, i) {
-  const box = btn.parentNode.querySelector('.hw-ex');
+  const box = btn.closest('.hw-item').querySelector('.hw-ex');
   if (!box) return;
   const shown = box.style.display !== 'none';
   box.style.display = shown ? 'none' : 'block';
-  btn.textContent = shown ? '👁 Показать ответ' : '🙈 Скрыть ответ';
+  btn.textContent = shown ? '👁' : '🙈';
+  btn.title = shown ? 'Показать ответ' : 'Скрыть ответ';
   if (i !== undefined && i !== null && curUnit && curPart) {
     hwExOpen[hwExKey(curUnit, curPart, i)] = !shown;
   }
@@ -35967,7 +35993,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.77.0';
+  const SW_BUILD = 'offline-5.78.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
