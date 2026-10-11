@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const root=__dirname+'/../..',base='https://crmuro.ru/spin/',name='spin-cache-3.1.0-offline';
-const html=fs.readFileSync(root+'/spin/index.3.1.0.html','utf8');
+const root=__dirname+'/../..',base='https://crmuro.ru/spin/',name='spin-cache-3.2.0-offline';
+const html=fs.readFileSync(root+'/spin/index.3.2.0.html','utf8');
 function worker(stores=new Map()){
  const handlers={},requests=[],rejected=new Set();let hung=false,offline=false,quota=false,skipped=false;
  const key=x=>new URL(typeof x==='string'?x:x.url,base).href;
@@ -13,7 +13,7 @@ function worker(stores=new Map()){
  const fetch=async(u,o={})=>{
   requests.push(key(u));if(offline||rejected.has(new URL(key(u)).pathname))throw Error('offline');
   if(hung)return new Promise((_,reject)=>o.signal?.addEventListener('abort',()=>reject(Error('aborted'))));
-  return new Response(key(u).endsWith('index.3.1.0.html')?html:'file',{headers:{'content-encoding':'br','content-length':'999'}});
+  return new Response(key(u).endsWith('index.3.2.0.html')?html:'file',{headers:{'content-encoding':'br','content-length':'999'}});
  };
  vm.runInNewContext(fs.readFileSync(root+'/spin/sw.js','utf8'),{URL,Response,Headers,Request,AbortController,
   setTimeout:(f,ms)=>setTimeout(f,Math.min(ms,30)),clearTimeout,fetch,
@@ -29,7 +29,7 @@ test('SPIN cold start uses a complete pinned shell without any network request',
  assert.equal(await(await w.request('./?v=old')).text(),html);assert.equal(w.requests.length,before);
  const status=await w.message('status');assert.equal(status.ready,true);assert.equal(status.total,24);
 });
-for(const file of ['styles.3.1.0.css','data.3.1.0.js','supabase.3.1.0.min.js','hero-10.jpg']){
+for(const file of ['styles.3.2.0.css','data.3.2.0.js','supabase.3.2.0.min.js','hero-10.jpg']){
  test('missing SPIN '+file+' prevents activation and preserves prior app',async()=>{
   const w=worker();w.cache('spin-cache-old');w.rejected.add('/spin/'+file);
   await assert.rejects(w.lifecycle('install'),/incomplete/);assert.equal(w.skipped(),false);assert.ok(w.stores.has('spin-cache-old'));
@@ -43,13 +43,13 @@ test('SPIN resumes only missing files and keeps completed files after failure an
  const next=worker(w.stores);assert.equal((await next.message('precache')).ready,true);assert.deepEqual(next.requests,[base+'hero-10.jpg']);
 });
 test('a stale query variant cannot pass the version-specific SPIN readiness check',async()=>{
- const w=worker();await w.lifecycle('install');const c=w.cache(name),r=c.rows.get(base+'app.3.1.0.js');c.rows.delete(base+'app.3.1.0.js');
- c.rows.set(base+'app.3.1.0.js?v=old',r);assert.equal((await w.message('status')).ready,false);
+ const w=worker();await w.lifecycle('install');const c=w.cache(name),r=c.rows.get(base+'app.3.2.0.js');c.rows.delete(base+'app.3.2.0.js');
+ c.rows.set(base+'app.3.2.0.js?v=old',r);assert.equal((await w.message('status')).ready,false);
 });
 test('SPIN updates preserve previous shells and unrelated app caches',async()=>{
  const w=worker();await w.cache('spin-cache-old').put('./index.html',new Response('old shell'));w.cache('cidian-cache-test');w.cache('tingli-media-v1');
  await w.lifecycle('install');await w.lifecycle('activate');assert.ok(w.stores.has('cidian-cache-test'));assert.ok(w.stores.has('tingli-media-v1'));
- w.cache(name).rows.delete(base+'index.3.1.0.html');w.hung();assert.equal(await(await w.request()).text(),'old shell');
+ w.cache(name).rows.delete(base+'index.3.2.0.html');w.hung();assert.equal(await(await w.request()).text(),'old shell');
 });
 test('SPIN returns an explicit offline error when no saved shells exist',async()=>{
  const w=worker();w.offline();const r=await w.request();assert.equal(r.status,503);assert.match(await r.text(),/Нет сохранённой копии/);
@@ -65,18 +65,18 @@ test('a SPIN storage failure stops activation and cached compression headers are
  const bad=worker();bad.quota();await assert.rejects(bad.lifecycle('install'),/quota/);assert.equal(bad.skipped(),false);
  const w=worker();await w.lifecycle('install');const r=await w.request();assert.equal(r.headers.has('content-encoding'),false);assert.equal(r.headers.has('content-length'),false);
 });
-test('SPIN update notification never reloads an open lesson automatically',async()=>{
- const inline=[...html.matchAll(/<script\b(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/g)][0][1],events={},swEvents={},button={classList:{remove(){button.visible=true;}}};let reloads=0,flushed=0;
- const reg={update:()=>Promise.resolve()};
- const ctx={window:{addEventListener:(t,f)=>events[t]=f},navigator:{serviceWorker:{controller:{},addEventListener:(t,f)=>swEvents[t]=f,register:()=>Promise.resolve(reg)}},
- document:{visibilityState:'visible',getElementById:()=>button,addEventListener(){}},setInterval(){},location:{reload:()=>reloads++},flushSave:()=>flushed++};
- vm.runInNewContext(inline,ctx);events.load();await Promise.resolve();swEvents.controllerchange();
- assert.equal(reloads,0);assert.equal(button.visible,true);button.onclick();assert.equal(flushed,1);assert.equal(reloads,1);
+test('SPIN checks for updates without a header button or forced reload',async()=>{
+ const inline=[...html.matchAll(/<script\b(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/g)][0][1],events={};let updates=0;
+ const reg={update:()=>{updates++;return Promise.resolve();}};
+ const ctx={window:{addEventListener:(t,f)=>events[t]=f},navigator:{serviceWorker:{controller:{},register:()=>Promise.resolve(reg)}},
+ document:{visibilityState:'visible',addEventListener(){}},setInterval(){}};
+ vm.runInNewContext(inline,ctx);events.load();await Promise.resolve();events.focus();assert.equal(updates,1);
+ assert.equal(html.includes('updateApp'),false);assert.equal(inline.includes('location.reload'),false);
 });
 test('legacy offline counts cannot mark the new SPIN app ready',async()=>{
  const app=fs.readFileSync(root+'/spin/app.js','utf8'),start=app.indexOf('function swPost('),end=app.indexOf('function offlineCardHtml()');
  const button={classList:{remove(){button.visible=true;}}};
  class Channel{constructor(){this.port1={close(){}};this.port2={send:d=>this.port1.onmessage({data:d})};}}
- const ctx={APP_VER:'3.1.0',MessageChannel:Channel,$:()=>button,navigator:{serviceWorker:{controller:{postMessage:(data,ports)=>ports[0].send({ready:true,total:25,have:25})}}},setTimeout:()=>1,clearTimeout(){}};
- vm.runInNewContext(app.slice(start,end),ctx);assert.equal(await ctx.swPost({type:'status'}),null);assert.equal(button.visible,true);
+ const ctx={APP_VER:'3.2.0',MessageChannel:Channel,$:()=>button,navigator:{serviceWorker:{controller:{postMessage:(data,ports)=>ports[0].send({ready:true,total:25,have:25})}}},setTimeout:()=>1,clearTimeout(){}};
+ vm.runInNewContext(app.slice(start,end),ctx);assert.equal(await ctx.swPost({type:'status'}),null);assert.equal(button.visible,undefined);
 });
