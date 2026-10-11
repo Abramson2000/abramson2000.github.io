@@ -1,0 +1,55 @@
+/* Same Tingli fonts; opaque paper only while writing. */
+body.tl-writing-open { overflow:hidden; }
+/* Cover the whole layout viewport, including behind iOS translucent keyboard UI.
+   The writing panel itself follows the smaller visual viewport above it. */
+body.tl-writing-open::after { content:""; position:fixed; inset:0; z-index:19999; background:var(--paper); pointer-events:none; }
+body.tl-writing-open > :not(.tl-writing) { visibility:hidden; }
+.tl-writing { position:fixed; z-index:20000; inset:0; height:100dvh; background:var(--paper); color:var(--ink); display:flex; flex-direction:column; padding-top:env(safe-area-inset-top); }
+.tl-writing-head { width:100%; max-width:720px; margin:0 auto; padding:14px 20px 12px; display:flex; align-items:center; gap:14px; border-bottom:1px solid var(--line); flex-shrink:0; }
+.tl-writing-back { min-width:42px; min-height:42px; flex-shrink:0; }
+.tl-writing-brand { display:flex; align-items:center; gap:12px; min-width:0; }
+.tl-writing-brand img { width:44px; height:44px; object-fit:contain; flex-shrink:0; }
+.tl-writing-titles { min-width:0; }
+.tl-writing-brand .sub { font-size:13px; line-height:1.35; color:var(--ink-2); margin-top:4px; }
+.tl-writing-label { width:100%; max-width:720px; margin:0 auto; padding:12px 20px 0; font-size:14px; line-height:1.4; font-weight:600; color:var(--ink-2); flex-shrink:0; }
+.tl-writing-brand .top-title { font-size:36px; letter-spacing:4px; }
+.tl-writing-body { width:100%; max-width:720px; margin:0 auto; padding:22px 20px calc(24px + env(safe-area-inset-bottom)); overflow:auto; overscroll-behavior:contain; min-height:0; flex:1; }
+.tl-writing .task-card, .tl-writing .hw-item { margin:0; padding:22px 18px; background:var(--surface); border-radius:20px; box-shadow:var(--shadow-card); animation:none; }
+.tl-writing .task-q { font-size:21px; line-height:1.65; font-weight:600; margin-bottom:20px; white-space:pre-wrap; }
+.tl-writing .hw-q { font-size:20px; line-height:1.65; margin-bottom:20px; }
+.tl-writing .task-qru { font-size:14px; color:var(--ink-2); }
+.tl-writing .fill, .tl-writing .hw-ans { font-size:19px; line-height:1.6; background:var(--paper); border:1.5px solid var(--line); padding:14px 15px; border-radius:16px; width:100%; }
+.tl-writing .hw-ans { min-height:112px; resize:vertical; }
+.tl-writing .fill:focus, .tl-writing .hw-ans:focus { border-color:var(--seal); box-shadow:0 0 0 3px var(--seal-soft); outline:none; }
+.tl-writing .btn:not(.ghost), .tl-writing .hw-chk { background:var(--ink); color:var(--surface); border:0; }
+.tl-writing .hw-chk { padding:10px 18px; font:inherit; font-size:14px; }
+.tl-writing .script { background:var(--paper); border:1px solid var(--line); color:var(--ink); font-size:18px; }
+.tl-writing .hw-tools { flex-direction:column; }
+.tl-writing .hw-vd { width:100%; font-size:14px; }
+.tl-writing-context { margin-bottom:20px; }
+.tl-writing-context summary { color:var(--ink-2); font-size:14px; cursor:pointer; padding:4px 0 10px; }
+.tl-writing-context .script { margin:0; }
+@media(max-width:480px) { .tl-writing-head { padding:10px 14px; gap:8px; } .tl-writing-body { padding:20px 18px; } .tl-writing-brand .top-title { font-size:30px; } .tl-writing .btn-row { flex-wrap:wrap; } .tl-writing .hw-tools { flex-wrap:wrap; } }
+
+/* Homework steps stay inside the same paper panel, above the keyboard. */
+.tl-writing-nav { width:100%; max-width:720px; margin:0 auto; flex-shrink:0; padding:10px 20px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); }
+.tl-writing-nav-row { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.tl-writing-nav button { font:inherit; font-size:14px; font-weight:700; border:1.5px solid var(--line); border-radius:16px; min-height:42px; padding:10px 18px; cursor:pointer; color:var(--ink); background:var(--surface); }
+.tl-writing-nav .tl-writing-next { color:var(--surface); background:var(--ink); border-color:var(--ink); }
+.tl-writing-nav button:disabled { opacity:.35; cursor:default; }
+.tl-writing-count { font-size:13px; color:var(--ink-2); }
+.tl-writing-save-error { font-size:13px; color:var(--danger); margin-bottom:8px; }
+@media(max-width:480px) { .tl-writing-nav { padding-left:18px; padding-right:18px; } }
+
+/* The homework list uses the same cards, rhythm and buttons as other lessons. */
+.hw-page .hw-course-head { align-items:center; gap:12px; }
+.hw-page .hw-course-head .logo { width:44px; height:44px; }
+.hw-page .hw-course-head .top-title { font-size:32px; letter-spacing:4px; }
+.hw-page .hw-part-title { margin:0 0 4px; }
+.hw-page .hw-lesson-title { margin-bottom:16px; }
+.hw-page .hw-item, .hw-page .hw-build { margin:12px 0; padding:22px 18px; background:var(--surface); border-radius:20px; box-shadow:var(--shadow-card); }
+.hw-page .hw-q { font-size:18px; line-height:1.6; margin-bottom:12px; }
+.hw-page .hw-ans { font-size:17.5px; background:var(--paper); border-radius:16px; }
+.hw-page .hw-tools { flex-direction:column; }
+.hw-page .hw-chk { background:var(--ink); color:var(--surface); border:0; padding:10px 18px; }
+.hw-page .hw-vd { width:100%; font-size:14px; }
