@@ -5,10 +5,10 @@
 //      сразу применяются к кэшу (оптимистично) и отправляются в базу, как только появится связь;
 //   3) локальная оболочка (index.html, supabase-js, иконки) — тоже в кэше.
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
-const APP_CACHE = 'crm-app-v23';
+const APP_CACHE = 'crm-app-v24';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
-const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
+const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js?v=139', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
 
 // Под-приложения на том же домене (/tingli, /spin, /cidian) — у каждого свой
 // сервис-воркер. CRM не должна подменять их своим «shell»: раньше проверка была
@@ -202,6 +202,26 @@ function tableOf(req) {
   return url.pathname.split('/rest/v1/')[1].split('/')[0].split('?')[0];
 }
 
+// Deadline includes response body; a stalled connection must reach local fallback.
+async function fetchRest(req, options = {}, timeoutMs = 15000) {
+  if (navigator.onLine === false) throw new Error('offline');
+  const controller = new AbortController();
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => { controller.abort(); reject(new Error('rest-timeout')); }, timeoutMs);
+  });
+  try {
+    return await Promise.race([(async () => {
+      const r = await fetch(req, Object.assign({}, options, { signal: controller.signal }));
+      const body = await r.arrayBuffer();
+      const headers = new Headers(r.headers);
+      ['content-encoding', 'content-length'].forEach(h => headers.delete(h));
+      return new Response([204, 205, 304].includes(r.status) ? null : body,
+        { status: r.status, statusText: r.statusText, headers });
+    })(), timeout]);
+  } finally { clearTimeout(timer); }
+}
+
 // ---------- запросы к Supabase REST ----------
 let flushing = false;
 async function handleRest(req) {
@@ -215,7 +235,7 @@ async function handleRest(req) {
     const mine = pending.filter((p) => p.table === table);
     let resp = null;
     try {
-      resp = await fetch(req);
+      resp = await fetchRest(req);
       if (resp && resp.ok) await cachePut(key, resp.clone());
     } catch (e) { resp = null; }
     if (!resp || !resp.ok) {
@@ -262,7 +282,7 @@ async function handleRest(req) {
 
   // сначала пробуем сеть (без опоры на navigator.onLine — в iOS-воркере его может не быть)
   try {
-    const r = await fetch(reqForNet);
+    const r = await fetchRest(reqForNet);
     if (r.status < 500) return r;
   } catch (e) {}
 
@@ -297,10 +317,17 @@ function mapBody(str, map) {
   for (const [tmp, real] of Object.entries(map)) out = out.split(':' + tmp).join(':' + real);
   return out;
 }
-async function flushQueue() {
+function authSubject(authorization) {
+  try {
+    const token = String(authorization || '').replace(/^Bearer\s+/i, '');
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(payload)).sub || null;
+  } catch (_) { return null; }
+}
+async function flushQueue(authorization) {
   if (flushing) return { ok: 0, left: await qCount() };
   flushing = true;
-  let sent = 0, failed = 0, left = 0;
+  let sent = 0, failed = 0, left = 0, blocked = null;
   try {
     const items = await qAll();
     if (!items.length) { flushing = false; return { ok: 0, left: 0 }; }
@@ -308,15 +335,20 @@ async function flushQueue() {
     for (const it of items) {
       const url = mapIds(it.url, map);
       const body = it.body ? mapBody(it.body, map) : undefined;
+      const headers = Object.assign({}, it.headers);
+      // Refresh credentials only for the same account that created this edit.
+      const owner = authSubject(headers.authorization);
+      if (owner && owner === authSubject(authorization)) headers.authorization = authorization;
       try {
-        const r = await fetch(url, {
+        const r = await fetchRest(url, {
           method: it.method,
-          headers: it.headers,
+          headers: headers,
           body: it.method === 'GET' ? undefined : (body || (it.method === 'PATCH' || it.method === 'DELETE' ? it.body : undefined))
         });
-        if (r.status >= 400 && r.status < 500) {           // отказ базы — снимаем с очереди, чтобы не застрять
-          await qDel(it.qid); failed++;
-          continue;
+        if (r.status >= 400 && r.status < 500) {
+          // Keep rejected edits and their dependants until the user can resolve the error.
+          blocked = r.status; failed++;
+          break;
         }
         if (!r.ok) break;                                   // сеть/сервер — оставим на потом
         if (it.tempId) {
@@ -332,7 +364,7 @@ async function flushQueue() {
     left = await qCount();
   } finally { flushing = false; }
   await notifyQueue(true);
-  return { ok: sent, left: left, failed: failed };
+  return { ok: sent, left: left, failed: failed, blocked: blocked };
 }
 
 // ---------- оболочка приложения ----------
@@ -373,7 +405,11 @@ async function handleShell(req) {
       return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
     }
   }
-  const hit = await caches.match(req);
+  let hit = await caches.match(req);
+  // Previous installs cached this exact SDK without its query string.
+  if (!hit && url.pathname === '/supabase.v139.min.js' && url.search === '?v=139') {
+    hit = await caches.match(new Request(url.origin + url.pathname));
+  }
   if (hit) return hit;
   const r = await fetch(req);
   if (r && r.ok && url.origin === self.location.origin) { const c = await caches.open(APP_CACHE); await putClean(c, req, r.clone()); }
@@ -402,7 +438,7 @@ self.addEventListener('install', (e) => {
     }
     // Не активируем новую версию, если нет критической оболочки.
     // Старый service worker продолжит работать и не даст белый экран.
-    for (const u of ['./index.html', './supabase.v139.min.js']) {
+    for (const u of ['./index.html', './supabase.v139.min.js?v=139']) {
       const hit = await c.match(u);
       if (!hit) throw new Error('CRM precache incomplete: ' + u);
     }
@@ -417,7 +453,7 @@ self.addEventListener('activate', (e) => {
       // Старые CRM-кэши не удаляем автоматически: они служат офлайн-резервом на iOS.
     } catch (e) {}
     try { await self.clients.claim(); } catch (e) {}
-    flushQueue();
+    await flushQueue();
   })());
 });
 
@@ -426,11 +462,11 @@ self.addEventListener('message', (e) => {
   const port = e.ports && e.ports[0];
   const reply = (m) => { try { if (port) port.postMessage(m); } catch (_) {} };
   if (d.type === 'queue-info') {
-    qCount().then((n) => reply({ type: 'queue-info', n: n, online: navigator.onLine !== false })).catch(() => reply({ type: 'queue-info', n: 0 }));
+    e.waitUntil(qCount().then((n) => reply({ type: 'queue-info', n: n, online: navigator.onLine !== false })).catch(() => reply({ type: 'queue-info', n: 0 })));
     return;
   }
   if (d.type === 'flush') {
-    flushQueue().then((r) => reply(Object.assign({ type: 'flush-done' }, r))).catch(() => reply({ type: 'flush-done', ok: 0 }));
+    e.waitUntil(flushQueue(d.authorization).then((r) => reply(Object.assign({ type: 'flush-done' }, r))).catch(() => reply({ type: 'flush-done', ok: 0 })));
     return;
   }
   if (d.type === 'clear-queue') {
