@@ -48,3 +48,23 @@ test('homework navigation receives a successful durable save before advancing',(
 test('failed or missing homework answer storage is reported to navigation',()=>{
  for(const opts of [{reject:true},{missing:true}]){const s=homeworkSave(opts);assert.equal(s.save(),false);assert.deepEqual(s.writes,[]);assert.equal(s.refresh(),0);}
 });
+function checkClick({saved=true,check=true}={}){
+ const path=html.match(/<script src="(writing\.[^"]+\.js)"><\/script>/)[1];
+ const js=fs.readFileSync(__dirname+'/../../tingli/'+path,'utf8');
+ const start=js.indexOf("screen.addEventListener('click',e=>{");
+ const end=js.indexOf('},true);',start);
+ const body=js.slice(start+"screen.addEventListener('click',e=>{".length,end);
+ let blurs=0,saves=0,prevented=0,stopped=0;
+ const button={matches:()=>check},active={block:{contains:()=>true},input:{blur(){blurs++;}}};
+ const ctx={active,saveAnswer(){saves++;return saved;}};vm.createContext(ctx);
+ const fn=vm.runInContext('(e=>{'+body+'})',ctx);
+ fn({target:{closest:()=>button},preventDefault(){prevented++;},stopImmediatePropagation(){stopped++;}});
+ return{blurs,saves,prevented,stopped};
+}
+test('checking ends keyboard editing without closing the answer panel or preventing its check',()=>{
+ assert.deepEqual(checkClick(),{blurs:1,saves:1,prevented:0,stopped:0});
+ assert.deepEqual(checkClick({check:false}),{blurs:0,saves:0,prevented:0,stopped:0});
+});
+test('a failed save keeps editing active and does not check stale stored homework',()=>{
+ assert.deepEqual(checkClick({saved:false}),{blurs:0,saves:1,prevented:1,stopped:1});
+});
