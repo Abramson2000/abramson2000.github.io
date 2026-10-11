@@ -45,6 +45,13 @@ function homeworkSave({missing=false,reject=false}={}){
 test('homework navigation receives a successful durable save before advancing',()=>{
  const s=homeworkSave();assert.equal(s.save(),true);assert.deepEqual(s.writes,[['tingli-hw-210-12-2','新的答案']]);assert.equal(s.refresh(),1);
 });
+test('compact homework loads the current stored answer from lexical lesson state',()=>{
+ const a=html.indexOf('function hwKey('),b=html.indexOf('function hwAnswered()',a),keys=[];
+ const ctx={localStorage:{getItem(k){keys.push(k);return '可能';}}};vm.createContext(ctx);
+ vm.runInContext('let curUnit={unit:210};let curPart={id:12};'+html.slice(a,b),ctx);
+ assert.equal(ctx.curUnit,undefined);
+ assert.equal(ctx.TingliHomeworkAnswer(3),'可能');assert.deepEqual(keys,['tingli-hw-210-12-3']);
+});
 test('failed or missing homework answer storage is reported to navigation',()=>{
  for(const opts of [{reject:true},{missing:true}]){const s=homeworkSave(opts);assert.equal(s.save(),false);assert.deepEqual(s.writes,[]);assert.equal(s.refresh(),0);}
 });
