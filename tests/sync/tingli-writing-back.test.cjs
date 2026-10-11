@@ -36,3 +36,15 @@ test('sidebar gesture does not open the menu behind a writing panel',()=>{
  vm.runInNewContext(html.slice(a,b),{window:{innerWidth:390,TingliWritingFocus:{isOpen:()=>true}},document:{body:{classList:{contains:()=>true}},getElementById:()=>sb,addEventListener(t,f){handlers[t]=f;}},getComputedStyle:()=>({display:'flex'}),sbOpen(){mutations++;},sbClose(){mutations++;}});
  handlers.touchstart({touches:[{clientX:8,clientY:100}]});handlers.touchmove({touches:[{clientX:105,clientY:100}]});handlers.touchend({changedTouches:[{clientX:105,clientY:100}]});assert.equal(mutations,0);
 });
+function homeworkSave({missing=false,reject=false}={}){
+ const a=html.indexOf('function hwKey('),b=html.indexOf('function hwAnswered()',a),writes=[];let refresh=0;
+ const context={document:{querySelector:()=>missing?null:{value:'新的答案'}},curUnit:{unit:210},curPart:{id:12},localStorage:{getItem:()=>null},saveLocal(k,v){if(reject)throw Error('quota');writes.push([k,v]);},hwRefresh(){refresh++;}};
+ vm.createContext(context);vm.runInContext(html.slice(a,b),context);
+ return{save:()=>context.hwSave(2),writes,refresh:()=>refresh};
+}
+test('homework navigation receives a successful durable save before advancing',()=>{
+ const s=homeworkSave();assert.equal(s.save(),true);assert.deepEqual(s.writes,[['tingli-hw-210-12-2','新的答案']]);assert.equal(s.refresh(),1);
+});
+test('failed or missing homework answer storage is reported to navigation',()=>{
+ for(const opts of [{reject:true},{missing:true}]){const s=homeworkSave(opts);assert.equal(s.save(),false);assert.deepEqual(s.writes,[]);assert.equal(s.refresh(),0);}
+});
