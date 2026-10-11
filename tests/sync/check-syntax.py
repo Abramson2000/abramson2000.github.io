@@ -14,13 +14,13 @@ assert "VERSION='2.22.0'" in (root/'cidian/app.js').read_text()
 assert "const V = '2.22.0'" in (root/'cidian/sw.js').read_text()
 print('All script syntax, protocol copies and release versions OK')
 
-for name in ['spin/app.js', 'spin/app.3.1.0.js', 'spin/sw.js', 'spin/sw.3.1.0.js']:
+for name in ['spin/app.js', 'spin/app.3.2.0.js', 'spin/sw.js', 'spin/sw.3.2.0.js']:
     subprocess.run(['node', '--check', str(root/name)], check=True)
 for js in re.findall(r'<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', (root/'spin/index.html').read_text(), re.I):
     subprocess.run(['node', '--check'], input=js, text=True, check=True)
-assert "const APP_VER = '3.1.0'" in (root/'spin/app.js').read_text()
-assert "const VERSION = '3.1.0'" in (root/'spin/sw.js').read_text()
-for a, b in [('spin/app.js', 'spin/app.3.1.0.js'), ('spin/sw.js', 'spin/sw.3.1.0.js'), ('spin/index.html', 'spin/index.3.1.0.html')]:
+assert "const APP_VER = '3.2.0'" in (root/'spin/app.js').read_text()
+assert "const VERSION = '3.2.0'" in (root/'spin/sw.js').read_text()
+for a, b in [('spin/app.js', 'spin/app.3.2.0.js'), ('spin/sw.js', 'spin/sw.3.2.0.js'), ('spin/index.html', 'spin/index.3.2.0.html')]:
     assert (root/a).read_bytes() == (root/b).read_bytes(), f'{a} differs from {b}'
 
 for a,b in [('cidian/app.js','cidian/app.2.22.0.js'),('cidian/sw.js','cidian/sw.2.22.0.js'),('cidian/word-sync.js','cidian/word-sync.2.22.0.js'),('cidian/word-sync.js','tingli/word-sync.js'),('tingli/word-sync.js','tingli/word-sync.5.64.0.js')]:
