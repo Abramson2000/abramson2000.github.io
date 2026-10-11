@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.78.0.css">
+<link rel="stylesheet" href="writing.5.79.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -944,8 +944,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.78.0.js"></script>
-<script src="writing.5.78.0.js"></script>
+<script src="offline.5.79.0.js"></script>
+<script src="writing.5.79.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -31522,7 +31522,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.78.0';
+const APP_VER = '5.79.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33463,6 +33463,7 @@ async function recHwShare() {
 /* ===== Домашнее задание (hw): свободные ответы + сборка текста для учителя ===== */
 function hwKey(unitN, partId, i) { return 'tingli-hw-' + unitN + '-' + partId + '-' + i; }
 function hwLoad(unitN, partId, i) { try { return localStorage.getItem(hwKey(unitN, partId, i)) || ''; } catch (e) { return ''; } }
+function TingliHomeworkAnswer(i) { return curUnit && curPart ? hwLoad(curUnit.unit, curPart.id, i) : ''; }
 function hwSave(i) {
   const ta = document.querySelector('.hw-ans[data-i="' + i + '"]');
   if (!ta) return false;
@@ -33820,12 +33821,11 @@ function renderHw(u, part) {
     ${qs.map((q, i) => {
       const qsText = typeof q === 'string' ? q : q.q;
       const ex = (q && typeof q === 'object' && q.ex) ? q.ex : '';
-      const t = hwQType(qsText);
       const saved = hwLoad(u.unit, part.id, i).trim();
       const exOpen = !!(ex && hwExOpen[hwExKey(u, part, i)]);
       return `
       <div class="hw-item">
-        <div class="hw-q zh-opt"><span class="hw-num">${i + 1}</span><span class="hw-tag">${esc(t.label)}</span>${esc(qsText)}</div>
+        <div class="hw-q zh-opt"><span class="hw-num">${i + 1}.</span><span class="hw-q-text">${esc(qsText)}</span></div>
         <div class="hw-row">
           <button type="button" class="hw-ans-btn${saved ? '' : ' empty'}" data-i="${i}">${saved ? '✏️ ' + esc(saved.length > 40 ? saved.slice(0, 40) + '…' : saved) : '✏️ Написать ответ'}</button>
           ${ex ? `<button type="button" class="hw-ex-btn" onclick="hwExToggle(this,${i})" title="${exOpen ? 'Скрыть ответ' : 'Показать ответ'}">${exOpen ? '🙈' : '👁'}</button>` : ''}
@@ -35993,7 +35993,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.78.0';
+  const SW_BUILD = 'offline-5.79.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
