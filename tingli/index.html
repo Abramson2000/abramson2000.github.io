@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.72.0.css">
+<link rel="stylesheet" href="writing.5.73.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -944,8 +944,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.72.0.js"></script>
-<script src="writing.5.72.0.js"></script>
+<script src="offline.5.73.0.js"></script>
+<script src="writing.5.73.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -31522,7 +31522,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.72.0';
+const APP_VER = '5.73.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -31715,6 +31715,7 @@ document.addEventListener('click', function (e) {
   const sbEl = () => document.getElementById('tabbar');
   const isNarrow = () => window.innerWidth < 900;
   document.addEventListener('touchstart', function (e) {
+    if (window.TingliWritingFocus && window.TingliWritingFocus.isOpen()) { sbTouch = null; return; }
     if (!isNarrow()) return;
     const sb = sbEl();
     if (!sb || getComputedStyle(sb).display === 'none') return;
@@ -31794,6 +31795,12 @@ document.addEventListener('click', function (e) {
     }, 240);
   }
   function edgeBack() {
+    // The writing panel is one layer of this exercise, not another lesson.
+    if (window.TingliWritingFocus && window.TingliWritingFocus.isOpen()) {
+      clearShift(false);
+      window.TingliWritingFocus.close();
+      return;
+    }
     const a = appEl();
     if (!a) { goBack(); return; }
     a.style.transition = '';
@@ -31815,6 +31822,7 @@ document.addEventListener('click', function (e) {
   }
 
   document.addEventListener('touchstart', function (e) {
+    st = null;
     if (!narrow()) return;
     if (!curUnit && !curPart) return;
     if (tabbarVisible()) return;
@@ -31832,10 +31840,15 @@ document.addEventListener('click', function (e) {
       if (dx < 0) { st = null; return; }     // влево — не наш жест
       st.armed = true;
     }
+    // Claim this gesture for the panel; Safari must not navigate as well.
+    if (window.TingliWritingFocus && window.TingliWritingFocus.isOpen()) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
     const max = window.innerWidth * MAX_SHIFT;
     st.dx = Math.min(max, Math.max(0, dx * DAMP));
     if (!raf) raf = requestAnimationFrame(function () { raf = 0; paintShift(st ? st.dx : 0); });
-  }, { passive: true });
+  }, { passive: false });
 
   document.addEventListener('touchend', function (e) {
     if (!st) return;
@@ -35941,7 +35954,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.72.0';
+  const SW_BUILD = 'offline-5.73.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
