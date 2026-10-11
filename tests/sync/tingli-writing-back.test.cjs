@@ -68,3 +68,15 @@ test('checking ends keyboard editing without closing the answer panel or prevent
 test('a failed save keeps editing active and does not check stale stored homework',()=>{
  assert.deepEqual(checkClick({saved:false}),{blurs:0,saves:1,prevented:1,stopped:1});
 });
+test('homework heading follows the real course mapping, independent of the selected tab',()=>{
+ const programs=html.match(/const CRS_PROGS = (\[[\s\S]*?\]);/)[1];
+ const mapper=html.slice(html.indexOf('function crsProgOfUnit('),html.indexOf('function crsHwOpen('));
+ const prog=html.slice(html.indexOf('function crsProg('),html.indexOf('function crsProgTitle('));
+ const heading=html.slice(html.indexOf('function TingliWritingHeading('),html.indexOf('function renderHw('));
+ const ctx={curUnit:null,curPart:{title:'ДЗ 3 作业'},originTab:'sched'};vm.createContext(ctx);
+ vm.runInContext('const CRS_PROGS='+programs+';'+mapper+prog+heading,ctx);
+ for(const [src,title,ru] of [['extra','语法','Ли Лаоши'],['idv','口语','Люба'],['team','团队','Группа'],['biz','小山商务','Самоучёба'],[undefined,'小山听力','Самоучёба'],['yin','声音','Звуки']]){
+  ctx.curUnit={src};const h=ctx.TingliWritingHeading();assert.equal(h.title,title);assert.equal(h.subtitle,ru);assert.equal(h.label,'ДЗ 3 作业');
+ }
+ ctx.curUnit=null;ctx.curPart=null;assert.equal(ctx.TingliWritingHeading().title,'作业');
+});
