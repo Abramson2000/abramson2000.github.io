@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), vm = require('node:vm');
 const root = __dirname + '/../..', base = 'https://crmuro.ru/tingli/';
-const manifest = JSON.parse(fs.readFileSync(root + '/tingli/offline-manifest.5.71.0.json'));
+const manifest = JSON.parse(fs.readFileSync(root + '/tingli/offline-manifest.5.72.0.json'));
 const workerSource = fs.readFileSync(root + '/tingli/sw.js', 'utf8');
 const html = fs.readFileSync(root + '/tingli/index.html', 'utf8');
 function worker(stores = new Map()) {
@@ -27,13 +27,13 @@ function worker(stores = new Map()) {
     if (offline || rejected.has(path(url))) throw Error('offline');
     if (hung) return new Promise((_, reject) => options.signal?.addEventListener('abort', () => reject(Error('aborted'))));
     const p = path(url);
-    const body = p.endsWith('offline-manifest.5.71.0.json') ? JSON.stringify(manifest) : p.endsWith('index.html') ? html : p.endsWith('sync-check.html') ? 'diagnostic' : 'file:' + p;
+    const body = p.endsWith('offline-manifest.5.72.0.json') ? JSON.stringify(manifest) : p.endsWith('index.html') ? html : p.endsWith('sync-check.html') ? 'diagnostic' : 'file:' + p;
     return new Response(body, { headers: { 'content-type': p.endsWith('.json') ? 'application/json' : 'text/plain', 'content-encoding': 'br', 'content-length': '9999' } });
   };
   class LocalRequest extends Request { constructor(url, options) { super(new URL(url, base), options); } }
   vm.runInNewContext(workerSource, { URL, Request: LocalRequest, Response, Headers, AbortController, setTimeout, clearTimeout, fetch,
     caches: { open: async n => cache(n), keys: async () => [...stores.keys()], delete: async n => stores.delete(n) },
-    self: { location: { origin: 'https://crmuro.ru', href: base + 'sw.js?v=offline-5.71.0' }, addEventListener: (type, fn) => handlers[type] = fn,
+    self: { location: { origin: 'https://crmuro.ru', href: base + 'sw.js?v=offline-5.72.0' }, addEventListener: (type, fn) => handlers[type] = fn,
       skipWaiting: async () => { skipped = true; }, clients: { claim: async () => {} } }
   });
   async function lifecycle(type) { let promise; handlers[type]({ waitUntil: p => promise = p }); await promise; }
@@ -60,7 +60,7 @@ test('an active worker without a saved shell gives an explicit offline page rath
 test('offline status keeps the complete manifest and never shrinks to shell-only', async () => {
   const w = worker(); await w.lifecycle('install'); const online = await w.message({ type: 'status' }); w.offline();
   const offline = await w.message({ type: 'verify' });
-  assert.equal(offline.total, online.total); assert.equal(offline.total, 410); assert.equal(offline.have, 44); assert.equal(offline.ready, false);
+  assert.equal(offline.total, online.total); assert.equal(offline.total, 412); assert.equal(offline.have, 46); assert.equal(offline.ready, false);
 });
 test('new shell activation migrates old query-versioned audio and retains a previous shell', async () => {
   const w = worker(), old = w.cache('tingli-cache-v56911-full');
@@ -69,7 +69,7 @@ test('new shell activation migrates old query-versioned audio and retains a prev
   await w.lifecycle('install'); await w.lifecycle('activate');
   const hit = await w.cache('tingli-media-v1').match('./audio/1-1.mp3');
   assert.equal(await hit.text(), 'saved audio'); assert.equal(hit.headers.get('content-encoding'), null); assert.ok(w.stores.has('tingli-cache-v56911-full'));
-  w.offline(); const event = w.fetchEvent('./audio/1-1.mp3?v=5.71.0'); assert.equal(await (await event.response).text(), 'saved audio'); await Promise.all(event.tasks);
+  w.offline(); const event = w.fetchEvent('./audio/1-1.mp3?v=5.72.0'); assert.equal(await (await event.response).text(), 'saved audio'); await Promise.all(event.tasks);
 });
 test('a quota failure during migration retains and can serve original audio', async () => {
   const w = worker(); await w.cache('tingli-cache-old').put('./audio/1-1.mp3?v=old', new Response('original'));
@@ -105,9 +105,9 @@ test('fresh worker execution recovers saved media and manifest from persistent c
 });
 test('full download verifies all files, stays ready offline and retains all images after restart', async () => {
   const w = worker(); await w.lifecycle('install'); const result = await w.message({ type: 'precache' });
-  assert.equal(result.status.ready, true); assert.equal(result.status.have, 410); assert.equal(result.failed.length, 0);
+  assert.equal(result.status.ready, true); assert.equal(result.status.have, 412); assert.equal(result.failed.length, 0);
   const restarted = worker(w.stores); restarted.offline(); const checked = await restarted.message({ type: 'verify' });
-  assert.equal(checked.ready, true); assert.equal(checked.have, 410);
+  assert.equal(checked.ready, true); assert.equal(checked.have, 412);
   assert.equal((await restarted.fetchEvent('./img/yin-12.jpg').response).ok, true);
 });
 test('removing a lesson also removes old cached copies so a later update cannot resurrect them', async () => {
@@ -117,14 +117,14 @@ test('removing a lesson also removes old cached copies so a later update cannot 
 });
 test('missing mandatory dependency prevents activation and does not remove previous shell', async () => {
   const w = worker(); await w.cache('tingli-cache-old').put('./index.html', new Response('working'));
-  w.rejected.add('/tingli/offline.5.71.0.js'); await assert.rejects(w.lifecycle('install'), /shell missing/); assert.equal(w.skipped(), false); assert.ok(w.stores.has('tingli-cache-old'));
+  w.rejected.add('/tingli/offline.5.72.0.js'); await assert.rejects(w.lifecycle('install'), /shell missing/); assert.equal(w.skipped(), false); assert.ok(w.stores.has('tingli-cache-old'));
 });
 test('unknown deletion requests cannot touch dictionary files or data', async () => {
   const w = worker(); await w.lifecycle('install'); const result = await w.message({ type: 'remove-files', urls: ['../cidian/index.html'] });
   assert.match(result.error, /Неизвестный файл/);
 });
 test('cached HTML and media have no compression headers that could break offline decoding', async () => {
-  const w = worker(); await w.lifecycle('install'); const hit = await w.cache('tingli-shell-5.71.0').match('./index.html');
+  const w = worker(); await w.lifecycle('install'); const hit = await w.cache('tingli-shell-5.72.0').match('./index.html');
   assert.equal(hit.headers.get('content-encoding'), null); assert.equal(hit.headers.get('content-length'), null);
 });
 test('downloader progress extends the inactivity deadline beyond 30 seconds', async () => {
@@ -133,7 +133,7 @@ test('downloader progress extends the inactivity deadline beyond 30 seconds', as
   const clearTimeout = id => timers.delete(id);
   class Channel { constructor() { this.port1 = { close() {} }; this.port2 = { receive: data => this.port1.onmessage({ data }) }; } }
   const context = { window: {}, navigator: { serviceWorker: { ready: Promise.resolve({ active: { postMessage(data, ports) { port = ports[0]; } } }) } }, MessageChannel: Channel, setTimeout, clearTimeout };
-  vm.runInNewContext(fs.readFileSync(root + '/tingli/offline.5.71.0.js', 'utf8'), context);
+  vm.runInNewContext(fs.readFileSync(root + '/tingli/offline.5.72.0.js', 'utf8'), context);
   const result = context.window.TingliOffline.message({ type: 'precache' }); await Promise.resolve(); await Promise.resolve();
   for (const time of [20000, 40000, 60000, 80000]) { now = time; for (const [id, t] of [...timers]) if (t.at <= now) { timers.delete(id); t.fn(); } port.receive({ type: 'progress', done: time / 20000, total: 10 }); }
   port.receive({ type: 'done', ok: 10 }); assert.equal((await result).ok, 10); assert.equal(timers.size, 0);
@@ -145,10 +145,16 @@ test('a legacy worker 42/42 report cannot mark the new application ready', async
   const callbacks = {};
   const context = { window: {}, document: { getElementById: id => id === 'sbOfflineSt' ? status : button }, navigator: { serviceWorker: {
     addEventListener: (type, callback) => callbacks[type] = callback,
-    ready: Promise.resolve({ active: { postMessage(data, ports) { Promise.resolve().then(() => ports[0].receive({ type: 'status', version, ready: true, have: version ? 410 : 42, total: version ? 410 : 42 })); } } })
+    ready: Promise.resolve({ active: { postMessage(data, ports) { Promise.resolve().then(() => ports[0].receive({ type: 'status', version, ready: true, have: version ? 412 : 42, total: version ? 412 : 42 })); } } })
   } }, MessageChannel: Channel, setTimeout, clearTimeout };
-  vm.runInNewContext(fs.readFileSync(root + '/tingli/offline.5.71.0.js', 'utf8'), context);
+  vm.runInNewContext(fs.readFileSync(root + '/tingli/offline.5.72.0.js', 'utf8'), context);
   await context.window.TingliOffline.refresh(false); assert.match(status.textContent, /Подготавливаю/); assert.notEqual(button.textContent, '✓ Доступно без интернета');
-  version = '5.71.0'; await callbacks.controllerchange(); await Promise.resolve(); await Promise.resolve();
-  assert.equal(button.textContent, '✓ Доступно без интернета'); assert.match(status.textContent, /410 из 410/);
+  version = '5.72.0'; await callbacks.controllerchange(); await Promise.resolve(); await Promise.resolve();
+  assert.equal(button.textContent, '✓ Доступно без интернета'); assert.match(status.textContent, /412 из 412/);
+});
+
+for (const file of ['writing.5.72.0.js', 'writing.5.72.0.css']) test('writing screen dependency '+file+' is mandatory offline', async () => {
+  const w = worker(); w.rejected.add('/tingli/'+file);
+  await assert.rejects(w.lifecycle('install'), /shell missing/); assert.equal(w.skipped(), false);
+  assert.ok(manifest.shell.includes('./'+file));
 });
