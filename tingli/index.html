@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.79.0.css">
+<link rel="stylesheet" href="writing.5.80.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -471,14 +471,14 @@
   .unit-done-btn:active { transform: scale(.985); }
   .unit-bar-info { font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
   .part-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); color: transparent; font-size: 13px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 11px; cursor: pointer; transition: background .12s ease, border-color .12s ease, transform .12s ease; }
-  .part-check.on { background: var(--done); border-color: var(--done); color: var(--surface); }
+  .part-check.on { background: var(--jade-soft); border-color: var(--jade-soft); color: var(--jade); }
   /* v5.67.4: в списке частей отметка ДЗ — такой же кружок, как у остальных частей,
      иначе номера и заголовки «гуляют» вправо на ширину кнопки «Готово» */
   .part-head .hw-done-btn { width: 24px; height: 24px; min-height: 24px; padding: 0; margin: 0 11px 0 0;
     border: 2px solid var(--line); border-radius: 50%; background: var(--surface); color: transparent;
     font-size: 13px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; max-width: none; }
-  .part-head .hw-done-btn.done { background: var(--done); border-color: var(--done); color: var(--surface); }
+  .part-head .hw-done-btn.done { background: var(--jade-soft); border-color: var(--jade-soft); color: var(--jade); }
   .part-check:active { transform: scale(.9); }
 /* ==== CRS_CSS_V3 — лист 课程 (расписание и ДЗ) ==== */
 
@@ -562,6 +562,7 @@
 .crs-b.s { background: var(--paper); color: var(--ink-2); }
 .crs-b.s:hover { background: var(--red-soft); color: var(--red); }
 .crs-b.done { background: var(--jade-soft); color: var(--jade); cursor: default; }
+.crs-chip.hw.done { background:var(--jade-soft); border-color:var(--jade-soft); color:var(--jade); }
 .crs-mat-link { color: var(--red); font-weight: 650; cursor: pointer; }
 .crs-mat-link:active { opacity: .72; }
 .crs-hw-link { cursor: pointer; width: fit-content; }
@@ -888,7 +889,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 .crs-pay-course-add { flex-basis:28px !important; }
 
 /* ==== /TINGLI_PAYMENTS_V1 CSS ==== */
-.hw-done-btn{font-family:inherit;cursor:pointer;min-height:36px;border:1px solid var(--jade);border-radius:10px;padding:7px 10px;font-size:12px;color:var(--jade);background:transparent;line-height:1.3}.hw-done-btn.done{background:var(--jade);color:#fff}.hw-completion{margin:8px 0 16px}.crs-hw-foot{flex-wrap:wrap;gap:6px}.crs-hw-foot .hw-done-btn{margin-left:auto}.crs-hw-in .hw-done-btn{margin:4px 0;max-width:100%}
+.hw-done-btn{font-family:inherit;cursor:pointer;min-height:36px;border:1px solid var(--jade);border-radius:10px;padding:7px 10px;font-size:12px;color:var(--jade);background:transparent;line-height:1.3}.hw-done-btn.done{background:var(--jade-soft);border-color:var(--jade-soft);color:var(--jade)}.hw-completion{margin:8px 0 16px}.crs-hw-foot{flex-wrap:wrap;gap:6px}.crs-hw-foot .hw-done-btn{margin-left:auto}.crs-hw-in .hw-done-btn{margin:4px 0;max-width:100%}
 </style>
 </head>
 <body>
@@ -944,8 +945,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.79.0.js"></script>
-<script src="writing.5.79.0.js"></script>
+<script src="offline.5.80.0.js"></script>
+<script src="writing.5.80.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -31522,7 +31523,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.79.0';
+const APP_VER = '5.80.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -31643,20 +31644,28 @@ audio.addEventListener('ended', () => { updatePlayerUI(); });
 /* ===== Прогресс ===== */
 function partDone(u, part) {
   if (part.kind === 'hw' || part.kind === 'record_hw') return crsHwState(crsHwKey(u.unit, part.id)) === 'done';
+  if (manPart(u, part)) return true;
   const p = prog[u.unit] && prog[u.unit][part.id];
   if (!p) return false;
   if (part.kind === 'match') return !!(p.done);
   return part.tasks ? part.tasks.every((t, i) => p[i] === true) : false;
 }
+function partStats(u, part) {
+  const p = prog[u.unit] && prog[u.unit][part.id];
+  if (part.kind === 'hw' || part.kind === 'record_hw') {
+    const total = part.kind === 'record_hw' ? (part.lines || []).length : (part.questions || []).length;
+    if (crsHwState(crsHwKey(u.unit, part.id)) === 'done') return { done: total, total };
+    if (part.kind === 'record_hw') return { done: (part.lines || []).filter((_, i) => recHwHasSync(u, part, i)).length, total };
+    if (part.voiceHomework) return { done: voiceHwFlags(u.unit, part.id, total).filter(Boolean).length, total };
+    return { done: (part.questions || []).filter((_, i) => hwLoad(u.unit, part.id, i).trim()).length, total };
+  }
+  if (part.kind === 'match') return { done: manPart(u, part) || p && p.done ? 1 : 0, total: 1 };
+  const total = (part.tasks || []).length;
+  return { done: manPart(u, part) ? total : (part.tasks || []).filter((_, i) => p && p[i] === true).length, total };
+}
 function unitStats(u) {
   let done = 0, total = 0;
-  u.parts.forEach(part => {
-    const p = prog[u.unit] && prog[u.unit][part.id];
-    if (part.kind === 'match') { total++; if (p && p.done) done++; return; }
-    if (part.kind === 'record_hw') { (part.lines || []).forEach(function (_,i) { total++; if (recHwHasSync(u,part,i)) done++; }); return; }
-    if (!part.tasks) return;
-    part.tasks.forEach((t, i) => { total++; if (p && p[i] === true) done++; });
-  });
+  u.parts.forEach(part => { const s = partStats(u, part); done += s.done; total += s.total; });
   return { done, total, pct: total ? Math.round(done / total * 100) : 0 };
 }
 function goTab(t) {
@@ -34794,7 +34803,7 @@ function crsLessonCard(ev) {
       (hasMaterial && state !== 'canceled' ? '<button class="crs-b p" onclick="event.stopPropagation();crsLessonOpenEv(\'' + ev.evId + '\')">Открыть урок</button>' : '') +
       (state === 'canceled' ? '' :
         (state === 'done'
-          ? '<span class="crs-b done">Урок прошел</span>'
+          ? '<span class="crs-b done">Пройден</span>'
           : '<button class="crs-b s" onclick="event.stopPropagation();crsSetDone(\'' + ev.evId + '\',true)">Завершить</button>')) +
     '</div></div>';
 }
@@ -34820,7 +34829,7 @@ function crsLessonHwBlock(ev) {
   const un = list.filter(function (h) { return h.state !== 'done'; }).length;
   const canOpen = !!(ev.material && ev.material.unit !== undefined && ev.material.unit !== null && ev.material.unit !== '');
   const click = canOpen ? ' onclick="event.stopPropagation();crsLessonOpenEv(\'' + ev.evId + '\')" title="Открыть урок с этим ДЗ"' : '';
-  return '<div class="crs-hw-in compact crs-hw-link"' + click + '><span class="crs-chip hw">ДЗ: ' + list.length + (un ? '' : ' ✓') + '</span>' +
+  return '<div class="crs-hw-in compact crs-hw-link"' + click + '><span class="crs-chip hw' + (un ? '' : ' done') + '">ДЗ: ' + list.length + (un ? '' : ' ✓') + '</span>' +
     (un ? '<span class="crs-chip">не сдано: ' + un + '</span>' : '<span class="crs-chip">ДЗ выполнено</span>') + '' + '</div>';
 }
 function crsOpenLesson(e, evId) {
@@ -35993,7 +36002,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.79.0';
+  const SW_BUILD = 'offline-5.80.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
