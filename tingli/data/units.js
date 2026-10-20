@@ -2462,7 +2462,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "罗宾每天晚上去汉语学校学习两个小时。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -2472,7 +2472,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "暑假到了，罗宾按自己的计划去了中国。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -3492,7 +3492,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”跟中国朋友说，“我”今天只能吃几个饺子。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -3502,7 +3502,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "中国朋友看到“我”只吃几个饺子，很着急。",
-      "answer": false
+      "answer": true
      }
     ]
    }
@@ -3847,12 +3847,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "这家中介公司很快又帮他们找到了一套。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "新找的公寓房租很贵。",
-      "answer": false
+      "answer": true
      }
     ]
    },
@@ -3904,12 +3904,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "有一套一室一厅的公寓离“我们”公司很近。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "那套公寓在小河的对面。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -4225,12 +4225,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”举了几个例子。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "卖东西的人问买东西的人要买什么的时候，常说“您想来点儿什么”。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -4282,7 +4282,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "刚来中国的时候，“我”不知道中国人买鸡蛋时问价钱的习惯。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -4297,7 +4297,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”给了卖鸡蛋的人20块钱。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -4577,12 +4577,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "罗卫平每天上下班都得坐电梯。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "今天早上，罗卫平到办公大楼一层的时候，已经差十分钟九点了。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -4592,7 +4592,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "罗卫平等了两趟电梯也没上去。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -4654,7 +4654,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”很担心自己迟到。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -4965,7 +4965,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "毕业以后，“我”和志华一个在北京工作，一个在南京工作。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -4975,7 +4975,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”在手机里保存了志华的手机号码。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -5032,7 +5032,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "上午，太太每次给她先生打电话，她先生的手机都关机。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -5042,7 +5042,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "下午，太太给她先生又打了三次电话，但都没打通。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -5397,7 +5397,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”也想跟年轻人一样，学电脑，用电脑。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -5407,7 +5407,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "孙子又教“我”学会了上网和发邮件。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -5790,22 +5790,22 @@ const UNITS = [
      {
       "type": "tf",
       "q": "上午“我”上班迟到了，被经理批评了一顿。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "下午下班走在路上，遇上了大雨，没带雨伞，衣服被大雨淋湿了。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "“我”的儿子两岁。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "手机被儿子打坏了。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -5848,7 +5848,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”走到哪里就把电子词典带到哪里。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -6164,7 +6164,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”一般是写完作业以后洗澡，然后上床睡觉。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -6226,7 +6226,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "从昨天开始，“我”不用电脑写作业了。",
-      "answer": false
+      "answer": true
      }
     ]
    }
@@ -6595,7 +6595,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "考试时一定要写汉字，不能写拼音。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -7012,12 +7012,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "星期天“我们”全家去了郊外一个有名的公园。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "公园的风景很漂亮，有山，有湖，有花，还有很多树。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -7027,7 +7027,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我们”六点多回到家。",
-      "answer": false
+      "answer": true
      }
     ]
    },
@@ -7074,17 +7074,17 @@ const UNITS = [
      {
       "type": "tf",
       "q": "约翰来到中国学习以后，常常在周末的时候去郊外拍照片。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "照相馆的人都认识约翰，因为他经常来他们这里洗照片。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "约翰说他最近有考试，所以什么地方也没去。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -7437,7 +7437,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我们”家有三口人，“我”先生是大学教授，“我”是工程师。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -7499,7 +7499,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“今天”李先生和他太太又一起来到了超市。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -7514,7 +7514,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "太太认为今天的洗发水一点儿也不便宜，所以先不买。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -7864,7 +7864,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "去年姐姐比妹妹高两厘米，但体重却跟妹妹差不多。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -8286,7 +8286,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "理发的师傅让“我”选一个发型。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -8296,7 +8296,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”认为师傅给“我”剪错了。",
-      "answer": false
+      "answer": true
      }
     ]
    },
@@ -8708,17 +8708,17 @@ const UNITS = [
      {
       "type": "tf",
       "q": "中国人认为，一个人得了病去医院不是去看大夫，是请大夫给你看病。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "“我”去医院以前经常查字典。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "“我”扭了脚，疼得厉害。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -8770,7 +8770,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "大成咳嗽、嗓子疼、打喷嚏，还发烧。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -8780,12 +8780,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "这个星期大成又去了医院，给他看病的还是上次那个医生。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "大成跟大夫说，他好点儿了，但嗓子还是很疼，鼻子也不通气。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -9141,7 +9141,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "来福的工资一半存的是活期的，一半存的是定期的。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -9151,12 +9151,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "来福的爸爸有保险，但还是有不少事是需要自己花钱的。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "来福存的定期的钱还没到期。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -9191,12 +9191,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "没有人排队的取款机不能取钱。",
-      "answer": true
+      "answer": false
      },
      {
       "type": "tf",
       "q": "排队的人都知道旁边的取款机也能用。",
-      "answer": true
+      "answer": false
      }
     ]
    }
@@ -9535,7 +9535,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "北京的公共汽车服务很好。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -9597,7 +9597,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "在北京，堵车是常有的事。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -9617,7 +9617,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "司机说，无论“我”跟运动员们什么时候来中国，中国人都非常欢迎。",
-      "answer": false
+      "answer": true
      }
     ]
    }
@@ -9943,12 +9943,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "有的女人为了买到一件又喜欢又便宜的东西，常常逛很多家商场。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "有的女人逛商场的时候一看到东西便宜想买。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -10005,12 +10005,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "如果你觉得你要买的东西对你来说不太合适，有两种简单的说法。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "“有点儿什么什么”意思是不太合适。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -10025,7 +10025,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“大小正合适/肥瘦正合适/长短正合适”意思是你觉得满意。",
-      "answer": false
+      "answer": true
      }
     ]
    }
@@ -10378,12 +10378,12 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”父母没有坐过飞机。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "去年“我”过年的时候回家接父母。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -10398,7 +10398,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”父母不想让“我”为他们花很多钱。",
-      "answer": false
+      "answer": true
      }
     ]
    },
@@ -10445,7 +10445,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”和“我”太太提前半个月就预订了往返机票。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -10460,7 +10460,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”跟“我”孙子说过，“我”要带他去武汉看长江。",
-      "answer": false
+      "answer": true
      }
     ]
    }
@@ -10816,7 +10816,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”和姑娘都想把那张卧铺票给小伙子的爷爷。",
-      "answer": false
+      "answer": true
      }
     ]
    },
@@ -11271,7 +11271,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "这个青年旅馆的单人间住一个晚上100块，双人间每人50块。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -11635,7 +11635,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "汉林从毕业到现在从来没跟同学们见过面。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -12051,7 +12051,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”爷爷和奶奶经常为了看电视争论。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -12061,7 +12061,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "奶奶认为爷爷看足球比赛没意思。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -12133,7 +12133,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "赵女士没听完马文的话就把电话挂上了。",
-      "answer": false
+      "answer": true
      }
     ]
    }
@@ -12493,7 +12493,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "妈妈最喜欢灰色。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -12503,7 +12503,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "生日那天，阿依古丽请她们班的同学来参加了她的生日聚会。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -12550,7 +12550,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”打算吃完晚饭以后，再写贺卡。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -12560,7 +12560,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "“我”在下班的路上，看到街上和很多商店门口都挂上了红灯笼。",
-      "answer": true
+      "answer": false
      },
      {
       "type": "tf",
@@ -12964,7 +12964,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "哥哥去美国学习的手续都是他一个人办的。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
