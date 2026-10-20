@@ -92,3 +92,5 @@ self.addEventListener('message',e=>{
   }
  })());
 });
+
+// build: add management course (boss-only)
