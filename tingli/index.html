@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.81.0.css">
+<link rel="stylesheet" href="writing.5.82.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -945,8 +945,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.81.0.js"></script>
-<script src="writing.5.81.0.js"></script>
+<script src="offline.5.82.0.js"></script>
+<script src="writing.5.82.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -3862,7 +3862,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "想去哪个食堂吃饭都可以，非常方便。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -3872,7 +3872,7 @@ const UNITS = [
      {
       "type": "tf",
       "q": "每个学生食堂开门的时间不一样。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
@@ -3934,17 +3934,17 @@ const UNITS = [
      {
       "type": "tf",
       "q": "苏珊用叉子，卡琳用筷子。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "卡琳在意大利的时候就学会了用筷子。",
-      "answer": false
+      "answer": true
      },
      {
       "type": "tf",
       "q": "卡琳认为吃自助餐很方便。",
-      "answer": false
+      "answer": true
      }
     ]
    },
@@ -31523,7 +31523,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.81.0';
+const APP_VER = '5.82.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -36002,7 +36002,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.81.0';
+  const SW_BUILD = 'offline-5.82.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
