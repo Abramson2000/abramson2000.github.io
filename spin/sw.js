@@ -1,5 +1,5 @@
 // Offline shell: immutable release files, complete installation, no network wait.
-const VERSION = '3.2.3';
+const VERSION = '3.2.4';
 const CACHE = 'spin-cache-' + VERSION + '-offline';
 const ENTRY = './index.'+VERSION+'.html';
 const CORE = [ENTRY, './styles.'+VERSION+'.css', './app.'+VERSION+'.js',
