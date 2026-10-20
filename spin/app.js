@@ -160,7 +160,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '3.2.0'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '3.3.0'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -456,7 +456,7 @@ function xMods(x) {
     const title = m ? m[3] : String(bl.h || '');
     let cur = out[out.length - 1];
     if (!cur || cur.num !== num) {
-      cur = { num: num, name: X_MOD_NAMES[num] || ('Курс ' + num), items: [] };
+      cur = { num: num, name: (x.modNames && x.modNames[num-1]) || X_MOD_NAMES[num] || ('Курс ' + num), items: [] };
       out.push(cur);
     }
     cur.items.push({ bi: bi, title: title, lesson: m ? +m[2] : bi + 1 });
@@ -560,7 +560,7 @@ const RELOGIN_SNOOZE = 'spin-relogin-snooze-v1';
 let _reloginShown = false;
 function maybeShowReLogin() {
   try {
-    if (!USER || _reloginShown) return;
+    if (REVIEW_MODE || !USER || _reloginShown) return;
     const m = document.getElementById('reloginModal');
     if (!m || !m.classList.contains('hidden')) return;
     const t = Number(localStorage.getItem(RELOGIN_SNOOZE)) || 0;
@@ -591,6 +591,12 @@ function bindReLogin() {
   });
 }
 function updateSyncUI() {
+  if (REVIEW_MODE) {
+    const el = document.getElementById('syncStatus');
+    if (el) { el.textContent = 'режим просмотра'; el.className = 'sync-chip off'; }
+    const al = document.getElementById('syncAlert'); if (al) al.classList.add('hidden');
+    return;
+  }
   const el = document.getElementById('syncStatus');
   if (el) {
     if (S.sync === 'saving') { el.textContent = 'сохранение…'; el.className = 'sync-chip saving'; }
@@ -692,6 +698,7 @@ async function spinApi(body) {
 }
 let _cloudSaveJob = null;
 async function cloudSave() {
+  if (REVIEW_MODE) return;
   if (!USER || !SB || !_cloudReady) return;
   if (_cloudSaveJob) return _cloudSaveJob;
   const userId = USER.id;
@@ -789,6 +796,7 @@ function xpBackfill(hadCloud) { // одноразовая компенсация
   } catch (e) {}
 }
 async function cloudLoad() {
+  if (REVIEW_MODE) return;
   if (!USER || !SB) return;
   const userId = USER.id;
   let loadErr = 0;
@@ -874,6 +882,16 @@ function stampVersion() {
     const m = document.getElementById('mobVer'); if (m) m.textContent = txt;
   } catch (e) {}
 }
+function migrateX7(){
+  try{
+    const key='spin-mig-x7:'+(USER?USER.id:'');
+    if (localStorage.getItem(key)) return;
+    ['x5','x6','x7'].forEach(function(id){ if (S.xDone && S.xDone[id]) delete S.xDone[id]; });
+    if (typeof saveXDone==='function') saveXDone();
+    S.dirty=true;
+    localStorage.setItem(key,'1');
+  }catch(e){}
+}
 async function boot(user) {
   USER = { id: user.id, email: user.email || '', name: userName(user) };
   LS_KEY = 'spin-lab-v1:' + USER.id;
@@ -882,6 +900,7 @@ async function boot(user) {
   stampVersion();
   refreshExtra();
   loadState();
+  migrateX7();
   loadExtra();
   loadMed();
   loadSpiced();
@@ -1298,7 +1317,7 @@ function renderProgram() {
         const courseName = esc(String(x.title).split(':')[0]);
         return `
       <div class="extra-course" style="margin-top:18px">
-        <div class="section-title-row"><div><h3 style="margin:0;font-size:17px;letter-spacing:-.02em">${courseName}</h3><p>${mods.length} ${pluralN(mods.length, ['курс', 'курса', 'курсов'])} · пройдено ${pr.done} из ${pr.total} уроков</p></div></div>
+        <div class="section-title-row"><div><h3 style="margin:0;font-size:17px;letter-spacing:-.02em">${courseName}</h3><p>${mods.length} ${pluralN(mods.length, mods.every((m) => m.items.length === 1) ? ['урок', 'урока', 'уроков'] : ['курс', 'курса', 'курсов'])} · пройдено ${pr.done} из ${pr.total} уроков</p></div></div>
         <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
           ${mods.map((m, mi) => {
             const mp = xModProgress(x, m);
@@ -1307,8 +1326,8 @@ function renderProgram() {
             return `
             <article class="module-card method-card current ${mp.full ? 'completed' : ''}" data-xmod="${xi}:${mi}" tabindex="0" role="button" title="Открыть курс — ${esc(m.name)}">
               <div class="module-icon">${mp.full ? '✓' : '🎓'}</div>
-              <span class="status-label">${mp.full ? 'ПРОЙДЕН' : 'КУРС ' + (mi + 1)}</span>
-              <h3>Модуль ${m.num} · ${esc(m.name)}</h3>
+              <span class="status-label">${mp.full ? 'ПРОЙДЕН' : (m.items.length === 1 ? 'УРОК ' : 'КУРС ') + (mi + 1)}</span>
+              <h3>${m.items.length === 1 ? 'Урок' : 'Модуль'} ${m.num} · ${esc(m.name)}</h3>
               <p>${m.items.length} ${pluralN(m.items.length, ['урок', 'урока', 'уроков'])} · ${esc(ftxt)}</p>
               <div class="module-footer"><span>${mp.done} из ${mp.total} уроков</span><strong>→</strong></div>
               ${mp.done ? `<div class="module-progress"><i style="width:${mp.pct}%"></i></div>` : ''}
@@ -2556,7 +2575,9 @@ function renderProgress() {
       const doneIn = L.slice(g.from, g.to).filter((ll, k) => S.done.includes(g.from + k)).length;
       const full = doneIn === g.to - g.from;
       const cpct = Math.round((doneIn / (g.to - g.from)) * 100);
-      cards.push(`<article class="course-progress-card ${full ? 'completed' : ''}">
+      let firstOpen = g.from;
+      for (let i = g.from; i < g.to; i++) { if (!S.done.includes(i)) { firstOpen = i; break; } }
+      cards.push(`<article class="course-progress-card ${full ? 'completed' : ''}" style="cursor:pointer" data-coursego="${firstOpen}" title="${g.name} — открыть">
         <div class="course-progress-head"><strong>${g.name}</strong><span>${doneIn} из ${g.to - g.from} ${full ? '✓' : ''}</span></div>
         <div class="skill-track"><i style="width:${cpct}%"></i></div>
       </article>`);
@@ -2599,11 +2620,7 @@ function renderProgress() {
       cards.push(`<article class="course-progress-card ${pr.full ? 'completed' : ''}" style="cursor:pointer" data-xgo="${x4i}" title="Дополнительный курс — открыть">
         <div class="course-progress-head"><strong>Дополнительно · ${esc(String(x4c.title).split(':')[0])}</strong><span>${pr.done} из ${pr.total} ${pr.full ? '✓' : ''}</span></div>
         <div class="skill-track"><i style="width:${pr.pct}%"></i></div>
-        ${x4mods.length > 1 ? `<div style="margin-top:10px;display:grid;gap:6px">${x4mods.map((m) => {
-          const mp = xModProgress(x4c, m);
-          return `<div class="x4-mod-row" data-xmod="${x4i}:${x4mods.indexOf(m)}" style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Курс ${m.num} · ${esc(m.name)}</span><b style="color:${mp.full ? 'var(--green)' : 'var(--ink)'};font-size:12.5px">${mp.done}/${mp.total}${mp.full ? ' ✓' : ''}</b></div>`;
-        }).join('')}</div>` : ''}
-      </article>`);
+</article>`);
     }
     return cards.join('');
   };
@@ -2672,6 +2689,7 @@ function renderProgress() {
     if (b.dataset.jump === 'practice') S.pTab = 'cases';
     switchTab(b.dataset.jump);
   }));
+  $('progressBody').querySelectorAll('[data-coursego]').forEach((b) => b.addEventListener('click', () => { S.lesson = +b.dataset.coursego; curExtra = null; curMed = null; curSpiced = null; curPro = null; save(); switchTab('theory'); window.scrollTo({ top: 0 }); }));
   $('progressBody').querySelectorAll('[data-medgo]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.medgo; curSpiced = null; curPro = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-spicedgo]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spicedgo; curMed = null; curPro = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-progo]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.progo; curMed = null; curSpiced = null; switchTab('theory'); }));
