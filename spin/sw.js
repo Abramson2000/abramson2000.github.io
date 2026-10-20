@@ -1,9 +1,9 @@
 // Offline shell: immutable release files, complete installation, no network wait.
-const VERSION = '3.2.0';
+const VERSION = '3.2.1';
 const CACHE = 'spin-cache-' + VERSION + '-offline';
 const ENTRY = './index.'+VERSION+'.html';
 const CORE = [ENTRY, './styles.'+VERSION+'.css', './app.'+VERSION+'.js',
- ...['data','meddicc-data','spiced-data','proactive-data','boss-gate','remote-sales-data','channel-sales-data'].map(n=>'./'+n+'.'+VERSION+'.js'),
+ ...['data','management-data','meddicc-data','spiced-data','proactive-data','boss-gate','remote-sales-data','channel-sales-data'].map(n=>'./'+n+'.'+VERSION+'.js'),
  './supabase.'+VERSION+'.min.js', './manifest.'+VERSION+'.webmanifest',
  './emblem-np.png', './emblem-np-solid.png',
  ...Array.from({length:10},(_,i)=>'./hero-'+(i+1)+'.jpg')];
@@ -92,3 +92,5 @@ self.addEventListener('message',e=>{
   }
  })());
 });
+
+// build: add management course (boss-only)
