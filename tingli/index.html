@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.85.1.css">
+<link rel="stylesheet" href="writing.5.85.2.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -945,8 +945,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.85.1.js"></script>
-<script src="writing.5.85.1.js"></script>
+<script src="offline.5.85.2.js"></script>
+<script src="writing.5.85.2.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -31523,7 +31523,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.85.1';
+const APP_VER = '5.85.2';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33992,6 +33992,8 @@ document.body.classList.add('sb-off'); // меню стартует скрыты
    ======================================================================== */
 const CRS_LS = 'tingli-schedule-v1';
 const CRS_ZOOM = 'https://us06web.zoom.us/j/87966223241?pwd=Zfega0N8dBciJNxQU6NyeEy7mnVtJc.1'; // закреплённая ссылка для групповых занятий
+const CRS_ZOOM_LI = 'https://us05web.zoom.us/j/89288649099?pwd=zO2lR1XPbhuhLclI6xnk3fXPeI8puS.1'; // занятия с Ли Лаоши
+function crsZoomFor(ev){ if(!ev || !/zoom/i.test(String(ev.place||''))) return ''; if(ev.type==='team') return CRS_ZOOM; if(ev.type==='gram' || /Ли\s*Лаоши/i.test(String(ev.teacher||ev.who||''))) return CRS_ZOOM_LI; return ''; }
 const CRS_TZ_DEF = 'Europe/Moscow';
 const CRS_DOW = ['', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const CRS_DOW_FULL = ['', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье'];
@@ -34794,8 +34796,8 @@ function crsLessonCard(ev) {
       '<button class="crs-more" onclick="event.stopPropagation();crsMenu(\'' + ev.evId + '\')" title="Действия">⋯</button>' +
     '</div>' +
     mat +
-    (ev.place || ev.pass ? '<div class="crs-place">' + (ev.place ? ((ev.link || ((/zoom/i.test(String(ev.place)) && ev.type === 'team') ? CRS_ZOOM : '')) && state !== 'canceled'
-        ? '<a class="crs-join" href="' + esc(ev.link || ((/zoom/i.test(String(ev.place)) && ev.type === 'team') ? CRS_ZOOM : '')) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">📍 ' + esc(ev.place) + ' →</a>'
+    (ev.place || ev.pass ? '<div class="crs-place">' + (ev.place ? ((ev.link || crsZoomFor(ev)) && state !== 'canceled'
+        ? '<a class="crs-join" href="' + esc(ev.link || crsZoomFor(ev)) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">📍 ' + esc(ev.place) + ' →</a>'
         : '📍 ' + esc(ev.place)) : '') + (ev.pass ? (ev.place ? ' · ' : '') + '<span class="crs-pass" onclick="event.stopPropagation();crsCopy(\'' + esc(ev.pass) + '\',\'Код\')">код ' + esc(ev.pass) + ' ⧉</span>' : '') + '</div>' : '') +
     (ev.note ? '<div class="crs-note">' + esc(ev.note) + '</div>' : '') +
     (statusChips ? '<div class="crs-chips">' + statusChips + '</div>' : '') +
@@ -36003,7 +36005,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.85.1';
+  const SW_BUILD = 'offline-5.85.2';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
