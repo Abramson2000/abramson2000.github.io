@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.89.1.css">
+<link rel="stylesheet" href="writing.5.90.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -945,8 +945,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.89.1.js"></script>
-<script src="writing.5.89.1.js"></script>
+<script src="offline.5.90.0.js"></script>
+<script src="writing.5.90.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -25361,7 +25361,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.89.1';
+const APP_VER = '5.90.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -29772,8 +29772,12 @@ async function crsPushTest() {
     const st = crsStore();
     if (!(st.push && st.push.on)) { crsPushStatusSheet('Web Push не подключён. Нажми «Включить Web Push».'); return; }
     const reg = await navigator.serviceWorker.ready;
+    const key = await crsPushKey();
     let sub = await reg.pushManager.getSubscription();
-    if (!sub) { crsPushStatusSheet('Подписка в браузере пропала. Нажми «Включить Web Push» заново.'); return; }
+    // Принудительно пересоздаём подписку: старый endpoint мог протухнуть,
+    // а ключ VAPID — смениться. Иначе тест уходит в мёртвую подписку.
+    if (sub) { try { await sub.unsubscribe(); } catch (e) {} }
+    sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: crsB64ToU8(key) });
     const testId = 'test-' + Date.now();
     const reminders = crsUpcoming().slice(0, 199);
     reminders.push({ id: testId, key: testId, kind: 'lesson', at: Date.now() + 90000, when: 0, title: 'Тест уведомлений', sub: 'Если пришло — push работает', url: location.href });
@@ -29868,7 +29872,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.89.1';
+  const SW_BUILD = 'offline-5.90.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
