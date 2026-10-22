@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.86.1.css">
+<link rel="stylesheet" href="writing.5.87.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -945,8 +945,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.86.1.js"></script>
-<script src="writing.5.86.1.js"></script>
+<script src="offline.5.87.0.js"></script>
+<script src="writing.5.87.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -25264,7 +25264,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.86.1';
+const APP_VER = '5.87.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -28654,18 +28654,17 @@ function crsPayLedger(program) {
   let used = packs.reduce(function (a, p) { return a + p.usedAtEntry; }, 0), unpriced = 0;
   const pricedEvents = [];
   events.forEach(function (ev) {
+    // Если занятие уже учтено вручную (usedAtEntry + usedThrough), оно не должно
+    // списываться ещё раз — в том числе с нового пакета, добавленного позже.
+    // Иначе при внесении новой оплаты старый «проведённый» урок съедает урок из нового пакета.
+    const coveredByManual = packs.some(function (p) { return p.usedAtEntry > 0 && p.usedThrough && ev.date <= p.usedThrough; });
+    if (coveredByManual) return;
     let pack = null;
     for (let i = 0; i < packs.length; i++) {
-      // usedAtEntry — это занятия, уже проведённые на момент внесения/правки оплаты.
-      // Поэтому расписание до этой контрольной даты повторно не списываем.
       const afterManual = !packs[i].usedThrough || ev.date > packs[i].usedThrough;
       if (packs[i].left > 0 && packs[i].date <= ev.date && afterManual) { pack = packs[i]; break; }
     }
-    if (!pack) {
-      const coveredByManual = packs.some(function (p) { return p.usedAtEntry > 0 && p.usedThrough && ev.date <= p.usedThrough; });
-      if (!coveredByManual) unpriced++;
-      return;
-    }
+    if (!pack) { unpriced++; return; }
     pack.left--; pack.allocated++; used++; spent += pack.price;
     pricedEvents.push({ date: ev.date, price: pack.price, evId: ev.evId });
   });
@@ -28831,7 +28830,8 @@ function crsPayClose(id) {
 function crsPayForm(program, payId) {
   const st0 = crsStore();
   const old = payId && st0.payments ? st0.payments[payId] : null;
-  let prog = old && crsPayIsPaidProgram(old.program) ? old.program : (crsPayIsPaidProgram(program) ? program : 'idv');
+  const _lastPay = crsPayList().slice(-1)[0];
+  let prog = old && crsPayIsPaidProgram(old.program) ? old.program : (crsPayIsPaidProgram(program) ? program : (_lastPay && crsPayIsPaidProgram(_lastPay.program) ? _lastPay.program : 'idv'));
   const today = crsYmd(new Date());
   const oldAmount = old ? (+old.amount || 0) : '';
   const oldLessons = old ? (+old.lessons || 0) : '';
@@ -29746,7 +29746,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.86.1';
+  const SW_BUILD = 'offline-5.87.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
