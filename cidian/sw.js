@@ -1,8 +1,8 @@
 // A complete version-pinned shell starts without waiting for the network.
-const V = '2.22.0';
+const V = '2.23.0';
 const CACHE = 'cidian-cache-v' + V + '-offline';
 const ENTRY = './index.' + V + '.html';
-const CORE = [ENTRY, './styles.'+V+'.css', './app.'+V+'.js', './offline.'+V+'.js',
+const CORE = [ENTRY, './styles.'+V+'.css', './app.'+V+'.js', './pinyin-pro.'+V+'.js', './offline.'+V+'.js',
  './sync-core.'+V+'.js', './sync-transport.'+V+'.js', './word-sync.'+V+'.js',
  './restore-2026-10-07.js', './data-bkrs.'+V+'.js', './manifest.'+V+'.json',
  './favicon-20261010.ico', './apple-touch-icon-20261010.png', './icon-192-v4.png',

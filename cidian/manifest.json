@@ -2,7 +2,7 @@
   "name": "Мой словарь · 我的生词",
   "short_name": "Мой словарь",
   "id": "/cidian/",
-  "start_url": "/cidian/?v=2.22.0",
+  "start_url": "/cidian/?v=2.23.0",
   "scope": "/cidian/",
   "display": "standalone",
   "orientation": "portrait",

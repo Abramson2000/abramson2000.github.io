@@ -4,14 +4,14 @@ root=Path(__file__).resolve().parents[2]
 for n,js in enumerate(re.findall(r'<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>',(root/'tingli/index.html').read_text(),re.I),1):
     r=subprocess.run(['node','--check'],input=js,text=True,capture_output=True)
     if r.returncode: raise SystemExit(f'inline script {n}: {r.stderr}')
-for name in ['tingli/sw.js','tingli/writing.5.86.1.js','tingli/offline.5.86.1.js','tingli/sync-core.js','tingli/word-sync.js','cidian/word-sync.js','cidian/app.js','cidian/sw.js','cidian/offline.2.22.0.js','cidian/sync-core.js','backend/tingli-worker/worker.js','tingli/sync-check.js','tingli/sync-transport.5.67.0.js','cidian/sync-transport.2.22.0.js']:
+for name in ['tingli/sw.js','tingli/writing.5.86.1.js','tingli/offline.5.86.1.js','tingli/sync-core.js','tingli/word-sync.js','cidian/word-sync.js','cidian/app.js','cidian/sw.js','cidian/offline.2.23.0.js','cidian/sync-core.js','backend/tingli-worker/worker.js','tingli/sync-check.js','tingli/sync-transport.5.67.0.js','cidian/sync-transport.2.23.0.js']:
     subprocess.run(['node','--check',str(root/name)],check=True)
 shared=[hashlib.sha256((root/p).read_bytes()).hexdigest() for p in ['tingli/sync-core.js','cidian/sync-core.js','backend/tingli-worker/sync-core.js']]
 assert len(set(shared))==1,'client/server protocol mismatch'
 assert "APP_VER = '5.86.1'" in (root/'tingli/index.html').read_text()
 assert "const VERSION = '5.86.1'" in (root/'tingli/sw.js').read_text()
-assert "VERSION='2.22.0'" in (root/'cidian/app.js').read_text()
-assert "const V = '2.22.0'" in (root/'cidian/sw.js').read_text()
+assert "VERSION='2.23.0'" in (root/'cidian/app.js').read_text()
+assert "const V = '2.23.0'" in (root/'cidian/sw.js').read_text()
 print('All script syntax, protocol copies and release versions OK')
 
 for name in ['spin/app.js', 'spin/app.3.3.0.js', 'spin/sw.js', 'spin/sw.3.3.0.js']:
@@ -23,10 +23,10 @@ assert "const VERSION = '3.3.0'" in (root/'spin/sw.js').read_text()
 for a, b in [('spin/app.js', 'spin/app.3.3.0.js'), ('spin/sw.js', 'spin/sw.3.3.0.js'), ('spin/index.html', 'spin/index.3.3.0.html')]:
     assert (root/a).read_bytes() == (root/b).read_bytes(), f'{a} differs from {b}'
 
-for a,b in [('cidian/app.js','cidian/app.2.22.0.js'),('cidian/sw.js','cidian/sw.2.22.0.js'),('cidian/word-sync.js','cidian/word-sync.2.22.0.js'),('cidian/word-sync.js','tingli/word-sync.js'),('tingli/word-sync.js','tingli/word-sync.5.64.0.js')]:
+for a,b in [('cidian/app.js','cidian/app.2.23.0.js'),('cidian/sw.js','cidian/sw.2.23.0.js'),('cidian/word-sync.js','cidian/word-sync.2.23.0.js'),('cidian/word-sync.js','tingli/word-sync.js'),('tingli/word-sync.js','tingli/word-sync.5.64.0.js')]:
     assert (root/a).read_bytes()==(root/b).read_bytes(),f'{a} differs from {b}'
 
-assert (root/"tingli/sync-transport.5.67.0.js").read_bytes()==(root/"cidian/sync-transport.2.22.0.js").read_bytes()
+assert (root/"tingli/sync-transport.5.67.0.js").read_bytes()==(root/"cidian/sync-transport.2.23.0.js").read_bytes()
 
 subprocess.run(['node', '--check', str(root/'sw.js')], check=True)
 for js in re.findall(r'<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', (root/'index.html').read_text(), re.I):

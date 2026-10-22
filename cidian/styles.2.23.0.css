@@ -1,0 +1,141 @@
+
+/* Шрифт иероглифов вшит в приложение (подмножество Noto Serif SC / Noto Serif CJK SC).
+   Иначе на устройстве, где нет Noto/Songti, браузер подставляет системный «гладкий» PingFang. */
+@font-face{font-family:'CidianSerif';src:url('fonts/noto-serif-sc-reg.woff2?v=2.9.1') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'CidianSerif';src:url('fonts/noto-serif-sc-bold.woff2?v=2.9.1') format('woff2');font-weight:700;font-style:normal;font-display:swap}
+:root{--bg:#F8F3EC;--card:#FFFCF7;--ink:#3E2C21;--muted:#806E62;--line:#E7D9CB;--brand:#8B6B4F;--brand2:#DCC8B4;--brand3:#B99A7F;--danger:#d64a40;--shadow:0 8px 26px rgba(87,54,31,.08);--radius:20px}
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.unused-background{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 85% 0%,rgba(201,169,141,.18),transparent 30%),linear-gradient(180deg,rgba(255,255,255,.4),transparent 40%);z-index:-1}
+.shell{max-width:760px;margin:0 auto;min-height:100vh;padding:calc(18px + env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom))}
+.head{display:flex;align-items:center;gap:13px;margin:2px 2px 18px}.app-icon{width:54px;height:54px;border-radius:17px;box-shadow:0 6px 16px rgba(87,54,31,.14)}.headtext{min-width:0;flex:1}.title{font-family:Georgia,"Times New Roman","Noto Serif CJK SC","Songti SC",'CidianSerif',serif;font-size:34px;font-weight:700;line-height:1;letter-spacing:-.5px}.subtitle{font-size:18px;color:var(--brand);margin-top:4px;font-family:'CidianSerif',"Noto Serif CJK SC","Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif}.count{font-size:12px;color:var(--muted);margin-top:3px}
+.searchrow{display:flex;gap:10px;margin-bottom:10px}.search{flex:1;position:relative}.search input{width:100%;border:1px solid var(--line);background:rgba(255,253,249,.95);border-radius:16px;padding:13px 42px 13px 42px;color:var(--ink);outline:none;box-shadow:0 3px 16px rgba(87,54,31,.04)}.search input:focus{border-color:var(--brand2);box-shadow:0 0 0 3px rgba(169,121,85,.10)}.search .mag{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:19px}.search .clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#aaa;font-size:18px;padding:6px}
+.iconbtn{width:48px;height:48px;border:1px solid var(--line);background:var(--card);border-radius:16px;color:var(--brand);font-size:21px;box-shadow:0 3px 16px rgba(87,54,31,.04)}
+.chips{display:flex;gap:8px;overflow:auto;padding:2px 0 12px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}.chip{white-space:nowrap;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 12px;color:var(--ink);font-size:13px}.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.list{display:flex;flex-direction:column;gap:9px}.word{background:rgba(255,253,249,.96);border:1px solid rgba(234,222,209,.82);border-radius:18px;padding:13px 14px;box-shadow:0 4px 18px rgba(87,54,31,.035);display:grid;grid-template-columns:minmax(62px,110px) 1fr auto;gap:12px;align-items:start}.hanzi{font-family:'CidianSerif',"Noto Serif CJK SC","Songti SC","STSong",serif;font-size:27px;line-height:1.18;font-weight:600;word-break:break-word}.meta{min-width:0}.py{font-size:13px;color:var(--brand);margin:1px 0 4px}.tr{font-size:14px;line-height:1.35}.note{display:inline-block;margin-top:6px;font-size:11px;color:#6E503B;background:#EADFD3;border-radius:999px;padding:3px 8px}.star{border:0;background:transparent;font-size:24px;color:#c8beb6;padding:2px 1px}.star.on{color:#d5a22f}.empty{text-align:center;padding:50px 20px;color:var(--muted)}.more{margin:15px auto 0;display:block;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:10px 18px;color:var(--brand)}
+.fab{position:fixed;right:max(22px,calc((100vw - 760px)/2 + 22px));bottom:calc(82px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;border:0;background:linear-gradient(145deg,#9A7457,#7B5A42);color:#fff;font-size:31px;box-shadow:0 10px 28px rgba(92,57,34,.28);z-index:12}
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.94);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:8px max(12px,calc((100vw - 760px)/2 + 12px)) calc(7px + env(safe-area-inset-bottom));display:flex;z-index:10}.tab{flex:1;border:0;background:transparent;color:var(--muted);display:flex;flex-direction:column;gap:3px;align-items:center;font-size:11px}.tab b{font-size:22px;font-weight:400}.tab.on{color:var(--brand)}
+.view-title{font-family:Georgia,"Times New Roman",serif;font-size:32px;margin:6px 0 20px}.form label{display:block;font-size:13px;font-weight:650;color:var(--muted);margin:14px 3px 6px}.form input,.form textarea{width:100%;border:1px solid var(--line);background:var(--card);border-radius:15px;padding:13px 14px;outline:none;color:var(--ink)}.form textarea{min-height:110px;resize:vertical}.form input:focus,.form textarea:focus{border-color:var(--brand2);box-shadow:0 0 0 3px rgba(169,121,85,.10)}.primary{width:100%;border:0;border-radius:16px;padding:14px;background:linear-gradient(90deg,#9A7457,#7B5A42);color:#fff;font-weight:700;margin-top:18px}.secondary{width:100%;border:1px solid var(--brand2);border-radius:16px;padding:13px;background:transparent;color:var(--brand);font-weight:650;margin-top:9px}
+.settings-card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:12px}.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-bottom:1px solid var(--line);background:transparent;width:100%;text-align:left;color:var(--ink)}.setting:last-child{border-bottom:0}.setting small{color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(51,35,25,.28);backdrop-filter:blur(6px);z-index:30;display:flex;align-items:flex-end;justify-content:center}.sheet{width:min(760px,100%);max-height:92vh;overflow:auto;background:var(--bg);border-radius:28px 28px 0 0;padding:14px 18px calc(26px + env(safe-area-inset-bottom));box-shadow:0 -20px 70px rgba(60,37,22,.22)}.grab{width:42px;height:5px;background:#d5c7bc;border-radius:99px;margin:0 auto 16px}.detail-head{display:flex;justify-content:space-between;align-items:center}.back{border:0;background:transparent;color:var(--brand);font-size:15px}.big-hanzi{text-align:center;font-family:'CidianSerif',"Noto Serif CJK SC","Songti SC","STSong",serif;font-size:64px;font-weight:600;margin:18px 0 4px}.big-py{text-align:center;color:var(--brand);font-size:21px}.big-tr{background:#f1e6dc;border-radius:18px;padding:18px;margin:22px 0;font-size:20px;line-height:1.4;text-align:center}.info{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin:10px 0}.info .k{font-size:12px;color:var(--muted);margin-bottom:5px}.actions{display:grid;gap:9px;margin-top:16px}.danger{border:0;border-radius:15px;padding:13px;background:#fde9e6;color:var(--danger);font-weight:650}.sheet-title{font-size:21px;font-weight:750;margin-bottom:10px}.sortopt{width:100%;text-align:left;border:0;background:var(--card);padding:14px;border-bottom:1px solid var(--line);color:var(--ink)}.sortopt:first-of-type{border-radius:16px 16px 0 0}.sortopt:last-of-type{border-radius:0 0 16px 16px;border-bottom:0}.sortopt.on{color:var(--brand);font-weight:700}
+@media(max-width:520px){.title{font-size:31px}.word{grid-template-columns:76px 1fr auto}.hanzi{font-size:25px}.big-hanzi{font-size:58px}}
+
+/* Approved warm ink landscape and complete original seal. */
+:root{--bg:#fbf7f0;--card:#fffcf7;--ink:#42291b;--muted:#786354;--brand:#936b4e;--brand2:#d4b69a;--line:#e3d2bf}
+html{background:var(--bg)}body{background:transparent;isolation:isolate}
+.landscape{position:fixed;inset:0;z-index:-1;pointer-events:none;background:#fbf7f0 url("landscape-v3.webp") center / 100% 100% no-repeat}
+.shell{max-width:800px;padding-top:calc(32px + env(safe-area-inset-top));padding-left:24px;padding-right:24px}
+.head{gap:20px;min-height:120px;margin:0 0 28px}
+.app-icon{width:112px;height:112px;object-fit:contain;border-radius:0;box-shadow:none;flex-shrink:0;mix-blend-mode:multiply}
+.title{font-size:42px;line-height:1.1;white-space:nowrap;font-weight:700;letter-spacing:-1px}
+.subtitle{font-size:24px;letter-spacing:2px;color:#895d40}.count{margin-top:8px;color:#715944}
+.search input{background:rgba(255,252,247,.93);font-size:16px}.search{min-width:0}
+.chips{padding-bottom:18px}.chip{background:rgba(255,252,247,.85)}.chip.on{background:#9d775a;border-color:#9d775a}
+.word{background:rgba(255,252,247,.88);border-color:rgba(185,154,127,.38);box-shadow:0 3px 12px rgba(87,54,31,.035);padding:16px;border-radius:16px}
+.list{gap:10px}.py{color:#8b6045}.star.on{color:#936342}.tabbar{background:rgba(252,247,239,.96)}
+.tab{min-height:48px}.tab b{height:27px;line-height:27px;font-family:'CidianSerif',"Songti SC",Georgia,serif}.tab.on{color:#71472c}.tab.on b{font-weight:700}
+button:focus-visible{outline:2px solid var(--brand);outline-offset:3px}.form input,.form textarea{font-size:16px}
+@media(min-width:900px){.shell{max-width:1120px;padding-top:48px}.head{margin-bottom:32px}.landscape{background-size:cover}.word{background:rgba(255,252,247,.9)}.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:10px 14px;align-items:start}}
+/* от планшета и шире: колонка под иероглифы тянется по содержимому — слова не рвутся на две строки */
+@media(min-width:521px){.word{grid-template-columns:auto minmax(0,1fr) auto}.hanzi{white-space:nowrap;word-break:keep-all}}
+@media(max-width:520px){.shell{padding:calc(20px + env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom))}.head{gap:13px;min-height:106px;margin-bottom:20px}.app-icon{width:94px;height:94px}.title{font-size:34px;letter-spacing:-.7px}.subtitle{font-size:22px}.count{font-size:12px}.word{padding:14px 12px;gap:10px;grid-template-columns:76px 1fr auto}.landscape{background-size:auto 100%;background-position:70% center}}
+@media(max-width:360px){.app-icon{width:78px;height:78px}.title{font-size:29px}.subtitle{font-size:20px}.head{gap:10px}.word{grid-template-columns:66px 1fr auto}}
+
+/* подтверждение действия (отмена удаления и т.п.) */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));max-width:min(560px,92vw);background:var(--ink);color:#fff8f2;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;font-size:14px;line-height:1.3;box-shadow:0 10px 30px rgba(62,44,33,.28);z-index:40;animation:toastIn .18s ease-out}
+.toast span{flex:1;min-width:0}
+.toast-act{border:0;background:rgba(255,255,255,.16);color:#fff8f2;font-weight:600;font-size:14px;padding:8px 12px;border-radius:10px}
+.toast-act:active{background:rgba(255,255,255,.28)}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* ================= v2.0.0: разделы, тэги, статус Лаоши, одинаковые карточки ================= */
+.title-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.ver{font-size:13px;color:var(--muted);white-space:nowrap;letter-spacing:.3px}
+.kinds{display:flex;gap:8px;margin:4px 0 14px;flex-wrap:wrap}
+.kindbtn{flex:1 1 140px;min-width:120px;border:1px solid var(--line);background:rgba(255,252,247,.86);border-radius:15px;padding:10px 12px;color:var(--ink);display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left}
+.kindbtn b{font-size:15px;font-weight:650}
+.kindbtn .zh{font-family:'CidianSerif',"Songti SC",Georgia,serif;font-weight:400;opacity:.75}
+.kindbtn small{color:var(--muted);font-size:11px}
+.kindbtn.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.kindbtn.on small{color:rgba(255,255,255,.82)}
+.kindbtn.on .zh{opacity:.9}
+.tg{display:inline-block;margin:7px 6px 0 0;font-size:11px;color:#6E503B;background:#EFE3D4;border-radius:999px;padding:3px 9px}
+.tg .tgx{border:0;background:transparent;color:#9c7a5d;font-size:11px;padding:0 0 0 4px}
+.tagleline{margin-top:2px}
+.tagadd{display:flex;gap:8px;margin-top:12px}
+.tagadd input{flex:1;border:1px solid var(--line);background:var(--card);border-radius:13px;padding:10px 12px;color:var(--ink);outline:none;min-width:0}
+.small-btn{border:1px solid var(--brand2);background:transparent;color:var(--brand);border-radius:13px;padding:10px 14px;font-weight:650}
+.tagnote{font-size:12px;color:var(--muted);margin:-4px 0 10px}
+.tagrow{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden}
+.tagname{flex:1;text-align:left;border:0;background:transparent;padding:13px 14px;color:var(--ink)}
+.tagdel{border:0;background:transparent;color:#b08a72;font-size:15px;padding:13px 16px}
+.dkind{font-family:'CidianSerif',-apple-system,BlinkMacSystemFont,sans-serif;font-size:12px;color:var(--muted)}
+.muted{color:var(--muted);font-size:13px}
+.word.fresh{background:#FFFBEC;border-color:#EFE0B4}
+.word.done{background:rgba(255,252,247,.88);border-color:rgba(185,154,127,.38)}
+.ck{border:0;background:transparent;font-size:20px;line-height:1;color:#c3ab8e;padding:2px 4px;border-radius:50%}
+.ck.on{color:var(--brand)}
+.bulkbar{width:100%;border:1px dashed var(--brand2);background:rgba(255,252,247,.75);color:var(--brand);border-radius:15px;padding:12px;font-weight:650;margin-bottom:10px}
+/* одинаковые карточки на десктопе: равная высота в ряду и одинаковая колонка иероглифов */
+@media(min-width:521px){.hanzi{min-width:148px}}
+@media(min-width:900px){.list{align-items:stretch}.word{height:100%}.hanzi{min-width:158px}}
+@media(max-width:520px){.kindbtn{flex:1 1 30%;min-width:0;padding:9px 10px}.kindbtn b{font-size:13px}.kindbtn small{font-size:10px}.ver{font-size:12px}}
+
+.word{min-height:84px}
+.kmove-hint{font-size:13px;font-weight:650;color:var(--muted);margin:6px 0 8px}
+.kindmove{display:flex;gap:8px;flex-wrap:wrap}
+.kindmove .kindbtn{flex:1 1 auto;min-width:0;padding:9px 11px}
+.kindmove .kindbtn b{font-size:13px}
+
+/* ===== мобильные карточки: компактнее и без переноса иероглифов ===== */
+@media(max-width:520px){
+  .head{min-height:auto;margin-bottom:14px}
+  .list{gap:7px}
+  .word{padding:9px 11px;border-radius:14px;gap:9px;grid-template-columns:auto minmax(0,1fr) auto;min-height:0}
+  .word .hanzi{font-size:23px;line-height:1.12;font-weight:600;white-space:nowrap;word-break:keep-all;min-width:0}
+  .py{font-size:12px;margin:0 0 2px}
+  .tr{font-size:13px;line-height:1.3}
+  .ck{font-size:18px;padding:0 2px}
+  .tg{font-size:10px;padding:1px 6px}
+  .searchrow{margin-bottom:8px}
+  .chips{padding:0 0 10px}
+  .kinds{gap:7px;margin-bottom:10px}
+}
+@media(max-width:360px){ .word .hanzi{font-size:21px} .word{padding:8px 10px} }
+
+/* ручка шторки — заметнее и подсказывает свайп */
+.grab{width:44px;height:5px}
+
+/* ── режим «как в Excel»: простой просмотр списком (без правок) ── */
+.xlhead,.xlt{display:grid;grid-template-columns:minmax(84px,32%) minmax(0,1fr)}
+.xlhead{position:sticky;top:0;z-index:6;background:#fff;border-bottom:2px solid rgba(147,107,78,.30);font-size:12px;font-weight:650;color:var(--muted);letter-spacing:.3px}
+.xlhead>div{padding:9px 10px;border-right:1px solid rgba(66,41,27,.55);border-bottom:2px solid rgba(66,41,27,.75)}.xlhead>div:last-child{border-right:0}
+.xlwrap{border:1px solid rgba(66,41,27,.65);border-radius:12px;overflow:clip;background:#fff}
+.xlt{background:#fff;border-bottom:1px solid rgba(120,99,84,.14)}
+.xlt:last-child{border-bottom:0}
+.xlt>div{padding:6px 10px;line-height:1.28;border-right:1px solid rgba(66,41,27,.45);border-bottom:1px solid rgba(66,41,27,.45)}.xlt>div:last-child{border-right:0}
+.xlt .xlh{background:#C6DEB5;font-family:'CidianSerif',"Noto Serif CJK SC","Songti SC","STSong",serif;font-size:18px;font-weight:600;white-space:nowrap;word-break:keep-all;overflow:hidden;text-overflow:ellipsis}
+.xlt .xlr{font-size:14px;color:#4a3426;min-width:0;overflow-wrap:anywhere}
+.xlnote{font-size:12px;color:var(--muted);margin:10px 2px 0}
+@media(max-width:520px){
+  .xlhead,.xlt{grid-template-columns:minmax(74px,34%) minmax(0,1fr)}
+  .xlt>div{padding:5px 8px}
+  .xlt .xlh{font-size:17px}
+  .xlt .xlr{font-size:13px}
+}
+
+.sheet{will-change:transform;touch-action:pan-y}
+
+
+
+/* кнопка приёма слов из Тингли — ровно как соседние кнопки формы */
+#inboxBtn{display:flex;align-items:center;justify-content:center;gap:6px;height:46px;padding:0 13px;line-height:1}
+
+/* Справка по слову с 大БКРС (bkrs.info) в карточке */
+.bkr-ru{font-size:15px;line-height:1.5;color:var(--ink)}
+.bkr-ex{margin-top:9px;display:flex;flex-direction:column;gap:7px}
+.bkr-pair{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline}
+.bkr-zh{font-family:'CidianSerif',"Noto Serif CJK SC","Songti SC","STSong",serif;font-size:16px;color:var(--brand);white-space:nowrap}
+.bkr-ru2{font-size:14px;line-height:1.35;color:var(--muted)}
+.bkr-src{margin-top:9px;font-size:11px;color:var(--muted);opacity:.85}
+
+.sync-icon{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:24px;padding:0 4px;background:none;border:0;color:var(--muted);opacity:.65;font-size:13px;cursor:pointer;vertical-align:middle}.sync-icon:hover{opacity:1}
