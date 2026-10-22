@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.87.0.css">
+<link rel="stylesheet" href="writing.5.88.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -945,8 +945,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.87.0.js"></script>
-<script src="writing.5.87.0.js"></script>
+<script src="offline.5.88.0.js"></script>
+<script src="writing.5.88.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -25264,7 +25264,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.87.0';
+const APP_VER = '5.88.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -29650,6 +29650,8 @@ async function crsPushRefresh() {
     if (!crsPushSupported() || Notification.permission !== 'granted') return;
     const st = crsStore();
     if (!(st.push && st.push.on)) return;
+    const hasScheduleData = Object.keys(st.lessons || {}).length || Object.keys(st.series || {}).length || Object.keys(st.hw || {}).length;
+    if (!hasScheduleData) return; // расписание ещё не подтянулось — не затираем очередь на сервере пустым списком
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (!sub) { st.push = { on: false, at: Date.now() }; crsSave(st, true); return; }
@@ -29664,6 +29666,26 @@ async function crsPushRefresh() {
     try { localStorage.setItem(CRS_LS, JSON.stringify(st)); crsCache = st; } catch (e) {}
   } catch (e) {
     try { localStorage.setItem('tingli-push-sync-error-v1', String(e && e.message || e) + ' | ' + new Date().toISOString()); } catch (x) {}
+  }
+}
+async function crsPushTest() {
+  try {
+    if (!crsPushSupported() || Notification.permission !== 'granted') { crsPushStatusSheet('Сначала включи Web Push и разреши уведомления.'); return; }
+    const st = crsStore();
+    if (!(st.push && st.push.on)) { crsPushStatusSheet('Web Push не подключён. Нажми «Включить Web Push».'); return; }
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) { crsPushStatusSheet('Подписка в браузере пропала. Нажми «Включить Web Push» заново.'); return; }
+    const testId = 'test-' + Date.now();
+    const reminders = crsUpcoming().slice(0, 199);
+    reminders.push({ id: testId, key: testId, kind: 'lesson', at: Date.now() + 90000, when: 0, title: 'Тест уведомлений', sub: 'Если пришло — push работает', url: location.href });
+    const r = await crsApi('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify({ sub: sub.toJSON(), tz: CRS_LOCAL_TZ, ver: APP_VER, reminders: reminders }) });
+    const j = await r.json().catch(function () { return null; });
+    if (!r.ok || !j || j.ok !== true) throw new Error((j && j.error) || ('HTTP ' + r.status));
+    crsPushStatusSheet('Тест поставлен: уведомление придёт примерно через 1,5 минуты. Можно закрыть приложение.');
+  } catch (e) {
+    crsPushStatusSheet('Тест не удался: ' + String(e && e.message || e).slice(0, 200));
   }
 }
 async function crsPushDisable() {
@@ -29694,6 +29716,7 @@ function crsPushStatusSheet(msg) {
       }).join('') + '</div>' +
     '<div class="crs-note">Дальше: ' + (crsUpcoming().slice(0, 3).map(function (r) { return crsRemWord(r.when) + ' — ' + r.title; }).join('; ') || 'пока нечего напоминать') + '</div>' +
     '<div class="crs-actions crs-sticky"><button id="crs-push-enable" class="crs-b p" onclick="crsPushEnable()" style="flex:1">Включить Web Push</button>' +
+    '<button class="crs-b s" onclick="crsPushTest()">Проверить уведомления</button>' +
     '<button class="crs-b s" onclick="crsPushDisable()">Снять подписку</button></div>');
 }
 function crsRemToggle(g) { const st = crsStore(); st.rem[g].on = !st.rem[g].on; crsSave(st); crsPushStatusSheet('Настройка сохранена.'); }
@@ -29709,6 +29732,7 @@ function crsBoot() {
   setTimeout(function () {
     try { crsPushSyncReminders(); } catch (e) {}
     try { crsPushRefreshSoon(); } catch (e) {}
+    setTimeout(function () { try { crsPushRefreshSoon(); } catch (e) {} }, 8000);
   }, 2000);
 }
 document.addEventListener('DOMContentLoaded', crsBoot);
@@ -29746,7 +29770,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.87.0';
+  const SW_BUILD = 'offline-5.88.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
