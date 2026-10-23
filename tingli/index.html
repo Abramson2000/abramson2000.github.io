@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.91.12.css">
+<link rel="stylesheet" href="writing.5.91.13.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -945,8 +945,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.91.12.js"></script>
-<script src="writing.5.91.12.js"></script>
+<script src="offline.5.91.13.js"></script>
+<script src="writing.5.91.13.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -22644,6 +22644,41 @@ const IDV_UNITS = [
       "zh": "代表",
       "py": "dàibiǎo",
       "ru": "представлять, олицетворять"
+     },
+     {
+      "zh": "对……感兴趣",
+      "py": "duì … gǎn xìngqù",
+      "ru": "интересоваться чем-то"
+     },
+     {
+      "zh": "留学",
+      "py": "liúxué",
+      "ru": "учиться за границей"
+     },
+     {
+      "zh": "网课",
+      "py": "wǎngkè",
+      "ru": "онлайн-занятие, курс в интернете"
+     },
+     {
+      "zh": "考考试",
+      "py": "kǎo kǎoshì",
+      "ru": "сдавать экзамен"
+     },
+     {
+      "zh": "恐怖片",
+      "py": "kǒngbùpiàn",
+      "ru": "фильм ужасов"
+     },
+     {
+      "zh": "装修",
+      "py": "zhuāngxiū",
+      "ru": "ремонт, отделка квартиры"
+     },
+     {
+      "zh": "他疯了",
+      "py": "tā fēng le",
+      "ru": "он с ума сошёл"
      }
     ],
     "id": 0
@@ -22772,7 +22807,7 @@ const IDV_UNITS = [
     "title": "Шэдоуинг 1 · слова",
     "titleZh": "跟读 1",
     "audio": "216-sh1.mp3",
-    "text": "那时我非常后悔。\n外公是中国人。\n他来到了泰国。\n我很想拥抱外公。\n汉语代表着外公的爱。",
+    "text": "那时我非常后悔。\n外公是中国人。\n他来到了泰国。\n我很想拥抱外公。\n汉语代表着外公的爱。\n我对汉语感兴趣。\n我想去中国留学。\n明天有两节网课。\n下个月要考考试。\n我不喜欢恐怖片。\n我们家在装修。\n他疯了，别理他。",
     "id": 2
    },
    {
@@ -22821,9 +22856,77 @@ const IDV_UNITS = [
        "C. 因为不想取名字"
       ],
       "answer": 1
+     },
+     {
+      "type": "choice",
+      "q": "外公是中国人，他 ___ 时来到泰国。",
+      "qRu": "в молодости",
+      "options": [
+       "A. 年轻",
+       "B. 年纪",
+       "C. 年龄",
+       "D. 年老"
+      ],
+      "answer": 0
+     },
+     {
+      "type": "choice",
+      "q": "他一个人也不认识，一句泰国话也不会说，但他 ___ 努力工作。",
+      "qRu": "всё время",
+      "options": [
+       "A. 一直",
+       "B. 一再",
+       "C. 持续",
+       "D. 保持"
+      ],
+      "answer": 0
+     },
+     {
+      "type": "choice",
+      "q": "后来外公 ___ 了“我”的外婆。",
+      "qRu": "встретил",
+      "options": [
+       "A. 配合",
+       "B. 恋爱",
+       "C. 遇到",
+       "D. 交往"
+      ],
+      "answer": 2
+     },
+     {
+      "type": "choice",
+      "q": "然后他们 ___ 了。",
+      "qRu": "поженились",
+      "options": [
+       "A. 结婚",
+       "B. 婚姻",
+       "C. 离婚",
+       "D. 开始"
+      ],
+      "answer": 0
+     },
+     {
+      "type": "choice",
+      "q": "汉语 ___ 着外公对“我”的爱。",
+      "qRu": "олицетворяет",
+      "options": [
+       "A. 代表",
+       "B. 表现",
+       "C. 表示",
+       "D. 包括"
+      ],
+      "answer": 0
      }
     ],
     "id": 4
+   },
+   {
+    "kind": "hw",
+    "title": "ДЗ 作业",
+    "titleZh": "作业",
+    "text": "Кратко перескажи текст своими словами и пришли запись голосом в Телеграм.",
+    "questions": [],
+    "id": 5
    }
   ]
  }
@@ -31850,7 +31953,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.91.12';
+const APP_VER = '5.91.13';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -36382,7 +36485,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.91.12';
+  const SW_BUILD = 'offline-5.91.13';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
