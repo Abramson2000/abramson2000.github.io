@@ -936,6 +936,20 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .list-row.gone-row.selected { box-shadow: inset 3px 0 0 #b3261e; }
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
+
+<style>
+/* === Доступность 23.10.2026: контраст подписей и размеры целей === */
+:root { --muted: #5A5A5A !important; }
+#footerVersion { color: #5f5f5f !important; opacity: 1 !important; }
+.sidebar-nav .tab.active, .sidebar-nav .tab.active span { color: #0B6E6E !important; }
+em[data-cnt] { color: #0B6E6E !important; }
+.sidebar-nav .tab .cnt, .tabbar .tab .cnt-b { background: #0B6E6E !important; color: #fff !important; }
+.row-next, #money-src, #money-filter, #money-sort { color: #0B6E6E !important; }
+#addBtn { background: #0B6E6E !important; border-color: #0B6E6E !important; }
+input[type="checkbox"] { width: 26px !important; height: 26px !important; }
+label:has(> input[type="checkbox"]) { min-height: 28px; display: inline-flex; align-items: center; }
+.md-mgr-btn { min-height: 28px !important; padding: 5px 10px !important; }
+</style>
 </head>
 <body>
   <div id="loginScreen">
