@@ -5,14 +5,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小山听力</title>
-<link rel="icon" type="image/png" sizes="32x32" href="/tingli/tingli-favicon-32-v3.png?v=5.94.0">
-<link rel="shortcut icon" href="/tingli/favicon-20261010.ico?v=5.94.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/tingli/tingli-favicon-32-v3.png?v=5.95.0">
+<link rel="shortcut icon" href="/tingli/favicon-20261010.ico?v=5.95.0">
 <link rel="apple-touch-icon" sizes="180x180" href="/tingli/apple-touch-icon-20261010.png">
 <link rel="manifest" href="/tingli/manifest.icons-20261010.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.94.0.css">
+<link rel="stylesheet" href="writing.5.95.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -897,6 +897,10 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   .hw-page .hw-item { margin: 12px 16px; padding: 0; }
   .hw-page .hw-item .hw-ans-btn, .hw-page .hw-item .hw-tools { width: 100%; box-sizing: border-box; }
   .hw-page .hw-build { margin: 18px 16px 30px; padding: 16px; box-sizing: border-box; }
+
+  /* Оплаты: поле ДАТА не крупнее остальных */
+  .crs-2col > div { min-width: 0; }
+  .crs-inp[type="date"] { min-width: 0; width: 100%; height: 44px; padding: 0 12px; line-height: normal; }
 </style>
 </head>
 <body>
@@ -952,8 +956,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.94.0.js"></script>
-<script src="writing.5.94.0.js"></script>
+<script src="offline.5.95.0.js"></script>
+<script src="writing.5.95.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -17634,9 +17638,9 @@ const EXTRA_UNITS = [
  },
  {
   "unit": 910,
-  "label": "9.1",
+  "label": "9.1 第九课。Воспитание любовью",
   "emoji": "❤️",
-  "zh": "第九课。Воспитание любовью",
+  "zh": "",
   "ru": "",
   "src": "teacher",
   "parts": [
@@ -17823,6 +17827,21 @@ const EXTRA_UNITS = [
       "zh": "快乐",
       "py": "kuàilè",
       "ru": "радостный, весёлый"
+     },
+     {
+      "zh": "冰箱贴",
+      "py": "bīng xiāng tiē",
+      "ru": "магнит на холодильник"
+     },
+     {
+      "zh": "徽章",
+      "py": "huī zhāng",
+      "ru": "значок"
+     },
+     {
+      "zh": "鼓掌",
+      "py": "gǔ zhǎng",
+      "ru": "аплодировать"
      }
     ],
     "id": 0
@@ -17934,16 +17953,6 @@ const EXTRA_UNITS = [
       "ru": "проявить заботу"
      },
      {
-      "zh": "冰箱贴",
-      "py": "bīng xiāng tiē",
-      "ru": "магнит на холодильник"
-     },
-     {
-      "zh": "徽章",
-      "py": "huī zhāng",
-      "ru": "значок"
-     },
-     {
       "zh": "留作纪念",
       "py": "liú zuò jì niàn",
       "ru": "оставить на память"
@@ -17974,11 +17983,6 @@ const EXTRA_UNITS = [
       "ru": "говорить тихо"
      },
      {
-      "zh": "接吻",
-      "py": "jiē wěn",
-      "ru": "целоваться"
-     },
-     {
       "zh": "声音很响",
       "py": "shēng yīn hěn xiǎng",
       "ru": "очень громкий звук"
@@ -17997,11 +18001,6 @@ const EXTRA_UNITS = [
       "zh": "讨论得很热烈",
       "py": "tǎo lùn dé hěn rè liè",
       "ru": "оживлённо обсуждать"
-     },
-     {
-      "zh": "鼓掌",
-      "py": "gǔ zhǎng",
-      "ru": "аплодировать"
      },
      {
       "zh": "幸福生活",
@@ -32183,7 +32182,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.94.0';
+const APP_VER = '5.95.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -36714,7 +36713,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.94.0';
+  const SW_BUILD = 'offline-5.95.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
