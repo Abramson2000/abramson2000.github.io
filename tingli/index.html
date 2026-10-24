@@ -5,14 +5,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小山听力</title>
-<link rel="icon" type="image/png" sizes="32x32" href="/tingli/tingli-favicon-32-v3.png?v=5.93.0">
-<link rel="shortcut icon" href="/tingli/favicon-20261010.ico?v=5.93.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/tingli/tingli-favicon-32-v3.png?v=5.94.0">
+<link rel="shortcut icon" href="/tingli/favicon-20261010.ico?v=5.94.0">
 <link rel="apple-touch-icon" sizes="180x180" href="/tingli/apple-touch-icon-20261010.png">
 <link rel="manifest" href="/tingli/manifest.icons-20261010.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.93.0.css">
+<link rel="stylesheet" href="writing.5.94.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -892,6 +892,11 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 /* ==== /TINGLI_PAYMENTS_V1 CSS ==== */
 .hw-done-btn{font-family:inherit;cursor:pointer;min-height:36px;border:1px solid var(--jade);border-radius:10px;padding:7px 10px;font-size:12px;color:var(--jade);background:transparent;line-height:1.3}.hw-done-btn.done{background:var(--jade-soft);border-color:var(--jade-soft);color:var(--jade)}.hw-completion{margin:8px 0 16px}.crs-hw-foot{flex-wrap:wrap;gap:6px}.crs-hw-foot .hw-done-btn{margin-left:auto}.crs-hw-in .hw-done-btn{margin:4px 0;max-width:100%}
 .core-mark { color: var(--red); font-size: 11px; font-weight: 700; vertical-align: super; }
+
+  /* ДЗ: блок задания и блок проверки одной ширины */
+  .hw-page .hw-item { margin: 12px 16px; padding: 0; }
+  .hw-page .hw-item .hw-ans-btn, .hw-page .hw-item .hw-tools { width: 100%; box-sizing: border-box; }
+  .hw-page .hw-build { margin: 18px 16px 30px; padding: 16px; box-sizing: border-box; }
 </style>
 </head>
 <body>
@@ -947,8 +952,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.93.0.js"></script>
-<script src="writing.5.93.0.js"></script>
+<script src="offline.5.94.0.js"></script>
+<script src="writing.5.94.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -22932,9 +22937,9 @@ const IDV_UNITS = [
  },
  {
   "unit": 217,
-  "label": "Урок 11",
+  "label": "Урок 11. 咱们去爬山吧",
   "emoji": "🗣",
-  "zh": "咱们去爬山吧",
+  "zh": "",
   "ru": "",
   "src": "idv",
   "parts": [
@@ -32178,7 +32183,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.93.0';
+const APP_VER = '5.94.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -36709,7 +36714,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.93.0';
+  const SW_BUILD = 'offline-5.94.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }

@@ -4725,9 +4725,9 @@ const IDV_UNITS = [
  },
  {
   "unit": 217,
-  "label": "Урок 11",
+  "label": "Урок 11. 咱们去爬山吧",
   "emoji": "🗣",
-  "zh": "咱们去爬山吧",
+  "zh": "",
   "ru": "",
   "src": "idv",
   "parts": [
