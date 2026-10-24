@@ -1,8 +1,8 @@
-/* Tingli 5.92.0: pinned offline shell, durable media, resumable verified downloads. */
-const VERSION = '5.92.0';
+/* Tingli 5.92.1: pinned offline shell, durable media, resumable verified downloads. */
+const VERSION = '5.92.1';
 const CACHE = 'tingli-shell-' + VERSION;
 const MEDIA_CACHE = 'tingli-media-v1';
-const MANIFEST = './offline-manifest.5.92.0.json';
+const MANIFEST = './offline-manifest.5.92.1.json';
 const CORE_ASSETS = [
   "./favicon-20261010.ico",
   "./favicon.ico",
@@ -46,13 +46,13 @@ const CORE_ASSETS = [
   "./tab-yu-off.png",
   "./tab-yin.png",
   "./tab-yin-off.png",
-  "./offline.5.92.0.js",
-  "./writing.5.92.0.js",
-  "./writing.5.92.0.css",
-  "./offline-manifest.5.92.0.json"
+  "./offline.5.92.1.js",
+  "./writing.5.92.1.js",
+  "./writing.5.92.1.css",
+  "./offline-manifest.5.92.1.json"
 ];
 const REQUIRED_ASSETS = ['./index.html', './sync-transport.5.67.0.js', './sync-core.js?v=5.64.0',
-  './word-sync.5.64.0.js', './offline.5.92.0.js', './writing.5.92.0.js', './writing.5.92.0.css', MANIFEST, './bg.jpg',
+  './word-sync.5.64.0.js', './offline.5.92.1.js', './writing.5.92.1.js', './writing.5.92.1.css', MANIFEST, './bg.jpg',
   './fonts/zhimang-course.ttf', './fonts/simsun-subset.woff2', './fonts/xiaoshan-title.woff2'];
 const absolute = value => new URL(typeof value === 'string' ? value : value.url, self.location.href).href;
 const canonical = value => { const u = new URL(absolute(value)); return u.origin + u.pathname; };

@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.92.0.css">
+<link rel="stylesheet" href="writing.5.92.1.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -890,6 +890,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 
 /* ==== /TINGLI_PAYMENTS_V1 CSS ==== */
 .hw-done-btn{font-family:inherit;cursor:pointer;min-height:36px;border:1px solid var(--jade);border-radius:10px;padding:7px 10px;font-size:12px;color:var(--jade);background:transparent;line-height:1.3}.hw-done-btn.done{background:var(--jade-soft);border-color:var(--jade-soft);color:var(--jade)}.hw-completion{margin:8px 0 16px}.crs-hw-foot{flex-wrap:wrap;gap:6px}.crs-hw-foot .hw-done-btn{margin-left:auto}.crs-hw-in .hw-done-btn{margin:4px 0;max-width:100%}
+.core-mark { color: var(--red); font-size: 11px; font-weight: 700; vertical-align: super; }
 </style>
 </head>
 <body>
@@ -945,8 +946,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.92.0.js"></script>
-<script src="writing.5.92.0.js"></script>
+<script src="offline.5.92.1.js"></script>
+<script src="writing.5.92.1.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -17629,8 +17630,8 @@ const EXTRA_UNITS = [
   "unit": 910,
   "label": "9.1",
   "emoji": "❤️",
-  "zh": "爱的教育",
-  "ru": "Воспитание любовью",
+  "zh": "第九课。Воспитание любовью",
+  "ru": "",
   "src": "teacher",
   "parts": [
    {
@@ -17642,17 +17643,20 @@ const EXTRA_UNITS = [
      {
       "zh": "时刻",
       "py": "shíkè",
-      "ru": "момент, время"
+      "ru": "момент, время",
+      "core": true
      },
      {
       "zh": "一刻",
       "py": "yíkè",
-      "ru": "мгновение; четверть часа"
+      "ru": "мгновение; четверть часа",
+      "core": true
      },
      {
       "zh": "改变",
       "py": "gǎibiàn",
-      "ru": "изменять(ся), менять"
+      "ru": "изменять(ся), менять",
+      "core": true
      },
      {
       "zh": "高考",
@@ -17662,12 +17666,14 @@ const EXTRA_UNITS = [
      {
       "zh": "心情",
       "py": "xīnqíng",
-      "ru": "настроение"
+      "ru": "настроение",
+      "core": true
      },
      {
       "zh": "班主任",
       "py": "bānzhǔrèn",
-      "ru": "классный руководитель"
+      "ru": "классный руководитель",
+      "core": true
      },
      {
       "zh": "同样",
@@ -17677,7 +17683,8 @@ const EXTRA_UNITS = [
      {
       "zh": "特殊",
       "py": "tèshū",
-      "ru": "особенный, особый"
+      "ru": "особенный, особый",
+      "core": true
      },
      {
       "zh": "游戏",
@@ -17697,7 +17704,8 @@ const EXTRA_UNITS = [
      {
       "zh": "表示",
       "py": "biǎoshì",
-      "ru": "выражать, показывать"
+      "ru": "выражать, показывать",
+      "core": true
      },
      {
       "zh": "纪念品",
@@ -17712,7 +17720,8 @@ const EXTRA_UNITS = [
      {
       "zh": "微笑",
       "py": "wēixiào",
-      "ru": "улыбаться, улыбка"
+      "ru": "улыбаться, улыбка",
+      "core": true
      },
      {
       "zh": "额头",
@@ -17727,7 +17736,8 @@ const EXTRA_UNITS = [
      {
       "zh": "亲吻",
       "py": "qīnwěn",
-      "ru": "целовать"
+      "ru": "целовать",
+      "core": true
      },
      {
       "zh": "响",
@@ -17742,22 +17752,26 @@ const EXTRA_UNITS = [
      {
       "zh": "掌声",
       "py": "zhǎngshēng",
-      "ru": "аплодисменты"
+      "ru": "аплодисменты",
+      "core": true
      },
      {
       "zh": "幸福",
       "py": "xìngfú",
-      "ru": "счастье, счастливый"
+      "ru": "счастье, счастливый",
+      "core": true
      },
      {
       "zh": "激动",
       "py": "jīdòng",
-      "ru": "взволнованный, волноваться"
+      "ru": "взволнованный, волноваться",
+      "core": true
      },
      {
       "zh": "感动",
       "py": "gǎndòng",
-      "ru": "быть тронутым, растрогаться"
+      "ru": "быть тронутым, растрогаться",
+      "core": true
      },
      {
       "zh": "时候",
@@ -18018,18 +18032,90 @@ const EXTRA_UNITS = [
    },
    {
     "kind": "text",
-    "title": "Шэдоуинг 1 · слова",
-    "titleZh": "跟读 1",
-    "audio": "910-sh1.mp3",
-    "text": "难忘的时刻。\n他一刻也坐不住。\n学习改变了他。\n高考快到了。\n我的心情很好。\n班主任很年轻。\n我们同样努力。\n今天很特殊。\n别玩太多游戏。\n老师发试卷。\n幸运数字是八。\n我表示感谢。\n我买了纪念品。\n我不如他高。\n她微笑了。\n妈妈摸我的额头。\n请说话轻一点。\n妈妈亲吻孩子。\n铃响了。\n掌声很热烈。\n教室里响起掌声。\n我很幸福。\n他激动得流泪。\n我被感动了。\n那时候我很快乐。\n天气变化很快。\n现在很轻松。\n这是普通的一天。\n一般六点起床。\n她穿得很漂亮。\n妈妈亲了我。\n他很热情。\n生日快乐。",
-    "id": 2
+    "title": "Шэдоуинг · речевые фразы",
+    "titleZh": "跟读",
+    "audio": "910-sh.mp3",
+    "text": "我一直记得那个难忘的时刻。\n那一刻改变了我。\n我同意你的看法。\n他总是轻声说话。\n他特意来医院看我，表示关心。\n这里的风景真美。\n高考快到了，我的心情很复杂。\n我们的班主任很年轻。\n妈妈亲了亲孩子的额头。\n教室里响起热烈的掌声。\n她激动得流下了眼泪。\n我被这个故事感动了。\n那是一个特殊的日子。\n祝你幸福快乐。"
    },
    {
-    "kind": "text",
-    "title": "Шэдоуинг 2 · фразы",
-    "titleZh": "跟读 2",
-    "audio": "910-sh2.mp3",
-    "text": "难忘的时刻记住了。\n他时时刻刻在练习。\n一刻钟以后回来。\n那一刻我明白了。\n我想改变我的主意。\n今天心情好极了。\n他心情坏得很。\n复杂的心情说不清。\n同样的结果出现了。\n这两件事同样重要。\n这是特殊的礼物。\n特殊情况要小心。\n孩子们在玩游戏。\n别玩网络游戏。\n我给妈妈发短信。\n公司今天发工资。\n他气得发脾气。\n八是我的幸运数字。\n我表示同意你的话。\n他来医院表示关心。\n冰箱贴留作纪念。\n小徽章留作纪念。\n这里的风景真美丽。\n他身体不如从前。\n她总是面带微笑。\n她微微一笑就走了。\n他说话总是轻声。\n两个人在接吻。\n这声音太响了。\n会场响起掌声。\n大家热烈欢迎他。\n讨论得很热烈。\n观众一起鼓掌。\n他们过着幸福生活。\n祝你幸福快乐。\n我激动得说不出话。\n她激动得流泪了。\n别为小事流眼泪。\n他擦干眼泪笑了。\n慢慢擦干眼泪。",
+    "kind": "quiz",
+    "title": "Контрасты · выбор слова",
+    "titleZh": "词语辨析",
+    "text": "Выбери слово, которое подходит по смыслу.",
+    "tasks": [
+     {
+      "type": "choice",
+      "q": "听到这个消息，他一 ___ 也坐不住了。",
+      "options": [
+       "A. 时刻",
+       "B. 一刻"
+      ],
+      "answer": 1
+     },
+     {
+      "type": "choice",
+      "q": "拿到奖学金的时候，他 ___ 得说不出话来。",
+      "options": [
+       "A. 激动",
+       "B. 感动"
+      ],
+      "answer": 0
+     },
+     {
+      "type": "choice",
+      "q": "看完这部电影，我被深深地 ___ 了。",
+      "options": [
+       "A. 激动",
+       "B. 感动"
+      ],
+      "answer": 1
+     },
+     {
+      "type": "choice",
+      "q": "在 ___ 情况下，我们六点下班。",
+      "options": [
+       "A. 普通",
+       "B. 一般"
+      ],
+      "answer": 1
+     },
+     {
+      "type": "choice",
+      "q": "他 ___ 了一下孩子的脸颊。",
+      "options": [
+       "A. 亲",
+       "B. 亲吻"
+      ],
+      "answer": 0
+     },
+     {
+      "type": "choice",
+      "q": "我们都在 ___ 的环境下长大，但性格完全不同。",
+      "options": [
+       "A. 同样",
+       "B. 特殊"
+      ],
+      "answer": 0
+     },
+     {
+      "type": "choice",
+      "q": "她对我 ___ 一笑，什么也没说。",
+      "options": [
+       "A. 微笑",
+       "B. 笑"
+      ],
+      "answer": 0
+     },
+     {
+      "type": "choice",
+      "q": "请把音乐声放 ___ 一点，孩子在睡觉。",
+      "options": [
+       "A. 轻",
+       "B. 响"
+      ],
+      "answer": 0
+     }
+    ],
     "id": 3
    },
    {
@@ -18106,6 +18192,13 @@ const EXTRA_UNITS = [
      }
     ],
     "id": 4
+   },
+   {
+    "kind": "text",
+    "title": "说一说 · Говорим сами",
+    "titleZh": "说一说",
+    "text": "Ответь вслух, не записывая. В каждом ответе используй 5–7 слов из активного ядра: 时刻, 一刻, 改变, 心情, 班主任, 特殊, 表示, 微笑, 亲吻, 掌声, 激动, 感动, 幸福.\n\n1. 你小时候，谁最关心你？说一件难忘的事。\n2. 有没有一个时刻，你的心情一下子变好了？为什么？\n3. 你做错事以后，会向谁表示歉意？他/她怎么反应？\n4. 你被什么电影或故事感动过？说说当时的感觉。\n5. 你觉得，怎样让孩子在爱里长大？",
+    "id": 5
    }
   ]
  }
@@ -31859,7 +31952,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.92.0';
+const APP_VER = '5.92.1';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33326,7 +33419,7 @@ function renderWords(u, part) {
         const inDict = dictHas(w.zh);
         return `
         <div class="word ${inDict ? 'indict' : ''}" data-i="${i}">
-          <span class="zh">${esc(w.zh)}</span><span class="py">${esc(w.py)}</span><span class="ru">${esc(w.ru)}</span>
+          <span class="zh">${esc(w.zh)}${w.core ? ' <b class="core-mark" title="активное ядро">★</b>' : ''}</span><span class="py">${esc(w.py)}</span><span class="ru">${esc(w.ru)}</span>
           <button class="w-add" onclick="event.stopPropagation();sendWordOne(this)" title="${inDict ? 'Уже в словаре Tingli' : 'Добавить в словарь Tingli'}">${inDict ? '✓' : '＋'}</button>
           ${w.ex ? `<span class="word-ex">${esc(w.ex)}</span>` : ''}
         </div>`;
@@ -36390,7 +36483,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.92.0';
+  const SW_BUILD = 'offline-5.92.1';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
