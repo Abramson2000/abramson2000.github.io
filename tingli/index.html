@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
 
-<link rel="stylesheet" href="writing.5.91.16.css">
+<link rel="stylesheet" href="writing.5.92.0.css">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -945,8 +945,8 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
-<script src="offline.5.91.16.js"></script>
-<script src="writing.5.91.16.js"></script>
+<script src="offline.5.92.0.js"></script>
+<script src="writing.5.92.0.js"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -22776,10 +22776,10 @@ const IDV_UNITS = [
  },
  {
   "unit": 217,
-  "label": "Урок 11",
+  "label": "咋们去爬山吧",
   "emoji": "🗣",
   "zh": "",
-  "ru": "Индивидуальные занятия с Любой",
+  "ru": "",
   "src": "idv",
   "parts": [
    {
@@ -31859,7 +31859,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.91.16';
+const APP_VER = '5.92.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32812,7 +32812,6 @@ function unitCard(u) {
     </div>
     <div class="unit-right">
       <button class="uc-check ${mdone ? 'on' : ''}" onclick="manToggleUnit(${u.unit}, event)" title="${mdone ? 'Снять отметку «пройдено»' : 'Отметить пройденным'}" aria-label="пройдено">✓</button>
-      ${u.parts.some(p => p.audio) ? `<button class="unit-dl" onclick="offlineUnit(${u.unit}, event)" title="Скачать аудио урока — будет работать без интернета">${dlSvg('dl')}</button>` : '<span class="unit-dl-ph"></span>'}
       <div class="unit-arrow">›</div>
     </div>
   </div>`;
@@ -36391,7 +36390,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-5.91.16';
+  const SW_BUILD = 'offline-5.92.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
