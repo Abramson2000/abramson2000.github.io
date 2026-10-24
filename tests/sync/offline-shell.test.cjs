@@ -1,12 +1,12 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
-const shellHtml="application\nconst APP_VER = '5.91.5';";
+const fsx=require('node:fs');const SwSrc=fsx.readFileSync(__dirname+'/../../tingli/sw.js','utf8');const SwVer=/const VERSION = '([^']+)'/.exec(SwSrc)[1];const ManName=/const MANIFEST = '\.\/([^']+)'/.exec(SwSrc)[1];const shellHtml="application\nconst APP_VER = '"+SwVer+"';";
 function worker(app,{missing=null}={}) {
   const base=`https://crmuro.ru/${app}/`,handlers={},rows=new Map();let skipped=false,offline=false;
   const key=x=>new URL(typeof x==='string'?x:x.url,base).href;
   const fetch=async input=>{
     const url=key(input);
     if(offline||missing&&url.includes(missing))throw Error('offline');
-    if(url.endsWith('offline-manifest.5.91.5.json'))return new Response(fs.readFileSync(__dirname+'/../../tingli/offline-manifest.5.91.5.json','utf8'));
+    if(url.endsWith(ManName))return new Response(fs.readFileSync(__dirname+'/../../tingli/'+ManName,'utf8'));
     return new Response(url.endsWith('sync-check.html')?'diagnostic':url.endsWith('index.html')?shellHtml:'application');
   };
   const cache={

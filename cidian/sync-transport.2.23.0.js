@@ -1,7 +1,7 @@
 /* Both addresses route to crmuro-ru-api and the same D1 database. */
 (function(root){
   'use strict';
-  const HOSTS=['https://crmuro-ru-api.abramson-mynote.workers.dev','https://api.crmuro.ru'];
+  const HOSTS=['https://api.crmuro.ru','https://crmuro-ru-api.abramson-mynote.workers.dev'];
   function create(config={}) {
     const hosts=config.hosts||HOSTS, fetcher=config.fetch||root.fetch.bind(root);
     const timeout=config.timeoutMs||20000, hedge=config.hedgeMs||700;
