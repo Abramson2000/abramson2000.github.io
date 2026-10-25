@@ -56,7 +56,7 @@ const store = {
   },
   async keys(env) {
     if (env.DB) {
-      const r = await env.DB.prepare('SELECT key FROM kv').all();
+      const r = await env.DB.prepare('SELECT key FROM kv WHERE key <> ?').bind(CATALOG_KEY).all();
       return (r.results || []).map((x) => x.key);
     }
     if (env.TINGLI_BACKUP) {
@@ -68,7 +68,7 @@ const store = {
   },
   async dump(env) {
     if (env.DB) {
-      const r = await env.DB.prepare('SELECT key, value FROM kv').all();
+      const r = await env.DB.prepare('SELECT key, value FROM kv WHERE key <> ?').bind(CATALOG_KEY).all();
       const o = {};
       (r.results || []).forEach((x) => { o[x.key] = x.value; });
       return o;
@@ -88,6 +88,7 @@ const store = {
           'INSERT INTO kv (key, value, updated_at) VALUES (?, ?, ?) ' +
           'ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = MAX(kv.updated_at + 1, excluded.updated_at)'
         ).bind(ks[i], String(obj[ks[i]]), now).run();
+        await catalogSet(env, ks[i], String(obj[ks[i]])).run();
       }
       return;
     }
@@ -100,7 +101,12 @@ const store = {
   },
   async del(env, k) {
     if (env.DB) {
-      await env.DB.prepare('DELETE FROM kv WHERE key = ?').bind(k).run();
+      if (typeof env.DB.batch === 'function') {
+        await env.DB.batch([env.DB.prepare('DELETE FROM kv WHERE key = ?').bind(k), catalogRemove(env, k)]);
+      } else {
+        await env.DB.prepare('DELETE FROM kv WHERE key = ?').bind(k).run();
+        await catalogRemove(env, k).run();
+      }
       return;
     }
     if (env.TINGLI_BACKUP) {
@@ -113,6 +119,43 @@ const store = {
   }
 };
 
+
+/* ---------- каталог ключей одной строкой ----------
+ * Строка kv['__catalog'] держит JSON {key: revision}. Чтение каталога — одна
+ * строка вместо полного скана таблицы. Обновляется в одной транзакции с
+ * записью/удалением ключа, поэтому параллельные записи с разных устройств
+ * не теряют элементы.
+ */
+const CATALOG_KEY = '__catalog';
+const catalogPath = (key) => '$."' + key + '"';
+
+async function ensureCatalog(env) {
+  const row = await env.DB.prepare('SELECT value FROM kv WHERE key = ?').bind(CATALOG_KEY).first();
+  if (row && row.value) return row.value;
+  await env.DB.prepare('INSERT INTO kv (key,value,updated_at) VALUES (?,?,?) ON CONFLICT(key) DO NOTHING')
+    .bind(CATALOG_KEY, '', Date.now()).run();
+  const rows = await env.DB.prepare('SELECT key, updated_at FROM kv WHERE key <> ?').bind(CATALOG_KEY).all();
+  const map = {};
+  for (const r of rows.results || []) if (isSafeKey(r.key)) map[r.key] = r.updated_at;
+  await env.DB.prepare('UPDATE kv SET value = json_patch(COALESCE(NULLIF(value, \'\'), \'{}\'), ?), updated_at = ? WHERE key = ?')
+    .bind(JSON.stringify(map), Date.now(), CATALOG_KEY).run();
+  const again = await env.DB.prepare('SELECT value FROM kv WHERE key = ?').bind(CATALOG_KEY).first();
+  return again && again.value ? again.value : '{}';
+}
+
+function catalogSet(env, key, value) {
+  return env.DB.prepare(
+    'UPDATE kv SET value = json_set(COALESCE(NULLIF(value, \'\'), \'{}\'), ?, ' +
+    '(SELECT updated_at FROM kv WHERE key = ? AND value = ?)) ' +
+    'WHERE key = ? AND EXISTS (SELECT 1 FROM kv WHERE key = ? AND value = ?)'
+  ).bind(catalogPath(key), key, value, CATALOG_KEY, key, value);
+}
+
+function catalogRemove(env, key) {
+  return env.DB.prepare('UPDATE kv SET value = json_remove(COALESCE(NULLIF(value, \'\'), \'{}\'), ?) WHERE key = ?')
+    .bind(catalogPath(key), CATALOG_KEY);
+}
+
 function legacyUnion(a, b) {
   if (a && b && typeof a === 'object' && typeof b === 'object') {
     const out = Object.assign({}, a);
@@ -124,13 +167,22 @@ function legacyUnion(a, b) {
   }
   return a || b;
 }
-async function compareAndSet(env, key, base, value) {
-  const now = Date.now();
-  const stmt = base === null
+function upsertStmt(env, key, base, value, now) {
+  return base === null
     ? env.DB.prepare('INSERT INTO kv (key,value,updated_at) VALUES (?,?,?) ON CONFLICT(key) DO NOTHING RETURNING updated_at').bind(key,value,now)
     : env.DB.prepare('UPDATE kv SET value = ?, updated_at = MAX(updated_at + 1, ?) WHERE key = ? AND value = ? RETURNING updated_at').bind(value,now,key,base);
-  const row = await stmt.first();
-  return row ? {rev:row.updated_at} : null;
+}
+async function compareAndSet(env, key, base, value) {
+  const now = Date.now();
+  if (typeof env.DB.batch === 'function') {
+    const res = await env.DB.batch([upsertStmt(env, key, base, value, now), catalogSet(env, key, value)]);
+    const first = res && res[0];
+    const row = first && first.results && first.results[0];
+    return row ? {rev: row.updated_at} : null;
+  }
+  const row = await upsertStmt(env, key, base, value, now).first();
+  if (row) await catalogSet(env, key, value).run();
+  return row ? {rev: row.updated_at} : null;
 }
 
 /* ---------- http helpers ---------- */
@@ -209,9 +261,11 @@ export default {
       if (!env.DB) return json({ok:false, error:'D1 required for atomic sync'}, 503, origin);
       try {
         if (method === 'GET' && url.searchParams.get('list') === '1') {
-          const rows = await env.DB.prepare('SELECT key, updated_at FROM kv').all();
+          const raw = await ensureCatalog(env);
+          let stored = {};
+          try { stored = JSON.parse(raw || '{}') || {}; } catch (_) { stored = {}; }
           const revisions = {};
-          for (const row of rows.results || []) if (isSafeKey(row.key)) revisions[row.key] = row.updated_at;
+          for (const key of Object.keys(stored)) if (isSafeKey(key)) revisions[key] = stored[key];
           return json({ok:true, protocol:2, revisions}, 200, origin);
         }
         if (method === 'GET' && url.searchParams.has('keys')) {
