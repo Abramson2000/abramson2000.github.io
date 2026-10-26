@@ -327,6 +327,19 @@
   .player { position: fixed; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom)); display: none; justify-content: center; z-index: 70; padding: 0; pointer-events: none; }
   .player.show { display: flex; }
   .p-bar { display: flex; align-items: center; gap: 12px; pointer-events: auto; background: transparent; }
+  .player { flex-direction: column; align-items: center; gap: 8px; }
+  .p-seek { display: flex; align-items: center; gap: 8px; pointer-events: auto;
+    width: min(420px, calc(100vw - 40px)); background: var(--ink); border-radius: 14px;
+    padding: 4px 12px; box-shadow: 0 3px 12px rgba(29,29,33,.22); box-sizing: border-box; }
+  .p-time { font-size: 11.5px; line-height: 1; color: var(--surface); opacity: .85;
+    min-width: 34px; text-align: center; font-variant-numeric: tabular-nums; }
+  .p-seek input[type=range] { -webkit-appearance: none; appearance: none; flex: 1; height: 34px;
+    margin: 0; background: transparent; touch-action: pan-y; }
+  .p-seek input[type=range]::-webkit-slider-runnable-track { height: 3px; border-radius: 3px; background: rgba(255,255,255,.3); }
+  .p-seek input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--surface); margin-top: -5.5px; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .p-seek input[type=range]::-moz-range-track { height: 3px; border-radius: 3px; background: rgba(255,255,255,.3); }
+  .p-seek input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: var(--surface); }
   .pp-btn { width: 66px; height: 66px; border-radius: 50%; background: var(--ink); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: var(--surface); border: none; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 14px rgba(29,29,33,.28); display: flex; align-items: center; justify-content: center; transition: transform .12s ease; }
   .pp-btn:active { transform: scale(.93); }
   .pp-btn svg { width: 28px; height: 28px; display: block; }
@@ -942,6 +955,11 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 <div class="app" id="app"></div>
 <button class="menu-btn" id="menuBtn" onclick="sbToggle()" aria-label="Меню">☰</button>
 <div class="player" id="player">
+  <div class="p-seek">
+    <span class="p-time" id="pCur">0:00</span>
+    <input type="range" id="pRange" min="0" max="1000" step="1" value="0" aria-label="Позиция аудио">
+    <span class="p-time" id="pDur">0:00</span>
+  </div>
   <div class="p-bar">
     <div class="spd-wrap" title="Скорость">
       <div class="spd-face" id="spdFace">1×</div>
@@ -32242,7 +32260,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.95.5';
+const APP_VER = '5.96.5';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32332,9 +32350,16 @@ function ensureLessonAudio(u, part) {
 }
 const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
 const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>';
+let seekDrag = false;
 function updatePlayerUI() {
   const pp = document.getElementById('ppBtn');
   if (pp) pp.innerHTML = audio.paused ? ICON_PLAY : ICON_PAUSE;
+  const cur = document.getElementById('pCur'), dur = document.getElementById('pDur'), rng = document.getElementById('pRange');
+  if (cur) cur.textContent = fmt(audio.currentTime);
+  if (dur) dur.textContent = (isFinite(audio.duration) && audio.duration > 0) ? fmt(audio.duration) : '0:00';
+  if (rng && !seekDrag && isFinite(audio.duration) && audio.duration > 0) {
+    rng.value = String(Math.round(audio.currentTime / audio.duration * 1000));
+  }
 }
 const fmt = s => { s = Math.floor(s || 0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 function togglePlay() {
@@ -32357,6 +32382,26 @@ function toggleLoop() {
 }
 audio.addEventListener('timeupdate', updatePlayerUI);
 audio.addEventListener('loadedmetadata', updatePlayerUI);
+(function bindSeekBar(){
+  const rng = document.getElementById('pRange');
+  if (!rng) return;
+  const apply = () => { seekTo(+rng.value || 0); };
+  rng.addEventListener('input', () => {
+    seekDrag = true;
+    const c = document.getElementById('pCur');
+    if (c && isFinite(audio.duration) && audio.duration > 0) c.textContent = fmt((+rng.value || 0) / 1000 * audio.duration);
+  });
+  rng.addEventListener('change', () => { apply(); seekDrag = false; });
+  rng.addEventListener('pointerup', () => { apply(); seekDrag = false; });
+  rng.addEventListener('touchend', () => { apply(); seekDrag = false; }, { passive: true });
+  audio.addEventListener('emptied', () => {
+    seekDrag = false;
+    const c = document.getElementById('pCur'), d = document.getElementById('pDur');
+    if (c) c.textContent = '0:00';
+    if (d) d.textContent = '0:00';
+    rng.value = '0';
+  });
+})();
 audio.addEventListener('play', updatePlayerUI);
 audio.addEventListener('pause', updatePlayerUI);
 audio.addEventListener('ended', () => { updatePlayerUI(); });
