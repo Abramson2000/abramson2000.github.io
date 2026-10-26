@@ -160,7 +160,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '3.3.1'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '3.3.2'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -1548,6 +1548,18 @@ function renderTheory() {
         </button>`;
       }).join('') : '';
       return label + items + spicedRail;
+    }).join('');
+    // 3.3.2: в списке уроков показываем все курсы, а не только четыре основных
+    if (MED.length) railItems += '<div class="lesson-group-label"><span>Курс 1B</span>MEDDPICC</div>' + MED.map((ll, ei) => {
+      const d = S.medDone.includes(ei), open = seqOk(S.medDone, ei), locked = !d && !open;
+      return `<button class="lesson-item ${mode === 'med' && ei === i ? 'active' : d ? 'done' : locked ? 'locked' : ''}" data-med="${ei}" ${locked ? 'data-locked="1"' : ''} title="${locked ? 'Откроется по порядку' : esc(ll.title)}"><span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}</button>`;
+    }).join('');
+    if (PRO.length) railItems += '<div class="lesson-group-label"><span>Курс 5</span>PROACTIVE</div>' + PRO.map((ll, ei) => {
+      const d = S.proDone.includes(ei), open = seqOk(S.proDone, ei), locked = !d && !open;
+      return `<button class="lesson-item ${mode === 'pro' && ei === i ? 'active' : d ? 'done' : locked ? 'locked' : ''}" data-pro="${ei}" ${locked ? 'data-locked="1"' : ''} title="${locked ? 'Откроется по порядку' : esc(ll.title)}"><span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}</button>`;
+    }).join('');
+    if (EXTRA.length) railItems += '<div class="lesson-group-label"><span>Extra</span>ДОПОЛНИТЕЛЬНО</div>' + EXTRA.map((ll, ei) => {
+      return `<button class="lesson-item ${mode === 'extra' && ei === i ? 'active' : ''}" data-extra="${ei}" title="${ll.course ? 'Открыть курс' : 'Выжимка книги'}"><span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${S.extraDone.includes(ei) ? '<b>✓</b>' : ''}</button>`;
     }).join('');
   }
   // Шпаргалки теперь — отдельная вкладка (внизу), дубль в списке уроков не нужен
