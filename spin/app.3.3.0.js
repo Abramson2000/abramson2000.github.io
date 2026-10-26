@@ -160,7 +160,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '3.3.2'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '3.3.3'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -272,7 +272,9 @@ function mergeSnapshot(src) {
   S.xDone = mergeXDone(S.xDone, src.xd);
   S.scStat = mergeScs(S.scStat, src.scs);
   S.trn = mergeTrn(S.trn, src.trn);
-  S.xp = Math.max(Number(S.xp) || 0, Number(src.xp) || 0);
+  // 3.3.3: XP не берём максимумом из облака — считаем по фактическому прогрессу,
+  // иначе старая раздутая цифра возвращается при каждой синхронизации.
+  S.xp = xpFromState();
   S.correct = Math.max(Number(S.correct) || 0, Number(src.correct) || 0);
   S.attempts = Math.max(Number(S.attempts) || 0, Number(src.attempts) || 0);
   if (curExtra == null && typeof src.extra === 'number' && src.extra >= 0) curExtra = src.extra;
