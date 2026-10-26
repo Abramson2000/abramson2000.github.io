@@ -902,6 +902,37 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   .crs-2col > div { min-width: 0; }
   .crs-inp[type="date"] { min-width: 0; width: 100%; height: 44px; padding: 0 12px; line-height: normal; }
 </style>
+<style id="hw-centering-5953">
+/* ДЗ: вертикальная центровка текста и иконок внутри плашек и кнопок.
+   Меняем только выравнивание: размеры, цвета, радиусы и позиции прежние. */
+.hw-done-btn, .hw-chk, .hw-ans-btn, .hw-ex-btn, .speak-btn, .due-badge, .crs-b, .crs-chip, .hw-due-x {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1.15;
+  font: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  vertical-align: middle;
+}
+.hw-done-btn { min-height: 36px; }
+.hw-chk { min-height: 34px; }
+.hw-ans-btn { justify-content: flex-start; text-align: left; width: 100%; }
+.hw-ex-btn { min-height: 26px; padding: 0 4px; line-height: 1; font-size: 15px; justify-content: center; }
+.hw-due { display: flex; align-items: center; flex-wrap: wrap; }
+.hw-due input[type=date] { height: auto; padding-top: 0; padding-bottom: 0; line-height: 1.15;
+  display: inline-flex; align-items: center; box-sizing: border-box; }
+.due-badge { line-height: 1.1; padding-top: 1px; padding-bottom: 1px; }
+.speak-btn { height: 46px; line-height: 1.15; }
+.hw-due-state, .hw-due b { line-height: 1.2; }
+/* сброс остатков, которые ломали центровку */
+.hw-done-btn, .hw-chk, .hw-ans-btn, .hw-ex-btn, .due-badge, .crs-b, .crs-chip, .speak-btn, .hw-due-x {
+  vertical-align: middle;
+  text-underline-offset: 2px;
+}
+</style>
 </head>
 <body>
 <div id="splash"><div class="splash-in">
@@ -32211,7 +32242,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.95.2';
+const APP_VER = '5.95.3';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
