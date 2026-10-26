@@ -21,7 +21,11 @@ let EXTRA = [];                        // видимые текущему пол
 let curExtra = null;                   // индекс открытого доп-урока (или null = основной урок)
 let curXb = 0;                            // индекс открытого блока-урока доп-курса (поуроковый режим)
 // уроки с only:'boss' видит только владелец (abramson@crm.ru); остальные скрыты
-const refreshExtra = () => { EXTRA = EXTRA_ALL.filter((x) => !x.only || (x.only === 'boss' && USER && USER.email === 'abramson@crm.ru')); };
+const EXTRA_ORDER = { x4: 1, x5: 2, prolapse: 3, x8: 4 };
+const refreshExtra = () => {
+  EXTRA = EXTRA_ALL.filter((x) => !x.only || (x.only === 'boss' && USER && USER.email === 'abramson@crm.ru'));
+  EXTRA.sort((a, b) => (EXTRA_ORDER[a.id] || 99) - (EXTRA_ORDER[b.id] || 99));
+};
 // ситуации «Удалённых продаж» для тренажёра: кексы курса x4 с номером урока
 function x4Situations() {
   const x = EXTRA_ALL.find((e) => e.id === 'x4');
@@ -160,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '3.3.3'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '3.3.4'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -1515,7 +1519,7 @@ function renderTheory() {
       const shr = (h) => esc(String(h).replace(/^Модуль\s*\d+\s*·\s*Урок\s*\d+\.\s*/i, ''));
       const xmods = xMods(l);
       railItems = xmods.map((m) => {
-        const head = `<div class="lesson-group-label"><span>Курс ${m.num}</span>${esc(m.name).toUpperCase()}</div>`;
+        const head = `<div class="lesson-group-label"><span>${m.items.length === 1 ? 'Урок' : 'Курс'} ${m.num}</span>${esc(m.name).toUpperCase()}</div>`;
         return head + m.items.map((it) => {
           const dd = xIsDone(l.id, it.bi);
           return `<button class="lesson-item ${it.bi === xb ? 'active' : ''} ${dd ? 'done' : ''}" data-xb="${it.bi}" title="Урок ${it.bi + 1}"><span>${it.lesson}</span><div><strong>${shr(it.title)}</strong><small>${it.lesson} из ${l.blocks.length}</small></div>${dd ? '<b>✓</b>' : ''}</button>`;
