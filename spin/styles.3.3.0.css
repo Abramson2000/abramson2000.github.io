@@ -444,3 +444,12 @@ button { color: inherit; }
 .brand-ver { font-style: normal; font-weight: 700; font-size: 11px; vertical-align: middle; margin-left: 6px;
   padding: 1px 6px; border-radius: 7px; background: rgba(255,255,255,.16); color: #fff; letter-spacing: .03em; }
 .login-ver-num { font-size: 20px; font-weight: 800; color: var(--green); }
+
+/* scroll-fix 3.3.1: левая колонка и список уроков прокручиваются */
+.sidebar { overflow-y: auto; overscroll-behavior: contain; }
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 6px; }
+.lesson-rail { max-height: calc(100vh - 130px); overflow-y: auto; overscroll-behavior: contain; padding-right: 6px; }
+.lesson-rail::-webkit-scrollbar { width: 6px; }
+.lesson-rail::-webkit-scrollbar-thumb { background: rgba(29,29,33,.18); border-radius: 6px; }
+@media (max-width: 899px) { .lesson-rail { max-height: none; overflow: visible; } }
