@@ -37,7 +37,7 @@
   function paint(result, verified) {
     const { status, button } = elements();
     if (!status) return;
-    if (result && !result.error && result.version !== '5.95.2') {
+    if (result && !result.error && !result.version) {
       status.textContent = 'Подготавливаю офлайн-режим…';
       if (button) { button.textContent = 'Подготовка офлайн…'; button.classList.remove('ready'); }
       return;

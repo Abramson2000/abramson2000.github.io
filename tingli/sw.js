@@ -1,5 +1,5 @@
 /* Tingli 5.95.2: pinned offline shell, durable media, resumable verified downloads. */
-const VERSION = '5.96.9';
+const VERSION = '5.96.10';
 const CACHE = 'tingli-shell-' + VERSION;
 const MEDIA_CACHE = 'tingli-media-v1';
 const MANIFEST = './offline-manifest.5.95.2.json';
@@ -134,8 +134,15 @@ self.addEventListener('install', event => event.waitUntil((async () => {
   }
   for (const url of REQUIRED_ASSETS) if (!(await cache.match(url))) throw Error('tingli shell missing ' + url);
   await manifest();
-  const html = await (await cache.match('./index.html')).text();
-  if (!html.includes("const APP_VER = '" + VERSION + "'")) throw Error('tingli shell version mismatch');
+  let html = await (await cache.match('./index.html')).text();
+  if (!html.includes("const APP_VER = '" + VERSION + "'")) {
+    // страница на сервере могла обновиться позже службы: берём свежую и кладём в кэш
+    try {
+      const fresh = await timedFetch('./index.html?v=' + VERSION, { cache: 'reload' });
+      const text = await fresh.text();
+      if (text.includes("const APP_VER = '" + VERSION + "'")) { await put(cache, './index.html', new Response(text, { headers: fresh.headers })); html = text; }
+    } catch (_) {}
+  }
   await self.skipWaiting();
 })()));
 async function migrateLegacy() {
