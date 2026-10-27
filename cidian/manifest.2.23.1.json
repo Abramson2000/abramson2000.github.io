@@ -1,0 +1,37 @@
+{
+  "name": "Мой словарь · 我的生词",
+  "short_name": "Мой словарь",
+  "id": "/cidian/",
+  "start_url": "/cidian/?v=2.23.0",
+  "scope": "/cidian/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf7f0",
+  "theme_color": "#fbf7f0",
+  "icons": [
+    {
+      "src": "/cidian/apple-touch-icon-20261010.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/cidian/icon-192-v4.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/cidian/icon-512-v4.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/cidian/icon-512-maskable-v4.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
