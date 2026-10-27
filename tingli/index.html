@@ -11,6 +11,7 @@
 <link rel="manifest" href="/tingli/manifest.icons-20261010.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="小山听力">
+<meta name="description" content="小山听力 — тренажёр китайского на слух: уроки, фразы, слова, диктанты и повторение по расписанию.">
 
 <link rel="stylesheet" href="writing.5.95.2.css">
 <style>
@@ -24,16 +25,17 @@
     --paper:       #F5F4F1;
     --surface:     #FFFFFF;
     --ink:         #1D1D21;
-    --ink-2:       #77746F;
+    --ink-2:       #6E6B66;
     --ink-3:       #AAA69F;
     --line:        #E5E1DA;
     --seal:        #C63717;
     --seal-dark:   #A62D13;
     --seal-soft:   #F8E8E2;
-    --jade:        #3D795F;
+    --jade:        #3A745B;
     --jade-soft:   #E8F1EC;
     --ochre:       #B27C28;
     --ochre-soft:  #FAF0DC;
+    --ochre-ink:   #8F5F14;
     --danger:      #A63B34;
     --danger-soft: #F7E7E4;
 
@@ -107,7 +109,7 @@
   .unit-dl:active { transform: scale(.92); }
   .unit-dl.done { background: linear-gradient(135deg, var(--red-deep), var(--red)); box-shadow: 0 3px 10px rgba(198,55,23,.32); }
   .unit-dl.part { background: var(--red-soft); color: var(--red); box-shadow: inset 0 0 0 1.5px var(--red); }
-  .unit-dl:disabled { opacity: .55; }
+  .unit-dl:disabled { opacity: .55; cursor: not-allowed; pointer-events: none; }
 
   .u-title { font-size: 21px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 2px; }
   .u-sub { font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13.5px; color: var(--muted); margin-bottom: 14px; letter-spacing: .3px; }
@@ -131,7 +133,7 @@
   .speak-btns { display: flex; gap: 10px; margin-top: 12px; }
   .speak-btn { flex: 1; height: 46px; border: 1px solid var(--line); background: var(--surface); border-radius: 14px; font-size: 15px; color: var(--ink); cursor: pointer; }
   .speak-btn.main { background: var(--seal); border-color: var(--seal); color: var(--surface); font-weight: 600; }
-  .speak-btn:disabled { opacity: .45; }
+  .speak-btn:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
   .speak-pb { font-size: 13px; color: var(--danger); margin-top: 8px; min-height: 16px; }
   .speak-out { margin-top: 10px; display: none; }
   .speak-out.show { display: block; }
@@ -216,7 +218,7 @@
   .task-q-ru { font-size: 18.5px; font-weight: 650; margin-bottom: 5px; line-height: 1.45; letter-spacing: -.2px; }
   .task-q-zh { font-size: 15.5px; color: var(--ink-2); margin-bottom: 15px; line-height: 1.55; font-family: "TLCJK", "SimSun", "Songti SC", "STSong", serif; }
   .task-q { font-size: 17.5px; margin-bottom: 13px; line-height: 1.55; font-weight: 600; letter-spacing: -.1px; }
-  .task-q .hl { background: var(--ochre-soft); color: var(--ochre); font-weight: 700; border-radius: 5px; padding: 0 4px; }
+  .task-q .hl { background: var(--ochre-soft); color: var(--ochre-ink); font-weight: 700; border-radius: 5px; padding: 0 4px; }
   .task-qru { font-size: 13px; color: var(--muted); margin: -6px 0 13px; line-height: 1.55; font-weight: 400; }
   .app-ver { text-align: center; font-size: 11px; color: var(--line); padding: 18px 0 6px; letter-spacing: .3px; }
   .opts { display: flex; flex-direction: column; gap: 9px; margin-bottom: 15px; }
@@ -254,7 +256,7 @@
   .hw-ans:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(198,55,23,.12); }
   .hw-tools { display: flex; align-items: flex-start; gap: 10px; margin-top: 9px; }
   .hw-chk { flex-shrink: 0; background: var(--surface); border: 1.5px solid var(--line); border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--text); }
-  .hw-chk:disabled { opacity: .5; }
+  .hw-chk:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
   .hw-vd { font-size: 13px; line-height: 1.5; padding: 5px 0 2px; color: var(--ink-2); }
   .hw-vd.good { color: var(--jade); }
   .hw-vd.bad { color: var(--danger); }
@@ -278,12 +280,12 @@
   .hw-due-state { font-weight: 700; color: var(--ink-2); }
   .hw-due-x { margin-left: auto; border: none; background: none; color: var(--ink-3); font-size: 15px; cursor: pointer; padding: 2px 4px; }
   .due-badge { display: inline-block; margin-left: 8px; font-size: 11.5px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: var(--paper); color: var(--ink-2); vertical-align: middle; white-space: nowrap; }
-  .due-badge.soon { background: var(--ochre-soft); color: var(--ochre); }
+  .due-badge.soon { background: var(--ochre-soft); color: var(--ochre-ink); }
   .due-badge.over { background: var(--danger-soft); color: var(--danger); }
   .due-badge.done { background: var(--jade-soft); color: var(--jade); }
   .nav-row { display: flex; gap: 10px; margin-top: 15px; }
   .nav-btn { flex: 1; padding: 15px; border: 1.5px solid var(--paper); border-radius: 16px; background: var(--surface); font-size: 15px; font-weight: 700; cursor: pointer; }
-  .nav-btn:disabled { opacity: .35; }
+  .nav-btn:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
   .nav-btn:not(:disabled):active { transform: scale(.98); }
 
   /* Слова */
@@ -303,7 +305,7 @@
   .dict-py { color: var(--muted); font-size: 13px; }
   .dict-ru { font-size: 14px; color: var(--text); text-align: left; }
   .dict-src { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
-  .dict-del { border: none; background: var(--paper); color: var(--ink-3); width: 29px; height: 29px; border-radius: 50%; font-size: 14px; cursor: pointer; flex-shrink: 0; }
+  .dict-del { border: none; background: var(--paper); color: var(--ink-2); width: 29px; height: 29px; border-radius: 50%; font-size: 14px; cursor: pointer; flex-shrink: 0; }
   .dict-edit { border: none; background: var(--paper); color: var(--ink-2); width: 29px; height: 29px; border-radius: 50%; font-size: 14px; cursor: pointer; flex-shrink: 0; }
   .dict-actions { display:flex; flex-direction:column; gap:7px; flex-shrink:0; }
   .word .w-add { cursor:pointer; }
@@ -316,7 +318,7 @@
   .dict-export .btn { padding:12px 14px; font-size:13.5px; }
   .dict-editbox { flex:1; min-width:0; display:grid; gap:7px; }
   .dict-editbox input { width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius: 12px; padding:9px 10px; font:inherit; font-size:14px; background:var(--surface); color:var(--text); outline:none; }
-  .dict-editbox input:focus { border-color:var(--red); box-shadow:0 0 0 3px rgba(198,55,23,.10); }
+  .dict-editbox input:focus { border-color:var(--red); outline:2px solid var(--red); outline-offset:1px; box-shadow:0 0 0 3px rgba(198,55,23,.10); }
   .dict-editbtns { display:flex; gap:7px; margin-top:2px; }
   .dict-editbtns button { flex:1; border:none; border-radius:999px; padding:8px 10px; font-size:12.5px; font-weight:700; cursor:pointer; }
   .dict-save { background:var(--text); color:var(--surface); }
@@ -378,7 +380,7 @@
   .sb-offline { padding: 0 12px 6px; }
   .sb-offline-btn { width: 100%; padding: 10px 12px; border: 1px solid rgba(29,29,33,.12); border-radius: 12px; background: var(--surface); color: var(--red-deep); font-size: 13px; font-weight: 700; cursor: pointer; transition: .15s ease; }
   .sb-offline-btn:hover { border-color: var(--red); background: var(--red-soft); }
-  .sb-offline-btn:disabled { opacity: .7; cursor: default; }
+  .sb-offline-btn:disabled { opacity: .7; cursor: not-allowed; pointer-events: none; }
   .sb-offline-btn.ready { color: var(--ink-2); border-color: rgba(29,29,33,.1); background: var(--paper); cursor: default; }
   .sb-offline-st { margin-top: 6px; font-size: 11px; color: var(--ink-3); text-align: center; line-height: 1.35; }
   .ic-tuan { background: var(--red); color: var(--surface); font-size: 27px; font-weight: 800; font-family: "TLCJK", "SimSun","Songti SC","STSong",serif; display: flex; align-items: center; justify-content: center; }
@@ -535,7 +537,7 @@
 .crs-chip.on { background: var(--red-soft); border-color: var(--red); color: var(--red); font-weight: 700; }
 .crs-chip.on b { color: var(--red); }
 .crs-chip.rem { border-color: transparent; background: var(--paper); color: var(--ink-2); cursor: default; }
-.crs-chip.mv { border-color: transparent; background: var(--ochre-soft); color: var(--ochre); cursor: default; }
+.crs-chip.mv { border-color: transparent; background: var(--ochre-soft); color: var(--ochre-ink); cursor: default; }
 .crs-chip.ok { border-color: transparent; background: var(--ok-soft); color: var(--ok); cursor: default; font-weight: 700; }
 .crs-chip.off { border-color: transparent; background: var(--bad-soft); color: var(--bad); cursor: default; }
 
@@ -974,16 +976,16 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
       </select>
     </div>
     <button class="skip-btn" onclick="skip(-10)" title="Назад 10 секунд">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 L5 12 L11 19"/><path d="M5 12 H19"/></svg>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 L5 12 L11 19"/><path d="M5 12 H19"/></svg>
     </button>
     <button class="pp-btn" id="ppBtn" onclick="togglePlay()" title="Слушать / пауза">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
     </button>
     <button class="skip-btn" onclick="skip(10)" title="Вперёд 10 секунд">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5 L19 12 L13 19"/><path d="M19 12 H5"/></svg>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5 L19 12 L13 19"/><path d="M19 12 H5"/></svg>
     </button>
     <button class="loop-btn" id="loopBtn" onclick="toggleLoop()" title="Повтор по кругу (вкл/выкл)">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
     </button>
   </div>
 </div>
@@ -32260,7 +32262,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.96.5';
+const APP_VER = '5.96.6';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32348,8 +32350,8 @@ function ensureLessonAudio(u, part) {
   }
   showPlayer(true);
 }
-const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
-const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>';
+const ICON_PLAY = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+const ICON_PAUSE = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>';
 let seekDrag = false;
 function updatePlayerUI() {
   const pp = document.getElementById('ppBtn');
@@ -34770,7 +34772,7 @@ function goBack() {
 /* Offline materials live in their own durable cache; no changes to user data or sync. */
 function dlSvg(kind) {
   const path = kind === 'check' ? '<path d="M5 13l5 5L20 7"/>' : '<path d="M12 4v11"/><path d="M6 11l6 6 6-6"/><path d="M5 21h14"/>';
-  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
+  return '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
 }
 function unitAudioNames(n) {
   const unit = ALL_UNITS.find(x => x.unit === n);
