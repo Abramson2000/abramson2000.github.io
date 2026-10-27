@@ -62,7 +62,7 @@
     if (allBusy || unitBusy) return;
     const { status, button } = elements();
     const prepared = await message({ type: 'status' });
-    if (!prepared || prepared.error || prepared.version !== '5.95.2') { paint(prepared, false); return; }
+    if (!prepared || prepared.error || !prepared.version) { paint(prepared, false); return; }
     if (navigator.onLine === false) { await refresh(true); return; }
     allBusy = true;
     await protectStorage();
@@ -85,7 +85,7 @@
   async function unitState(names) {
     if (!names.length) return null;
     const result = await message({ type: 'unit-status', urls: urls(names) });
-    return result && !result.error && result.version === '5.95.2' ? { names, done: result.have, total: result.total, outdated: result.outdated || 0 } : { names, done: 0, total: names.length, unknown: true };
+    return result && !result.error && !!result.version ? { names, done: result.have, total: result.total, outdated: result.outdated || 0 } : { names, done: 0, total: names.length, unknown: true };
   }
   async function refreshUnits(namesForUnit) {
     for (const card of document.querySelectorAll('.unit-card')) {
