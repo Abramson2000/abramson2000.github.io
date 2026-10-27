@@ -1,5 +1,5 @@
 /* Tingli 5.95.2: pinned offline shell, durable media, resumable verified downloads. */
-const VERSION = '5.96.10';
+const VERSION = '5.96.11';
 const CACHE = 'tingli-shell-' + VERSION;
 const MEDIA_CACHE = 'tingli-media-v1';
 const MANIFEST = './offline-manifest.5.95.2.json';
@@ -100,7 +100,7 @@ async function manifest() {
     const cache = await caches.open(CACHE), hit = await cache.match(MANIFEST);
     if (!hit) throw Error('Нет сохранённого списка материалов');
     const value = await hit.json();
-    if (value.version !== VERSION || !Array.isArray(value.shell) || !Array.isArray(value.media)) throw Error('Неверный список материалов');
+    if (!Array.isArray(value.shell) || !Array.isArray(value.media)) throw Error('Неверный список материалов');
     return value;
   })().catch(error => { manifestPromise = null; throw error; });
   return manifestPromise;
