@@ -32262,7 +32262,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.96.7';
+const APP_VER = '5.96.8';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33209,7 +33209,35 @@ const YIN_UNITS = [
    "text": "一大早我去取快递。\n卖家说这是正宗茶园茶。\n我盖上盖儿闻一闻。\n盖子敞着，茶有点湿。\n我拍了照片当资料。\n发信息说要退回。\n他答应得很快。\n下午我下楼递回去。\n楼下小贩摆着冰箱贴。\n我挑了一个小徽章。\n他要十块，我砍价。\n他根本不让，还笑。\n我有点发脾气。\n其实他不想蒙人。\n回家我打开视频。\n音量小，字幕也快。\n我暂停，重新看资料。\n时时刻刻想着那片茶园。"
   }
  ]
-}
+},
+{
+  "unit": 415,
+  "label": "Урок 16",
+  "emoji": "🎙️",
+  "zh": "去旅行",
+  "ru": "",
+  "src": "yin",
+  "parts": [
+   {
+    "id": 1,
+    "kind": "listen",
+    "title": "Шэдоуинг",
+    "titleZh": "影子跟读",
+    "audio": "yin-16.mp3",
+    "image": "img/yin-16.jpg",
+    "hint": "Метод «тень»: слушай фразу и сразу повторяй её вслух, копируя произношение и интонацию. После каждой фразы — пауза около 4 секунд, это твоё время на повтор. Повторяй сразу, даже если не всё расслышал: так ловятся тоны и ритм. Слушай несколько раз, пока не станет легко, и только потом открывай текст."
+   },
+   {
+    "id": 2,
+    "kind": "text",
+    "title": "Чтение",
+    "titleZh": "阅读 · 看",
+    "audio": "yin-16.mp3",
+    "image": "img/yin-16.jpg",
+    "text": "前段时间我们去旅行。\n我建议去山里看风景。\n据我所知，那儿很美。\n我们在车站集合。\n他忘了带身份证。\n我通知大家别着急。\n他填写表，我去买票。\n手机充值了吗？别忘了。\n那一刻他改变主意。\n现在不如从前方便。\n心情坏，我擦眼泪。\n两张照片一模一样。\n都是鸡毛蒜皮的小事。\n轻声说话，别吵到人。\n同样的结果，同样重要。\n遇到困难，保持冷静。\n他空着手，过意不去。\n礼尚往来，旅途愉快。"
+   }
+  ]
+ }
 ];
 const IDV = (typeof IDV_UNITS !== 'undefined') ? IDV_UNITS : [];
 const BIZ = (typeof BIZ_UNITS !== 'undefined') ? BIZ_UNITS : [];
