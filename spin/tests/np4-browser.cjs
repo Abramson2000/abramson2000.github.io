@@ -33,6 +33,20 @@ const fs = require('node:fs');
    await page.locator('#'+id+'.view.active').waitFor({timeout:10000});
    const bg=await page.locator('#'+id).evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
    assert.match(bg,/np40/,'missing landscape for '+id);
+   // Desktop: scenic image covers the entire working canvas, not a banner.
+   // Mobile: preserve the approved compact landscape panel.
+   const scenic = await page.locator('#'+id).evaluate(el => {
+     const pseudo = getComputedStyle(el, '::before');
+     const hostRect=el.getBoundingClientRect();
+     return {position:pseudo.position,height:parseFloat(pseudo.height),top:parseFloat(pseudo.top),display:pseudo.display,hostWidth:hostRect.width};
+   });
+   if(!mobile) {
+     assert.equal(scenic.position,'fixed','Desktop scenic canvas must stay behind all content');
+     assert.ok(scenic.height>=height-90,'Landscape must span desktop viewport height');
+   } else {
+     assert.notEqual(scenic.position,'fixed','Mobile scenic banner must remain in normal flow');
+     assert.ok(scenic.height>=95 && scenic.height<=125,'Mobile banner height must remain compact');
+   }
    if(id==='theory'){
      const lessons=page.locator('#theoryBody .lesson-item');
      assert.ok(await lessons.count()>0,'Theory lesson list empty');
