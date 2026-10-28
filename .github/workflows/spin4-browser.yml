@@ -1,0 +1,35 @@
+name: SPIN 4.0 browser smoke
+on:
+  push:
+    branches: [feature/spin-4-0-design]
+    paths:
+      - "spin/**"
+      - ".github/workflows/spin4-browser.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install local browser runner
+        run: |
+          npm install --no-save playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Start local staging server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/spin-test-server.log 2>&1 &
+          sleep 2
+      - name: Check real app in browser
+        run: node spin/tests/np4-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: np40-browser-screenshots
+          path: spin/tests/screenshots/
+          if-no-files-found: ignore
