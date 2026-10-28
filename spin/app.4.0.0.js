@@ -164,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '3.3.11'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '4.0.0'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -193,6 +193,29 @@ const S = {
   cIdx: null, cScene: 0, cPick: null, cPicks: [],
   cDone: [],            // пройденные кейсы (разбор доведён до конца) — локально
 };
+// Only remembers which lesson was open. No progress values or cloud schema are changed.
+function npRestoreTheoryLocation() {
+  if (!USER) return;
+  try {
+    const key = 'spin-nav-4:' + USER.id;
+    const r = JSON.parse(localStorage.getItem(key) || '{}');
+    if (Number.isInteger(r.lesson) && r.lesson >= 0 && r.lesson < L.length) S.lesson = r.lesson;
+    if (Number.isInteger(r.spiced) && r.spiced >= 0 && r.spiced < SPICED.length) curSpiced = r.spiced;
+    if (Number.isInteger(r.med) && r.med >= 0 && r.med < MED.length) curMed = r.med;
+    if (Number.isInteger(r.pro) && r.pro >= 0 && r.pro < PRO.length) curPro = r.pro;
+    if (Number.isInteger(r.extra) && r.extra >= 0 && r.extra < EXTRA.length) curExtra = r.extra;
+    if (Number.isInteger(r.xb) && r.xb >= 0) curXb = r.xb;
+    if (S.tab === 'extras' && curExtra !== null) npExtrasOpen = true;
+  } catch (_) {}
+}
+function npRememberTheoryLocation() {
+  if (!USER) return;
+  try {
+    localStorage.setItem('spin-nav-4:' + USER.id, JSON.stringify({
+      lesson:S.lesson,spiced:curSpiced,med:curMed,pro:curPro,extra:curExtra,xb:curXb
+    }));
+  } catch (_) {}
+}
 function loadState() {
   try {
     const r = JSON.parse(localStorage.getItem(LS_KEY)) || {};
@@ -208,6 +231,7 @@ function loadState() {
     // вернуться на то же место в теории: открытый доп-курс и его урок
     curExtra = (typeof r.extra === 'number' && r.extra >= 0) ? r.extra : null;
     curXb = (typeof r.xb === 'number' && r.xb >= 0) ? r.xb : 0;
+    npRestoreTheoryLocation();
   } catch (e) {}
 }
 let _syncT = null;
@@ -1239,11 +1263,7 @@ function startHeroRotation() {
 
 function renderProgram() {
   refreshExtra();
-  curExtra = null; // выход в программу закрывает режим доп-урока
-  // позицию curXb НЕ сбрасываем: это «где я остановился» — из неё строится быстрый доступ
-  curMed = null;   // выход в программу закрывает режим MEDDPICC-урока
-  curSpiced = null; // выход в программу закрывает режим SPICED-урока (курс 1а)
-  curPro = null;    // выход в программу закрывает режим ProActive-урока (курс 5)
+  // 4.0: main page must not reset the last opened lesson when switching tabs.
   const doneN = S.done.length;
   const spicedN = SPICED.filter((x, k) => S.spicedDone.includes(k)).length; // курс 1а входит в общий счёт
   const medN = MED.filter((x, k) => S.medDone.includes(k)).length; // курс 1B MEDDPICC — тоже в общем счёте
@@ -1500,6 +1520,7 @@ function renderTheory() {
   if (curMed !== null && !seqOk(S.medDone, curMed)) { curMed = Math.min((S.medDone.length ? Math.max.apply(null, S.medDone) : -1) + 1, MED.length - 1); }
   if (curPro !== null && !seqOk(S.proDone, curPro)) { curPro = Math.min((S.proDone.length ? Math.max.apply(null, S.proDone) : -1) + 1, PRO.length - 1); }
   const mode = S.tab === 'extras' ? 'extra' : curSpiced !== null ? 'spiced' : curMed !== null ? 'med' : curPro !== null ? 'pro' : 'main';
+  npRememberTheoryLocation();
   const i = mode === 'spiced' ? curSpiced : mode === 'med' ? curMed : mode === 'extra' ? curExtra : mode === 'pro' ? curPro : S.lesson;
   const l = mode === 'spiced' ? SPICED[i] : mode === 'med' ? MED[i] : mode === 'extra' ? EXTRA[i] : mode === 'pro' ? PRO[i] : L[i];
   const xMode = mode === 'extra' && !!l.course && l.blocks && l.blocks.length > 1; // поуроковый режим доп-курса
@@ -1610,7 +1631,7 @@ function renderTheory() {
     </aside>
     <article class="lesson-content">
       <div class="lesson-kicker"><span>${kicker}</span><span>◷ ${esc(l.mins)}</span></div>
-      <h1 id="theory-title">${xMode ? esc(l.blocks[xb].h) : esc(l.title)}</h1>
+      <h1 id="${S.tab === "extras" ? "extras-title" : "theory-title"}">${xMode ? esc(l.blocks[xb].h) : esc(l.title)}</h1>
       ${xMode ? '' : `<p class="lead">${esc(l.intro)}</p>`}
       ${l.book && !xMode ? `<p style="font-size:13px;opacity:.7;margin-top:10px">${l.course ? '📚 Источники курса' : '📖 По книге'}: ${esc(l.book)}</p>` : ''}
       ${xMode ? (function () { const b = l.blocks[xb]; return `
