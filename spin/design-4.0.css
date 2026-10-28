@@ -132,3 +132,14 @@ h1,h2,h3 {color:var(--np-text)}
 @media(max-width:360px){.mobile-nav small{font-size:8px}.mobile-nav .nav-icon svg{width:19px;height:19px}}
 
 #extrasBody.np-extras-catalog {display:block;max-width:100%;}
+
+/* Mobile crops are approved resized versions, not new artwork. */
+@media(max-width:760px){
+ #program.view::before {background-image:url("./np40/mobile/01_program_everest_960.webp");}
+ #theory.view::before {background-image:url("./np40/mobile/02_theory_kailash_960.webp");}
+ #extras.view::before {background-image:url("./np40/mobile/03_extras_yamdrok_960.webp");}
+ #practice.view::before {background-image:url("./np40/mobile/04_practice_namtso_960.webp");}
+ #cheat.view::before {background-image:url("./np40/mobile/05_cheatsheets_shangrila_960.webp");}
+ #progress.view::before {background-image:url("./np40/mobile/06_progress_drepung_stupa_960.webp");}
+ .login-screen {background-image:url("./np40/mobile/07_login_pagoda_960.webp");}
+}
