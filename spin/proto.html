@@ -12,8 +12,8 @@
 <style>
 :root{
   --ink:#15392a; --ink-2:#24533d; --green:#1c6b47; --lime:#cbff38; --lime-soft:#eaffad;
-  --mint:#e9f4ec; --paper:#f7faf5; --line:#d8e4d9; --muted:#63766b; --card:#ffffff;
-  --amber:#f5c451; --amber-soft:#fff3d3; --amber-line:#eeda9e;
+  --mint:#e9f4ec; --paper:#fdf6e3; --line:#e8d9ae; --muted:#7a6a45; --card:#ffffff;
+  --amber:#f2c14e; --amber-deep:#e0ad3a; --amber-soft:#fff3d3; --amber-line:#eeda9e;
   --r:14px; --bar:64px; --side:264px;
 }
 *{box-sizing:border-box}
@@ -23,16 +23,16 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
 
 /* ---------- оболочка ---------- */
 .shell{height:100dvh;display:grid;grid-template-columns:var(--side) minmax(0,1fr);overflow:hidden}
-.side{background:var(--ink);color:#e8f2ea;display:flex;flex-direction:column;overflow:hidden}
-.brand{padding:18px 18px 10px;border-bottom:1px solid rgba(255,255,255,.08)}
-.brand b{display:block;font-size:16px;letter-spacing:-.01em}
-.brand small{display:block;margin-top:3px;font-size:11px;color:#8fae9b;letter-spacing:.04em;text-transform:uppercase}
+.side{background:var(--amber);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+.brand{padding:18px 18px 10px;border-bottom:1px solid rgba(21,57,42,.14)}
+.brand b{display:block;font-size:16px;letter-spacing:-.01em;color:var(--ink)}
+.brand small{display:block;margin-top:3px;font-size:11px;color:rgba(21,57,42,.55);letter-spacing:.04em;text-transform:uppercase}
 .nav{padding:10px;display:grid;gap:4px;overflow-y:auto;overscroll-behavior:contain;flex:1}
-.nav button{display:flex;align-items:center;gap:10px;padding:11px 12px;border:0;border-radius:10px;background:transparent;color:#cfe0d5;text-align:left;font-size:14px;font-weight:600}
-.nav button .dot{width:22px;height:22px;border-radius:7px;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:11px;flex:none}
-.nav button.on{background:var(--amber);color:var(--ink)}
-.nav button.on .dot{background:rgba(21,57,42,.12)}
-.side-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#8fae9b}
+.nav button{display:flex;align-items:center;gap:10px;padding:11px 12px;border:0;border-radius:10px;background:transparent;color:rgba(21,57,42,.78);text-align:left;font-size:14px;font-weight:600}
+.nav button .dot{width:22px;height:22px;border-radius:7px;background:rgba(21,57,42,.12);display:grid;place-items:center;font-size:11px;flex:none}
+.nav button.on{background:var(--ink);color:var(--amber)}
+.nav button.on .dot{background:rgba(242,193,78,.22);color:var(--amber)}
+.side-foot{padding:12px 18px;border-top:1px solid rgba(21,57,42,.14);font-size:11px;color:rgba(21,57,42,.55)}
 
 .main{display:grid;grid-template-rows:var(--bar) 1fr;min-width:0;overflow:hidden}
 .bar{display:flex;align-items:center;gap:14px;padding:0 24px;background:var(--paper);border-bottom:1px solid var(--line)}
