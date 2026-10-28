@@ -222,3 +222,70 @@ h1,h2,h3 {color:var(--np-text)}
 @media (min-width:761px) and (max-width:1050px) {
   .view::before {left:190px;}
 }
+
+/* Mobile: the Cases catalog matches the compact Trainer and Self-check cards.
+   Only the catalog is affected; case simulation / answer screen is unchanged. */
+@media (max-width:760px) {
+  #practice .cases-grid {
+    grid-template-columns:minmax(0,1fr);
+    gap:8px;
+  }
+  #practice .cases-grid .case-card {
+    min-width:0;
+    padding:11px 12px;
+    border-radius:11px;
+    box-shadow:none;
+    transition:none;
+  }
+  #practice .cases-grid .case-card:hover {
+    transform:none;
+    box-shadow:none;
+  }
+  #practice .cases-grid .case-card-top {
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  #practice .cases-grid .case-card-top > span:first-child {
+    font-size:24px;
+    line-height:1;
+    font-weight:850;
+  }
+  #practice .cases-grid .difficulty {
+    font-size:10px;
+    line-height:1.2;
+    padding:4px 7px;
+    letter-spacing:0;
+  }
+  #practice .cases-grid .case-card h2 {
+    margin:7px 0 5px;
+    font-size:14px;
+    line-height:1.3;
+    letter-spacing:0;
+  }
+  #practice .cases-grid .case-card > p {
+    min-height:0;
+    margin:0;
+    font-size:12px;
+    line-height:1.45;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    overflow-wrap:anywhere;
+  }
+  #practice .cases-grid .case-tags {
+    flex-wrap:wrap;
+    gap:5px 10px;
+    margin:9px 0;
+    font-size:11px;
+    line-height:1.35;
+  }
+  #practice .cases-grid .case-open {
+    padding:9px 0 0;
+    margin:0;
+    font-size:12px;
+    line-height:1.3;
+    min-height:30px;
+    align-items:center;
+  }
+}
