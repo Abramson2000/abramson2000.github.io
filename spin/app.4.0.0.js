@@ -1460,7 +1460,7 @@ function renderProgram() {
   $('programBody').querySelectorAll('.module-card.locked:not(.method-card)').forEach((b) => b.addEventListener('click', () => toast('Сначала пройдите текущий урок — этот откроется после его практики')));
   $('programBody').querySelectorAll('.method-card.locked:not([data-seq-locked])').forEach((b) => b.addEventListener('click', () => toast('Курс скоро появится — книга в работе')));
   $('programBody').querySelectorAll('[data-seq-locked]').forEach((b) => b.addEventListener('click', () => toast('Сначала пройдите предыдущий урок — этот откроется после него')));
-  startHeroRotation();
+  stopHeroRotation(); // 4.0: no rotating photographs
   offlineRefreshStatus();
 }
 
@@ -1488,6 +1488,7 @@ function renderExtras() {
 // ============ ТЕОРИЯ (уроки) ============
 function renderTheory() {
   const lessonRoot = $(S.tab === 'extras' ? 'extrasBody' : 'theoryBody');
+  const previousRailScroll = lessonRoot.querySelector('.lesson-rail')?.scrollTop || 0;
   refreshExtra();
   if (curMed !== null && curMed >= MED.length) { curMed = null; }  // открытый MED-урок стал недоступен — сброс
   if (curExtra !== null && curExtra >= EXTRA.length) { curExtra = null; } // открытый урок стал невидим — сброс
@@ -1664,6 +1665,8 @@ function renderTheory() {
       </div>
       ${mode === 'main' ? (hasP ? '' : '<p class="next-hint">Сначала ответьте на все вопросы практики «Проверь себя» — тогда откроется следующий урок.</p>') : ''}
     </article>`;
+  const restoredRail = lessonRoot.querySelector('.lesson-rail');
+  if (restoredRail) restoredRail.scrollTop = previousRailScroll;
 
   lessonRoot.querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.jump)));
   lessonRoot.querySelectorAll('[data-spiced]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.locked) { toast('Сначала пройдите предыдущий урок — этот откроется после него'); return; } curSpiced = +b.dataset.spiced; curMed = null; curExtra = null; curPro = null; window.scrollTo({ top: 0 }); renderTheory(); }));
