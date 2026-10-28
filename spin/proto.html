@@ -11,15 +11,15 @@
 <title>Навыки продаж — каркас формы</title>
 <style>
 :root{
-  --ink:#15392a; --ink-2:#24533d; --green:#1c6b47;
+  --ink:#122f22; --ink-2:#1f4433; --green:#1c6b47;
   --mint:#eef3ee; --paper:#fdfaf3; --card:#ffffff;
-  --line:#e9dfc6; --muted:#77694b;
-  --sand:#f6ecd6; --sand-deep:#e7d3a8; --sand-line:#e2cfa2;
+  --line:#e6d9ba; --muted:#5f5236;
+  --sand:#f6ecd6; --sand-deep:#e7d3a8; --sand-line:#ddc79a;
   --bar:56px; --r:14px;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:var(--paper);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{background:var(--paper);color:var(--ink);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;border:0;background:none}
 
 /* ===== оболочка: по умолчанию ТЕЛЕФОН ===== */
@@ -38,12 +38,16 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;borde
 .pane{display:none;overflow-y:auto;overscroll-behavior:contain;padding:14px 14px calc(20px + env(safe-area-inset-bottom))}
 .pane.on{display:block}
 
+/* ===== горы: тонкий силуэт ===== */
+.mountains{height:92px;margin:-4px 0 6px;pointer-events:none;opacity:.9}
+.mountains svg{width:100%;height:100%;display:block}
+
 /* ===== главная ===== */
 .intro{margin:0 0 16px}
-.intro h1{margin:0 0 8px;font-size:24px;line-height:1.12;letter-spacing:-.03em}
-.intro p{margin:0 0 9px;color:var(--ink-2);font-size:14px}
-.intro ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:13px}
-.intro li{margin:3px 0}
+.intro h1{margin:0 0 8px;font-size:26px;line-height:1.14;letter-spacing:-.03em;color:var(--ink)}
+.intro p{margin:0 0 10px;color:var(--ink-2);font-size:15.5px;line-height:1.55}
+.intro ul{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:14px;line-height:1.5}
+.intro li{margin:4px 0}
 
 .go{display:grid;gap:10px;background:var(--sand);border:1px solid var(--sand-line);border-radius:var(--r);padding:13px 14px;margin-bottom:14px}
 .go .row{display:flex;align-items:center;gap:12px}
@@ -58,11 +62,11 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;borde
 .strip span{font-size:10.5px;color:var(--muted)}
 
 .grid{display:grid;grid-template-columns:1fr;gap:10px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;min-height:104px;display:flex;flex-direction:column;gap:7px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:11px 12px;min-height:84px;display:flex;flex-direction:column;gap:6px}
 .card .top{display:flex;align-items:center;gap:8px}
-.card .n{width:24px;height:24px;border-radius:8px;background:var(--mint);display:grid;place-items:center;font-size:11.5px;font-weight:800;flex:none}
-.card strong{font-size:14px;line-height:1.25}
-.card .meta{margin-top:auto;font-size:10.5px;color:var(--muted)}
+.card .n{width:24px;height:24px;border-radius:8px;background:var(--sand);display:grid;place-items:center;font-size:11.5px;font-weight:800;flex:none}
+.card strong{font-size:14.5px;line-height:1.3;color:var(--ink)}
+.card .meta{margin-top:auto;font-size:11.5px;color:var(--muted)}
 .card.done{border-color:var(--sand-line)}
 .card.done .n{background:var(--ink);color:var(--sand)}
 .pbar{height:6px;border-radius:99px;background:#eee5cf;overflow:hidden}
@@ -80,8 +84,8 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;borde
 .lesson .ln{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:11px;font-weight:800}
 .lesson.done .ln{background:var(--ink);border-color:var(--ink);color:var(--sand)}
 .lesson.on{background:var(--sand);border-color:var(--sand-line)}
-.lesson strong{display:block;font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lesson small{font-size:10.5px;color:var(--muted)}
+.lesson strong{display:block;font-size:13.5px;line-height:1.25;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lesson small{font-size:11.5px;color:var(--muted)}
 .lesson .cnt{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 
 .doc h1{margin:0 0 8px;font-size:24px;line-height:1.12;letter-spacing:-.03em}
@@ -122,9 +126,9 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;borde
 .person{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px;display:grid;gap:7px}
 .person .r1{display:flex;align-items:center;gap:9px}
 .ava{width:28px;height:28px;border-radius:50%;background:var(--sand);display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
-.person b{font-size:13.5px}
-.person .when{margin-left:auto;font-size:10.5px;color:var(--muted)}
-.person .nums{display:flex;gap:12px;font-size:11px;color:var(--muted)}
+.person b{font-size:14px;color:var(--ink)}
+.person .when{margin-left:auto;font-size:11.5px;color:var(--muted)}
+.person .nums{display:flex;gap:12px;font-size:12px;color:var(--muted)}
 .person .nums i{font-style:normal;font-weight:700;color:var(--ink)}
 .mini{height:5px;border-radius:99px;background:#eee5cf;overflow:hidden}
 .mini i{display:block;height:100%;background:var(--ink-2)}
@@ -206,6 +210,12 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;borde
 
     <!-- ПРОГРАММА -->
     <section class="pane on" id="pane-program">
+      <div class="mountains" aria-hidden="true">
+        <svg viewBox="0 0 600 110" preserveAspectRatio="none">
+          <path d="M0 104 L70 52 L120 80 L190 32 L255 84 L320 48 L392 88 L462 56 L530 90 L600 64" fill="none" stroke="#dcc69b" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M0 110 L64 76 L140 98 L214 62 L290 100 L366 70 L448 102 L524 78 L600 100" fill="none" stroke="#eee0c3" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>
+      </div>
       <div class="intro">
         <h1>О чём эта программа</h1>
         <p>Заглушка под текст. Здесь объясняется, для кого эта лаборатория и зачем она нужна: что человек научится делать после курса и почему это стоит времени.</p>
