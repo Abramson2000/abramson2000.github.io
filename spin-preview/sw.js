@@ -1,6 +1,6 @@
 // Offline shell: immutable release files, complete installation, no network wait.
 const VERSION = '4.0.0';
-const CACHE = 'spin-preview-cache-' + VERSION + '-offline';
+const CACHE = 'spin-preview-cache-' + VERSION + '-desktop-bg1-offline';
 const ENTRY = './index.4.0.0.html';
 const DATA_FILES = ['data','management-data','meddicc-data','spiced-data','proactive-data','boss-gate','remote-sales-data','channel-sales-data','prolapse-data'].map(n => './'+n+'.3.3.0.js');
 const SCENES = ['01_program_everest','02_theory_kailash','03_extras_yamdrok','04_practice_namtso','05_cheatsheets_shangrila','06_progress_drepung_stupa','07_login_pagoda'].map(n=>'./np40/'+n+'.webp');
