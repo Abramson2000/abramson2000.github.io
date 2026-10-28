@@ -1621,9 +1621,11 @@ function renderTheory() {
       <p class="eyebrow">${railEyebrow}</p>
       <h3>${railTitle}</h3>
       ${mode !== "extra" ? `<label for="npCourseSelect">Выбор курса</label><select class="np-course-select" id="npCourseSelect">
-        ${COURSES.map((g,k)=>`<option value="main:${k}" ${mode==='main' && i>=g.from && i<g.to ? "selected":""}>${esc(g.name)}</option>`).join("")}
-        ${SPICED.length ? `<option value="spiced" ${mode==='spiced'?"selected":""}>Курс 1а · SPICED</option>` : ""}
-        ${MED.length ? `<option value="med" ${mode==='med'?"selected":""}>Курс 1B · MEDDPICC</option>` : ""}
+        ${COURSES.map((g,k)=>`
+          <option value="main:${k}" ${mode==='main' && i>=g.from && i<g.to ? "selected":""}>${esc(g.name)}</option>
+          ${k===0 && SPICED.length ? `<option value="spiced" ${mode==='spiced'?"selected":""}>Курс 1а · SPICED</option>` : ""}
+          ${k===0 && MED.length ? `<option value="med" ${mode==='med'?"selected":""}>Курс 1B · MEDDPICC</option>` : ""}
+        `).join("")}
         ${PRO.length ? `<option value="pro" ${mode==='pro'?"selected":""}>Курс 5 · Проактивные продажи</option>` : ""}
       </select>` : ""}
       <button type="button" class="np-rail-toggle" aria-expanded="false">Уроки модуля <span>⌄</span></button>
