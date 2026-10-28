@@ -115,6 +115,22 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
 .q-row .q{width:22px;height:22px;border-radius:50%;background:var(--mint);display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
 
 /* ---------- прогресс ---------- */
+.profile{background:linear-gradient(135deg,var(--mint) 0%,#fff 70%);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px;display:grid;gap:14px}
+.profile-top{display:flex;align-items:center;gap:14px}
+.pavatar{width:56px;height:56px;border-radius:18px;background:var(--ink);color:var(--lime);display:grid;place-items:center;font-size:20px;font-weight:800;flex:none}
+.pname{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em}
+.prole{margin-top:2px;font-size:12px;color:var(--muted)}
+.plevel{margin-left:auto;padding:6px 11px;border-radius:99px;background:var(--lime);color:var(--ink);font-size:11px;font-weight:800;white-space:nowrap}
+.pxp{display:grid;gap:6px}
+.pxp .row{display:flex;justify-content:space-between;font-size:11.5px;font-weight:700;color:var(--muted)}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pstats div{background:rgba(255,255,255,.78);border:1px solid var(--line);border-radius:12px;padding:9px 11px}
+.pstats b{display:block;font-size:16px;line-height:1.15}
+.pstats span{font-size:10.5px;color:var(--muted)}
+.pbadges{display:flex;gap:6px;flex-wrap:wrap}
+.pbadges span{padding:4px 9px;border-radius:99px;background:var(--ink);color:#dfeee5;font-size:10.5px;font-weight:700}
+.pnext{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--ink-2)}
+.pnext b{font-weight:800}
 .ptable{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .ptable th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);font-weight:800}
 .ptable td{padding:11px 12px;border-bottom:1px solid var(--line);font-size:13px}
@@ -154,7 +170,7 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
   .ptable td{border:0;padding:3px 0;display:flex;justify-content:space-between;gap:10px}
   .ptable td::before{content:attr(data-l);color:var(--muted);font-size:11px}
 }
-@media (max-width:560px){ .grid{grid-template-columns:1fr} .cards2{grid-template-columns:1fr} .intro p{font-size:14px} }
+@media (max-width:560px){ .grid{grid-template-columns:1fr} .cards2{grid-template-columns:1fr} .intro p{font-size:14px} .pstats{grid-template-columns:1fr 1fr} .profile{padding:14px} .plevel{font-size:10px;padding:5px 9px} }
 </style>
 </head>
 <body>
@@ -300,6 +316,27 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
 
     <!-- ПРОГРЕСС -->
     <section class="pane" id="pane-progress">
+      <div class="profile">
+        <div class="profile-top">
+          <div class="pavatar">А</div>
+          <div>
+            <h3 class="pname">Ваш профиль продавца</h3>
+            <div class="prole">Абрамов · менеджер, женское здоровье</div>
+          </div>
+          <div class="plevel">Уровень 4</div>
+        </div>
+        <div class="pxp">
+          <div class="row"><span>420 / 600 XP</span><span>до 5-го уровня — 180</span></div>
+          <div class="pbar"><i style="width:70%"></i></div>
+        </div>
+        <div class="pstats">
+          <div><b>12/12</b><span>уроков</span></div>
+          <div><b>34</b><span>практики</span></div>
+          <div><b>5 дней</b><span>серия</span></div>
+        </div>
+        <div class="pbadges"><span>Тарифы</span><span>Квота</span><span>Возражения</span><span>Расчёт</span></div>
+        <div class="pnext">→ Следующая цель: <b>разбор встречи</b> · до 30 октября</div>
+      </div>
       <table class="ptable">
         <thead><tr><th>Кто</th><th>Последний вход</th><th>Уроки</th><th>Практики</th><th>XP</th><th>Прогресс</th></tr></thead>
         <tbody>
