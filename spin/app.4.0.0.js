@@ -1558,7 +1558,7 @@ function renderTheory() {
       }).join('');
     }
   } else {
-    railItems = COURSES.filter((g) => S.lesson >= g.from && S.lesson < g.to).map((g, gi) => {
+    railItems = COURSES.map((g, gi) => { if (!(S.lesson >= g.from && S.lesson < g.to)) return '';
       const label = `<div class="lesson-group-label"><span>Курс ${COURSES.indexOf(g) + 1}</span>${g.tag}</div>`;
       const items = L.slice(g.from, g.to).map((ll, gi) => {
         const j = g.from + gi;
@@ -1578,16 +1578,7 @@ function renderTheory() {
           <span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}
         </button>`;
       }).join('') : '';
-      return label + items + spicedRail;
-    }).join('');
-    // 3.3.2: в списке уроков показываем все курсы, а не только четыре основных
-    if (MED.length) railItems += '<div class="lesson-group-label"><span>Курс 1B</span>MEDDPICC</div>' + MED.map((ll, ei) => {
-      const d = S.medDone.includes(ei), open = seqOk(S.medDone, ei), locked = !d && !open;
-      return `<button class="lesson-item ${mode === 'med' && ei === i ? 'active' : d ? 'done' : locked ? 'locked' : ''}" data-med="${ei}" ${locked ? 'data-locked="1"' : ''} title="${locked ? 'Откроется по порядку' : esc(ll.title)}"><span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}</button>`;
-    }).join('');
-    if (PRO.length) railItems += '<div class="lesson-group-label"><span>Курс 5</span>PROACTIVE</div>' + PRO.map((ll, ei) => {
-      const d = S.proDone.includes(ei), open = seqOk(S.proDone, ei), locked = !d && !open;
-      return `<button class="lesson-item ${mode === 'pro' && ei === i ? 'active' : d ? 'done' : locked ? 'locked' : ''}" data-pro="${ei}" ${locked ? 'data-locked="1"' : ''} title="${locked ? 'Откроется по порядку' : esc(ll.title)}"><span>${ei + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${d ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}</button>`;
+      return label + items;
     }).join('');
 
   }
@@ -1608,7 +1599,12 @@ function renderTheory() {
       ${S.tab === "extras" ? `<button class="np-back-to-list" type="button" data-np-extra-back>← Все дополнения</button>` : `<button class="back-link" data-jump="program">← К программе</button>`}
       <p class="eyebrow">${railEyebrow}</p>
       <h3>${railTitle}</h3>
-      ${mode === "main" ? `<label for="npCourseSelect">Выбор модуля</label><select class="np-course-select" id="npCourseSelect">${COURSES.map((g,k)=>`<option value="${k}" ${i>=g.from && i<g.to ? "selected":""}>${esc(g.name)}</option>`).join("")}</select>` : ""}
+      ${mode !== "extra" ? `<label for="npCourseSelect">Выбор курса</label><select class="np-course-select" id="npCourseSelect">
+        ${COURSES.map((g,k)=>`<option value="main:${k}" ${mode==='main' && i>=g.from && i<g.to ? "selected":""}>${esc(g.name)}</option>`).join("")}
+        ${SPICED.length ? `<option value="spiced" ${mode==='spiced'?"selected":""}>Курс 1а · SPICED</option>` : ""}
+        ${MED.length ? `<option value="med" ${mode==='med'?"selected":""}>Курс 1B · MEDDPICC</option>` : ""}
+        ${PRO.length ? `<option value="pro" ${mode==='pro'?"selected":""}>Курс 5 · Проактивные продажи</option>` : ""}
+      </select>` : ""}
       <button type="button" class="np-rail-toggle" aria-expanded="false">Уроки модуля <span>⌄</span></button>
       <div class="lesson-list">${railItems}</div>
     </aside>
@@ -1686,14 +1682,30 @@ function renderTheory() {
   if (npToggle) npToggle.addEventListener('click', () => { const rail = lessonRoot.querySelector('.lesson-rail'); const expanded = rail.classList.toggle('np-rail-open'); npToggle.setAttribute('aria-expanded', String(expanded)); });
   const npSelect = lessonRoot.querySelector('#npCourseSelect');
   if (npSelect) npSelect.addEventListener('change', () => {
-    const g = COURSES[Number(npSelect.value)]; if (!g) return;
-    const next = L.findIndex((x,k) => !S.done.includes(k));
-    const spFull = !SPICED.length || SPICED.every((x,k) => S.spicedDone.includes(k));
-    if (!REVIEW_MODE && ((next >= 0 && g.from > next) || (COURSES.length > 1 && g.from >= COURSES[1].from && !spFull))) {
-      toast('Модуль пока закрыт. Пройдите предыдущие уроки.');
-      npSelect.value = String(courseOf(S.lesson).idx); return;
-    }
-    S.lesson = g.from; curExtra = null; curMed = null; curSpiced = null; curPro = null;
+    const selection = npSelect.value;
+    if (selection.startsWith('main:')) {
+      const g = COURSES[Number(selection.split(':')[1])]; if (!g) return;
+      const next = L.findIndex((x,k) => !S.done.includes(k));
+      const spFull = !SPICED.length || SPICED.every((x,k) => S.spicedDone.includes(k));
+      if (!REVIEW_MODE && ((next >= 0 && g.from > next) || (COURSES.length > 1 && g.from >= COURSES[1].from && !spFull))) {
+        toast('Модуль пока закрыт. Пройдите предыдущие уроки.');
+        npSelect.value = mode === 'main' ? 'main:'+courseOf(S.lesson).idx : mode;
+        return;
+      }
+      S.lesson = g.from; curExtra = null; curMed = null; curSpiced = null; curPro = null;
+    } else if (selection === 'spiced' && SPICED.length) {
+      curSpiced = SPICED.findIndex((x,k) => !S.spicedDone.includes(k));
+      if (curSpiced < 0) curSpiced = 0;
+      curMed = null; curPro = null; curExtra = null;
+    } else if (selection === 'med' && MED.length) {
+      curMed = MED.findIndex((x,k) => !S.medDone.includes(k));
+      if (curMed < 0) curMed = 0;
+      curSpiced = null; curPro = null; curExtra = null;
+    } else if (selection === 'pro' && PRO.length) {
+      curPro = PRO.findIndex((x,k) => !S.proDone.includes(k));
+      if (curPro < 0) curPro = 0;
+      curSpiced = null; curMed = null; curExtra = null;
+    } else return;
     save(); renderTheory();
   });
   const cheatBtn = lessonRoot.querySelector('[data-cheat]');
