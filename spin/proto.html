@@ -121,6 +121,14 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
 .pbadges span{padding:4px 9px;border-radius:99px;background:var(--amber-soft);color:var(--ink-2);border:1px solid var(--amber-line);font-size:10.5px;font-weight:700}
 .pnext{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--ink-2)}
 .pnext b{font-weight:800}
+.skills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.skill{background:rgba(255,255,255,.82);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:6px}
+.skill .sl{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:700;line-height:1.2}
+.skill .sl b{font-variant-numeric:tabular-nums;font-size:13px}
+.skill .lv{font-size:10.5px;color:var(--muted)}
+.skill.off{background:rgba(255,255,255,.55);border-style:dashed}
+.skill.off .sl{color:var(--muted)}
+.skill.off .sl b{color:var(--muted)}
 .ptable{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .ptable th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);font-weight:800}
 .ptable td{padding:11px 12px;border-bottom:1px solid var(--line);font-size:13px}
@@ -160,7 +168,7 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
   .ptable td{border:0;padding:3px 0;display:flex;justify-content:space-between;gap:10px}
   .ptable td::before{content:attr(data-l);color:var(--muted);font-size:11px}
 }
-@media (max-width:560px){ .grid{grid-template-columns:1fr} .cards2{grid-template-columns:1fr} .intro p{font-size:14px} .pstats{grid-template-columns:1fr 1fr} .profile{padding:14px} .plevel{font-size:10px;padding:5px 9px} }
+@media (max-width:560px){ .grid{grid-template-columns:1fr} .cards2{grid-template-columns:1fr} .intro p{font-size:14px} .skills{grid-template-columns:1fr} .profile{padding:14px} .plevel{font-size:10px;padding:5px 9px} }
 </style>
 </head>
 <body>
@@ -300,21 +308,20 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
           <div class="pavatar">А</div>
           <div>
             <h3 class="pname">Ваш профиль продавца</h3>
-            <div class="prole">Абрамов · менеджер, женское здоровье</div>
+            <div class="prole">обновляется автоматически · Абрамов</div>
           </div>
-          <div class="plevel">Уровень 4</div>
+          <div class="plevel">Карта навыков</div>
         </div>
-        <div class="pxp">
-          <div class="row"><span>420 / 600 XP</span><span>до 5-го уровня — 180</span></div>
-          <div class="pbar"><i style="width:70%"></i></div>
+        <div class="skills">
+          <div class="skill"><div class="sl"><span>Ситуационные вопросы</span><b>84</b></div><div class="pbar"><i style="width:84%"></i></div><div class="lv">Уверенный уровень</div></div>
+          <div class="skill"><div class="sl"><span>Болевые вопросы</span><b>78</b></div><div class="pbar"><i style="width:78%"></i></div><div class="lv">Уверенный уровень</div></div>
+          <div class="skill"><div class="sl"><span>Извлекающие вопросы</span><b>86</b></div><div class="pbar"><i style="width:86%"></i></div><div class="lv">Уверенный уровень</div></div>
+          <div class="skill"><div class="sl"><span>Направляющие вопросы</span><b>72</b></div><div class="pbar"><i style="width:72%"></i></div><div class="lv">Уверенный уровень</div></div>
+          <div class="skill"><div class="sl"><span>Выгоды и возражения</span><b>66</b></div><div class="pbar"><i style="width:66%"></i></div><div class="lv">Уверенный уровень</div></div>
+          <div class="skill"><div class="sl"><span>Challenger: вызов</span><b>70</b></div><div class="pbar"><i style="width:70%"></i></div><div class="lv">Уверенный уровень</div></div>
+          <div class="skill off"><div class="sl"><span>Продажи решений</span><b>—</b></div><div class="pbar"><i style="width:0"></i></div><div class="lv">Не начато</div></div>
+          <div class="skill off"><div class="sl"><span>Консультативные продажи</span><b>—</b></div><div class="pbar"><i style="width:0"></i></div><div class="lv">Не начато</div></div>
         </div>
-        <div class="pstats">
-          <div><b>12/12</b><span>уроков</span></div>
-          <div><b>34</b><span>практики</span></div>
-          <div><b>5 дней</b><span>серия</span></div>
-        </div>
-        <div class="pbadges"><span>Тарифы</span><span>Квота</span><span>Возражения</span><span>Расчёт</span></div>
-        <div class="pnext">→ Следующая цель: <b>разбор встречи</b> · до 30 октября</div>
       </div>
       <table class="ptable">
         <thead><tr><th>Кто</th><th>Последний вход</th><th>Уроки</th><th>Практики</th><th>XP</th><th>Прогресс</th></tr></thead>
