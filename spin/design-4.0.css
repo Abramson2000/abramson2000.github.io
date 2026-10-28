@@ -149,3 +149,15 @@ h1,h2,h3 {color:var(--np-text)}
   #practice .seg-control {display:flex;width:100%;max-width:100%;gap:2px;padding:3px;min-width:0;}
   #practice .seg-control button {flex:1 1 0;min-width:0;padding:9px 4px;font-size:12px;line-height:1.25;white-space:normal;}
 }
+
+/* Progress cards must shrink to narrow phone viewports instead of expanding the grid. */
+@media(max-width:760px){
+  #progress .progress-lower {grid-template-columns:minmax(0,1fr);min-width:0;}
+  #progress .progress-lower > * {min-width:0;max-width:100%;width:100%;}
+  #progress .skill-map,
+  #progress .recommendation-card,
+  #progress .account-card {min-width:0;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;padding:18px 15px;}
+  #progress .card-heading {min-width:0;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  #progress .account-row,
+  #progress .feedback-actions {min-width:0;flex-wrap:wrap;}
+}
