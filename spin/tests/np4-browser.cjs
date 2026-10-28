@@ -64,7 +64,7 @@ const fs = require('node:fs');
      console.error('OVERFLOW DIAGNOSTIC',width,id,JSON.stringify(offenders));
      await page.screenshot({path:'spin/tests/screenshots/overflow-'+width+'-'+id+'.png',fullPage:true});
    }
-   assert.ok(overflow<=1,'Horizontal overflow '+overflow+'px on '+id+' at '+width);
+   if(overflow>1) failures.push('Horizontal overflow '+overflow+'px on '+id+' at '+width);
   }
   await nav.locator('button[data-tab="program"]').click();
   await page.screenshot({path:'spin/tests/screenshots/np40-'+width+'.png',fullPage:true});
@@ -81,6 +81,7 @@ const fs = require('node:fs');
   assert.equal(await page.locator('#loginPass').count(),1,'Password field missing');
   await context.close();
   console.log('PASS login screen visible without review param');
+  if (failures.length) throw new Error('Responsive layout failures:\\n'+failures.join('\\n'));
  }catch(error){
   console.error('FAIL',error.stack||error.message);
   process.exitCode=1;
