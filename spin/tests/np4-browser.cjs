@@ -54,6 +54,16 @@ const fs = require('node:fs');
      assert.ok(await page.locator('#extrasBody [data-np-extra]').count()>0,'Extra index did not reopen');
    }
    const overflow=await page.evaluate(()=>Math.max(document.body.scrollWidth,document.documentElement.scrollWidth)-window.innerWidth);
+   if (overflow>1) {
+     const offenders=await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(el=>{
+       const cs=getComputedStyle(el);
+       if(cs.display==='none'||cs.visibility==='hidden')return false;
+       const r=el.getBoundingClientRect();
+       return r.right>window.innerWidth+1&&r.width>0;
+     }).map(el=>({tag:el.tagName,cls:el.className?.toString().slice(0,90),text:el.textContent?.trim().slice(0,48),right:Math.round(el.getBoundingClientRect().right),width:Math.round(el.getBoundingClientRect().width)})).sort((a,b)=>b.right-a.right).slice(0,15));
+     console.error('OVERFLOW DIAGNOSTIC',width,id,JSON.stringify(offenders));
+     await page.screenshot({path:'spin/tests/screenshots/overflow-'+width+'-'+id+'.png',fullPage:true});
+   }
    assert.ok(overflow<=1,'Horizontal overflow '+overflow+'px on '+id+' at '+width);
   }
   await nav.locator('button[data-tab="program"]').click();
