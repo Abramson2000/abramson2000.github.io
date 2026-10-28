@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#15392a" />
+<meta name="robots" content="noindex" />
+<title>Навыки продаж — каркас формы</title>
+<style>
+:root{
+  --ink:#15392a; --ink-2:#24533d; --green:#1c6b47; --lime:#cbff38; --lime-soft:#eaffad;
+  --mint:#e9f4ec; --paper:#f7faf5; --line:#d8e4d9; --muted:#63766b; --card:#ffffff;
+  --r:14px; --bar:64px; --side:264px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* ---------- вход ---------- */
+.login{position:fixed;inset:0;display:grid;place-items:center;background:var(--ink);padding:20px;z-index:50}
+.login-card{width:min(380px,100%);background:var(--paper);border-radius:20px;padding:28px}
+.login-card h1{margin:0 0 4px;font-size:22px;letter-spacing:-.02em}
+.login-card p{margin:0 0 20px;color:var(--muted);font-size:13px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:15px}
+.login-btn{width:100%;padding:14px;border:0;border-radius:12px;background:var(--green);color:#fff;font-weight:800;margin-top:6px}
+.login-note{margin-top:14px;font-size:11px;color:var(--muted);text-align:center}
+
+/* ---------- оболочка ---------- */
+.shell{height:100dvh;display:grid;grid-template-columns:var(--side) minmax(0,1fr);overflow:hidden}
+.side{background:var(--ink);color:#e8f2ea;display:flex;flex-direction:column;overflow:hidden}
+.brand{padding:18px 18px 10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand b{display:block;font-size:16px;letter-spacing:-.01em}
+.brand small{display:block;margin-top:3px;font-size:11px;color:#8fae9b;letter-spacing:.04em;text-transform:uppercase}
+.nav{padding:10px;display:grid;gap:4px;overflow-y:auto;overscroll-behavior:contain;flex:1}
+.nav button{display:flex;align-items:center;gap:10px;padding:11px 12px;border:0;border-radius:10px;background:transparent;color:#cfe0d5;text-align:left;font-size:14px;font-weight:600}
+.nav button .dot{width:22px;height:22px;border-radius:7px;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:11px;flex:none}
+.nav button.on{background:var(--lime);color:var(--ink)}
+.nav button.on .dot{background:rgba(21,57,42,.12)}
+.side-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#8fae9b}
+
+.main{display:grid;grid-template-rows:var(--bar) 1fr;min-width:0;overflow:hidden}
+.bar{display:flex;align-items:center;gap:14px;padding:0 24px;background:var(--paper);border-bottom:1px solid var(--line)}
+.bar h2{margin:0;font-size:17px;letter-spacing:-.01em;white-space:nowrap}
+.bar .spacer{flex:1}
+.search{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px;width:220px}
+.chip{padding:7px 12px;border:1px solid var(--line);border-radius:99px;background:#fff;font-size:12px;font-weight:700;color:var(--muted)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+
+.pane{overflow-y:auto;overscroll-behavior:contain;padding:20px 24px 28px;display:none}
+.pane.on{display:block}
+
+/* ---------- программа ---------- */
+.go{display:flex;align-items:center;gap:14px;background:var(--mint);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
+.go .num{width:38px;height:38px;border-radius:12px;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
+.go b{display:block;font-size:15px}
+.go small{color:var(--muted);font-size:12px}
+.go .btn{margin-left:auto;padding:10px 16px;border:0;border-radius:10px;background:var(--ink);color:#fff;font-weight:700;white-space:nowrap}
+
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.strip div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.strip b{display:block;font-size:19px;line-height:1.1}
+.strip span{font-size:11px;color:var(--muted)}
+
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;min-height:118px;display:flex;flex-direction:column;gap:8px}
+.card .top{display:flex;align-items:center;gap:8px}
+.card .n{width:26px;height:26px;border-radius:8px;background:var(--mint);display:grid;place-items:center;font-size:12px;font-weight:800;flex:none}
+.card strong{font-size:14px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .meta{margin-top:auto;font-size:11px;color:var(--muted)}
+.pbar{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--green)}
+.card.done{border-color:var(--green)}
+
+/* ---------- теория ---------- */
+.theory{display:grid;grid-template-columns:280px minmax(0,1fr);gap:20px;height:100%}
+.rail{overflow-y:auto;overscroll-behavior:contain;border-right:1px solid var(--line);padding-right:14px}
+.rail .glabel{display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rail .glabel span{background:var(--mint);border-radius:99px;padding:2px 7px;color:var(--ink-2);letter-spacing:0}
+.lesson{width:100%;display:grid;grid-template-columns:26px 1fr auto;gap:9px;align-items:center;padding:9px 10px;border:1px solid transparent;border-radius:10px;background:none;text-align:left}
+.lesson:hover{background:var(--mint)}
+.lesson .ln{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+.lesson.done .ln{background:var(--green);border-color:var(--green);color:#fff}
+.lesson.on{background:var(--lime-soft);border-color:var(--line)}
+.lesson strong{display:block;font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lesson small{font-size:10.5px;color:var(--muted)}
+.lesson .cnt{font-size:10.5px;color:var(--muted)}
+.doc{overflow-y:auto;overscroll-behavior:contain;padding-right:8px;max-width:760px}
+.doc h1{margin:0 0 10px;font-size:clamp(24px,3vw,34px);line-height:1.1;letter-spacing:-.03em}
+.doc .lead{color:var(--muted);font-size:14px;margin:0 0 18px}
+.bar-line{height:12px;border-radius:6px;background:var(--line);margin:10px 0}
+.bar-line.w80{width:80%}.bar-line.w60{width:60%}.bar-line.w90{width:90%}
+.callout{background:var(--mint);border:1px solid var(--line);border-radius:12px;padding:14px;margin:16px 0}
+.callout b{display:block;margin-bottom:6px;font-size:13px}
+.docnav{display:flex;gap:10px;margin-top:22px}
+.docnav button{flex:1;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:700;font-size:13px}
+
+/* ---------- практика / шпаргалки ---------- */
+.cards2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.sheet .tag{display:inline-block;margin:0 6px 8px 0;padding:3px 8px;border-radius:99px;background:var(--mint);font-size:10.5px;font-weight:700;color:var(--ink-2)}
+.sheet h3{margin:0 0 6px;font-size:14px}
+.q-row{padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.q-row:last-child{border-bottom:0}
+.q-row .q{width:22px;height:22px;border-radius:50%;background:var(--mint);display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+
+/* ---------- прогресс ---------- */
+.ptable{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.ptable th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);font-weight:800}
+.ptable td{padding:11px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.ptable tr:last-child td{border-bottom:0}
+.who{display:flex;align-items:center;gap:9px}
+.ava{width:28px;height:28px;border-radius:50%;background:var(--mint);display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+.mini{height:6px;border-radius:99px;background:var(--line);overflow:hidden;min-width:80px}
+.mini i{display:block;height:100%;background:var(--green)}
+
+/* ---------- мобильный ---------- */
+.tabbar{display:none}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr;grid-template-rows:var(--bar) 1fr 64px}
+  .side{display:none}
+  .bar{padding:0 14px;gap:8px}
+  .bar .search{display:none}
+  .bar h2{font-size:15px}
+  .pane{padding:14px 14px 20px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .strip{grid-template-columns:repeat(2,1fr)}
+  .theory{grid-template-columns:1fr;height:auto}
+  .rail{display:none}
+  .rail.open{display:block;position:fixed;inset:auto 0 64px 0;max-height:70dvh;background:var(--paper);border-top:1px solid var(--line);border-radius:16px 16px 0 0;padding:14px;z-index:30;box-shadow:0 -12px 30px rgba(21,57,42,.18)}
+  .docnav{position:sticky;bottom:0;background:var(--paper);padding:10px 0}
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);background:var(--paper);border-top:1px solid var(--line)}
+  .tabbar button{border:0;background:none;display:grid;place-items:center;gap:2px;font-size:10px;color:var(--muted);padding:8px 0}
+  .tabbar button.on{color:var(--green);font-weight:800}
+  .tabbar .ic{font-size:16px;line-height:1}
+  .ptable thead{display:none}
+  .ptable, .ptable tbody, .ptable tr, .ptable td{display:block;width:100%}
+  .ptable tr{border-bottom:1px solid var(--line);padding:10px 12px}
+  .ptable td{border:0;padding:3px 0;display:flex;justify-content:space-between;gap:10px}
+  .ptable td::before{content:attr(data-l);color:var(--muted);font-size:11px}
+}
+@media (max-width:560px){ .grid{grid-template-columns:1fr} .cards2{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <form class="login-card" onsubmit="event.preventDefault();document.getElementById('login').style.display='none'">
+    <h1>Навыки продаж</h1>
+    <p>Каркас формы · тексты-заглушки</p>
+    <div class="field"><label>Логин</label><input type="text" placeholder="как в приложении" /></div>
+    <div class="field"><label>Пароль</label><input type="password" placeholder="••••••" /></div>
+    <button class="login-btn" type="submit">Войти</button>
+    <div class="login-note">Вход и раздельный прогресс — как сейчас, здесь только форма</div>
+  </form>
+</div>
+
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><b>Навыки продаж</b><small>каркас · v0.1</small></div>
+    <nav class="nav" id="nav">
+      <button class="on" data-tab="program"><span class="dot">1</span>Программа</button>
+      <button data-tab="theory"><span class="dot">2</span>Теория</button>
+      <button data-tab="practice"><span class="dot">3</span>Практика</button>
+      <button data-tab="cheats"><span class="dot">4</span>Шпаргалки</button>
+      <button data-tab="progress"><span class="dot">5</span>Прогресс</button>
+    </nav>
+    <div class="side-foot">Абрамов · форма без текста</div>
+  </aside>
+
+  <main class="main">
+    <header class="bar">
+      <h2 id="title">Программа</h2>
+      <div class="spacer"></div>
+      <input class="search" placeholder="Поиск" />
+      <button class="chip" id="railBtn" style="display:none">Уроки</button>
+      <button class="chip on">Абрамов</button>
+    </header>
+
+    <!-- ПРОГРАММА -->
+    <section class="pane on" id="pane-program">
+      <div class="go">
+        <div class="num">3</div>
+        <div><b>Продолжить — «Название урока»</b><small>8 уроков · 20 вопросов · 2 практики</small></div>
+        <button class="btn">Открыть</button>
+      </div>
+      <div class="strip">
+        <div><b>12</b><span>уроков пройдено</span></div>
+        <div><b>34</b><span>практики</span></div>
+        <div><b>420</b><span>XP</span></div>
+        <div><b>5 дней</b><span>серия</span></div>
+      </div>
+      <div class="grid">
+        <div class="card done"><div class="top"><span class="n">1</span><strong>Название модуля в две строки</strong></div><div class="meta">3 из 3 практик</div><div class="pbar"><i style="width:100%"></i></div></div>
+        <div class="card done"><div class="top"><span class="n">2</span><strong>Название модуля</strong></div><div class="meta">3 из 3</div><div class="pbar"><i style="width:100%"></i></div></div>
+        <div class="card"><div class="top"><span class="n">3</span><strong>Название модуля</strong></div><div class="meta">1 из 3</div><div class="pbar"><i style="width:33%"></i></div></div>
+        <div class="card"><div class="top"><span class="n">4</span><strong>Название модуля</strong></div><div class="meta">0 из 3</div><div class="pbar"><i style="width:0"></i></div></div>
+        <div class="card"><div class="top"><span class="n">5</span><strong>Название модуля</strong></div><div class="meta">0 из 2</div><div class="pbar"><i style="width:0"></i></div></div>
+        <div class="card"><div class="top"><span class="n">6</span><strong>Название модуля</strong></div><div class="meta">0 из 3</div><div class="pbar"><i style="width:0"></i></div></div>
+        <div class="card"><div class="top"><span class="n">7</span><strong>Название модуля</strong></div><div class="meta">0 из 2</div><div class="pbar"><i style="width:0"></i></div></div>
+        <div class="card"><div class="top"><span class="n">8</span><strong>Название модуля</strong></div><div class="meta">0 из 4</div><div class="pbar"><i style="width:0"></i></div></div>
+      </div>
+    </section>
+
+    <!-- ТЕОРИЯ -->
+    <section class="pane" id="pane-theory">
+      <div class="theory">
+        <div class="rail" id="rail">
+          <input class="search" style="width:100%;margin-bottom:6px" placeholder="Найти урок" />
+          <div class="glabel">Основная программа <span>8</span></div>
+          <button class="lesson done"><span class="ln">1</span><span><strong>Название урока</strong><small>тариф и оплата</small></span><span class="cnt">3</span></button>
+          <button class="lesson done"><span class="ln">2</span><span><strong>Название урока</strong><small>кто платит</small></span><span class="cnt">3</span></button>
+          <button class="lesson on"><span class="ln">3</span><span><strong>Название урока</strong><small>арифметика</small></span><span class="cnt">3</span></button>
+          <button class="lesson"><span class="ln">4</span><span><strong>Название урока</strong><small>два варианта</small></span><span class="cnt">3</span></button>
+          <button class="lesson"><span class="ln">5</span><span><strong>Название урока</strong><small>платные</small></span><span class="cnt">2</span></button>
+          <button class="lesson"><span class="ln">6</span><span><strong>Название урока</strong><small>возражения</small></span><span class="cnt">2</span></button>
+          <button class="lesson"><span class="ln">7</span><span><strong>Название урока</strong><small>люди в клинике</small></span><span class="cnt">2</span></button>
+          <button class="lesson"><span class="ln">8</span><span><strong>Название урока</strong><small>задачи</small></span><span class="cnt">4</span></button>
+          <div class="glabel">Дополнительные уроки <span>4</span></div>
+          <button class="lesson"><span class="ln">＋</span><span><strong>Название выжимки</strong><small>книга · 12 минут</small></span><span class="cnt">1</span></button>
+          <button class="lesson"><span class="ln">＋</span><span><strong>Название выжимки</strong><small>книга · 9 минут</small></span><span class="cnt">1</span></button>
+          <button class="lesson"><span class="ln">＋</span><span><strong>Название выжимки</strong><small>книга · 15 минут</small></span><span class="cnt">2</span></button>
+          <button class="lesson"><span class="ln">＋</span><span><strong>Название выжимки</strong><small>книга · 7 минут</small></span><span class="cnt">1</span></button>
+        </div>
+        <article class="doc">
+          <h1>Заголовок урока в одну-две строки</h1>
+          <p class="lead">Подзаголовок: о чём этот урок. Текст-заглушка, форма настоящая.</p>
+          <div class="bar-line w90"></div><div class="bar-line"></div><div class="bar-line w80"></div>
+          <div class="callout"><b>Вывод урока</b><div class="bar-line w60" style="margin:0"></div></div>
+          <div class="bar-line w90"></div><div class="bar-line w80"></div><div class="bar-line"></div><div class="bar-line w60"></div>
+          <div class="docnav"><button>← Предыдущий</button><button>Следующий →</button></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ПРАКТИКА -->
+    <section class="pane" id="pane-practice">
+      <div class="cards2">
+        <div class="sheet">
+          <h3>Практика: расчёт</h3>
+          <div class="q-row"><span class="q">1</span><div><div class="bar-line w80" style="margin:0 0 6px"></div><div class="bar-line w60" style="margin:0"></div></div></div>
+          <div class="q-row"><span class="q">2</span><div><div class="bar-line" style="margin:0 0 6px"></div><div class="bar-line w80" style="margin:0"></div></div></div>
+          <div class="q-row"><span class="q">3</span><div><div class="bar-line w60" style="margin:0"></div></div></div>
+        </div>
+        <div class="sheet">
+          <h3>Практика: разговор</h3>
+          <div class="q-row"><span class="q">1</span><div><div class="bar-line" style="margin:0 0 6px"></div><div class="bar-line w60" style="margin:0"></div></div></div>
+          <div class="q-row"><span class="q">2</span><div><div class="bar-line w90" style="margin:0"></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ШПАРГАЛКИ -->
+    <section class="pane" id="pane-cheats">
+      <div class="strip" style="grid-template-columns:1fr auto;align-items:center">
+        <input class="search" style="width:100%" placeholder="Поиск по шпаргалкам" />
+        <button class="chip">Печать</button>
+      </div>
+      <div class="grid">
+        <div class="sheet"><span class="tag">тарифы</span><h3>Заголовок шпаргалки</h3><div class="bar-line w90" style="margin:0 0 6px"></div><div class="bar-line w60" style="margin:0"></div></div>
+        <div class="sheet"><span class="tag">квота</span><h3>Заголовок шпаргалки</h3><div class="bar-line" style="margin:0 0 6px"></div><div class="bar-line w80" style="margin:0"></div></div>
+        <div class="sheet"><span class="tag">возражения</span><h3>Заголовок шпаргалки</h3><div class="bar-line w90" style="margin:0 0 6px"></div><div class="bar-line w60" style="margin:0"></div></div>
+        <div class="sheet"><span class="tag">расчёт</span><h3>Заголовок шпаргалки</h3><div class="bar-line" style="margin:0 0 6px"></div><div class="bar-line w80" style="margin:0"></div></div>
+        <div class="sheet"><span class="tag">люди</span><h3>Заголовок шпаргалки</h3><div class="bar-line w90" style="margin:0 0 6px"></div><div class="bar-line" style="margin:0"></div></div>
+        <div class="sheet"><span class="tag">цифры</span><h3>Заголовок шпаргалки</h3><div class="bar-line w60" style="margin:0 0 6px"></div><div class="bar-line w80" style="margin:0"></div></div>
+      </div>
+    </section>
+
+    <!-- ПРОГРЕСС -->
+    <section class="pane" id="pane-progress">
+      <table class="ptable">
+        <thead><tr><th>Кто</th><th>Последний вход</th><th>Уроки</th><th>Практики</th><th>XP</th><th>Прогресс</th></tr></thead>
+        <tbody>
+          <tr><td data-l="Кто"><span class="who"><span class="ava">А</span>Абрамов</span></td><td data-l="Вход">сегодня, 18:20</td><td data-l="Уроки">12 / 12</td><td data-l="Практики">34</td><td data-l="XP">420</td><td data-l="Прогресс"><span class="mini"><i style="width:92%"></i></span></td></tr>
+          <tr><td data-l="Кто"><span class="who"><span class="ava">Н</span>Настя</span></td><td data-l="Вход">вчера, 11:05</td><td data-l="Уроки">8 / 12</td><td data-l="Практики">19</td><td data-l="XP">260</td><td data-l="Прогресс"><span class="mini"><i style="width:64%"></i></span></td></tr>
+          <tr><td data-l="Кто"><span class="who"><span class="ava">Г</span>Галя</span></td><td data-l="Вход">3 дня назад</td><td data-l="Уроки">5 / 12</td><td data-l="Практики">11</td><td data-l="XP">140</td><td data-l="Прогресс"><span class="mini"><i style="width:38%"></i></span></td></tr>
+          <tr><td data-l="Кто"><span class="who"><span class="ava">С</span>Саша</span></td><td data-l="Вход">неделю назад</td><td data-l="Уроки">2 / 12</td><td data-l="Практики">3</td><td data-l="XP">45</td><td data-l="Прогресс"><span class="mini"><i style="width:15%"></i></span></td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="on" data-tab="program"><span class="ic">▤</span>Программа</button>
+    <button data-tab="theory"><span class="ic">📖</span>Теория</button>
+    <button data-tab="practice"><span class="ic">✎</span>Практика</button>
+    <button data-tab="cheats"><span class="ic">⚑</span>Шпаргалки</button>
+    <button data-tab="progress"><span class="ic">◔</span>Прогресс</button>
+  </nav>
+</div>
+
+<script>
+const titles={program:'Программа',theory:'Теория',practice:'Практика',cheats:'Шпаргалки',progress:'Прогресс'};
+function go(tab){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pane-'+tab).classList.add('on');
+  document.querySelectorAll('#nav button,#tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  document.getElementById('title').textContent=titles[tab];
+  document.getElementById('railBtn').style.display = tab==='theory' ? '' : 'none';
+}
+document.querySelectorAll('#nav button,#tabbar button').forEach(b=>b.onclick=()=>go(b.dataset.tab));
+document.getElementById('railBtn').onclick=()=>document.getElementById('rail').classList.toggle('open');
+go('program');
+</script>
+</body>
+</html>
