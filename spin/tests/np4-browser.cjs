@@ -119,8 +119,25 @@ const fs = require('node:fs');
   });
   assert.equal(stored.user,'reviewer','Wrong test account');
   assert.ok(stored.done.includes(0),'Lesson completion not persisted locally');
+  const swState=await offlinePage.evaluate(async()=>{
+    const reg=await navigator.serviceWorker.ready;
+    const keys=await caches.keys();
+    return {
+      path:location.pathname,
+      controller:navigator.serviceWorker.controller?.scriptURL||null,
+      active:reg.active?.state||null,scope:reg.scope,
+      cacheKeys:keys,
+      cacheEntry:!!(await(await caches.open('spin-cache-4.0.0-offline')).match('./index.4.0.0.html'))
+    };
+  });
+  console.log('OFFLINE DIAGNOSTIC',JSON.stringify(swState));
   await offlineContext.setOffline(true);
-  await offlinePage.reload({waitUntil:'domcontentloaded',timeout:15000});
+  try {
+    await offlinePage.reload({waitUntil:'domcontentloaded',timeout:15000});
+  } catch(e) {
+    console.error('OFFLINE RELOAD ERROR',e.message,'url',offlinePage.url(),JSON.stringify(swState));
+    throw e;
+  }
   await offlinePage.locator('#theory.view.active').waitFor({timeout:15000});
   assert.equal(await offlinePage.locator('#theoryBody #lessonComplete').isChecked(),true,'Offline reload lost saved lesson');
   await offlinePage.locator('.mobile-nav [data-tab="extras"]').click();
