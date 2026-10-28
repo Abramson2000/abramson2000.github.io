@@ -132,7 +132,7 @@ function pluralN(n, forms) { // forms: [1, 2, 5] → «1 курс», «2 кур�
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return forms[1];
   return forms[2];
 }
-const REVIEW_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).get('review') === '1'; // ?review=1 — режим проверки: все уроки открыты без входа
+const REVIEW_MODE = typeof location !== 'undefined' && ['127.0.0.1','localhost'].includes(location.hostname) && new URLSearchParams(location.search).get('review') === '1'; // тестовый режим доступен только локальному стенду, не публичному сайту
 function seqOk(doneArr, ei) { // урок ei доступен, если пройдены все предыдущие (цепочка)
   if (REVIEW_MODE) return true;
   const m = doneArr.length ? Math.max.apply(null, doneArr) : -1;
