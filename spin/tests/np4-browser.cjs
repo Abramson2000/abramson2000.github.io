@@ -81,6 +81,38 @@ const fs = require('node:fs');
   assert.equal(await page.locator('#loginPass').count(),1,'Password field missing');
   await context.close();
   console.log('PASS login screen visible without review param');
+  // Offline PWA: verify first-run precache, versioned JS/CSS lookup, and saved local lesson state.
+  const offlineContext=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'allow'});
+  const offlinePage=await offlineContext.newPage();
+  await offlinePage.goto('http://127.0.0.1:8765/spin/index.4.0.0.html?review=1',{waitUntil:'domcontentloaded'});
+  await offlinePage.locator('#program.view.active').waitFor({timeout:15000});
+  await offlinePage.waitForFunction(async()=>{
+    if (!navigator.serviceWorker?.controller) return false;
+    const cache=await caches.open('spin-cache-4.0.0-offline');
+    return Boolean(await cache.match('./index.4.0.0.html')) &&
+           Boolean(await cache.match('./app.4.0.0.js')) &&
+           Boolean(await cache.match('./design-4.0.css'));
+  },null,{timeout:60000});
+  await offlinePage.locator('.mobile-nav [data-tab="theory"]').click();
+  const firstLesson=offlinePage.locator('#theoryBody #lessonComplete');
+  assert.equal(await firstLesson.count(),1,'Lesson completion control missing');
+  await offlinePage.locator('#theoryBody .complete-check').first().click();
+  assert.equal(await offlinePage.locator('#theoryBody #lessonComplete').isChecked(),true,'Completion not saved');
+  const stored=await offlinePage.evaluate(()=>{
+    const user=JSON.parse(localStorage.getItem('spin-user')||'{}');
+    const state=JSON.parse(localStorage.getItem('spin-lab-v1:'+user.id)||'{}');
+    return {user:user.id,done:state.done||[]};
+  });
+  assert.equal(stored.user,'reviewer','Wrong test account');
+  assert.ok(stored.done.includes(0),'Lesson completion not persisted locally');
+  await offlineContext.setOffline(true);
+  await offlinePage.reload({waitUntil:'domcontentloaded',timeout:15000});
+  await offlinePage.locator('#theory.view.active').waitFor({timeout:15000});
+  assert.equal(await offlinePage.locator('#theoryBody #lessonComplete').isChecked(),true,'Offline reload lost saved lesson');
+  await offlinePage.locator('.mobile-nav [data-tab="extras"]').click();
+  await offlinePage.locator('#extras.view.active').waitFor({timeout:10000});
+  await offlineContext.close();
+  console.log('PASS offline PWA reload: JS/CSS from cache, saved lesson restored, extras available');
   if (failures.length) throw new Error('Responsive layout failures:\\n'+failures.join('\\n'));
  }catch(error){
   console.error('FAIL',error.stack||error.message);
