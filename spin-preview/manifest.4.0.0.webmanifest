@@ -1,0 +1,31 @@
+{
+  "id": "/spin-preview/",
+  "name": "Навыки продаж 4.0 — ТЕСТ",
+  "short_name": "НП 4.0 тест",
+  "lang": "ru",
+  "start_url": "/spin-preview/",
+  "scope": "/spin-preview/",
+  "display": "standalone",
+  "background_color": "#FFF9EB",
+  "theme_color": "#FFF9EB",
+  "icons": [
+    {
+      "src": "./np40/logo_square_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./np40/logo_square_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./np40/logo_square_maskable_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
