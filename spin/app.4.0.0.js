@@ -173,7 +173,7 @@ const S = {
   lesson: 0,
   pTab: null,     // внутри Практики: 'selfcheck' | 'trainer' | 'cases' (null = дефолт по роли)
   done: [],            // индексы уроков
-  practiced: [],       // уроки, где практика «Проверь себя» отвечена до конца
+  practiced: [],       // уроки, где Самопроверка отвечена до конца
   spPracticed: [],     // практики уроков курса 1а SPICED (до конца)
   medPracticed: [],    // практики уроков курса 1B MEDDPICC (до конца)
   proPracticed: [],    // практики уроков курса 5 ProActive (до конца)
@@ -185,7 +185,7 @@ const S = {
   spicedDone: [],        // изученные уроки SPICED — курс 1а (локально, не в облаке)
   proDone: [],           // изученные уроки ProActive — курс 5 (локально, не в облаке)
   xDone: {},             // доп-курсы (x4): пройденные уроки { id: [индексы уроков] } (локально + облако)
-  scStat: {},            // практики «Проверь себя»: { id: { a: [отвеченные вопросы], r: [верные] } } (локально + облако)
+  scStat: {},            // задания «Самопроверки»: { id: { a: [отвеченные вопросы], r: [верные] } } (локально + облако)
   // тренажёр
   tMode: null, tIdx: 0, tPick: null, tScore: 0, tOrder: [], tOrderIdx: [], tRev: false,
   trn: {},               // прогресс тренажёра по режимам: { mode: { ord:[индексы], i, sc, done, wrong:[] } } (локально + облако)
@@ -806,7 +806,7 @@ function xpBackfill(hadCloud) { // одноразовая компенсация
     const KEY = 'spin-xp-backfill:' + USER.id;
     if (localStorage.getItem(KEY)) return;
     let bonus = 0;
-    bonus += (S.practiced || []).length * 5;    // практики «Проверь себя» основных уроков
+    bonus += (S.practiced || []).length * 5;    // задания «Самопроверки» основных уроков
     bonus += (S.spPracticed || []).length * 5;  // практики курса 1а SPICED
     bonus += (S.medPracticed || []).length * 5; // практики курса 1B MEDDPICC
     bonus += (S.proPracticed || []).length * 5;  // практики курса 5 ProActive
@@ -1609,7 +1609,7 @@ function renderTheory() {
   const kicker = mode === 'spiced' ? 'КУРС 1А · SPICED · УРОК ' + (i + 1) + ' ИЗ ' + SPICED.length : mode === 'med' ? 'КУРС MEDDPICC · УРОК ' + (i + 1) + ' ИЗ ' + MED.length : mode === 'extra' ? (xMode ? 'ДОПОЛНИТЕЛЬНО · УЧЕБНЫЙ КУРС · УРОК ' + (xb + 1) + ' ИЗ ' + l.blocks.length : (EXTRA[i].course ? 'ДОПОЛНИТЕЛЬНО · УЧЕБНЫЙ КУРС' : 'ДОПОЛНИТЕЛЬНО · ВЫЖИМКА ИЗ КНИГИ')) : mode === 'pro' ? 'КУРС 5 · ПРОАКТИВНЫЕ ПРОДАЖИ · УРОК ' + (i + 1) + ' ИЗ ' + PRO.length : 'КУРС ' + (co.idx + 1) + ' · УРОК ' + co.num + ' ИЗ ' + co.len;
   const railTitle = mode === 'spiced' ? 'Расширение СПИН' : mode === 'med' ? 'Квалификация сделки' : mode === 'extra' ? 'Дополнительные уроки' : mode === 'pro' ? 'Проактивные продажи' : 'Уроки курсов';
   const railEyebrow = mode === 'spiced' ? 'SPICED · КУРС 1А' : mode === 'med' ? 'MEDDPICC' : mode === 'extra' ? 'ДОПОЛНИТЕЛЬНО' : mode === 'pro' ? 'PROACTIVE · КУРС 5' : 'ПРОГРАММА';
-  // галочка «Урок изучен» — ставится после блока «Запомнить» и ПЕРЕД «Проверь себя»
+  // галочка «Урок изучен» — ставится после блока «Запомнить» и ПЕРЕД «Самопроверка»
   const chkState = (mode === 'extra') ? (xMode ? xIsDone(l.id, xb) : S.extraDone.includes(i)) : done;
   const chkLabel = (mode === 'extra' && !xMode) ? (chkState ? 'Изучено ✓' : 'Отметить изученным')
     : (mode === 'main' ? (chkState ? 'Урок пройден ✓' : 'Урок изучен')
@@ -1682,7 +1682,7 @@ function renderTheory() {
                ? `<button class="primary-button" id="nextBtn" data-next="${i + 1}" ${hasP ? '' : 'disabled'}>Следующий урок <span>→</span></button>`
                : `<button class="primary-button" id="nextBtn" data-jump="progress" ${hasP ? '' : 'disabled'}>К прогрессу <span>→</span></button>`}`}
       </div>
-      ${mode === 'main' ? (hasP ? '' : '<p class="next-hint">Сначала ответьте на все вопросы практики «Проверь себя» — тогда откроется следующий урок.</p>') : ''}
+      ${mode === 'main' ? (hasP ? '' : '<p class="next-hint">Сначала ответьте на все вопросы самопроверки — тогда откроется следующий урок.</p>') : ''}
     </article>`;
   const restoredRail = lessonRoot.querySelector('.lesson-rail');
   if (restoredRail) restoredRail.scrollTop = previousRailScroll;
@@ -1835,7 +1835,7 @@ function practiceHtml(l, i, done) {
   const total = l.practice.length;
   const n = pState.i + 1;
   return `
-    <h2 class="content-heading">Проверь себя · ${n} из ${total}</h2>
+    <h2 class="content-heading">Самопроверка · ${n} из ${total}</h2>
     <div class="question-levels" id="pArea">
       <div class="level-card" style="grid-template-columns:1fr;gap:10px">
         <p style="font-weight:800;color:var(--ink);font-size:17px">${esc(q.q)}</p>
@@ -1904,7 +1904,7 @@ function renderPractice() {
   b.innerHTML = `
     <div class="practice-head">
       <div class="seg-control">
-        <button class="${tab === 'selfcheck' ? 'active' : ''}" data-ptab="selfcheck">Проверь себя</button>
+        <button class="${tab === 'selfcheck' ? 'active' : ''}" data-ptab="selfcheck">Самопроверка</button>
         <button class="${tab === 'trainer' ? 'active' : ''}" data-ptab="trainer">Тренажёр</button>
         <button class="${tab === 'cases' ? 'active' : ''}" data-ptab="cases">Кейсы</button>
       </div>
@@ -2340,7 +2340,7 @@ function renderCases() {
 }
 
 // ============ ПРОВЕРЬ СЕБЯ (практики курсов) ============
-// Собирает все поурочные практики «Проверь себя» по курсам и запускает их из вкладки «Практика».
+// Собирает все поурочные задания «Самопроверки» по курсам и запускает их из вкладки «Практика».
 function selfCheckCatalog() {
   const isBoss = USER && USER.email === BOSS_EMAIL;
   const cat = [];
@@ -2369,7 +2369,7 @@ function selfCheckCatalog() {
     x4.blocks.map((b, i) => ({ num: i + 1, title: b.h, qs: b.practice || [] })), true);
   return cat;
 }
-// Куда вернуться в практике «Проверь себя»: первый неотвеченный вопрос (ответы уже помечены)
+// Куда вернуться в практике «Самопроверка»: первый неотвеченный вопрос (ответы уже помечены)
 function scResume(id, total) {
   const st = scStatOf(id);
   const answered = new Set((st.a || []).map(Number));
@@ -2384,7 +2384,7 @@ function scMark(id, qi, ok) { // отмечаем ответ на вопрос �
   if (!st.a.includes(qi)) st.a.push(qi);
   if (ok && !st.r.includes(qi)) st.r.push(qi);
 }
-// Переносим в отметки «Проверь себя» то, что уже отработано в уроках (объединением, никогда не стираем).
+// Переносим в отметки «Самопроверка» то, что уже отработано в уроках (объединением, никогда не стираем).
 function scBackfill() {
   if (!S.scStat) S.scStat = {};
   const mark = (id, from, to) => {
@@ -2594,7 +2594,7 @@ function pmCardHtml(name, sub, pDone, pTotal, modes, cDone, cTotal, ptogo) {
   const cPct = cTotal ? Math.round((cDone / cTotal) * 100) : 0;
   return `<article class="pm-card">
     <div class="pm-head"><strong>${esc(name)}</strong><span>${esc(sub)}</span></div>
-    ${pTotal ? `<div class="pm-line clickable" data-ptogo="${ptogo}" title="Открыть практику «Проверь себя» — она в конце урока"><span>✍️ практика «Проверь себя»</span><b>${pDone} из ${pTotal}</b><i class="pm-track"><em style="width:${pPct}%"></em></i></div>` : ''}
+    ${pTotal ? `<div class="pm-line clickable" data-ptogo="${ptogo}" title="Открыть самопроверку — она в конце урока"><span>✍️ Самопроверка</span><b>${pDone} из ${pTotal}</b><i class="pm-track"><em style="width:${pPct}%"></em></i></div>` : ''}
     ${modes.length ? `<div class="pm-line clickable" data-pjump="trainer" title="Открыть тренажёр"><span>🎯 тренажёр</span><b>${modes.length} ${pluralN(modes.length, ['режим', 'режима', 'режимов'])}</b><i class="pm-note">${esc(modes.map((m) => MODE_NAME[m]).join(' · '))}</i></div>` : ''}
     ${cTotal ? `<div class="pm-line clickable" data-pjump="cases" title="Открыть кейсы"><span>🧩 кейсы</span><b>${cDone} из ${cTotal}</b><i class="pm-track"><em style="width:${cPct}%"></em></i></div>` : ''}
   </article>`;
@@ -2739,7 +2739,7 @@ function renderProgress() {
     <div class="course-progress-grid">
       ${progCourseCardsHtml()}
     </div>
-    <div class="section-title-row" style="margin-top:26px"><div><h2>Практика и кейсы</h2><p>закрепление по каждому методу: практики «Проверь себя», тренажёр, разборы встреч</p></div></div>
+    <div class="section-title-row" style="margin-top:26px"><div><h2>Практика и кейсы</h2><p>закрепление по каждому методу: задания «Самопроверки», тренажёр, разборы встреч</p></div></div>
     <div class="pm-grid">
       ${pmCardsHtml()}
     </div>
@@ -2791,7 +2791,7 @@ function renderProgress() {
   $('progressBody').querySelectorAll('[data-progo]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.progo; curMed = null; curSpiced = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-xgo]').forEach((b) => b.addEventListener('click', () => { const xi = +b.dataset.xgo; curExtra = xi; curXb = xEntry(EXTRA[xi]); curMed = null; curSpiced = null; curPro = null; save(); npExtrasOpen = true; switchTab('extras'); window.scrollTo({ top: 0 }); }));
   $('progressBody').querySelectorAll('[data-xmod]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); openXMod(b.dataset.xmod); }));
-  // «✍️ практика „Проверь себя“» в карточке курса — открывает урок с практикой и прокручивает к ней
+  // «✍️ практика „Самопроверка“» в карточке курса — открывает урок с практикой и прокручивает к ней
   $('progressBody').querySelectorAll('[data-ptogo]').forEach((b) => b.addEventListener('click', () => {
     const [m, i] = b.dataset.ptogo.split(':');
     const idx = +i;
