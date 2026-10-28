@@ -174,3 +174,63 @@ body { padding-top: 28px; }
   body { padding-top:28px; }
   #np-preview-banner { font-size:10px; line-height:16px; min-height:28px; }
 }
+
+/* NP 4.0 — desktop scenic canvas, not a decorative top image.
+   The underlying seven approved assets are untouched; mobile keeps its banner. */
+@media (min-width:761px) {
+  .view {
+    position:relative;
+    isolation:isolate;
+    box-sizing:border-box;
+    min-height:calc(100vh - 58px);
+    max-width:none;
+  }
+  .view::before {
+    content:"";
+    position:fixed;
+    display:block;
+    top:86px;
+    bottom:0;
+    left:216px;
+    right:0;
+    height:auto;
+    width:auto;
+    max-width:none;
+    margin:0;
+    border:0;
+    border-radius:0;
+    background-size:cover;
+    background-position:center 53%;
+    background-repeat:no-repeat;
+    z-index:0;
+    pointer-events:none;
+  }
+  .view > * {position:relative;z-index:1;}
+  .lesson-rail {
+    background:rgba(255,253,248,.94);
+    border:1px solid var(--np-line);
+    border-radius:12px;
+    padding:15px;
+    box-sizing:border-box;
+  }
+  .lesson-content,
+  .module-card,
+  .np-extra-entry,
+  .skill-map,
+  .recommendation-card,
+  .account-card,
+  .case-card,
+  .continue-card {
+    background-color:rgba(255,255,255,.96);
+    backdrop-filter:none;
+  }
+  #program.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/01_program_everest.webp");}
+  #theory.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/02_theory_kailash.webp");}
+  #extras.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/03_extras_yamdrok.webp");}
+  #practice.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/04_practice_namtso.webp");}
+  #cheat.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/05_cheatsheets_shangrila.webp");}
+  #progress.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/06_progress_drepung_stupa.webp");}
+}
+@media (min-width:761px) and (max-width:1050px) {
+  .view::before {left:190px;}
+}
