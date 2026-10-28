@@ -21,6 +21,11 @@ for(const id of tabs)assert.match(html,new RegExp('<section id="'+id+'" class="v
 assert.match(script,/function renderExtras\(/);
 assert.match(script,/function renderTheory\(/);
 assert.match(script,/npCourseSelect/);
+assert.ok(script.includes('data-ptab="selfcheck">Самопроверка</button>'), 'Self-check tab must be named Самопроверка');
+assert.ok(!script.includes('Проверь себя'), 'Outdated user-facing text found');
+assert.ok(styles.includes('#practice .cases-grid .case-card'), 'Case mobile cards lack compact layout');
+assert.ok(styles.includes('#practice .cases-grid .case-card h2'), 'Case mobile headers not resized');
+
 assert.ok(script.includes("const APP_VER = '4.0.0'"));
 assert.match(script,/npRememberTheoryLocation/);
 assert.match(script,/npRestoreTheoryLocation/);
