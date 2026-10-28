@@ -1570,7 +1570,7 @@ function renderTheory() {
           <span>${gi + 1}</span><div><strong>${esc(ll.title)}</strong><small>${esc(ll.mins)}</small></div>${done ? '<b>✓</b>' : locked ? '<b>🔒</b>' : ''}
         </button>`;
       }).join('');
-      const spicedRail = (gi === 0 && SPICED.length) ? `<div class="lesson-group-label"><span>Курс 1а</span>SPICED</div>` + SPICED.map((ll, ei) => {
+      const spicedRail = (COURSES.indexOf(g) === 0 && SPICED.length) ? `<div class="lesson-group-label"><span>Курс 1а</span>SPICED</div>` + SPICED.map((ll, ei) => {
         const d = S.spicedDone.includes(ei);
         const open = seqOk(S.spicedDone, ei);
         const locked = !d && !open;
