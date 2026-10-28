@@ -1179,6 +1179,8 @@ function syncChrome() {
 
 // ============ Вкладки ============
 function switchTab(tab) {
+  if (tab === 'extras') { const old = $('theoryBody'); if (old) old.innerHTML = ''; }
+  if (tab === 'theory') { const old = $('extrasBody'); if (old) old.innerHTML = ''; }
   S.tab = tab;
   if (USER) { try { const r = JSON.parse(localStorage.getItem(LS_KEY)) || {}; r.tab = tab; localStorage.setItem(LS_KEY, JSON.stringify(r)); } catch (e) {} }
   document.querySelectorAll('.nav-item, .mobile-nav button').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
@@ -1467,8 +1469,9 @@ let npExtrasOpen = false;
 function renderExtras() {
   refreshExtra();
   const root = $('extrasBody'); if (!root) return;
-  if (npExtrasOpen && curExtra !== null && EXTRA[curExtra]) { renderTheory(); return; }
+  if (npExtrasOpen && curExtra !== null && EXTRA[curExtra]) { root.classList.remove('np-extras-catalog'); renderTheory(); return; }
   npExtrasOpen = false;
+  root.classList.add('np-extras-catalog');
   const cards = EXTRA.map((x,i) => {
     const p = x.course && x.blocks ? xProgress(x) : null;
     const done = p ? p.full : S.extraDone.includes(i);
