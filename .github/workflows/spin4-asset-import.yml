@@ -27,5 +27,5 @@ jobs:
           git rm spin/np40-approved-assets.zip
           if ! git diff --cached --quiet; then
             git commit -m "assets(spin): install approved seven landscapes and PWA logos"
-            git push
+            git push origin HEAD:feature/spin-4-0-design
           fi
