@@ -63,12 +63,13 @@ self.addEventListener('fetch',e=>{
   e.respondWith(shell());return;
  }
  e.respondWith((async()=>{
-  const cache=await caches.open(CACHE),hit=await cache.match(req)||await matchPrevious(req);
+  const cache=await caches.open(CACHE);
+  // Offline shell loads versioned URLs like app.4.0.0.js?v=4.0.0.
+  // CORE keys are saved without queries; for static assets match by pathname.
+  // Never ignore query parameters on dynamic API requests.
+  const isStatic=/\.(?:js|css|webmanifest|webp|png|jpg|html)$/.test(url.pathname);
+  const hit=await cache.match(req)||(isStatic?await cache.match(req,{ignoreSearch:true}):null)||await matchPrevious(req);
   if(hit)return hit;
-  // Image query aliases reference the same preserved artwork.
-  if(/\.(png|jpg)$/.test(url.pathname)){
-   const image=await cache.match(req,{ignoreSearch:true});if(image)return image;
-  }
   try{return await fetch(req);}catch(_){return Response.error();}
  })());
 });
