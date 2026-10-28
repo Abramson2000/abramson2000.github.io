@@ -143,3 +143,9 @@ h1,h2,h3 {color:var(--np-text)}
  #progress.view::before {background-image:url("./np40/mobile/06_progress_drepung_stupa_960.webp");}
  .login-screen {background-image:url("./np40/mobile/07_login_pagoda_960.webp");}
 }
+
+/* Compact three-way practice selector on 320px phones: no horizontal overflow. */
+@media(max-width:420px){
+  #practice .seg-control {display:flex;width:100%;max-width:100%;gap:2px;padding:3px;min-width:0;}
+  #practice .seg-control button {flex:1 1 0;min-width:0;padding:9px 4px;font-size:12px;line-height:1.25;white-space:normal;}
+}
