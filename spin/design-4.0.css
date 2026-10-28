@@ -130,3 +130,5 @@ h1,h2,h3 {color:var(--np-text)}
  .toast{bottom:calc(80px + env(safe-area-inset-bottom))}
 }
 @media(max-width:360px){.mobile-nav small{font-size:8px}.mobile-nav .nav-icon svg{width:19px;height:19px}}
+
+#extrasBody.np-extras-catalog {display:block;max-width:100%;}
