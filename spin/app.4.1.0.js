@@ -164,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.1.3'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '4.1.4'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -703,7 +703,7 @@ async function progressSession() {
 }
 async function spinApi(body) {
   const rest = SPIN_API_HOSTS.filter(h => h !== _spinApiGood);
-  const tries = (_spinApiGood ? [_spinApiGood] : ['/api/spin-progress']).concat(rest);
+  const tries = (_spinApiGood ? [_spinApiGood] : []).concat(rest);
   let last;
   for (const u of tries) {
     const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 8000);
