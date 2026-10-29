@@ -1,0 +1,291 @@
+/* SPIN v4.1.0 — visual layer, original 3.3 mechanics kept. */
+:root {
+ --np-bg:#FFF9EB; --np-surface:#FFFFFF; --np-soft:#FFF3D8; --np-text:#28241F;
+ --np-muted:#645B50; --np-line:#EADFCB; --np-amber:#94600B;
+ --np-action:#F2C45A; --np-amber-soft:#F6D17D; --np-success:#2E8755;
+ --ink:#28241F; --ink-2:#51402B; --green:#94600B; --lime:#F2C45A;
+ --lime-soft:#FFF0C2; --mint:#E9F4EC; --paper:#FFF9EB; --white:#FFFFFF;
+ --line:#EADFCB; --muted:#645B50; --shadow:0 5px 22px rgba(95,67,28,.065);
+ --radius:12px;
+}
+html {scroll-behavior:auto}
+body {color:var(--np-text);background:var(--np-bg);font-size:16px}
+:focus-visible {outline:2px solid var(--np-amber)!important;outline-offset:2px}
+.app-shell {grid-template-columns:216px minmax(0,1fr)}
+.sidebar {width:216px;padding:22px 14px 16px;background:#FFF6E4;color:#28241F;border-right:1px solid var(--np-line)}
+.brand {gap:8px;padding:8px}
+.brand-mark {background:transparent;border-radius:0;object-fit:contain}
+.brand strong {font-size:16px;color:var(--np-text);line-height:1.12;white-space:normal}
+.brand span:not(.brand-mark) {font-size:10px;color:var(--np-muted)}
+.sidebar-copy {color:var(--np-muted);font-size:10px}
+.nav-list {margin-top:30px;gap:3px}
+.nav-item {border-radius:10px;padding:10px 12px;color:#5D503D;font-size:14px;font-weight:600;gap:10px}
+.nav-item:hover {color:#28241F;background:#FFF0CD}
+.nav-item.active {background:#F6D17D;color:#392709;font-weight:800}
+.nav-icon svg {width:20px;height:20px;stroke-width:1.8}
+.profile-button,.profile-button:hover {color:#2C2925;background:transparent}
+.profile-button small,.chevron {color:var(--np-muted)}
+.main {min-width:0}
+.topbar {height:58px;background:rgba(255,249,235,.97);border-bottom-color:var(--np-line);backdrop-filter:none}
+.view {padding:22px clamp(18px,3.1vw,48px) 48px;max-width:1240px;animation:none}
+.view::before {
+ content:"";display:block;max-width:100%;height:160px;margin:0 0 20px;
+ border-radius:12px;border:1px solid var(--np-line);
+ background-color:var(--np-soft);background-position:center 46%;background-size:cover;background-repeat:no-repeat;
+}
+#program.view::before{background-image:url("./np40/01_program_everest.webp")}
+#theory.view::before{background-image:url("./np40/02_theory_kailash.webp")}
+#extras.view::before{background-image:url("./np40/03_extras_yamdrok.webp")}
+#practice.view::before{background-image:url("./np40/04_practice_namtso.webp")}
+#cheat.view::before{background-image:url("./np40/05_cheatsheets_shangrila.webp")}
+#progress.view::before{background-image:url("./np40/06_progress_drepung_stupa.webp")}
+h1,h2,h3 {color:var(--np-text)}
+.page-heading {margin-bottom:16px}
+.page-heading h1,.trainer-header h1 {font-size:clamp(28px,3vw,38px);line-height:1.13;letter-spacing:-.035em}
+.page-heading p,.page-heading>div>p:last-child{font-size:14px}
+.eyebrow,.lesson-kicker,.lesson-group-label{color:var(--np-amber)}
+.primary-button {background:var(--np-action);color:var(--np-text);box-shadow:none}
+.primary-button:hover {box-shadow:0 4px 12px rgba(152,100,10,.12);transform:none}
+.secondary-button{background:#fff;color:#423728}
+.dark-button{background:#624720;color:#fff}
+.continue-card {grid-template-columns:1fr;min-height:0;background:#fff;color:var(--np-text);border:1px solid var(--np-line);border-radius:12px;box-shadow:none}
+.continue-copy{padding:20px 22px}
+.continue-copy h2{font-size:clamp(19px,2.2vw,26px);line-height:1.2;color:var(--np-text);margin:10px 0}
+.continue-copy p{font-size:14px;color:var(--np-muted)}
+.continue-visual {display:none!important}
+.lesson-meta{color:var(--np-muted)}
+.module-tag{background:var(--np-soft);color:var(--np-amber)}
+.about-card {border-radius:12px!important;box-shadow:none!important}
+.module-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.module-card{min-height:0!important;padding:13px 15px;border-radius:11px;box-shadow:none;transition:none}
+.module-card.current{border:1px solid var(--np-line);box-shadow:none}
+.module-card:hover,.module-card.current:hover{transform:none}
+.module-card h3{margin:4px 0;font-size:15px;line-height:1.25}
+.module-card p{font-size:12px}
+.module-number {font-size:40px;top:-5px;right:12px;color:rgba(146,99,15,.12)}
+.module-icon {width:30px;height:30px;font-size:14px;background:var(--np-soft);color:var(--np-amber);border-radius:8px}
+.current .module-icon{background:var(--np-action);color:var(--np-text)}
+.module-footer{margin-top:9px}
+.module-progress{background:#F2ECE0}
+.module-progress i{background:var(--np-success)}
+.section-title-row{margin-top:20px;margin-bottom:12px}
+.section-title-row h2{font-size:20px}
+.overall-progress{max-width:240px}
+.lesson-layout{display:grid;grid-template-columns:minmax(210px,260px) minmax(0,760px);justify-content:space-between;gap:clamp(18px,3vw,44px)}
+.lesson-rail{top:76px;max-height:calc(100vh - 94px);overflow:auto;scrollbar-width:thin;overscroll-behavior:contain;min-width:0;padding:0 4px 12px 0}
+.lesson-rail h3{font-size:20px;margin:8px 0}
+.lesson-group-label{font-size:11px;margin:12px 0 3px}
+.lesson-list{display:block;min-width:0}
+.lesson-item{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:8px;text-align:left;align-items:center;padding:9px 8px;border-radius:8px}
+.lesson-item strong{font-size:12px;overflow-wrap:anywhere}
+.lesson-item small{font-size:10px;color:var(--np-muted)}
+.lesson-item>span{width:25px;height:25px}
+.lesson-item.active{background:#FFF0C2;color:#28241F}
+.lesson-content{min-width:0;background:#fff;padding:22px;border:1px solid var(--np-line);border-radius:12px}
+.lesson-content h1{font-size:clamp(26px,3vw,38px);line-height:1.2}
+.lesson-content p,.lesson-content li{line-height:1.6}
+.np-course-select,.np-extra-select{width:100%;padding:11px 12px;border:1px solid var(--np-line);border-radius:9px;color:var(--np-text);background:#fff;font-size:14px;margin:4px 0 12px}
+.np-rail-toggle{display:none}
+.np-extra-entries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.np-extra-entry{border:1px solid var(--np-line);border-radius:10px;background:#fff;text-align:left;padding:16px;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.np-extra-entry:hover{background:#FFF4DE}
+.np-extra-entry strong{font-size:16px}.np-extra-entry small{color:var(--np-muted);font-size:12px}
+.np-back-to-list{border:0;background:transparent;color:var(--np-amber);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px}
+.stats-grid article,.skill-map,.recommendation-card,.quick-extra,.extra-course,.about-card{box-shadow:none;border-color:var(--np-line);border-radius:12px}
+.login-screen {background:#FFF9EB url("./np40/07_login_pagoda.webp") center center / cover no-repeat}
+.login-card{background:rgba(255,255,255,.97);box-shadow:0 14px 44px rgba(74,55,26,.1);border-radius:16px;border:1px solid var(--np-line)}
+.login-logo{width:74px;height:74px;border-radius:14px}
+.login-card h1{color:var(--np-text)}
+.login-ver b {color:var(--np-amber)}
+@media(max-width:1050px){.app-shell{grid-template-columns:190px minmax(0,1fr)}.sidebar{width:190px}.module-grid{grid-template-columns:1fr}}
+@media(max-width:760px){
+ body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+ .app-shell{display:block}.sidebar{display:none}
+ .view{padding:14px 14px 28px}
+ .view::before{height:112px;margin-bottom:14px;border-radius:10px}
+ .topbar{height:55px;padding:0 13px}
+ .mobile-brand strong{font-size:16px}
+ .module-grid,.np-extra-entries{grid-template-columns:1fr}
+ .module-card{padding:11px 12px}
+ .module-card h3{font-size:14px}
+ .continue-copy{padding:16px}
+ .continue-card{min-height:0}
+ .lesson-layout{display:block}
+ .lesson-rail{position:static;max-height:none;overflow:visible;margin-bottom:12px;padding:0}
+ .lesson-rail h3{margin:5px 0}
+ .lesson-rail .lesson-list{display:none}
+ .lesson-rail.np-rail-open .lesson-list{display:block}
+ .lesson-rail .lesson-item{display:grid;grid-template-columns:26px minmax(0,1fr) auto;place-items:unset;text-align:left;padding:10px 8px}
+ .lesson-rail .lesson-item div,.lesson-rail .lesson-item b{display:block}
+ .lesson-rail .lesson-group-label{display:flex}
+ .np-rail-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--np-line);border-radius:9px;padding:11px 12px;color:var(--np-text);font-weight:700;margin-bottom:10px}
+ .lesson-content{padding:17px 15px}
+ .lesson-content h1{font-size:27px}
+ .mobile-nav{height:calc(69px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;padding:5px 3px calc(4px + env(safe-area-inset-bottom));background:#FFF9EB;border-top:1px solid var(--np-line);backdrop-filter:none}
+ .mobile-nav button{min-width:0;gap:3px;padding:4px 0;display:flex;flex-direction:column;justify-content:center;align-items:center;border:0;border-radius:0;position:relative;color:#594B3A}
+ .mobile-nav .nav-icon svg{width:21px;height:21px;stroke-width:1.75}
+ .mobile-nav small{font-size:clamp(8px,2.25vw,10px);letter-spacing:-.04em;white-space:nowrap;line-height:1.18;font-weight:600}
+ .mobile-nav button.active{color:var(--np-amber);font-weight:800}
+ .mobile-nav button.active::after{content:"";position:absolute;bottom:0;height:3px;width:26px;border-radius:2px;background:#D89416}
+ .toast{bottom:calc(80px + env(safe-area-inset-bottom))}
+}
+@media(max-width:360px){.mobile-nav small{font-size:8px}.mobile-nav .nav-icon svg{width:19px;height:19px}}
+
+#extrasBody.np-extras-catalog {display:block;max-width:100%;}
+
+/* Mobile crops are approved resized versions, not new artwork. */
+@media(max-width:760px){
+ #program.view::before {background-image:url("./np40/mobile/01_program_everest_960.webp");}
+ #theory.view::before {background-image:url("./np40/mobile/02_theory_kailash_960.webp");}
+ #extras.view::before {background-image:url("./np40/mobile/03_extras_yamdrok_960.webp");}
+ #practice.view::before {background-image:url("./np40/mobile/04_practice_namtso_960.webp");}
+ #cheat.view::before {background-image:url("./np40/mobile/05_cheatsheets_shangrila_960.webp");}
+ #progress.view::before {background-image:url("./np40/mobile/06_progress_drepung_stupa_960.webp");}
+ .login-screen {background-image:url("./np40/mobile/07_login_pagoda_960.webp");}
+}
+
+/* Compact three-way practice selector on 320px phones: no horizontal overflow. */
+@media(max-width:420px){
+  #practice .seg-control {display:flex;width:100%;max-width:100%;gap:2px;padding:3px;min-width:0;}
+  #practice .seg-control button {flex:1 1 0;min-width:0;padding:9px 4px;font-size:12px;line-height:1.25;white-space:normal;}
+}
+
+/* Progress cards must shrink to narrow phone viewports instead of expanding the grid. */
+@media(max-width:760px){
+  #progress .progress-lower {grid-template-columns:minmax(0,1fr);min-width:0;}
+  #progress .progress-lower > * {min-width:0;max-width:100%;width:100%;}
+  #progress .skill-map,
+  #progress .recommendation-card,
+  #progress .account-card {min-width:0;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;padding:18px 15px;}
+  #progress .card-heading {min-width:0;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  #progress .account-row,
+  #progress .feedback-actions {min-width:0;flex-wrap:wrap;}
+}
+
+
+/* NP 4.0 — desktop scenic canvas, not a decorative top image.
+   The underlying seven approved assets are untouched; mobile keeps its banner. */
+@media (min-width:761px) {
+  .view {
+    position:relative;
+    isolation:isolate;
+    box-sizing:border-box;
+    min-height:calc(100vh - 58px);
+    max-width:none;
+  }
+  .view::before {
+    content:"";
+    position:fixed;
+    display:block;
+    top:58px;
+    bottom:0;
+    left:216px;
+    right:0;
+    height:auto;
+    width:auto;
+    max-width:none;
+    margin:0;
+    border:0;
+    border-radius:0;
+    background-size:cover;
+    background-position:center 53%;
+    background-repeat:no-repeat;
+    z-index:0;
+    pointer-events:none;
+  }
+  .view > * {position:relative;z-index:1;}
+  .lesson-rail {
+    background:rgba(255,253,248,.94);
+    border:1px solid var(--np-line);
+    border-radius:12px;
+    padding:15px;
+    box-sizing:border-box;
+  }
+  .lesson-content,
+  .module-card,
+  .np-extra-entry,
+  .skill-map,
+  .recommendation-card,
+  .account-card,
+  .case-card,
+  .continue-card {
+    background-color:rgba(255,255,255,.96);
+    backdrop-filter:none;
+  }
+  #program.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/01_program_everest.webp");}
+  #theory.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/02_theory_kailash.webp");}
+  #extras.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/03_extras_yamdrok.webp");}
+  #practice.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/04_practice_namtso.webp");}
+  #cheat.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/05_cheatsheets_shangrila.webp");}
+  #progress.view::before {background-image:linear-gradient(90deg,rgba(255,249,235,.73),rgba(255,249,235,.53) 52%,rgba(255,249,235,.39)),url("./np40/06_progress_drepung_stupa.webp");}
+}
+@media (min-width:761px) and (max-width:1050px) {
+  .view::before {left:190px;}
+}
+
+/* Mobile: the Cases catalog matches the compact Trainer and Self-check cards.
+   Only the catalog is affected; case simulation / answer screen is unchanged. */
+@media (max-width:760px) {
+  #practice .cases-grid {
+    grid-template-columns:minmax(0,1fr);
+    gap:8px;
+  }
+  #practice .cases-grid .case-card {
+    min-width:0;
+    padding:11px 12px;
+    border-radius:11px;
+    box-shadow:none;
+    transition:none;
+  }
+  #practice .cases-grid .case-card:hover {
+    transform:none;
+    box-shadow:none;
+  }
+  #practice .cases-grid .case-card-top {
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  #practice .cases-grid .case-card-top > span:first-child {
+    font-size:24px;
+    line-height:1;
+    font-weight:850;
+  }
+  #practice .cases-grid .difficulty {
+    font-size:10px;
+    line-height:1.2;
+    padding:4px 7px;
+    letter-spacing:0;
+  }
+  #practice .cases-grid .case-card h2 {
+    margin:7px 0 5px;
+    font-size:14px;
+    line-height:1.3;
+    letter-spacing:0;
+  }
+  #practice .cases-grid .case-card > p {
+    min-height:0;
+    margin:0;
+    font-size:12px;
+    line-height:1.45;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    overflow-wrap:anywhere;
+  }
+  #practice .cases-grid .case-tags {
+    flex-wrap:wrap;
+    gap:5px 10px;
+    margin:9px 0;
+    font-size:11px;
+    line-height:1.35;
+  }
+  #practice .cases-grid .case-open {
+    padding:9px 0 0;
+    margin:0;
+    font-size:12px;
+    line-height:1.3;
+    min-height:30px;
+    align-items:center;
+  }
+}
