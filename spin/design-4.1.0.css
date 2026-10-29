@@ -302,3 +302,11 @@ h1,h2,h3 {color:var(--np-text)}
   #theoryBody.np-swipe-out,
   #extrasBody.np-swipe-out{ transition:none; transform:none; opacity:1; }
 }
+
+/* 4.1.5 — страница урока: текст шире, ~60% экрана на ноутбуках и мониторах.
+   Было: контейнер 1240px, колонка текста 760px → на 1920 это ~40% экрана. */
+@media (min-width:1180px){
+  #theory.view, #extras.view{max-width:1540px}
+  .lesson-layout{grid-template-columns:minmax(210px,240px) minmax(0,1fr);gap:clamp(20px,2.2vw,36px);justify-content:start}
+  .lesson-content{max-width:1180px}
+}
