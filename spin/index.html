@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#173e2d" />
+  <meta name="theme-color" content="#FFF9EB" />
   <meta name="description" content="Учебная лаборатория навыков продаж: теория, практика, разборы и контроль прогресса." />
   <title>Навыки продаж — учебная лаборатория</title>
   <link rel="stylesheet" href="./styles.3.3.0.css?v=3.3.11" />
-  <link rel="icon" type="image/png" sizes="512x512" href="./emblem-np-solid.png?v=2" />
-  <link rel="apple-touch-icon" href="./emblem-np-solid.png?v=2" />
-  <link rel="manifest" href="./manifest.3.3.0.webmanifest" />
+  <link rel="stylesheet" href="./design-4.0.css?v=4.0.0" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./np40/logo_square_approved.png?v=4.0.0" />
+  <link rel="apple-touch-icon" href="./np40/apple-touch-icon-180.png?v=4.0.0" />
+  <link rel="manifest" href="./manifest.4.0.0.webmanifest" />
   <meta name="apple-mobile-web-app-title" content="Навыки продаж" />
 </head>
 <body>
   <div id="loginScreen" class="login-screen hidden">
     <div class="login-card">
-      <img class="login-logo" src="./emblem-np-solid.png" alt="" />
+      <img class="login-logo" src="./np40/logo_square_approved.png" alt="" />
       <h1>Навыки продаж</h1>
       <p class="login-sub">Учебная лаборатория · частная территория</p>
       <div class="field"><label>Логин</label><input id="loginEmail" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="напр. Козлов" /></div>
@@ -23,7 +24,7 @@
       <div id="loginErr" class="login-err"></div>
       <button class="primary-button login-btn" id="loginBtn">Войти</button>
       <button class="offline-hint" id="offlineHintBtn">✈️ Работает в полёте</button>
-      <p class="login-ver">версия <b>3.3.7</b> · прогресс уходит в облако</p>
+      <p class="login-ver">версия <b>4.0.0</b> · прогресс уходит в облако</p>
     </div>
   </div>
 
@@ -62,31 +63,16 @@
 
   <div class="app-shell" id="appShell">
     <aside class="sidebar" aria-label="Основная навигация">
-      <div class="brand">
-        <img class="brand-mark" src="./emblem-np.png" width="48" height="48" alt="" />
-        <div>
-          <strong>Навыки продаж</strong>
-          <span>учебная лаборатория</span>
-        </div>
-      </div>
-      <div class="sidebar-copy" id="sideVer">v.3.3.7 · © Abramson</div>
+      <div class="brand"><img src="./np40/logo_horizontal_approved.png" width="176" height="58" style="max-width:100%;height:auto;object-fit:contain" alt="Навыки продаж" /></div>
+      <div class="sidebar-copy" id="sideVer">v.4.0.0 · © Abramson</div>
 
       <nav class="nav-list">
-        <button class="nav-item active" data-tab="program">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></span><span>Программа</span>
-        </button>
-        <button class="nav-item" data-tab="theory">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span>Теория</span>
-        </button>
-        <button class="nav-item" data-tab="practice">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><span>Практика</span>
-        </button>
-        <button class="nav-item" data-tab="cheat">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg></span><span>Шпаргалки</span>
-        </button>
-        <button class="nav-item" data-tab="progress">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>Прогресс</span>
-        </button>
+        <button class="nav-item active" data-tab="program"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.4 12 3.8l8.5 6.6V20a1 1 0 0 1-1 1h-5.2v-6.6H9.7V21H4.5a1 1 0 0 1-1-1z"/></svg></span><span>Программа</span></button>
+        <button class="nav-item" data-tab="theory"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2c-2.4-1.8-5.3-2.1-8.7-1.6a1 1 0 0 0-.8 1v13.6c3.8-.8 6.9-.2 9.5 1.8"/><path d="M12 6.2c2.4-1.8 5.3-2.1 8.7-1.6a1 1 0 0 1 .8 1v13.6c-3.8-.8-6.9-.2-9.5 1.8"/><path d="M12 6.2V21"/></svg></span><span>Теория</span></button>
+        <button class="nav-item" data-tab="extras"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.2 9.1 5.5L12 14.1 2.9 8.7 12 3.2Z"/><path d="m3.1 12.5 8.9 5.3 8.9-5.3"/><path d="m3.1 16.4 8.9 5.2 8.9-5.2"/></svg></span><span>Дополнения</span></button>
+        <button class="nav-item" data-tab="practice"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.7"/><circle cx="12" cy="12" r="5.1"/><circle cx="12" cy="12" r="1.4"/></svg></span><span>Практика</span></button>
+        <button class="nav-item" data-tab="cheat"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.7 2.9h7.6l3.3 3.3v14a1 1 0 0 1-1 1H6.7a1 1 0 0 1-1-1V3.9a1 1 0 0 1 1-1Z"/><path d="M14.2 2.9v3.6h3.4"/><path d="M8.5 10h6.9M8.5 13.5h6.9M8.5 17h5.0"/></svg></span><span>Шпаргалки</span></button>
+        <button class="nav-item" data-tab="progress"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.3v8.8h8.8"/><path d="M12 3.3a8.8 8.8 0 1 1-8.8 8.8"/><path d="M12 3.3a8.8 8.8 0 0 1 8.8 8.8"/></svg></span><span>Прогресс</span></button>
       </nav>
 
       <div class="sidebar-spacer"></div>
@@ -99,7 +85,7 @@
 
     <main class="main">
       <header class="topbar">
-        <div class="mobile-brand"><img class="brand-mark" src="./emblem-np.png" width="34" height="34" alt="" /><div class="mb-text"><strong>Навыки продаж</strong><small id="mobVer">v.3.3.7 · © Abramson</small></div></div>
+        <div class="mobile-brand"><img class="brand-mark" src="./np40/logo_square_approved.png" width="34" height="34" alt="" /><div class="mb-text"><strong>Навыки продаж</strong><small id="mobVer">v.4.0.0 · © Abramson</small></div></div>
         <div class="topbar-right">
           <div class="xp-pill"><span>⚡</span><strong id="xpValue">0</strong><span>XP</span></div>
           <button class="offline-pill" id="offlinePill" title="Работает в полёте — как установить" aria-label="Работает в полёте">✈️</button>
@@ -117,6 +103,9 @@
       <section id="theory" class="view" aria-labelledby="theory-title">
         <div id="theoryBody" class="lesson-layout"></div>
       </section>
+
+      <!-- ======= ДОПОЛНЕНИЯ ======= -->
+      <section id="extras" class="view" aria-labelledby="extras-title"><div id="extrasBody" class="lesson-layout"></div></section>
 
       <!-- ======= ПРАКТИКА (тренажёр + кейсы) ======= -->
       <section id="practice" class="view" aria-labelledby="practice-title">
@@ -136,11 +125,12 @@
   </div>
 
   <nav class="mobile-nav" aria-label="Навигация на мобильном">
-    <button class="active" data-tab="program"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></span><small>Программа</small></button>
-    <button data-tab="theory"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><small>Теория</small></button>
-    <button data-tab="practice"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><small>Практика</small></button>
-    <button data-tab="cheat"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg></span><small>Шпаргалки</small></button>
-    <button data-tab="progress"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><small>Прогресс</small></button>
+    <button class="active" data-tab="program"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.4 12 3.8l8.5 6.6V20a1 1 0 0 1-1 1h-5.2v-6.6H9.7V21H4.5a1 1 0 0 1-1-1z"/></svg></span><small>Программа</small></button>
+    <button data-tab="theory"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2c-2.4-1.8-5.3-2.1-8.7-1.6a1 1 0 0 0-.8 1v13.6c3.8-.8 6.9-.2 9.5 1.8"/><path d="M12 6.2c2.4-1.8 5.3-2.1 8.7-1.6a1 1 0 0 1 .8 1v13.6c-3.8-.8-6.9-.2-9.5 1.8"/><path d="M12 6.2V21"/></svg></span><small>Теория</small></button>
+    <button data-tab="extras"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.2 9.1 5.5L12 14.1 2.9 8.7 12 3.2Z"/><path d="m3.1 12.5 8.9 5.3 8.9-5.3"/><path d="m3.1 16.4 8.9 5.2 8.9-5.2"/></svg></span><small>Дополнения</small></button>
+    <button data-tab="practice"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.7"/><circle cx="12" cy="12" r="5.1"/><circle cx="12" cy="12" r="1.4"/></svg></span><small>Практика</small></button>
+    <button data-tab="cheat"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.7 2.9h7.6l3.3 3.3v14a1 1 0 0 1-1 1H6.7a1 1 0 0 1-1-1V3.9a1 1 0 0 1 1-1Z"/><path d="M14.2 2.9v3.6h3.4"/><path d="M8.5 10h6.9M8.5 13.5h6.9M8.5 17h5.0"/></svg></span><small>Шпаргалки</small></button>
+    <button data-tab="progress"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.3v8.8h8.8"/><path d="M12 3.3a8.8 8.8 0 1 1-8.8 8.8"/><path d="M12 3.3a8.8 8.8 0 0 1 8.8 8.8"/></svg></span><small>Прогресс</small></button>
   </nav>
 
   <div class="toast hidden" id="toast" role="status">Прогресс сохранён</div>
@@ -169,6 +159,6 @@
   <script defer src="./remote-sales-data.3.3.0.js?v=3.3.11"></script>
   <script defer src="./channel-sales-data.3.3.0.js?v=3.3.11"></script>
   <script defer src="./prolapse-data.3.3.0.js?v=3.3.11"></script>
-  <script defer src="./app.3.3.0.js?v=3.3.11"></script>
+  <script defer src="./app.4.0.0.js?v=4.0.0"></script>
 </body>
 </html>

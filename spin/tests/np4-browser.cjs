@@ -1,0 +1,152 @@
+'use strict';
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+(async()=>{
+ const browser=await chromium.launch({headless:true});
+ let failures=[];
+ fs.mkdirSync('spin/tests/screenshots',{recursive:true});
+ async function runScenario(width,height){
+  const context=await browser.newContext({viewport:{width,height},serviceWorkers:'block'});
+  const page=await context.newPage();
+  const runtimeErrors=[];
+  page.on('pageerror',e=>runtimeErrors.push(e.message));
+  await page.goto('http://127.0.0.1:8765/spin/index.4.0.0.html?review=1',{waitUntil:'domcontentloaded'});
+  await page.locator('#program.view.active').waitFor({timeout:15000});
+  const mobile=width<=760;
+  const nav=page.locator(mobile ? '.mobile-nav' : '.nav-list');
+  const labels=['Программа','Теория','Дополнения','Практика','Шпаргалки','Прогресс'];
+  for(const [i,name] of labels.entries()){
+   const btn=nav.locator('button').nth(i);
+   assert.equal(await btn.getAttribute('data-tab'),['program','theory','extras','practice','cheat','progress'][i]);
+   assert.ok(await btn.isVisible(), 'hidden nav button: '+name+' at '+width);
+  }
+  const backgrounds=['01_program_everest','02_theory_kailash','03_extras_yamdrok','04_practice_namtso','05_cheatsheets_shangrila','06_progress_drepung_stupa','07_login_pagoda'];
+  for(const name of backgrounds){
+    const url='/spin/np40/'+(mobile?'mobile/'+name+'_960':' '+name).trim()+'.webp';
+    const response=await page.request.get('http://127.0.0.1:8765'+url);
+    assert.equal(response.status(),200,'missing '+url);
+  }
+  const sections=['program','theory','extras','practice','cheat','progress'];
+  for(const id of sections){
+   await nav.locator('button[data-tab="'+id+'"]').click();
+   await page.locator('#'+id+'.view.active').waitFor({timeout:10000});
+   const bg=await page.locator('#'+id).evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
+   assert.match(bg,/np40/,'missing landscape for '+id);
+   // Desktop: scenic image covers the entire working canvas, not a banner.
+   // Mobile: preserve the approved compact landscape panel.
+   const scenic = await page.locator('#'+id).evaluate(el => {
+     const pseudo = getComputedStyle(el, '::before');
+     const hostRect=el.getBoundingClientRect();
+     return {position:pseudo.position,height:parseFloat(pseudo.height),top:parseFloat(pseudo.top),display:pseudo.display,hostWidth:hostRect.width};
+   });
+   if(!mobile) {
+     assert.equal(scenic.position,'fixed','Desktop scenic canvas must stay behind all content');
+     assert.ok(scenic.height>=height-90,'Landscape must span desktop viewport height');
+   } else {
+     assert.notEqual(scenic.position,'fixed','Mobile scenic banner must remain in normal flow');
+     assert.ok(scenic.height>=95 && scenic.height<=125,'Mobile banner height must remain compact');
+   }
+   if(id==='theory'){
+     const lessons=page.locator('#theoryBody .lesson-item');
+     assert.ok(await lessons.count()>0,'Theory lesson list empty');
+     const selector=page.locator('#theoryBody #npCourseSelect');
+     assert.ok(await selector.count()===1,'Course selector missing');
+     if(width===390){
+       const toggle=page.locator('#theoryBody .np-rail-toggle');
+       await toggle.click();
+       assert.equal(await toggle.getAttribute('aria-expanded'),'true');
+     }
+   }
+   if(id==='extras'){
+     const cards=page.locator('#extrasBody [data-np-extra]');
+     assert.ok(await cards.count()>0,'Extra catalog empty');
+     await cards.first().click();
+     assert.ok(await page.locator('#extrasBody .lesson-content h1').count()===1,'Extra lesson not opened');
+     const back=page.locator('#extrasBody [data-np-extra-back]');
+     await back.click();
+     assert.ok(await page.locator('#extrasBody [data-np-extra]').count()>0,'Extra index did not reopen');
+   }
+   const overflow=await page.evaluate(()=>Math.max(document.body.scrollWidth,document.documentElement.scrollWidth)-window.innerWidth);
+   if (overflow>1) {
+     const offenders=await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(el=>{
+       const cs=getComputedStyle(el);
+       if(cs.display==='none'||cs.visibility==='hidden')return false;
+       const r=el.getBoundingClientRect();
+       return r.right>window.innerWidth+1&&r.width>0;
+     }).map(el=>({tag:el.tagName,cls:el.className?.toString().slice(0,90),text:el.textContent?.trim().slice(0,48),right:Math.round(el.getBoundingClientRect().right),width:Math.round(el.getBoundingClientRect().width)})).sort((a,b)=>b.right-a.right).slice(0,15));
+     console.error('OVERFLOW DIAGNOSTIC',width,id,JSON.stringify(offenders));
+     await page.screenshot({path:'spin/tests/screenshots/overflow-'+width+'-'+id+'.png',fullPage:true});
+   }
+   if(overflow>1) failures.push('Horizontal overflow '+overflow+'px on '+id+' at '+width);
+  }
+  await nav.locator('button[data-tab="program"]').click();
+  await page.screenshot({path:'spin/tests/screenshots/np40-'+width+'.png',fullPage:true});
+  assert.deepEqual(runtimeErrors,[],'Browser exceptions at '+width);
+  await context.close();
+  console.log('PASS '+width+'x'+height+': nav, 6 views, lesson, extras, images, no horizontal overflow');
+ }
+ try {
+  for (const width of [320,390,1440]) await runScenario(width,900);
+  const context=await browser.newContext({serviceWorkers:'block'});
+  const page=await context.newPage();
+  await page.goto('http://127.0.0.1:8765/spin/index.4.0.0.html',{waitUntil:'domcontentloaded'});
+  await page.locator('#loginScreen:not(.hidden)').waitFor({timeout:12000});
+  assert.equal(await page.locator('#loginPass').count(),1,'Password field missing');
+  await context.close();
+  console.log('PASS login screen visible without review param');
+  // Offline PWA: verify first-run precache, versioned JS/CSS lookup, and saved local lesson state.
+  const offlineContext=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'allow'});
+  const offlinePage=await offlineContext.newPage();
+  await offlinePage.goto('http://127.0.0.1:8765/spin/index.4.0.0.html?review=1',{waitUntil:'domcontentloaded'});
+  await offlinePage.locator('#program.view.active').waitFor({timeout:15000});
+  await offlinePage.waitForFunction(async()=>{
+    if (!navigator.serviceWorker?.controller) return false;
+    const cache=await caches.open('spin-cache-4.0.0-offline');
+    return Boolean(await cache.match('./index.4.0.0.html')) &&
+           Boolean(await cache.match('./app.4.0.0.js')) &&
+           Boolean(await cache.match('./design-4.0.css'));
+  },null,{timeout:60000});
+  await offlinePage.locator('.mobile-nav [data-tab="theory"]').click();
+  const firstLesson=offlinePage.locator('#theoryBody #lessonComplete');
+  assert.equal(await firstLesson.count(),1,'Lesson completion control missing');
+  await offlinePage.locator('#theoryBody .complete-check').first().click();
+  assert.equal(await offlinePage.locator('#theoryBody #lessonComplete').isChecked(),true,'Completion not saved');
+  const stored=await offlinePage.evaluate(()=>{
+    const user=JSON.parse(localStorage.getItem('spin-user')||'{}');
+    const state=JSON.parse(localStorage.getItem('spin-lab-v1:'+user.id)||'{}');
+    return {user:user.id,done:state.done||[]};
+  });
+  assert.equal(stored.user,'reviewer','Wrong test account');
+  assert.ok(stored.done.includes(0),'Lesson completion not persisted locally');
+  const swState=await offlinePage.evaluate(async()=>{
+    const reg=await navigator.serviceWorker.ready;
+    const keys=await caches.keys();
+    return {
+      path:location.pathname,
+      controller:navigator.serviceWorker.controller?.scriptURL||null,
+      active:reg.active?.state||null,scope:reg.scope,
+      cacheKeys:keys,
+      cacheEntry:!!(await(await caches.open('spin-cache-4.0.0-offline')).match('./index.4.0.0.html'))
+    };
+  });
+  console.log('OFFLINE DIAGNOSTIC',JSON.stringify(swState));
+  await offlineContext.setOffline(true);
+  try {
+    await offlinePage.reload({waitUntil:'domcontentloaded',timeout:15000});
+  } catch(e) {
+    console.error('OFFLINE RELOAD ERROR',e.message,'url',offlinePage.url(),JSON.stringify(swState));
+    throw e;
+  }
+  await offlinePage.locator('#theory.view.active').waitFor({timeout:15000});
+  assert.equal(await offlinePage.locator('#theoryBody #lessonComplete').isChecked(),true,'Offline reload lost saved lesson');
+  await offlinePage.locator('.mobile-nav [data-tab="extras"]').click();
+  await offlinePage.locator('#extras.view.active').waitFor({timeout:10000});
+  await offlineContext.close();
+  console.log('PASS offline PWA reload: JS/CSS from cache, saved lesson restored, extras available');
+  if (failures.length) throw new Error('Responsive layout failures:\\n'+failures.join('\\n'));
+ }catch(error){
+  console.error('FAIL',error.stack||error.message);
+  process.exitCode=1;
+ }finally{await browser.close();}
+})();

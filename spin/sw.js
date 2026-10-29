@@ -1,12 +1,17 @@
 // Offline shell: immutable release files, complete installation, no network wait.
-const VERSION = '3.3.0';
+const VERSION = '4.0.0';
 const CACHE = 'spin-cache-' + VERSION + '-offline';
-const ENTRY = './index.'+VERSION+'.html';
-const CORE = [ENTRY, './styles.'+VERSION+'.css', './app.'+VERSION+'.js',
- ...['data','management-data','meddicc-data','spiced-data','proactive-data','boss-gate','remote-sales-data','channel-sales-data'].map(n=>'./'+n+'.'+VERSION+'.js'),
- './supabase.'+VERSION+'.min.js', './manifest.'+VERSION+'.webmanifest',
- './emblem-np.png', './emblem-np-solid.png',
- ...Array.from({length:10},(_,i)=>'./hero-'+(i+1)+'.jpg')];
+const ENTRY = './index.4.0.0.html';
+const DATA_FILES = ['data','management-data','meddicc-data','spiced-data','proactive-data','boss-gate','remote-sales-data','channel-sales-data','prolapse-data'].map(n => './'+n+'.3.3.0.js');
+const SCENES = ['01_program_everest','02_theory_kailash','03_extras_yamdrok','04_practice_namtso','05_cheatsheets_shangrila','06_progress_drepung_stupa','07_login_pagoda'].map(n=>'./np40/'+n+'.webp');
+const MOBILE_SCENES = ['01_program_everest','02_theory_kailash','03_extras_yamdrok','04_practice_namtso','05_cheatsheets_shangrila','06_progress_drepung_stupa','07_login_pagoda'].map(n=>'./np40/mobile/'+n+'_960.webp');
+const CORE = [
+ ENTRY, './styles.3.3.0.css', './design-4.0.css', './app.4.0.0.js',
+ ...DATA_FILES, './supabase.3.3.0.min.js', './manifest.4.0.0.webmanifest',
+ ...SCENES, ...MOBILE_SCENES, './np40/logo_horizontal_approved.png', './np40/logo_square_approved.png',
+ './np40/logo_square_192.png','./np40/logo_square_512.png','./np40/logo_square_maskable_512.png',
+ './np40/apple-touch-icon-180.png'
+];
 async function download(url,cache,timeout=30000){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
  try{
@@ -58,12 +63,13 @@ self.addEventListener('fetch',e=>{
   e.respondWith(shell());return;
  }
  e.respondWith((async()=>{
-  const cache=await caches.open(CACHE),hit=await cache.match(req)||await matchPrevious(req);
+  const cache=await caches.open(CACHE);
+  // Offline shell loads versioned URLs like app.4.0.0.js?v=4.0.0.
+  // CORE keys are saved without queries; for static assets match by pathname.
+  // Never ignore query parameters on dynamic API requests.
+  const isStatic=/\.(?:js|css|webmanifest|webp|png|jpg|html)$/.test(url.pathname);
+  const hit=await cache.match(req)||(isStatic?await cache.match(req,{ignoreSearch:true}):null)||await matchPrevious(req);
   if(hit)return hit;
-  // Image query aliases reference the same preserved artwork.
-  if(/\.(png|jpg)$/.test(url.pathname)){
-   const image=await cache.match(req,{ignoreSearch:true});if(image)return image;
-  }
   try{return await fetch(req);}catch(_){return Response.error();}
  })());
 });

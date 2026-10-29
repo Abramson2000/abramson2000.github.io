@@ -1,0 +1,31 @@
+name: Import approved NP 4.0 artwork
+on:
+  push:
+    branches: [feature/spin-4-0-design]
+    paths:
+      - "spin/np40-approved-assets.zip"
+permissions:
+  contents: write
+jobs:
+  import-artwork:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import exactly the approved graphic assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f spin/np40-approved-assets.zip
+          unzip -o -q spin/np40-approved-assets.zip -d .
+          files=(spin/np40/*.webp spin/np40/mobile/*.webp spin/np40/*.png)
+          [ "${#files[@]}" -eq 20 ] || { echo "Expected 20 files, found ${#files[@]}"; exit 1; }
+          for f in "${files[@]}"; do test -s "$f" || exit 1; done
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add spin/np40
+          git rm spin/np40-approved-assets.zip
+          if ! git diff --cached --quiet; then
+            git commit -m "assets(spin): install approved seven landscapes and PWA logos"
+            git push origin HEAD:feature/spin-4-0-design
+          fi

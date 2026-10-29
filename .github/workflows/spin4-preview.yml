@@ -1,0 +1,25 @@
+name: SPIN 4.0 preview gates
+on:
+  pull_request:
+    paths:
+      - "spin/**"
+      - ".github/workflows/spin4-preview.yml"
+  push:
+    branches: [feature/spin-4-0-design]
+    paths:
+      - "spin/**"
+      - ".github/workflows/spin4-preview.yml"
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Parse updated application and service worker
+        run: |
+          node --check spin/app.4.0.0.js
+          node --check spin/sw.4.0.0.js
+      - name: Verify tabs, styles, PWA and all approved assets
+        run: node spin/tests/np4-smoke.cjs
