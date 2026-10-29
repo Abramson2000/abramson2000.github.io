@@ -164,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.1.1'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '4.1.2'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -2870,9 +2870,16 @@ initAuth();
     const tab = (typeof S !== 'undefined' && S && S.tab) || '';
     if (tab !== 'theory' && tab !== 'extras') return;
     const backExtra = document.querySelector('[data-np-extra-back]');
-    if (backExtra) { backExtra.click(); return; }       // Дополнения: назад в каталог
     const rail = document.querySelector('.lesson-rail');
     const toggle = document.querySelector('.np-rail-toggle');
-    if (rail && toggle && !rail.classList.contains('np-rail-open')) { toggle.click(); return; } // Теория: показать список уроков
+    let action = null;
+    if (backExtra) action = function(){ backExtra.click(); };
+    else if (rail && toggle && !rail.classList.contains('np-rail-open')) action = function(){ toggle.click(); };
+    if (!action) return;
+    const root = document.getElementById((typeof S !== 'undefined' && S && S.tab === 'extras') ? 'extrasBody' : 'theoryBody');
+    if (!root) { action(); return; }
+    // анимация: экран уезжает вправо, затем открывается список
+    root.classList.add('np-swipe-out');
+    setTimeout(function(){ root.classList.remove('np-swipe-out'); action(); }, 170);
   }, {passive:true});
 })();
