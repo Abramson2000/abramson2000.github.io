@@ -21,7 +21,7 @@ let EXTRA = [];                        // видимые текущему пол
 let curExtra = null;                   // индекс открытого доп-урока (или null = основной урок)
 let curXb = 0;                            // индекс открытого блока-урока доп-курса (поуроковый режим)
 // уроки с only:'boss' видит только владелец (abramson@crm.ru); остальные скрыты
-const EXTRA_ORDER = { x4: 1, x5: 2, prolapse: 3, x8: 4 };
+const EXTRA_ORDER = { x4: 1, x5: 2, prolapse: 3, negotiations: 4, x8: 5 };
 const refreshExtra = () => {
   EXTRA = EXTRA_ALL.filter((x) => !x.only || (x.only === 'boss' && USER && USER.email === 'abramson@crm.ru'));
   EXTRA.sort((a, b) => (EXTRA_ORDER[a.id] || 99) - (EXTRA_ORDER[b.id] || 99));
@@ -164,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.1.9'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '4.1.10'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
