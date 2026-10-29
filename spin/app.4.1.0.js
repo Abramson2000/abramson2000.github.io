@@ -164,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.1.0'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '4.1.1'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -2853,3 +2853,26 @@ function renderProgress() {
 bindLogin();
 bindReLogin();
 initAuth();
+
+/* ===== свайп вправо: из урока назад к списку (Теория и Дополнения) ===== */
+(function(){
+  let sx=0, sy=0, st=0;
+  document.addEventListener('touchstart', function(e){
+    if (!e.touches || e.touches.length !== 1) return;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (!e.changedTouches || e.changedTouches.length !== 1) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Date.now() - st > 800) return;                 // не спешка — значит не свайп
+    if (dx < 70 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // только вправо и почти горизонтально
+    const tab = (typeof S !== 'undefined' && S && S.tab) || '';
+    if (tab !== 'theory' && tab !== 'extras') return;
+    const backExtra = document.querySelector('[data-np-extra-back]');
+    if (backExtra) { backExtra.click(); return; }       // Дополнения: назад в каталог
+    const rail = document.querySelector('.lesson-rail');
+    const toggle = document.querySelector('.np-rail-toggle');
+    if (rail && toggle && !rail.classList.contains('np-rail-open')) { toggle.click(); return; } // Теория: показать список уроков
+  }, {passive:true});
+})();
