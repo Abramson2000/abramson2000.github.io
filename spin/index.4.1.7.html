@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#FFF9EB" />
+  <meta name="description" content="Учебная лаборатория навыков продаж: теория, практика, разборы и контроль прогресса." />
+  <title>Навыки продаж — учебная лаборатория</title>
+  <link rel="stylesheet" href="./styles.3.3.0.css?v=3.3.11" />
+  <link rel="stylesheet" href="./design-4.1.0.css?v=4.1.7" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./np40/logo_square_approved.png?v=4.1.7" />
+  <link rel="apple-touch-icon" href="./np40/apple-touch-icon-180.png?v=4.1.7" />
+  <link rel="manifest" href="./manifest.4.1.0.webmanifest" />
+  <meta name="apple-mobile-web-app-title" content="Навыки продаж" />
+</head>
+<body>
+  <div id="loginScreen" class="login-screen hidden">
+    <div class="login-card">
+      <img class="login-logo" src="./np40/logo_square_approved.png" alt="" />
+      <h1>Навыки продаж</h1>
+      <p class="login-sub">Учебная лаборатория · частная территория</p>
+      <div class="field"><label>Логин</label><input id="loginEmail" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="напр. Козлов" /></div>
+      <div class="field"><label>Пароль</label><input id="loginPass" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" /></div>
+      <div id="loginErr" class="login-err"></div>
+      <button class="primary-button login-btn" id="loginBtn">Войти</button>
+      <button class="offline-hint" id="offlineHintBtn">✈️ Работает в полёте</button>
+      <p class="login-ver">версия <b>4.1.0</b> · прогресс уходит в облако</p>
+    </div>
+  </div>
+
+  <!-- Модалка: офлайн-режим -->
+  <div class="modal-overlay hidden" id="offlineModal">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="offlineModalTitle">
+      <button class="modal-close" id="offlineModalClose" aria-label="Закрыть">✕</button>
+      <h2 id="offlineModalTitle">✈️ Работает в полёте</h2>
+      <p>Программа полностью работает <b>без интернета</b>: уроки, практика, прогресс. Всё сохранится на устройстве и само синхронизируется, когда появится сеть.</p>
+      <div class="offline-steps">
+        <div class="offline-step"><span>1</span><div><b>iPhone / iPad</b><small>Safari → «Поделиться» → «На экран „Домой“»</small></div></div>
+        <div class="offline-step"><span>2</span><div><b>Android</b><small>Chrome → меню → «Установить приложение»</small></div></div>
+        <div class="offline-step"><span>3</span><div><b>Компьютер</b><small>Chrome / Edge → значок установки в адресной строке</small></div></div>
+      </div>
+      <p class="offline-note">Первый запуск сделайте при интернете — программа сохранит себя на устройство. Дальше — хоть в полёт.</p>
+      <div class="offline-dl">
+        <button class="secondary-button" id="offlineDl" type="button">⬇️ Скачать для офлайна</button>
+        <p class="offline-dl-status" id="offlineDlStatus">Проверяю, что уже загружено…</p>
+      </div>
+      <button class="primary-button modal-ok" id="offlineModalOk">Понятно</button>
+    </div>
+  </div>
+  <!-- Модалка: сессия истекла — прогресс копится только на устройстве -->
+  <div class="modal-overlay hidden" id="reloginModal">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="reloginTitle">
+      <button class="modal-close" id="reloginClose" aria-label="Закрыть">✕</button>
+      <h2 id="reloginTitle">⚠️ Прогресс не уходит на сервер</h2>
+      <p>Вы занимаетесь, но <b>вход в аккаунт не активен</b> — поэтому уроки, практики и XP остаются только на этом устройстве и не попадают в общую статистику.</p>
+      <p class="relogin-note">Войдите заново — и всё, что уже пройдено здесь, сольётся с сервером автоматически. Ничего не потеряется.</p>
+      <div class="feedback-actions">
+        <button class="primary-button" id="reloginGo">Войти заново</button>
+        <button class="secondary-button" id="reloginLater">Позже</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar" aria-label="Основная навигация">
+      <div class="brand"><img src="./np40/logo_horizontal_approved.png" width="176" height="58" style="max-width:100%;height:auto;object-fit:contain" alt="Навыки продаж" /></div>
+      <div class="sidebar-copy" id="sideVer">v.4.1.0 · © Abramson</div>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-tab="program"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.4 12 3.8l8.5 6.6V20a1 1 0 0 1-1 1h-5.2v-6.6H9.7V21H4.5a1 1 0 0 1-1-1z"/></svg></span><span>Программа</span></button>
+        <button class="nav-item" data-tab="theory"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2c-2.4-1.8-5.3-2.1-8.7-1.6a1 1 0 0 0-.8 1v13.6c3.8-.8 6.9-.2 9.5 1.8"/><path d="M12 6.2c2.4-1.8 5.3-2.1 8.7-1.6a1 1 0 0 1 .8 1v13.6c-3.8-.8-6.9-.2-9.5 1.8"/><path d="M12 6.2V21"/></svg></span><span>Теория</span></button>
+        <button class="nav-item" data-tab="extras"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.2 9.1 5.5L12 14.1 2.9 8.7 12 3.2Z"/><path d="m3.1 12.5 8.9 5.3 8.9-5.3"/><path d="m3.1 16.4 8.9 5.2 8.9-5.2"/></svg></span><span>Дополнения</span></button>
+        <button class="nav-item" data-tab="practice"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.7"/><circle cx="12" cy="12" r="5.1"/><circle cx="12" cy="12" r="1.4"/></svg></span><span>Практика</span></button>
+        <button class="nav-item" data-tab="cheat"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.7 2.9h7.6l3.3 3.3v14a1 1 0 0 1-1 1H6.7a1 1 0 0 1-1-1V3.9a1 1 0 0 1 1-1Z"/><path d="M14.2 2.9v3.6h3.4"/><path d="M8.5 10h6.9M8.5 13.5h6.9M8.5 17h5.0"/></svg></span><span>Шпаргалки</span></button>
+        <button class="nav-item" data-tab="progress"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.3v8.8h8.8"/><path d="M12 3.3a8.8 8.8 0 1 1-8.8 8.8"/><path d="M12 3.3a8.8 8.8 0 0 1 8.8 8.8"/></svg></span><span>Прогресс</span></button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+      <button class="profile-button" aria-label="Профиль">
+        <span class="avatar" id="profileAvatar">👤</span>
+        <span><strong id="profileName">Гость</strong><small>Уровень <span id="profileLevel">1</span> · <span id="profileXpSmall">0</span> XP</small></span>
+        <span class="chevron" id="logoutBtn" title="Выйти">⎋</span>
+      </button>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="mobile-brand"><img class="brand-mark" src="./np40/logo_square_approved.png" width="34" height="34" alt="" /><div class="mb-text"><strong>Навыки продаж</strong><small id="mobVer">v.4.1.0 · © Abramson</small></div></div>
+        <div class="topbar-right">
+          <div class="xp-pill"><span>⚡</span><strong id="xpValue">0</strong><span>XP</span></div>
+          <button class="offline-pill" id="offlinePill" title="Работает в полёте — как установить" aria-label="Работает в полёте">✈️</button>
+        </div>
+      </header>
+
+      <div id="syncAlert" class="sync-alert hidden"></div>
+
+      <!-- ======= ПРОГРАММА ======= -->
+      <section id="program" class="view active" aria-labelledby="program-title">
+        <div id="programBody"></div>
+      </section>
+
+      <!-- ======= ТЕОРИЯ ======= -->
+      <section id="theory" class="view" aria-labelledby="theory-title">
+        <div id="theoryBody" class="lesson-layout"></div>
+      </section>
+
+      <!-- ======= ДОПОЛНЕНИЯ ======= -->
+      <section id="extras" class="view" aria-labelledby="extras-title"><div id="extrasBody" class="lesson-layout"></div></section>
+
+      <!-- ======= ПРАКТИКА (тренажёр + кейсы) ======= -->
+      <section id="practice" class="view" aria-labelledby="practice-title">
+        <div id="practiceBody"></div>
+      </section>
+
+      <!-- ======= ШПАРГАЛКИ ======= -->
+      <section id="cheat" class="view" aria-labelledby="cheat-title">
+        <div id="cheatBody"></div>
+      </section>
+
+      <!-- ======= ПРОГРЕСС ======= -->
+      <section id="progress" class="view" aria-labelledby="progress-title">
+        <div id="progressBody"></div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Навигация на мобильном">
+    <button class="active" data-tab="program"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.4 12 3.8l8.5 6.6V20a1 1 0 0 1-1 1h-5.2v-6.6H9.7V21H4.5a1 1 0 0 1-1-1z"/></svg></span><small>Программа</small></button>
+    <button data-tab="theory"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2c-2.4-1.8-5.3-2.1-8.7-1.6a1 1 0 0 0-.8 1v13.6c3.8-.8 6.9-.2 9.5 1.8"/><path d="M12 6.2c2.4-1.8 5.3-2.1 8.7-1.6a1 1 0 0 1 .8 1v13.6c-3.8-.8-6.9-.2-9.5 1.8"/><path d="M12 6.2V21"/></svg></span><small>Теория</small></button>
+    <button data-tab="extras"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.2 9.1 5.5L12 14.1 2.9 8.7 12 3.2Z"/><path d="m3.1 12.5 8.9 5.3 8.9-5.3"/><path d="m3.1 16.4 8.9 5.2 8.9-5.2"/></svg></span><small>Дополнения</small></button>
+    <button data-tab="practice"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.7"/><circle cx="12" cy="12" r="5.1"/><circle cx="12" cy="12" r="1.4"/></svg></span><small>Практика</small></button>
+    <button data-tab="cheat"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.7 2.9h7.6l3.3 3.3v14a1 1 0 0 1-1 1H6.7a1 1 0 0 1-1-1V3.9a1 1 0 0 1 1-1Z"/><path d="M14.2 2.9v3.6h3.4"/><path d="M8.5 10h6.9M8.5 13.5h6.9M8.5 17h5.0"/></svg></span><small>Шпаргалки</small></button>
+    <button data-tab="progress"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.3v8.8h8.8"/><path d="M12 3.3a8.8 8.8 0 1 1-8.8 8.8"/><path d="M12 3.3a8.8 8.8 0 0 1 8.8 8.8"/></svg></span><small>Прогресс</small></button>
+  </nav>
+
+  <div class="toast hidden" id="toast" role="status">Прогресс сохранён</div>
+  <script>
+    // Check for updates without interrupting the open lesson.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'}).then(function (reg) {
+          function check() {
+            if (document.visibilityState === 'visible') reg.update().catch(function () {});
+          }
+          document.addEventListener('visibilitychange', check);
+          window.addEventListener('focus', check);
+          setInterval(check, 900000);
+        }).catch(function () {});
+      });
+    }
+  </script>
+  <script defer src="./supabase.3.3.0.min.js?v=3.3.11"></script>
+  <script defer src="./data.3.3.0.js?v=3.3.11"></script>
+  <script defer src="./management-data.3.3.0.js?v=3.3.11"></script>
+  <script defer src="./meddicc-data.3.3.0.js?v=3.3.11"></script>
+  <script defer src="./spiced-data.3.3.0.js?v=3.3.11"></script>
+  <script defer src="./proactive-data.3.3.0.js?v=3.3.11"></script>
+  <script defer src="./boss-gate.3.3.0.js?v=3.3.11"></script>
+  <script defer src="./remote-sales-data.3.3.0.js?v=3.3.11"></script>
+  <script defer src="./channel-sales-data.3.3.0.js?v=3.3.11"></script>
+  <script defer src="./prolapse-data.3.3.0.js?v=3.3.11"></script>
+  <script defer src="./app.4.1.0.js?v=4.1.7"></script>
+</body>
+</html>
