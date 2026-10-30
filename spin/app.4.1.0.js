@@ -47,8 +47,7 @@ let curPro = null;                      // индекс открытого ProAc
 const COURSES = [
   { name: 'Курс 1 · СПИН-продажи', tag: 'СПИН', from: 0, to: 8 },
   { name: 'Курс 2 · Продажа через вызов', tag: 'ВЫЗОВ', from: 8, to: 10 },
-  { name: 'Курс 3 · Продажи решений', tag: 'РЕШЕНИЯ', from: 10, to: 12 },
-  { name: 'Курс 4 · Консультативные продажи', tag: 'КОНСУЛЬТАТИВНЫЕ', from: 12, to: L.length },
+  { name: 'Курс 3 · Консультативные продажи', tag: 'КОНСУЛЬТАТИВНЫЕ', from: 10, to: L.length },
 ].filter((g) => g.from < L.length);
 function courseOf(i) {
   const g = COURSES.find((c) => i >= c.from && i < c.to) || COURSES[COURSES.length - 1];
@@ -164,7 +163,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.1.11'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '4.1.12'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -216,10 +215,16 @@ function npRememberTheoryLocation() {
     }));
   } catch (_) {}
 }
+// 4.1.12: из основной программы убраны два урока «Продажи решений» (дублировали доп.курс).
+// Индексы уроков после 11-го сдвинулись на два; прогресс старых версий пересчитываем один раз.
+function migIdx(a){ return (a||[]).map(v => v < 10 ? v : (v > 11 ? v - 2 : -1)).filter(v => v >= 0); }
+function migLesson(v){ return v > 11 ? v - 2 : (v >= 10 ? 0 : v); }
 function loadState() {
   try {
     const r = JSON.parse(localStorage.getItem(LS_KEY)) || {};
     S.lesson = r.lesson || 0; S.done = r.done || []; S.practiced = r.practiced || [];
+    if ((r.lmv || 0) < 2) { S.done = migIdx(S.done); S.practiced = migIdx(S.practiced); S.lesson = migLesson(Number(S.lesson) || 0); }
+    S.lmv = 2;
     S.spPracticed = r.spPracticed || []; S.medPracticed = r.medPracticed || []; S.proPracticed = r.proPracticed || [];
     S.medDone = r.medDone || []; S.spicedDone = r.spicedDone || []; S.proDone = r.proDone || [];
     S.xp = r.xp || 0; S.correct = r.correct || 0; S.attempts = r.attempts || 0;
@@ -353,9 +358,10 @@ function adoptLocalProgress() {
       let o = null; try { o = JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { o = null; }
       if (!o) continue;
       if (!(Number(o.xp) || 0) && !(o.done || []).length && !(o.practiced || []).length) continue;
-      S.lesson = Math.max(Number(S.lesson) || 0, Number(o.lesson) || 0);
-      S.done = uniArr(S.done, o.done);
-      S.practiced = uniArr(S.practiced, o.practiced);
+      const oOld = (o.lmv || 0) < 2;
+      S.lesson = Math.max(Number(S.lesson) || 0, oOld ? migLesson(Number(o.lesson) || 0) : (Number(o.lesson) || 0));
+      S.done = uniArr(S.done, oOld ? migIdx(o.done) : o.done);
+      S.practiced = uniArr(S.practiced, oOld ? migIdx(o.practiced) : o.practiced);
       S.spPracticed = uniArr(S.spPracticed, o.spPracticed);
       S.medPracticed = uniArr(S.medPracticed, o.medPracticed);
       S.proPracticed = uniArr(S.proPracticed, o.proPracticed);
@@ -381,7 +387,7 @@ function adoptLocalProgress() {
   } catch (e) { return 0; }
 }
 function syncPayload() {
-  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xd: S.xDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, scs: S.scStat, trn: S.trn, ver: APP_VER, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
+  return { lesson: S.lesson, done: S.done, practiced: S.practiced, spPracticed: S.spPracticed, medPracticed: S.medPracticed, proPracticed: S.proPracticed, spicedDone: S.spicedDone, medDone: S.medDone, proDone: S.proDone, xd: S.xDone, xp: S.xp, correct: S.correct, attempts: S.attempts, cDone: S.cDone, scs: S.scStat, trn: S.trn, ver: APP_VER, lmv: S.lmv || 0, tab: S.tab, extra: (typeof curExtra === 'number' ? curExtra : null), xb: curXb || 0, name: USER ? USER.name : '', email: USER ? USER.email : '' };
 }
 function save() {
   // без входа прогресс не сохраняется — ни локально, ни на сервере
@@ -845,9 +851,10 @@ async function cloudLoad() {
     if (cloud) {
       const cx = Number(cloud.xp) || 0, lx = Number(local.xp) || 0;
       // ВСЕГДА объединяем оба источника — ничего не теряем ни здесь, ни на сервере
-      S.lesson = Math.max(Number(local.lesson) || 0, Number(cloud.lesson) || 0);
-      S.done = uniArr(local.done, cloud.done);
-      S.practiced = uniArr(local.practiced, cloud.practiced);
+      const cOld = (cloud.lmv || 0) < 2;
+      S.lesson = Math.max(Number(local.lesson) || 0, cOld ? migLesson(Number(cloud.lesson) || 0) : (Number(cloud.lesson) || 0));
+      S.done = uniArr(local.done, cOld ? migIdx(cloud.done) : cloud.done);
+      S.practiced = uniArr(local.practiced, cOld ? migIdx(cloud.practiced) : cloud.practiced);
       S.spPracticed = uniArr(local.spPracticed, cloud.spPracticed);
       S.medPracticed = uniArr(local.medPracticed, cloud.medPracticed);
       S.proPracticed = uniArr(local.proPracticed, cloud.proPracticed);
