@@ -21,7 +21,7 @@ let EXTRA = [];                        // видимые текущему пол
 let curExtra = null;                   // индекс открытого доп-урока (или null = основной урок)
 let curXb = 0;                            // индекс открытого блока-урока доп-курса (поуроковый режим)
 // уроки с only:'boss' видит только владелец (abramson@crm.ru); остальные скрыты
-const EXTRA_ORDER = { x4: 1, x5: 2, prolapse: 3, negotiations: 4, solutions: 5, x8: 6 };
+const EXTRA_ORDER = { x4: 1, x5: 2, prolapse: 3, negotiations: 4, x8: 6 };
 const refreshExtra = () => {
   EXTRA = EXTRA_ALL.filter((x) => !x.only || (x.only === 'boss' && USER && USER.email === 'abramson@crm.ru'));
   EXTRA.sort((a, b) => (EXTRA_ORDER[a.id] || 99) - (EXTRA_ORDER[b.id] || 99));
@@ -47,7 +47,8 @@ let curPro = null;                      // индекс открытого ProAc
 const COURSES = [
   { name: 'Курс 1 · СПИН-продажи', tag: 'СПИН', from: 0, to: 8 },
   { name: 'Курс 2 · Продажа через вызов', tag: 'ВЫЗОВ', from: 8, to: 10 },
-  { name: 'Курс 3 · Консультативные продажи', tag: 'КОНСУЛЬТАТИВНЫЕ', from: 10, to: L.length },
+  { name: 'Курс 3 · Продажи решений', tag: 'РЕШЕНИЯ', from: 10, to: 18 },
+  { name: 'Курс 4 · Консультативные продажи', tag: 'КОНСУЛЬТАТИВНЫЕ', from: 18, to: L.length },
 ].filter((g) => g.from < L.length);
 function courseOf(i) {
   const g = COURSES.find((c) => i >= c.from && i < c.to) || COURSES[COURSES.length - 1];
@@ -163,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.1.12'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '4.2.0'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -217,14 +218,21 @@ function npRememberTheoryLocation() {
 }
 // 4.1.12: из основной программы убраны два урока «Продажи решений» (дублировали доп.курс).
 // Индексы уроков после 11-го сдвинулись на два; прогресс старых версий пересчитываем один раз.
-function migIdx(a){ return (a||[]).map(v => v < 10 ? v : (v > 11 ? v - 2 : -1)).filter(v => v >= 0); }
-function migLesson(v){ return v > 11 ? v - 2 : (v >= 10 ? 0 : v); }
+function migSteps(v, lmv){
+  const old = (lmv || 0) < 2;
+  if (old) { v = (v < 10 ? v : (v > 11 ? v - 2 : -1)); }
+  if (v < 0) return -1;
+  if ((lmv || 0) < 3) { v = (v < 10 ? v : v + 8); }
+  return v;
+}
+function migIdx(a, lmv){ return (a||[]).map(v => migSteps(v, lmv)).filter(v => v >= 0); }
+function migLesson(v, lmv){ const x = migSteps(Number(v) || 0, lmv); return x < 0 ? 0 : x; }
 function loadState() {
   try {
     const r = JSON.parse(localStorage.getItem(LS_KEY)) || {};
     S.lesson = r.lesson || 0; S.done = r.done || []; S.practiced = r.practiced || [];
-    if ((r.lmv || 0) < 2) { S.done = migIdx(S.done); S.practiced = migIdx(S.practiced); S.lesson = migLesson(Number(S.lesson) || 0); }
-    S.lmv = 2;
+    if ((r.lmv || 0) < 3) { S.done = migIdx(S.done, r.lmv); S.practiced = migIdx(S.practiced, r.lmv); S.lesson = migLesson(S.lesson, r.lmv); }
+    S.lmv = 3;
     S.spPracticed = r.spPracticed || []; S.medPracticed = r.medPracticed || []; S.proPracticed = r.proPracticed || [];
     S.medDone = r.medDone || []; S.spicedDone = r.spicedDone || []; S.proDone = r.proDone || [];
     S.xp = r.xp || 0; S.correct = r.correct || 0; S.attempts = r.attempts || 0;
@@ -358,10 +366,10 @@ function adoptLocalProgress() {
       let o = null; try { o = JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { o = null; }
       if (!o) continue;
       if (!(Number(o.xp) || 0) && !(o.done || []).length && !(o.practiced || []).length) continue;
-      const oOld = (o.lmv || 0) < 2;
-      S.lesson = Math.max(Number(S.lesson) || 0, oOld ? migLesson(Number(o.lesson) || 0) : (Number(o.lesson) || 0));
-      S.done = uniArr(S.done, oOld ? migIdx(o.done) : o.done);
-      S.practiced = uniArr(S.practiced, oOld ? migIdx(o.practiced) : o.practiced);
+      const oOld = (o.lmv || 0) < 3;
+      S.lesson = Math.max(Number(S.lesson) || 0, oOld ? migLesson(o.lesson, o.lmv) : (Number(o.lesson) || 0));
+      S.done = uniArr(S.done, oOld ? migIdx(o.done, o.lmv) : o.done);
+      S.practiced = uniArr(S.practiced, oOld ? migIdx(o.practiced, o.lmv) : o.practiced);
       S.spPracticed = uniArr(S.spPracticed, o.spPracticed);
       S.medPracticed = uniArr(S.medPracticed, o.medPracticed);
       S.proPracticed = uniArr(S.proPracticed, o.proPracticed);
@@ -851,10 +859,10 @@ async function cloudLoad() {
     if (cloud) {
       const cx = Number(cloud.xp) || 0, lx = Number(local.xp) || 0;
       // ВСЕГДА объединяем оба источника — ничего не теряем ни здесь, ни на сервере
-      const cOld = (cloud.lmv || 0) < 2;
-      S.lesson = Math.max(Number(local.lesson) || 0, cOld ? migLesson(Number(cloud.lesson) || 0) : (Number(cloud.lesson) || 0));
-      S.done = uniArr(local.done, cOld ? migIdx(cloud.done) : cloud.done);
-      S.practiced = uniArr(local.practiced, cOld ? migIdx(cloud.practiced) : cloud.practiced);
+      const cOld = (cloud.lmv || 0) < 3;
+      S.lesson = Math.max(Number(local.lesson) || 0, cOld ? migLesson(cloud.lesson, cloud.lmv) : (Number(cloud.lesson) || 0));
+      S.done = uniArr(local.done, cOld ? migIdx(cloud.done, cloud.lmv) : cloud.done);
+      S.practiced = uniArr(local.practiced, cOld ? migIdx(cloud.practiced, cloud.lmv) : cloud.practiced);
       S.spPracticed = uniArr(local.spPracticed, cloud.spPracticed);
       S.medPracticed = uniArr(local.medPracticed, cloud.medPracticed);
       S.proPracticed = uniArr(local.proPracticed, cloud.proPracticed);
@@ -2028,7 +2036,7 @@ function renderTrainer() {
       say:    { icon: 'B', n: 'Типы высказываний', l: `${say.length} РЕПЛИК`, d: 'Характеристика, преимущество или выгода — это тоже СПИН: продаёт только выгода, характеристика разжигает торг (урок 6).' },
       need:   { icon: '?', n: 'Потребности клиента', l: `${need.length} РЕПЛИК`, d: 'Скрытая или явная? Вся механика СПИН — превратить скрытую потребность в явную (урок 3).' },
       challenger: { icon: 'C', n: 'Продажа через вызов', l: `${ch.length} РЕПЛИК`, d: 'Обучает, адаптирует, контролирует или угождает — ходы курса 2 (уроки 9–10).' },
-      solution: { icon: 'S', n: 'Продажи решений', l: `${sol.length} РЕПЛИК`, d: 'Диагноз, влияние, видение, власть — или рецепт до диагноза? Курс 3, уроки 11–12.' },
+      solution: { icon: 'S', n: 'Продажи решений', l: `${sol.length} РЕПЛИК`, d: 'Диагноз, влияние, видение, власть — или рецепт до диагноза? Курс 3, уроки 11–18.' },
       consult: { icon: '✦', n: 'Консультативные продажи', l: `${cons.length} РЕПЛИК`, d: 'Стратег, Решения, Коммуникация, Сопровождение — или сбыт с конвейера? Курс 4, уроки 13–14.' },
     };
     const modeKeys = Object.keys(modeCard);
@@ -2367,6 +2375,10 @@ function selfCheckCatalog() {
   add('pro', 'Курс 5 · ProActive', 'Управление сделкой · Skip Miller', 'P',
     PRO.map((ll, i) => ({ num: i + 1, title: ll.title, qs: ll.practice || [] })),
     isBoss || REVIEW_MODE || S.proDone.length > 0);
+  // основная программа: курс 3 «Продажи решений» (уроки 11–18)
+  add('solutions', 'Курс 3 · Продажи решений', 'Боль, цепочка боли, видение, спонсор, контроль', 'Р',
+    L.slice(10, 18).map((ll) => ({ num: ll.num, title: ll.title, qs: ll.practice || [] })),
+    isBoss || REVIEW_MODE || (S.done || []).some((k) => k >= 10));
   // дополнительные курсы — практики открыты всегда
   const x3 = EXTRA_ALL.find((e) => e.id === 'x3');
   if (x3 && x3.practice && x3.practice.length) add('x3', 'Телефонные продажи', 'Разрыв шаблона вместо скрипта · Рабичев', 'Т',
