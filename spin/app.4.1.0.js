@@ -164,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.2.1'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '4.2.2'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
@@ -2873,32 +2873,94 @@ bindLogin();
 bindReLogin();
 initAuth();
 
-/* ===== свайп вправо: из урока назад к списку (Теория и Дополнения) ===== */
+/* ===== свайп от левого края: назад к списку, экран идёт за пальцем ===== */
 (function(){
-  let sx=0, sy=0, st=0;
-  document.addEventListener('touchstart', function(e){
-    if (!e.touches || e.touches.length !== 1) return;
-    sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
-  }, {passive:true});
-  document.addEventListener('touchend', function(e){
-    if (!e.changedTouches || e.changedTouches.length !== 1) return;
-    const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
-    if (Date.now() - st > 800) return;                 // не спешка — значит не свайп
-    if (dx < 70 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // только вправо и почти горизонтально
-    const tab = (typeof S !== 'undefined' && S && S.tab) || '';
-    if (tab !== 'theory' && tab !== 'extras') return;
+  let st = null, raf = 0, pending = 0;
+  const COMMIT = 60;      // порог, после которого возврат срабатывает
+  const DAMP = 0.42;      // насколько экран идёт за пальцем
+  const MAXSHIFT = 0.34;  // максимум смещения, доля ширины
+  const EDGE = 32;        // зона старта у левого края
+
+  function rootEl(){
+    const tab = (typeof S !== 'undefined' && S) ? S.tab : '';
+    if (tab !== 'theory' && tab !== 'extras') return null;
+    return document.getElementById(tab === 'extras' ? 'extrasBody' : 'theoryBody');
+  }
+  function backAction(){
     const backExtra = document.querySelector('[data-np-extra-back]');
     const rail = document.querySelector('.lesson-rail');
     const toggle = document.querySelector('.np-rail-toggle');
-    let action = null;
-    if (backExtra) action = function(){ backExtra.click(); };
-    else if (rail && toggle && !rail.classList.contains('np-rail-open')) action = function(){ toggle.click(); };
-    if (!action) return;
-    const root = document.getElementById((typeof S !== 'undefined' && S && S.tab === 'extras') ? 'extrasBody' : 'theoryBody');
-    if (!root) { action(); return; }
-    // анимация: экран уезжает вправо, затем открывается список
-    root.classList.add('np-swipe-out');
-    setTimeout(function(){ root.classList.remove('np-swipe-out'); action(); }, 170);
-  }, {passive:true});
+    if (backExtra) return function(){ backExtra.click(); };
+    if (rail && toggle && !rail.classList.contains('np-rail-open')) return function(){ toggle.click(); };
+    return null;
+  }
+  function paint(px){
+    const r = rootEl(); if (!r) return;
+    r.classList.add('np-drag');
+    r.style.transform = 'translateX(' + px + 'px)';
+    r.style.opacity = String(Math.max(.62, 1 - Math.abs(px) / (window.innerWidth * 1.7)));
+  }
+  function schedule(px){
+    pending = px;
+    if (raf) return;
+    raf = requestAnimationFrame(function(){ raf = 0; paint(pending); });
+  }
+  function resetNow(){
+    const r = rootEl(); if (!r) return;
+    r.classList.remove('np-drag');
+    r.style.transition = ''; r.style.transform = ''; r.style.opacity = '';
+  }
+  function springBack(){
+    const r = rootEl(); if (!r) return;
+    r.classList.remove('np-drag');
+    r.style.transition = 'transform .22s cubic-bezier(.2,.7,.3,1), opacity .22s ease';
+    r.style.transform = 'translateX(0)'; r.style.opacity = '1';
+    setTimeout(resetNow, 240);
+  }
+  function commit(){
+    const r = rootEl(), act = backAction();
+    if (!r || !act){ springBack(); return; }
+    r.classList.remove('np-drag');
+    r.style.transition = 'transform .22s cubic-bezier(.2,.7,.3,1), opacity .22s ease';
+    r.style.transform = 'translateX(100%)'; r.style.opacity = '0';
+    setTimeout(function(){ resetNow(); act(); }, 220);
+  }
+
+  document.addEventListener('touchstart', function(e){
+    st = null;
+    if (!e.touches || e.touches.length !== 1) return;
+    if (!rootEl() || !backAction()) return;
+    const t = e.touches[0];
+    if (t.clientX > EDGE) return;
+    st = { x: t.clientX, y: t.clientY, armed: false, dx: 0 };
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e){
+    if (!st) return;
+    const t = e.touches[0];
+    const dx = t.clientX - st.x, dy = Math.abs(t.clientY - st.y);
+    if (!st.armed){
+      if (Math.abs(dx) < 12 || Math.abs(dx) < dy) return;
+      if (dx < 0){ st = null; return; }
+      st.armed = true;
+    }
+    if (e.cancelable) e.preventDefault();
+    const max = window.innerWidth * MAXSHIFT;
+    st.dx = Math.min(max, Math.max(0, dx * DAMP));
+    schedule(st.dx);
+  }, { passive: false });
+
+  document.addEventListener('touchend', function(e){
+    if (!st) return;
+    const dx = e.changedTouches[0].clientX - st.x;
+    const armed = st.armed;
+    st = null;
+    if (!armed) return;
+    if (dx > COMMIT) commit(); else springBack();
+  }, { passive: true });
+
+  document.addEventListener('touchcancel', function(){
+    if (!st) return;
+    st = null; springBack();
+  }, { passive: true });
 })();
