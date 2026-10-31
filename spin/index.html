@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#FFF9EB" />
   <meta name="description" content="Учебная лаборатория навыков продаж: теория, практика, разборы и контроль прогресса." />
   <title>Навыки продаж — учебная лаборатория</title>
-  <link rel="stylesheet" href="./styles.3.3.0.css?v=4.2.2" />
-  <link rel="stylesheet" href="./design-4.1.0.css?v=4.2.2" />
-  <link rel="icon" type="image/png" sizes="512x512" href="./np40/logo_square_approved.png?v=4.2.2" />
-  <link rel="apple-touch-icon" href="./np40/apple-touch-icon-180.png?v=4.2.2" />
+  <link rel="stylesheet" href="./styles.3.3.0.css?v=4.3.0" />
+  <link rel="stylesheet" href="./design-4.1.0.css?v=4.3.0" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./np40/logo_square_approved.png?v=4.3.0" />
+  <link rel="apple-touch-icon" href="./np40/apple-touch-icon-180.png?v=4.3.0" />
   <link rel="manifest" href="./manifest.4.1.0.webmanifest" />
   <meta name="apple-mobile-web-app-title" content="Навыки продаж" />
 </head>
@@ -24,7 +24,7 @@
       <div id="loginErr" class="login-err"></div>
       <button class="primary-button login-btn" id="loginBtn">Войти</button>
       <button class="offline-hint" id="offlineHintBtn">✈️ Работает в полёте</button>
-      <p class="login-ver">версия <b>4.1.0</b> · прогресс уходит в облако</p>
+      <p class="login-ver">версия <b id="loginVer">4.3.0</b> · прогресс уходит в облако</p>
     </div>
   </div>
 
@@ -64,7 +64,7 @@
   <div class="app-shell" id="appShell">
     <aside class="sidebar" aria-label="Основная навигация">
       <div class="brand"><img src="./np40/logo_horizontal_approved.png" width="176" height="58" style="max-width:100%;height:auto;object-fit:contain" alt="Навыки продаж" /></div>
-      <div class="sidebar-copy" id="sideVer">v.4.1.0 · © Abramson</div>
+      <div class="sidebar-copy" id="sideVer">v.4.3.0 · © Abramson</div>
 
       <nav class="nav-list">
         <button class="nav-item active" data-tab="program"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.4 12 3.8l8.5 6.6V20a1 1 0 0 1-1 1h-5.2v-6.6H9.7V21H4.5a1 1 0 0 1-1-1z"/></svg></span><span>Программа</span></button>
@@ -85,7 +85,7 @@
 
     <main class="main">
       <header class="topbar">
-        <div class="mobile-brand"><img class="brand-mark" src="./np40/logo_square_approved.png" width="34" height="34" alt="" /><div class="mb-text"><strong>Навыки продаж</strong><small id="mobVer">v.4.1.0 · © Abramson</small></div></div>
+        <div class="mobile-brand"><img class="brand-mark" src="./np40/logo_square_approved.png" width="34" height="34" alt="" /><div class="mb-text"><strong>Навыки продаж</strong><small id="mobVer">v.4.3.0 · © Abramson</small></div></div>
         <div class="topbar-right">
           <div class="xp-pill"><span>⚡</span><strong id="xpValue">0</strong><span>XP</span></div>
           <button class="offline-pill" id="offlinePill" title="Работает в полёте — как установить" aria-label="Работает в полёте">✈️</button>
@@ -149,17 +149,17 @@
       });
     }
   </script>
-  <script defer src="./supabase.3.3.0.min.js?v=4.2.2"></script>
-  <script defer src="./data.3.3.0.js?v=4.2.2"></script>
-  <script defer src="./management-data.3.3.0.js?v=4.2.2"></script>
-  <script defer src="./meddicc-data.3.3.0.js?v=4.2.2"></script>
-  <script defer src="./spiced-data.3.3.0.js?v=4.2.2"></script>
-  <script defer src="./proactive-data.3.3.0.js?v=4.2.2"></script>
-  <script defer src="./boss-gate.3.3.0.js?v=4.2.2"></script>
-  <script defer src="./remote-sales-data.3.3.0.js?v=4.2.2"></script>
-  <script defer src="./channel-sales-data.3.3.0.js?v=4.2.2"></script>
-  <script defer src="./prolapse-data.3.3.0.js?v=4.2.2"></script>
-  <script defer src="./negotiations-data.3.3.0.js?v=4.2.2"></script>
-  <script defer src="./app.4.1.0.js?v=4.2.2"></script>
+  <script defer src="./supabase.3.3.0.min.js?v=4.3.0"></script>
+  <script defer src="./data.3.3.0.js?v=4.3.0"></script>
+  <script defer src="./management-data.3.3.0.js?v=4.3.0"></script>
+  <script defer src="./meddicc-data.3.3.0.js?v=4.3.0"></script>
+  <script defer src="./spiced-data.3.3.0.js?v=4.3.0"></script>
+  <script defer src="./proactive-data.3.3.0.js?v=4.3.0"></script>
+  <script defer src="./boss-gate.3.3.0.js?v=4.3.0"></script>
+  <script defer src="./remote-sales-data.3.3.0.js?v=4.3.0"></script>
+  <script defer src="./channel-sales-data.3.3.0.js?v=4.3.0"></script>
+  <script defer src="./prolapse-data.3.3.0.js?v=4.3.0"></script>
+  <script defer src="./negotiations-data.3.3.0.js?v=4.3.0"></script>
+  <script defer src="./app.4.1.0.js?v=4.3.0"></script>
 </body>
 </html>

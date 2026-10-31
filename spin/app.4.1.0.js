@@ -37,6 +37,16 @@ function x4Situations() {
 // курс MEDDPICC — квалификация сделки (8 элементов + риски)
 const MED = (SPIN_DATA.meddicc && SPIN_DATA.meddicc.lessons) || [];
 const SPICED = (SPIN_DATA.spiced && SPIN_DATA.spiced.lessons) || []; // курс 1а — расширение СПИН
+// 4.3.0: видимые номера версии берём из APP_VER, чтобы больше не расходились
+(function () {
+  function syncVer() {
+    var lv = document.getElementById('loginVer'); if (lv) lv.textContent = APP_VER;
+    var sv = document.getElementById('sideVer'); if (sv) sv.textContent = 'v.' + APP_VER + ' · © Abramson';
+    var mv = document.getElementById('mobVer'); if (mv) mv.textContent = 'v.' + APP_VER + ' · © Abramson';
+  }
+  if (document.readyState !== 'loading') syncVer(); else document.addEventListener('DOMContentLoaded', syncVer);
+})();
+
 const PRO = (SPIN_DATA.proactive && SPIN_DATA.proactive.lessons) || []; // курс 5 — Проактивные продажи (Skip Miller)
 const PRO_TRAINER = (SPIN_DATA.proactive && SPIN_DATA.proactive.trainer) || []; // 15 готовых ситуаций из мастер-курса
 let curMed = null;                     // индекс открытого MEDDPICC-урока (или null = основной урок)
@@ -164,7 +174,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.2.2'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
+const APP_VER = '4.3.0'; // видимый номер сборки: показываем на экране входа, в аккаунте и у начальника в статистике
 let USER = null; // { id, email, name }
 let SB = null;
 
