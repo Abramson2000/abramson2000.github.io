@@ -1,0 +1,30 @@
+name: Проверки
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  syntax:
+    name: Синтаксис и версии
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Проверка синтаксиса и согласованности версий
+        run: python3 tests/sync/check-syntax.py
+
+  tests:
+    name: Тесты (информационно)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Прогон тестов
+        run: node --test $(find tests -name "*.test.cjs")
