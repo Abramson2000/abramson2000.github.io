@@ -164,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.5.0';
+const APP_VER = '4.6.0';
 
 // 4.3.0: видимые номера версии берём из APP_VER, чтобы больше не расходились
 (function () {
@@ -2738,18 +2738,23 @@ function renderProgress() {
         <div class="skill-track"><i style="width:${p}%"></i></div>
       </article>`);
     }
-    const x4i = EXTRA.findIndex((x) => x.course && x.blocks && x.blocks.length > 1);
-    if (x4i >= 0) {
-      const x4c = EXTRA[x4i];
-      const pr = xProgress(x4c);
-      const x4mods = xMods(x4c);
-      cards.push(`<article class="course-progress-card ${pr.full ? 'completed' : ''}" style="cursor:pointer" data-xgo="${x4i}" title="Дополнительный курс — открыть">
-        <div class="course-progress-head"><strong>Дополнительно · ${esc(String(x4c.title).split(':')[0])}</strong><span>${pr.done} из ${pr.total} ${pr.full ? '✓' : ''}</span></div>
-        <div class="skill-track"><i style="width:${pr.pct}%"></i></div>
-</article>`);
-    }
     return cards.join('');
   };
+  const extraProgressCardsHtml = () => {
+    const list = EXTRA.filter((x) => x && x.course && x.blocks && x.blocks.length);
+    if (!list.length) return '';
+    const cards = list.map((x) => {
+      const pr = xProgress(x);
+      const xi = EXTRA.indexOf(x);
+      return `<article class="course-progress-card extra-card ${pr.full ? 'completed' : ''}" style="cursor:pointer" data-xgo="${xi}" title="${esc(String(x.title))} — открыть">
+        <div class="course-progress-head"><strong>${esc(String(x.title).split(':')[0])}</strong><span>${pr.done} из ${pr.total} ${pr.full ? '✓' : ''}</span></div>
+        <div class="skill-track"><i style="width:${pr.pct}%"></i></div>
+      </article>`;
+    }).join('');
+    return `<div class="section-title-row" style="margin-top:30px"><div><h2>Дополнительные курсы</h2><p>${list.length} ${pluralN(list.length, ['курс', 'курса', 'курсов'])} вне основной программы</p></div></div>
+      <div class="module-grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">${cards}</div>`;
+  };
+
   $('progressBody').innerHTML = `
     <div class="page-heading split-heading">
       <div><p class="eyebrow">ВАШ РЕЗУЛЬТАТ</p><h1 id="progress-title">Прогресс обучения</h1><p>Что уже получается и на чём сосредоточиться дальше.</p></div>
@@ -2769,6 +2774,7 @@ function renderProgress() {
     <div class="course-progress-grid">
       ${progCourseCardsHtml()}
     </div>
+    ${extraProgressCardsHtml()}
     <div class="section-title-row" style="margin-top:26px"><div><h2>Практика и кейсы</h2><p>закрепление по каждому методу: задания «Самопроверки», тренажёр, разборы встреч</p></div></div>
     <div class="pm-grid">
       ${pmCardsHtml()}

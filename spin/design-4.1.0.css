@@ -309,3 +309,8 @@ h1,h2,h3 {color:var(--np-text)}
   .lesson-layout{grid-template-columns:minmax(210px,240px) minmax(0,1fr);gap:clamp(20px,2.2vw,36px);justify-content:start}
   .lesson-content{max-width:1180px}
 }
+
+/* 4.6.0: пройденные курсы — жёлтые; доп.курсы отдельной секцией */
+.course-progress-card.completed { border-color: #E3C267 !important; background: #FFF6CC !important; }
+.course-progress-card.extra-card { background: #FFFDF6; }
+.course-progress-card.extra-card.completed { background: #FFF6CC !important; }
