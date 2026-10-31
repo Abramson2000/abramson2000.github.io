@@ -164,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.4.0';
+const APP_VER = '4.5.0';
 
 // 4.3.0: видимые номера версии берём из APP_VER, чтобы больше не расходились
 (function () {
@@ -2815,7 +2815,7 @@ function renderProgress() {
     if (b.dataset.jump === 'practice') S.pTab = 'cases';
     switchTab(b.dataset.jump);
   }));
-  $('progressBody').querySelectorAll('[data-coursego]').forEach((b) => b.addEventListener('click', () => { S.lesson = +b.dataset.coursego; curExtra = null; curMed = null; curSpiced = null; curPro = null; save(); npExtrasOpen = true; switchTab('extras'); window.scrollTo({ top: 0 }); }));
+  $('progressBody').querySelectorAll('[data-coursego]').forEach((b) => b.addEventListener('click', () => { S.lesson = +b.dataset.coursego; curExtra = null; curMed = null; curSpiced = null; curPro = null; save(); switchTab('theory'); window.scrollTo({ top: 0 }); }));
   $('progressBody').querySelectorAll('[data-medgo]').forEach((b) => b.addEventListener('click', () => { curMed = +b.dataset.medgo; curSpiced = null; curPro = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-spicedgo]').forEach((b) => b.addEventListener('click', () => { curSpiced = +b.dataset.spicedgo; curMed = null; curPro = null; switchTab('theory'); }));
   $('progressBody').querySelectorAll('[data-progo]').forEach((b) => b.addEventListener('click', () => { curPro = +b.dataset.progo; curMed = null; curSpiced = null; switchTab('theory'); }));
