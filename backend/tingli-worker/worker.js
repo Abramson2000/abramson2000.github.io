@@ -303,7 +303,8 @@ export default {
           return json({ ok: true, keys: await store.keys(env) }, 200, origin);
         }
         if (url.searchParams.get('dump') === '1') {
-          return json({ ok: true, values: await store.dump(env) }, 200, origin);
+          // Закрыто 31.10.2026: публичная выгрузка всех значений без авторизации.
+          return json({ ok: false, error: 'disabled' }, 403, origin);
         }
         const keys = url.searchParams.get('keys');
         if (keys) {
@@ -322,11 +323,9 @@ export default {
       }
 
       if (method === 'DELETE') {
-        const k = url.searchParams.get('key');
-        if (!k) return json({ ok: false, error: 'key required' }, 400, origin);
-        if (!isSafeKey(k)) return json({ ok: false, error: 'bad key' }, 400, origin);
-        await store.del(env, k);
-        return json({ ok: true, deleted: k }, 200, origin);
+        // Закрыто 31.10.2026: публичное удаление ключей без авторизации.
+        // Клиенты удаление не используют; при необходимости вернём под токен.
+        return json({ ok: false, error: 'disabled' }, 403, origin);
       }
 
       if (method === 'POST' || method === 'PUT') {
