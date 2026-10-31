@@ -18,6 +18,7 @@
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
+  @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.96.18') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.35.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     /* ===== палитра Tingli (5.0.0) ===== */
@@ -63,8 +64,8 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html { scrollbar-gutter: stable; }
-  body { font-family: "TLCJK", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; letter-spacing: 0; }
-  .zh, .zh-opt, .fill, .script, .word .zh { font-family: "TLCJK", "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; }
+  body { font-family: "TLKai", "TLCJK", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; letter-spacing: 0; }
+  .zh, .zh-opt, .fill, .script, .word .zh { font-family: "TLKai", "TLCJK", "Kaiti SC", "STKaiti", "Songti SC", "STSong", "Noto Serif SC", serif; }
   .app { max-width: 720px; margin: 0 auto; padding: 16px 16px 130px; }
   body.has-player .app { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 
@@ -32530,7 +32531,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.96.17';
+const APP_VER = '5.96.18';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();

@@ -1,10 +1,11 @@
 /* Tingli 5.95.2: pinned offline shell, durable media, resumable verified downloads. */
-const VERSION = '5.96.17';
+const VERSION = '5.96.18';
 const CACHE = 'tingli-shell-' + VERSION;
 const MEDIA_CACHE = 'tingli-media-v1';
 const MANIFEST = './offline-manifest.5.95.2.json';
 const CORE_ASSETS = [
   "./favicon-20261010.ico",
+  "./fonts/kai-subset.woff2",
   "./favicon.ico",
   "./apple-touch-icon-20261010.png",
   "./apple-touch-icon.png",
