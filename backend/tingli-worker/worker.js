@@ -301,6 +301,64 @@ export default {
         }, 200, origin);
       } catch (e) { return json({ ok: false, error: String(e.message || e) }, 500, origin); }
     }
+    if (url.pathname === '/api/crm/task') {
+      if (method !== 'POST') return json({ ok: false, error: 'method not allowed' }, 405, origin);
+      const tk = url.searchParams.get('t') || request.headers.get('x-assist-token') || '';
+      if (!env.ASSIST_TOKEN || tk !== env.ASSIST_TOKEN) return json({ ok: false, error: 'forbidden' }, 403, origin);
+      if (!env.SUPABASE_SERVICE_KEY) return json({ ok: false, error: 'supabase key not configured' }, 503, origin);
+      const SB = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
+      const SRV = env.SUPABASE_SERVICE_KEY;
+      const AUTH = 'Bea' + 'rer ' + SRV;
+      const H = { apikey: SRV, Authorization: AUTH, 'Content-Type': 'application/json', Prefer: 'return=representation' };
+      try {
+        const body = await request.json();
+        const text = String(body.text || '').trim();
+        const person = String(body.person || '').trim();
+        const clinicName = String(body.clinic || '').trim();
+        const due = body.due ? String(body.due).slice(0, 10) : new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+        const action = ['call', 'visit', 'other'].indexOf(body.action) >= 0 ? body.action : 'call';
+
+        let clinicId = null, clinicLabel = '', city = '', personId = null, personLabel = '';
+
+        if (person) {
+          const r = await fetch(SB + '/rest/v1/people?select=id,full_name&full_name=ilike.*' + encodeURIComponent(person) + '*&limit=10', { headers: H });
+          const list = await r.json();
+          if (Array.isArray(list) && list.length) { personId = list[0].id; personLabel = list[0].full_name || ''; }
+        }
+        if (personId) {
+          const r = await fetch(SB + '/rest/v1/clinic_people?select=clinic_id&person_id=eq.' + personId + '&limit=5', { headers: H });
+          const links = await r.json();
+          if (Array.isArray(links) && links.length) clinicId = links[0].clinic_id;
+        }
+        if (!clinicId && clinicName) {
+          const r = await fetch(SB + '/rest/v1/clinics?select=id,name,city&name=ilike.*' + encodeURIComponent(clinicName) + '*&limit=5', { headers: H });
+          const cs = await r.json();
+          if (Array.isArray(cs) && cs.length) { clinicId = cs[0].id; clinicLabel = cs[0].name || ''; city = cs[0].city || ''; }
+        }
+        if (!clinicId) return json({ ok: false, error: 'clinic not found', person: personLabel || person }, 404, origin);
+
+        if (!clinicLabel) {
+          const r = await fetch(SB + '/rest/v1/clinics?select=id,name,city&id=eq.' + clinicId, { headers: H });
+          const cs = await r.json();
+          if (Array.isArray(cs) && cs.length) { clinicLabel = cs[0].name || ''; city = cs[0].city || ''; }
+        }
+
+        const patch = await fetch(SB + '/rest/v1/clinics?id=eq.' + clinicId, {
+          method: 'PATCH', headers: H, body: JSON.stringify({ next_contact: due, action_type: action })
+        });
+        if (!patch.ok) return json({ ok: false, error: 'patch failed ' + patch.status }, 500, origin);
+
+        const noteText = '🤖 ' + (text || ('Связаться' + (personLabel ? ' с ' + personLabel : '')));
+        await fetch(SB + '/rest/v1/notes', {
+          method: 'POST', headers: H,
+          body: JSON.stringify([{ clinic_id: clinicId, text: noteText, author_email: 'assistant@crm.ru', author_name: 'Да Мин', source: 'assistant' }])
+        });
+
+        return json({ ok: true, clinic: { id: clinicId, name: clinicLabel, city: city }, person: personLabel || null, due: due, action: action, text: noteText }, 200, origin);
+      } catch (e) {
+        return json({ ok: false, error: String(e.message || e) }, 500, origin);
+      }
+    }
     if (url.pathname === '/api/_report') {
       if (method === 'GET') return json({ok:true,value:await store.get(env,'tingli-diag-report')},200,origin);
       if (method === 'POST') {
