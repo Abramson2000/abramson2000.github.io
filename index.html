@@ -1726,7 +1726,21 @@ async function signIn(email, password) {
   await rememberOfflineLogin(email, password);
   return data.user;
 }
-async function signOut() { await sb.auth.signOut(); }
+async function signOut() {
+  // 4.8.1: выход должен вычищать всё, иначе приложение поднимает пользователя
+  // из crm-offline-user и офлайн-входа, и база открывается снова без пароля.
+  try { await sb.auth.signOut(); } catch (e) {}
+  try {
+    localStorage.removeItem('crm-offline-user');
+    localStorage.removeItem('crm-role');
+    localStorage.removeItem('crm-relogin-snooze-v1');
+    Object.keys(localStorage).filter(function (k) {
+      return k.indexOf('crm-offline-login:') === 0 ||
+             (k.indexOf('sb-') === 0 && k.indexOf('-auth-token') > 0);
+    }).forEach(function (k) { localStorage.removeItem(k); });
+  } catch (e) {}
+  location.reload();
+}
 
 // ---------- рабочие листы (Настя/Галя): изолированные вкладки, свои таблицы ----------
 async function getWorklist(W) {
@@ -1836,7 +1850,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.8.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.8.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -6647,7 +6661,7 @@ async function offInfo() {
 }
 async function offReloadData() { try { await render(); await refreshCounts(); } catch (e) {} }
 async function offFlush() {
-  if (!navigator.onLine || OFF.busy) return;
+  if (!navigator.onLine || OFF.busy || OFF.blocked) return;   // 4.8.1: не крутимся на 401/403
   OFF.busy = true; offRender();
   let authorization = null;
   try {
@@ -6660,7 +6674,11 @@ async function offFlush() {
   if (r) {
     if (r.left != null) OFF.n = r.left;
     offRender();
-    if (r.blocked) toast((r.blocked === 401 || r.blocked === 403) ? 'Правки сохранены на устройстве. Нужна проверка входа и прав доступа.' : 'Правки сохранены на устройстве. Сервер отклонил отправку: ' + r.blocked);
+    if (r.blocked) {
+      // 4.8.1: после отказа по доступу ждём ручного «Отправить» или нового входа
+      if (r.blocked === 401 || r.blocked === 403) OFF.blocked = true;
+      toast((r.blocked === 401 || r.blocked === 403) ? 'Правки сохранены на устройстве. Нужна проверка входа и прав доступа.' : 'Правки сохранены на устройстве. Сервер отклонил отправку: ' + r.blocked);
+    }
     else if (r.ok) toast('Отправлено правок: ' + r.ok);
   }
   if (!OFF.n) await offReloadData();
@@ -6676,7 +6694,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 const offSyncBtn = document.getElementById('offSync');
-if (offSyncBtn) offSyncBtn.addEventListener('click', () => offFlush());
+if (offSyncBtn) offSyncBtn.addEventListener('click', () => { OFF.blocked = false; offFlush(); });
 setTimeout(offInfo, 1500);
 window.addEventListener('load', () => setTimeout(offInfo, 800));
 
