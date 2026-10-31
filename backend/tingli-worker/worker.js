@@ -279,6 +279,28 @@ export default {
       try { return json(await runBackup(env), 200, origin); }
       catch (e) { return json({ ok: false, error: String(e.message || e) }, 500, origin); }
     }
+    if (url.pathname === '/api/_backup-check') {
+      const token = url.searchParams.get('token') || '';
+      if (!env.BACKUP_TOKEN || token !== env.BACKUP_TOKEN) return json({ ok: false, error: 'forbidden' }, 403, origin);
+      try {
+        const list = await env.BACKUP.list({ prefix: 'auto/', limit: 1000 });
+        const names = (list.keys || []).map(function (k) { return k.name; }).sort();
+        const last = names.length ? names[names.length - 1] : null;
+        const raw = last ? await env.BACKUP.get(last) : null;
+        let parsed = null; try { parsed = JSON.parse(raw); } catch (_) {}
+        const rows = (parsed && parsed.rows) || [];
+        const need = ['tingli-schedule-v1', 'tingli-favs-v1', 'tingli-progress-v1', 'cidian-data-v1'];
+        return json({
+          ok: true,
+          snapshots: names.length,
+          latest: last,
+          records: rows.length,
+          created: parsed && parsed.at,
+          hasRequired: need.map(function (k) { return k + ':' + rows.some(function (r) { return r.key === k; }); }),
+          sample: rows.slice(0, 3).map(function (r) { return r.key; })
+        }, 200, origin);
+      } catch (e) { return json({ ok: false, error: String(e.message || e) }, 500, origin); }
+    }
     if (url.pathname === '/api/_report') {
       if (method === 'GET') return json({ok:true,value:await store.get(env,'tingli-diag-report')},200,origin);
       if (method === 'POST') {

@@ -17,7 +17,6 @@
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
-  @font-face { font-family: 'SimSun'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.35.0') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.35.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
@@ -18407,65 +18406,6 @@ const EXTRA_UNITS = [
    {
     "kind": "quiz",
     "id": 6,
-    "title": "Слова из текста",
-    "titleZh": "选词填空",
-    "text": "Вставь слово из текста.",
-    "tasks": [
-     {
-      "type": "fill",
-      "q": "考试（ ）以后，我就得找工作了。",
-      "answer": "结束"
-     },
-     {
-      "type": "fill",
-      "q": "最近我又要学习又要工作，特别（ ）。",
-      "answer": "紧张"
-     },
-     {
-      "type": "fill",
-      "q": "他送你礼物，（ ）他喜欢你。",
-      "answer": "表示"
-     },
-     {
-      "type": "fill",
-      "q": "我和他（ ）学了半年汉语，可是他的汉语比我好得多。",
-      "answer": "同样"
-     },
-     {
-      "type": "fill",
-      "q": "这几天她的脸上总是带着（ ）。",
-      "answer": "微笑"
-     },
-     {
-      "type": "fill",
-      "q": "看样子（ ）不错。",
-      "answer": "心情"
-     },
-     {
-      "type": "fill",
-      "q": "他们结婚以后生活很（ ）。",
-      "answer": "幸福"
-     },
-     {
-      "type": "fill",
-      "q": "现在又有了（ ）的宝宝。",
-      "answer": "可爱"
-     },
-     {
-      "type": "fill",
-      "q": "她在我们公司很（ ），她不但是员工，还是老板的妈妈。",
-      "answer": "特殊"
-     },
-     {
-      "type": "fill",
-      "q": "这次考试不（ ）口语。",
-      "answer": "包括"
-     }
-    ]
-   },
-   {
-    "kind": "quiz",
-    "id": 7,
     "title": "Близкие по смыслу",
     "titleZh": "近义词",
     "text": "Выбери точное слово.",
@@ -18528,7 +18468,7 @@ const EXTRA_UNITS = [
    },
    {
     "kind": "quiz",
-    "id": 8,
+    "id": 7,
     "title": "Перепиши с 不如",
     "titleZh": "用“不如”改写",
     "text": "Напиши предложение с 不如.",
@@ -18552,7 +18492,7 @@ const EXTRA_UNITS = [
    },
    {
     "kind": "quiz",
-    "id": 9,
+    "id": 8,
     "title": "Чтение",
     "titleZh": "阅读理解",
     "text": "学习汉语已经半年多了，同学们进步都很快，当然也包括我。不过我不如别的同学水平高，特别是听力。为了提高听力，我买了一台收音机，每天听汉语广播。可是不在房间的时候，就听不了了，所以我又另外买了一个MP3，每天带着，有时间就听。",
@@ -32590,7 +32530,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.96.15';
+const APP_VER = '5.96.16';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32629,13 +32569,48 @@ const audioBlobCache = {};
 // Версионированный URL аудио: новый номер версии = обход кэша (старые mp3 не залипают)
 const AUDIO_BASE = 'https://raw.githubusercontent.com/Abramson2000/tingli-media/main/audio/';
 function audUrl(name) { return AUDIO_BASE + encodeURIComponent(name) + '?v=' + APP_VER; }
+const AUDIO_CACHE = 'tingli-audio-v1';
 async function getAudioUrl(name) {
   if (audioBlobCache[name]) return audioBlobCache[name];
-  const r = await fetch(audUrl(name));
-  if (!r.ok) return AUDIO_BASE + encodeURIComponent(name); // fallback на прямую ссылку
-  const url = URL.createObjectURL(await r.blob());
-  audioBlobCache[name] = url;
-  return url;
+  const url = audUrl(name);
+  let resp = null;
+  try {
+    if (typeof caches !== 'undefined') {
+      const c = await caches.open(AUDIO_CACHE);
+      resp = await c.match(url);
+      if (!resp) {
+        const net = await fetch(url);
+        if (net.ok) { try { await c.put(url, net.clone()); } catch (_) {} resp = net; }
+      }
+    } else {
+      const net = await fetch(url);
+      if (net.ok) resp = net;
+    }
+  } catch (e) {
+    // офлайн: пробуем кэш без метки версии
+    try {
+      const c = await caches.open(AUDIO_CACHE);
+      resp = await c.match(url) || await c.match(AUDIO_BASE + encodeURIComponent(name));
+    } catch (_) {}
+  }
+  if (!resp || !resp.ok) return AUDIO_BASE + encodeURIComponent(name);
+  const blobUrl = URL.createObjectURL(await resp.blob());
+  audioBlobCache[name] = blobUrl;
+  return blobUrl;
+}
+/* 5.96.16: аудио для офлайна. Прогреваем кэш всех файлов уроков. */
+async function prefetchAllAudio(onProgress) {
+  if (typeof caches === 'undefined') return { ok: 0, total: 0 };
+  const names = [];
+  (typeof ALL_UNITS !== 'undefined' ? ALL_UNITS : []).forEach(function (u) {
+    (u.parts || []).forEach(function (pt) { if (pt.audio && names.indexOf(pt.audio) < 0) names.push(pt.audio); });
+  });
+  let ok = 0;
+  for (let i = 0; i < names.length; i++) {
+    try { await getAudioUrl(names[i]); ok++; } catch (e) {}
+    if (onProgress) onProgress(i + 1, names.length);
+  }
+  return { ok: ok, total: names.length };
 }
 function audioUnitKey(u) {
   return (u && u.src ? u.src : 'main') + ':' + (u ? u.unit : '');
@@ -34339,7 +34314,7 @@ function taskHtml(u, part, t, ti) {
       ${qru}
       <div class="opts" data-correct="${correctIdx}">${opts.map((x, ni) => `
         <div class="opt zh-opt" data-oi="${ni}" onclick="pick(this)">
-          <span class="letter">${'ABC'[ni]}</span><span>${esc(x.o)}</span></div>`).join('')}</div>`;
+          <span class="letter">${String.fromCharCode(65 + ni)}</span><span>${esc(x.o)}</span></div>`).join('')}</div>`;
   } else if (t.type === 'fill') {
     body = `
       <div class="task-q">${esc(t.q).replace('____', '______')}</div>
@@ -35168,7 +35143,19 @@ function offlineUnit(n, event) { return TingliOffline.downloadUnit(n, event, uni
 function swPost(data, progress) { return TingliOffline.message(data, progress); }
 function offlineRefreshStatus() { return TingliOffline.refresh(false); }
 function offlineDownload() { return TingliOffline.downloadAll(); }
-function offlineVerify() { return TingliOffline.refresh(true); }
+async function offlineVerify() {
+  const r = await TingliOffline.refresh(true);
+  try {
+    const btn = document.getElementById('offlineVerifyBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Скачиваю аудио…'; }
+    const res = await prefetchAllAudio(function (i, n) {
+      if (btn) btn.textContent = 'Аудио ' + i + ' из ' + n;
+    });
+    if (btn) { btn.disabled = false; btn.textContent = 'Проверить перед полётом'; }
+    if (res.total) setTimeout(function () { alert('Аудио сохранено: ' + res.ok + ' из ' + res.total + ' файлов.'); }, 200);
+  } catch (e) {}
+  return r;
+}
 const sbVerEl = document.getElementById('sbVer');
 if (sbVerEl) sbVerEl.textContent = '';
 const sbVerLine = document.getElementById('sbVerLine');
