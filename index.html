@@ -1044,6 +1044,10 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
       </button>
     </nav>
     <div class="d-foot" id="drawerFoot">Абрамовская база</div>
+      <button class="tab d-item" onclick="exportAllData()" title="Скачать всю базу в JSON">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        <span>Скачать копию базы</span>
+      </button>
   </aside>
 
   <aside class="sidebar">
@@ -1832,7 +1836,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.7.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.8.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -6701,5 +6705,6 @@ placeSearch();
 init();
 
 </script>
+  <script src="js/backup.js?v=4.8.0" defer></script>
 </body>
 </html>
