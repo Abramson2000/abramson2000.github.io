@@ -1500,9 +1500,15 @@ async function fetchAllRows(table, orderCol, tieCol) {
 const MONEY_COLS = ['sales_2016', 'sales_2017', 'sales_2018', 'sales_2019', 'sales_2020', 'sales_2021', 'sales_2022', 'sales_2023', 'sales_2024', 'sales_2025', 'sales_2026', 'hugemed_2025', 'hugemed_2026'];
 
 async function mergeClinicPrivate(list) {
-  const data = await rcLoad('cp', async () => {
-    try { const res = await sb.from('clinic_private').select('*'); return res.data || []; } catch (_) { return []; }
-  }, () => { try { render(); } catch (_) {} });
+  // 4.10.0: приватные поля (задачи, даты контакта) больше не кэшируем — иначе
+  // поставленная задача не видна, пока не истечёт кэш.
+  let data = [];
+  try {
+    const res = await sb.from('clinic_private').select('*');
+    data = res.data || [];
+  } catch (_) {
+    try { data = (await rcLoad('cp', async () => [])) || []; } catch (__) { data = []; }
+  }
   const map = {};
   data.forEach(p => { map[p.clinic_id] = p; });
   list.forEach(c => {
@@ -1850,7 +1856,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.9.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.10.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
