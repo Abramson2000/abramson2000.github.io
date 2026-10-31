@@ -32530,7 +32530,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.96.16';
+const APP_VER = '5.96.17';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -34972,6 +34972,15 @@ function hwQType(q) {
   if (/^(составь|опиши|расскажи|напиши|ответь|преврати|назови|задай|спроси)/i.test(s)) return { id: 'say', label: 'опиши' };
   return { id: 'other', label: 'задание' };
 }
+/* 5.96.17: с экрана ввода вернули кнопку «Дальше» — переход к следующей части урока. */
+function hwNextPart() {
+  if (!curUnit || !curPart) { goBack(); return; }
+  const parts = curUnit.parts || [];
+  let i = -1;
+  for (let k = 0; k < parts.length; k++) if (String(parts[k].id) === String(curPart.id)) { i = k; break; }
+  if (i >= 0 && i + 1 < parts.length) { try { posSave(); } catch (e) {} openPart(curUnit.unit, parts[i + 1].id); return; }
+  goBack();
+}
 function renderHw(u, part) {
   if (part && part.voiceHomework) { renderVoiceHw(u, part); return; }
   showTabbar(false); showPlayer(!!(part && part.audio));
@@ -34992,7 +35001,8 @@ function renderHw(u, part) {
   app.innerHTML = `
     <div class="topbar hw-course-head"><button class="back" onclick="goBack()">←</button>
       <div class="logo"><img src="logo.png?v=5.35.0" alt=""></div>
-      <div style="flex:1;min-width:0"><div class="top-title">${esc(heading.title)}</div><div class="sub">${esc(heading.subtitle)}</div></div></div>
+      <div style="flex:1;min-width:0"><div class="top-title">${esc(heading.title)}</div><div class="sub">${esc(heading.subtitle)}</div></div>
+      <button class="back" onclick="hwNextPart()" title="Следующая часть урока">Дальше →</button></div>
     <div class="hw-compact-head">
       <div class="hw-lesson">${esc(u.zh || '')}</div>
       <div class="hw-part-line">${esc(part.title)} · ${qs.length} заданий</div>
