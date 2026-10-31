@@ -247,7 +247,21 @@ function rateLimited(ip) {
   return rec.n > RATE_LIMIT;
 }
 
+// --- Автоматический бэкап D1 в KV: ежедневный снимок, хранение 30 дней ---
+async function runBackup(env) {
+  if (!env.BACKUP) return { ok: false, error: 'BACKUP binding missing' };
+  const day = new Date().toISOString().slice(0, 10);
+  const res = await env.DB.prepare('SELECT key, value, updated_at FROM kv').all();
+  const rows = (res && res.results) || [];
+  const payload = JSON.stringify({ at: new Date().toISOString(), count: rows.length, rows: rows });
+  await env.BACKUP.put('auto/' + day + '.json', payload, { expirationTtl: 30 * 24 * 3600 });
+  return { ok: true, day: day, keys: rows.length, bytes: payload.length };
+}
+
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runBackup(env));
+  },
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || 'https://crmuro.ru';
     const url = new URL(request.url);
@@ -259,6 +273,12 @@ export default {
        Так crmuro.ru/api/... становится настоящим same-origin для приложений. */
     if (!/^\/api\//.test(url.pathname)) return proxyStatic(request, url);
 
+    if (url.pathname === '/api/_backup-now') {
+      const token = url.searchParams.get('token') || '';
+      if (!env.BACKUP_TOKEN || token !== env.BACKUP_TOKEN) return json({ ok: false, error: 'forbidden' }, 403, origin);
+      try { return json(await runBackup(env), 200, origin); }
+      catch (e) { return json({ ok: false, error: String(e.message || e) }, 500, origin); }
+    }
     if (url.pathname === '/api/_report') {
       if (method === 'GET') return json({ok:true,value:await store.get(env,'tingli-diag-report')},200,origin);
       if (method === 'POST') {

@@ -13,3 +13,11 @@ routes = [
 binding = "DB"
 database_name = "tingli-kv"
 database_id = "d326eba3-e5cb-4d59-8a8a-7b3b1eb555c4"
+
+# Автоматический бэкап D1 (снимки в KV, хранение 30 дней)
+[[kv_namespaces]]
+binding = "BACKUP"
+id = "a1a4242bc01e4141baa1511a28d142bb"
+
+[triggers]
+crons = ["20 1 * * *"]
