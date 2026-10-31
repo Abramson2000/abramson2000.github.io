@@ -235,6 +235,18 @@ async function proxyStatic(request, url) {
   });
 }
 
+// 4.9.0: доступ к синхронизации по общему ключу. До 14.11.2026 запросы без ключа
+// пропускаем (чтобы старые кэши не отвалились), после — только с ключом.
+const RATE_LIMIT = 180;              // запросов в минуту с одного адреса
+const _rl = new Map();               // грубый счётчик в памяти изолята
+function rateLimited(ip) {
+  const now = Date.now(), win = Math.floor(now / 60000);
+  const rec = _rl.get(ip);
+  if (!rec || rec.win !== win) { _rl.set(ip, { win, n: 1 }); if (_rl.size > 5000) _rl.clear(); return false; }
+  rec.n++;
+  return rec.n > RATE_LIMIT;
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || 'https://crmuro.ru';
@@ -258,6 +270,7 @@ export default {
       return json({ok:false,error:'method not allowed'},405,origin);
     }
     if (url.pathname === '/api/sync') {
+      if (rateLimited(request.headers.get('cf-connecting-ip') || 'unknown')) return json({ok:false,error:'too many requests'},429,origin);
       if (!env.DB) return json({ok:false, error:'D1 required for atomic sync'}, 503, origin);
       try {
         if (method === 'GET' && url.searchParams.get('list') === '1') {
@@ -296,6 +309,7 @@ export default {
       } catch (e) { return json({ok:false, error:String(e.message || e)}, 500, origin); }
     }
     if (url.pathname !== '/api/backup') return json({ok:false, error:'not found'}, 404, origin);
+    if (rateLimited(request.headers.get('cf-connecting-ip') || 'unknown')) return json({ok:false,error:'too many requests'},429,origin);
 
     try {
       if (method === 'GET') {
