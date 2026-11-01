@@ -260,6 +260,8 @@ body {
 .plan-bar input[type=text] { flex: 1 1 180px; min-width: 140px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; }
 .plan-bar select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; background: #fff; }
 .pl-chk { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.plan-filters { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 8px 12px 4px; }
+.plan-filters.hidden { display: none; }
 .plan-chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
 .pl-chip { padding: 5px 11px; border: 1px solid var(--line); border-radius: 14px; background: var(--card, #fff); font: inherit; font-size: 13px; cursor: pointer; color: var(--ink); }
 .pl-chip.on { background: #0f8a8a; border-color: #0f8a8a; color: #fff; }
@@ -311,7 +313,7 @@ body.plan-mode .search-row, body.plan-mode #searchTop { display: none; }
 @media (max-width: 899px) {
   .plan-tbl .pl-q, .plan-tbl .pl-opt, .plan-tbl .pl-visit { display: none; }
   .plan-bar { padding: 8px 6px; gap: 6px; }
-  .plan-bar .pl-chk, .plan-bar .plan-chips { display: none; }
+  .plan-filters .pl-chk, .plan-filters .plan-chips { display: flex; }
   .plan-wrap { max-height: none; overflow-x: hidden; padding: 0 4px 18px; }
   .plan-tbl.money-tbl { table-layout: fixed; width: 100%; }
   .plan-tbl.money-tbl th, .plan-tbl.money-tbl td { padding: 6px 4px; font-size: 11.5px; }
@@ -1986,7 +1988,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.36.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.37.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4084,7 +4086,7 @@ async function renderPlan() {
     if (ps2) ps2.addEventListener('input', () => { PLAN_ST.q = ps2.value; renderPlan(); });
     view.querySelectorAll('[data-plan-clinic]').forEach(el => el.addEventListener('click', async (e) => {
       e.stopPropagation();
-      await openClinicCardModal(Number(el.dataset.planClinic));
+      await openSalesPopup(Number(el.dataset.planClinic));   // v4.37.0: с телефона — карточка продаж
     }));
     view.querySelectorAll('[data-sale-cell]').forEach(el => el.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -4093,6 +4095,7 @@ async function renderPlan() {
     return;
   }
 
+  const FILTERS_OPEN = localStorage.getItem('planFilters') === '1';
   const deptOn = PLAN_DEPT.every(m => PLAN_ST.mgrs.includes(m)) && PLAN_ST.mgrs.length === PLAN_DEPT.length;
   const chips = `<div class="plan-chips">
       <button type="button" class="pl-chip${PLAN_ST.mgrs.length === 0 ? ' on' : ''}" data-pm="__all">Все</button>
@@ -4102,12 +4105,22 @@ async function renderPlan() {
 
   view.innerHTML = `<div class="plan-bar">
       <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
+      <button type="button" class="btn ghost mini" id="planFiltersBtn">Фильтры${PLAN_ST.mgrs.length || PLAN_ST.onlyPlan || PLAN_ST.onlyFail ? ' ·' : ''}</button>
+    </div>
+    <div class="plan-filters${FILTERS_OPEN ? '' : ' hidden'}" id="planFilters">
       <label class="pl-chk"><input type="checkbox" id="planOnlyPlan"${PLAN_ST.onlyPlan ? ' checked' : ''}/> только с планом</label>
       <label class="pl-chk"><input type="checkbox" id="planOnlyFail"${PLAN_ST.onlyFail ? ' checked' : ''}/> только с провалом</label>
       ${isMgrPlan ? '' : chips}
     </div>
     <div class="plan-wrap"><table class="money-tbl plan-tbl"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 
+  const fb = document.getElementById('planFiltersBtn');
+  if (fb) fb.addEventListener('click', () => {
+    const box = document.getElementById('planFilters');
+    if (!box) return;
+    const open = box.classList.toggle('hidden') === false;
+    localStorage.setItem('planFilters', open ? '1' : '0');
+  });
   const ps = document.getElementById('planSearch');
   if (ps) ps.addEventListener('input', () => { PLAN_ST.q = ps.value; renderPlan(); });
   view.querySelectorAll('[data-pm]').forEach(b => b.addEventListener('click', () => {
@@ -6408,9 +6421,13 @@ function planLineHtml(c) {
     </div>`;
 }
 function salesLineHtml(c) {
-  return `<div class="detail-block sales-line" id="salesLine" data-clinic="${c.id}" title="Все продажи">
-      <span class="sl-k">Продажи, ₽</span>
-      <span class="sl-v">${mnyCompare(c) || 'данных нет'}</span>
+  // v4.37.0: план и продажи — одним блоком
+  const pl = planCache ? planOf(planCache, Number(c.id), 2026) : 0;
+  const cmp = mnyCompare(c);
+  const planTxt = pl ? ` · план ${fmtMoney(pl)} ₽` : '';
+  return `<div class="detail-block sales-line" id="salesLine" data-clinic="${c.id}" title="Продажи и план">
+      <span class="sl-k">Продажи и план</span>
+      <span class="sl-v">${cmp || 'данных нет'}${planTxt}</span>
       <span class="sl-arrow">›</span>
     </div>`;
 }
@@ -6881,7 +6898,6 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly, pa
   const tagsBlock = cardTagsBlockHtml(c);   // v3.32.0: все метки карточки — одной строкой, клик = фильтр
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
-    <div id="planWrap">${planBlock}</div>
     <div id="salesWrap">${salesBlock}</div>
     <div id="privWrap">${privBlock(mc, canEditNow)}</div>
     ${workBlockHtml(c, canEditNow)}
