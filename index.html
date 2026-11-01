@@ -1856,7 +1856,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.10.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.11.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2308,6 +2308,12 @@ let CURRENT_ROLE = null; // 'admin' | 'manager' | 'guest' | null
 let CURRENT_EMAIL = null;
 const MANAGER_BY_EMAIL = { 'osechkina@crm.ru': 'Осечкина', 'skokova@crm.ru': 'Скокова' };
 function myManagerName() { return MANAGER_BY_EMAIL[(CURRENT_EMAIL || '').toLowerCase()] || null; }
+// v4.11.0: «Мой день» — стартовая страница, и в нём сразу включён фильтр по своему менеджеру.
+// Менеджера берём из таблицы managers (там его задаёт админ), иначе — по e-mail из MANAGER_BY_EMAIL.
+function myDayDefaultManager() {
+  const m = window.CURRENT_MANAGER || myManagerName() || '';
+  return String(m).trim();
+}
 const WORKLISTS = {
   nastya: { label: 'Настя', owner: 'Осечкина', emails: ['abramson@crm.ru', 'mazaeva@crm.ru', 'osechkina@crm.ru', 'skokova@crm.ru'], cabinet: 'osechkina@crm.ru', cl: 'nastya_clinics', pp: 'nastya_people', manager: 'Настя' },
   galya: { label: 'Галя', owner: 'Скокова', emails: ['abramson@crm.ru', 'mazaeva@crm.ru', 'skokova@crm.ru', 'osechkina@crm.ru'], cabinet: 'skokova@crm.ru', cl: 'galya_clinics', pp: 'galya_people', manager: 'Галя' },
@@ -2428,6 +2434,10 @@ async function bootstrap(preferredUser) {
   }
   try { localStorage.setItem('crm-offline-user', JSON.stringify({ email: (user.email || '').toLowerCase(), role: CURRENT_ROLE, at: Date.now() })); } catch (e) {}
   CURRENT_EMAIL = user.email || null;
+  // v4.11.0: при входе всегда открываем «Мой день» и ставим фильтр по своему менеджеру
+  // (у Абрамова — Абрамов, у Скоковой — Скокова, у Осечкиной — Осечкина).
+  state.view = 'myday';
+  state.mydayMgr = myDayDefaultManager();
   rcHydrate();   // v3.16.2: показываем прошлые данные сразу, свежесть догоняем в фоне
   Object.keys(WORKLISTS).forEach(k => {
     const can = WORKLISTS[k].emails.includes(CURRENT_EMAIL);
