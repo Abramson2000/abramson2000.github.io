@@ -1988,7 +1988,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.37.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.38.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3887,27 +3887,53 @@ async function openClinicCardModal(id) {
 }
 
 // v4.31.0: клик по цифре в «Плане» — всплывающее окно с продажами клиники по месяцам
-async function openSalesPopup(id) {
-  const c = await getClinic(id);
-  if (!c) { toast('Клиника не найдена'); return; }
-  let rows = [];
-  try { rows = await listMonthly(id); } catch (_) { rows = []; }
-  const pl = planCache ? planOf(planCache, Number(id), 2026) : (await loadPlans(), planOf(planCache, Number(id), 2026));
+// v4.38.0: карточка продаж открывается мгновенно (из кэша) и обновляется после ответа сети
+const SALES_CACHE = {};
+async function savePlanYear(clinicId, amount) {
+  const body = '[[P]]' + JSON.stringify({ year: 2026, plan: Number(amount) || 0 });
+  const { data } = await sb.from('notes').select('id').eq('clinic_id', Number(clinicId)).like('text', '[[P]]%').limit(1);
+  if (data && data[0]) {
+    const { error } = await sb.from('notes').update({ text: body }).eq('id', data[0].id);
+    if (error) throw error;
+  } else {
+    const { error } = await sb.from('notes').insert({
+      clinic_id: Number(clinicId), text: body,
+      author_email: CURRENT_EMAIL || null, author_name: myManagerName() || window.CURRENT_MANAGER || null, source: 'plan'
+    });
+    if (error) throw error;
+  }
+  planCache = null;
+  try { await loadPlans(); } catch (_) {}
+}
+
+function openPlanEditor(clinicId, curPlan, onSaved) {
+  openModal('План 2026', `
+    <div class="field"><label>План на год, ₽</label>
+      <input type="number" id="planInput" value="${curPlan || ''}" placeholder="например 10000000" min="0" step="1000" />
+    </div>
+    <div class="btn-row"><button class="btn" id="planSave">Сохранить</button><button class="btn ghost" id="planCancel">Отмена</button></div>
+  `);
+  document.getElementById('planCancel').addEventListener('click', closeModal);
+  document.getElementById('planSave').addEventListener('click', async () => {
+    const btn = document.getElementById('planSave');
+    btn.disabled = true;
+    try {
+      const val = Number(document.getElementById('planInput').value || 0);
+      await savePlanYear(clinicId, val);
+      closeModal();
+      toast('✓ План сохранён');
+      if (onSaved) await onSaved();
+    } catch (e) { btn.disabled = false; toast('⚠️ Не сохранилось: ' + (e && e.message ? e.message : e)); }
+  });
+}
+
+function salesModalHtml(c, rows, pl) {
   const CUR = 2026, PREV = 2025, LAST_M = 9;
-  const sumM = (y, m) => {
-    let s = 0, has = false;
-    (rows || []).forEach(r => { if (Number(r.year) === y && Number(r.month) === m) { s += Number(r.sale || 0); has = true; } });
-    return has ? s : null;
-  };
-  const sumR = (y, a, b) => {
-    let s = 0, has = false;
-    (rows || []).forEach(r => { const m = Number(r.month); if (Number(r.year) === y && m >= a && m <= b) { s += Number(r.sale || 0); has = true; } });
-    return has ? s : null;
-  };
+  const sumM = (y, m) => { let s = 0, has = false; (rows || []).forEach(r => { if (Number(r.year) === y && Number(r.month) === m) { s += Number(r.sale || 0); has = true; } }); return has ? s : null; };
+  const sumR = (y, a, b) => { let s = 0, has = false; (rows || []).forEach(r => { const m = Number(r.month); if (Number(r.year) === y && m >= a && m <= b) { s += Number(r.sale || 0); has = true; } }); return has ? s : null; };
   const fact = sumR(CUR, 1, LAST_M) || 0;
   const prev = sumR(PREV, 1, LAST_M) || 0;
   const pct = (a, b) => (b ? Math.round((a - b) / b * 100) : null);
-
   const MN = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
   let body = '';
   for (let m = 1; m <= LAST_M; m++) {
@@ -3917,19 +3943,58 @@ async function openSalesPopup(id) {
       + `<td>${d == null ? '—' : `<span class="${d >= 0 ? 'pl-ok' : 'pl-bad'}">${d > 0 ? '+' : ''}${d}%</span>`}</td></tr>`;
   }
   const q = [1, 2, 3, 4].map(n => sumR(CUR, (n - 1) * 3 + 1, n * 3));
-  const qRow = `<tr class="pl-total"><td>Кварталы</td><td colspan="3">I ${q[0] ? fmtMoney(q[0]) : '—'} · II ${q[1] ? fmtMoney(q[1]) : '—'} · III ${q[2] ? fmtMoney(q[2]) : '—'} · IV ${q[3] ? fmtMoney(q[3]) : '—'}</td></tr>`;
-  const head = `<tr><td>Итого янв–сен</td><td>${fmtMoney(fact)}</td><td>${fmtMoney(prev)}</td>`
+  const head = `<tr><td><b>Итого янв–сен</b></td><td><b>${fmtMoney(fact)}</b></td><td><b>${fmtMoney(prev)}</b></td>`
     + `<td>${prev ? `<span class="${fact >= prev ? 'pl-ok' : 'pl-bad'}">${pct(fact, prev) > 0 ? '+' : ''}${pct(fact, prev)}%</span>` : '—'}</td></tr>`;
-
-  openModal('Продажи · ' + (c.name || ''), `
+  const qRow = `<tr class="pl-total"><td>Кварталы</td><td colspan="3">I ${q[0] ? fmtMoney(q[0]) : '—'} · II ${q[1] ? fmtMoney(q[1]) : '—'} · III ${q[2] ? fmtMoney(q[2]) : '—'} · IV ${q[3] ? fmtMoney(q[3]) : '—'}</td></tr>`;
+  const planLine = pl
+    ? `<div class="detail-block"><div class="k">План 2026</div><div class="v">${fmtMoney(pl)} ₽ · факт ${fmtMoney(fact)} ₽ · ${Math.round(fact / pl * 100)}%
+         ${CURRENT_ROLE === 'admin' ? '· <a href="#" id="planEditLink">изменить</a>' : ''}</div></div>`
+    : (CURRENT_ROLE === 'admin' ? `<div class="detail-block"><div class="k">План 2026</div><div class="v">не задан · <a href="#" id="planEditLink">задать</a></div></div>` : '');
+  return `
     <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c.name || '')}${c.city ? ' · ' + esc(c.city) : ''}</div></div>
-    ${pl ? `<div class="detail-block"><div class="k">План 2026</div><div class="v">${fmtMoney(pl)} ₽ · факт ${fmtMoney(fact)} ₽ · ${Math.round(fact / pl * 100)}%</div></div>` : ''}
+    ${planLine}
     <table class="money-tbl plan-tbl" style="width:100%">
       <thead><tr><th>Месяц</th><th>2026</th><th>2025</th><th>Δ</th></tr></thead>
-      <tbody>${body}${head}${qRow}</tbody>
+      <tbody>${body || '<tr><td colspan="4">данных нет</td></tr>'}${head}${qRow}</tbody>
     </table>
-    <div class="row-why" style="margin-top:8px">Продажи Boston по месяцам. Показаны январь–сентябрь: октябрь в базе пока не залит.</div>
-  `);
+    <div class="row-why" style="margin-top:8px">Продажи Boston по месяцам, январь–сентябрь. Октябрь в базе пока не залит.</div>
+  `;
+}
+
+async function openSalesPopup(id) {
+  const cid = Number(id);
+  let c = null;
+  try { c = (typeof clinicFromCache === 'function') ? clinicFromCache(cid) : null; } catch (_) {}
+  if (!c) { try { c = await getClinic(cid); } catch (_) {} }
+  if (!c) { toast('Клиника не найдена'); return; }
+
+  let rows = SALES_CACHE[cid] || MNY_ROWS[cid] || null;
+  let pl = planCache ? planOf(planCache, cid, 2026) : 0;
+
+  const paint = () => {
+    openModal('Продажи · ' + (c.name || ''), salesModalHtml(c, rows || [], pl));
+    const link = document.getElementById('planEditLink');
+    if (link) link.addEventListener('click', (e) => {
+      e.preventDefault();
+      openPlanEditor(cid, pl, async () => {
+        pl = planCache ? planOf(planCache, cid, 2026) : 0;
+        paint();
+        await render();
+      });
+    });
+  };
+  paint();   // мгновенно, без ожидания сети
+
+  if (!rows || !pl) {
+    try {
+      const [r2, _] = await Promise.all([listMonthly(cid), loadPlans()]);
+      rows = r2 || [];
+      SALES_CACHE[cid] = rows;
+      MNY_ROWS[cid] = rows.slice();
+      pl = planCache ? planOf(planCache, cid, 2026) : 0;
+      if (!document.getElementById('modal').classList.contains('hidden')) paint();
+    } catch (_) {}
+  }
 }
 
 async function renderPlan() {
@@ -4079,11 +4144,37 @@ async function renderPlan() {
     };
     const totP = rows.reduce((a, r) => a + Number(r.plan || 0), 0);
     const totF = rows.reduce((a, r) => a + Number(r.fact || 0), 0);
-    view.innerHTML = `<div class="plan-bar"><input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" /></div>`
+    view.innerHTML = `<div class="plan-bar">
+        <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
+        <button type="button" class="btn ghost mini" id="planFiltersBtn">Фильтры${PLAN_ST.mgrs.length || PLAN_ST.onlyPlan || PLAN_ST.onlyFail ? ' ·' : ''}</button>
+      </div>
+      <div class="plan-filters${FILTERS_OPEN ? '' : ' hidden'}" id="planFilters">
+        <label class="pl-chk"><input type="checkbox" id="planOnlyPlan"${PLAN_ST.onlyPlan ? ' checked' : ''}/> только с планом</label>
+        <label class="pl-chk"><input type="checkbox" id="planOnlyFail"${PLAN_ST.onlyFail ? ' checked' : ''}/> только с провалом</label>
+        ${isMgrPlan ? '' : chips}
+      </div>`
       + `<div class="pl-cards">${list.map(cardHtml).join('')}</div>`
       + `<div class="pl-cards-total">Итого: план ${fmtM(totP)} · факт ${fmtM(totF)} · ${totP ? Math.round(totF / totP * 100) : 0}%</div>`;
+    const fb2 = document.getElementById('planFiltersBtn');
+    if (fb2) fb2.addEventListener('click', () => {
+      const box = document.getElementById('planFilters');
+      if (!box) return;
+      const open = box.classList.toggle('hidden') === false;
+      localStorage.setItem('planFilters', open ? '1' : '0');
+    });
     const ps2 = document.getElementById('planSearch');
     if (ps2) ps2.addEventListener('input', () => { PLAN_ST.q = ps2.value; renderPlan(); });
+    const op2 = document.getElementById('planOnlyPlan');
+    if (op2) op2.addEventListener('change', () => { PLAN_ST.onlyPlan = op2.checked; renderPlan(); });
+    const of2 = document.getElementById('planOnlyFail');
+    if (of2) of2.addEventListener('change', () => { PLAN_ST.onlyFail = of2.checked; renderPlan(); });
+    view.querySelectorAll('#planFilters [data-pm]').forEach(b => b.addEventListener('click', () => {
+      const v = b.dataset.pm;
+      if (v === '__all') PLAN_ST.mgrs = [];
+      else if (v === '__dept') PLAN_ST.mgrs = PLAN_DEPT.slice();
+      else { const k = PLAN_ST.mgrs.indexOf(v); if (k >= 0) PLAN_ST.mgrs.splice(k, 1); else PLAN_ST.mgrs.push(v); }
+      renderPlan();
+    }));
     // v4.37.1: тап по всей карточке открывает продажи (раньше обработчик был только на двух полосках)
     view.querySelectorAll('.pl-card').forEach(el => el.addEventListener('click', async (e) => {
       e.stopPropagation();
