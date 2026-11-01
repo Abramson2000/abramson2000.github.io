@@ -1988,7 +1988,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.37.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.37.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4084,13 +4084,12 @@ async function renderPlan() {
       + `<div class="pl-cards-total">Итого: план ${fmtM(totP)} · факт ${fmtM(totF)} · ${totP ? Math.round(totF / totP * 100) : 0}%</div>`;
     const ps2 = document.getElementById('planSearch');
     if (ps2) ps2.addEventListener('input', () => { PLAN_ST.q = ps2.value; renderPlan(); });
-    view.querySelectorAll('[data-plan-clinic]').forEach(el => el.addEventListener('click', async (e) => {
+    // v4.37.1: тап по всей карточке открывает продажи (раньше обработчик был только на двух полосках)
+    view.querySelectorAll('.pl-card').forEach(el => el.addEventListener('click', async (e) => {
       e.stopPropagation();
-      await openSalesPopup(Number(el.dataset.planClinic));   // v4.37.0: с телефона — карточка продаж
-    }));
-    view.querySelectorAll('[data-sale-cell]').forEach(el => el.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      await openSalesPopup(Number(el.dataset.saleCell));
+      const cell = el.querySelector('[data-sale-cell]') || el.querySelector('[data-plan-clinic]');
+      const id = cell ? Number(cell.dataset.saleCell || cell.dataset.planClinic) : 0;
+      if (id) await openSalesPopup(id);
     }));
     return;
   }
