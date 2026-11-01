@@ -335,6 +335,13 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 /* v4.35.0: на телефоне — без фильтров, без горизонтального скролла, компактно */
 body.plan-mode .search-row, body.plan-mode #searchTop { display: none; }
 body.visits-mode .search-row, body.visits-mode #searchTop { display: none; }
+/* v4.52.0: «Визиты» на компьютере — во всю ширину, заголовки компактнее */
+body.visits-mode .work > #view { max-width: none; }
+body.visits-mode .md-sec { padding-top: 7px; padding-bottom: 4px; font-size: 15px; }
+/* явная отсечка между предстоящими и прошедшими */
+.visits-sep { display: flex; align-items: center; gap: 10px; margin: 22px 12px 8px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.visits-sep::before, .visits-sep::after { content: ''; height: 2px; background: var(--line); flex: 1 1 auto; }
+.visits-sep span { white-space: nowrap; }
 @media (max-width: 899px) {
   .plan-tbl .pl-q, .plan-tbl .pl-opt, .plan-tbl .pl-visit { display: none; }
   .plan-bar { padding: 8px 6px; gap: 6px; }
@@ -2026,7 +2033,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.51.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.52.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4518,7 +4525,8 @@ async function renderVisits() {
     `<div class="md-gap">
       <div class="md-sec">Предстоящие · <b>${future.length}</b></div>
       ${future.length ? `<div class="list">${future.map(rowHtml).join('')}</div>` : '<div class="empty">Предстоящих визитов нет.</div>'}
-      ${past.length ? `<div class="md-sec" style="margin-top:18px">Прошедшие · <b>${past.length}</b></div>
+      ${past.length ? `<div class="visits-sep"><span>сегодня · ${fmtDate(today)}</span></div>
+        <div class="md-sec" style="margin-top:6px">Прошедшие · <b>${past.length}</b></div>
         <div class="list">${past.slice().reverse().map(rowHtml).join('')}</div>` : ''}
     </div>`;
 
