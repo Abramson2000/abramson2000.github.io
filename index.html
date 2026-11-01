@@ -292,6 +292,7 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .pl-over { color: #1a73e8; font-weight: 600; }
 /* v4.39.0: название визита — бейдж цветом акцента */
 /* v4.40.0: название визита крупным заголовком в карточке */
+.visit-title-sm { display: block; font-size: 15px; font-weight: 800; color: var(--accent); line-height: 1.2; margin-bottom: 2px; }
 .visit-title { font-size: 20px; font-weight: 800; color: var(--accent); letter-spacing: -.2px; margin: 2px 0 10px; }
 .visit-kind { color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; font-size: 11.5px; font-weight: 600; margin-left: 6px; white-space: nowrap; vertical-align: 1px; }
 /* v4.36.0: «План» на телефоне — карточками, без таблицы и прокрутки вбок */
@@ -1992,7 +1993,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.40.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.41.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3712,7 +3713,10 @@ async function renderCalls() {
   renderActionList('call', 'Звонки');
 }
 
-// v4.17.0: карточка самого визита — план, участники, врачи с телефонами
+// v4.41.0: у визита есть своё название (свободный текст), иначе — тип
+function visitTitleOf(p) { return String((p && (p.title || p.kind)) || 'Встреча').trim(); }
+
+// карточка самого визита — план, участники, врачи с телефонами
 async function openVisitCard(plan) {
   if (!plan) return;
   let c = null;
@@ -3731,9 +3735,9 @@ async function openVisitCard(plan) {
       + `</div>`;
   }).join('') : '<div class="row-why">Врачи не добавлены</div>';
 
-  openModal('Визит · ' + (plan.kind || 'Встреча') + ' · ' + fmtDate(plan.date), `
-    <div class="visit-title">${esc(plan.kind || 'Встреча')}</div>
-    <div class="detail-block"><div class="k">Что за визит</div><div class="v">${esc(plan.kind || 'Встреча')}</div></div>
+  openModal('Визит · ' + visitTitleOf(plan) + ' · ' + fmtDate(plan.date), `
+    <div class="visit-title">${esc(visitTitleOf(plan))}</div>
+    <div class="detail-block"><div class="k">Тип</div><div class="v">${esc(plan.kind || 'Встреча')}</div></div>
     <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c ? c.name : ('#' + plan.clinic_id))}${c && c.city ? ' · ' + esc(c.city) : ''}</div></div>
     <div class="detail-block"><div class="k">Когда</div><div class="v">${esc(fmtDate(plan.date))}</div></div>
     <div class="detail-block"><div class="k">Цель</div><div class="v">${esc(plan.goal || '—')}</div></div>
@@ -4329,9 +4333,9 @@ async function renderVisits() {
         const parts = (p.participants || []).join(', ');
         const docs = (p.people || []).length;
         return `<div class="card list-row" data-visit="${p.noteId}">
-          <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}${p.kind ? `<span class="visit-kind">${esc(p.kind)}</span>` : ''}</span></span><span class="row-next">${esc(mgrById[p.clinic_id] || '')}</span></div>
-          ${goal ? `<div class="row-why">${esc(goal)}</div>` : ''}
-          <div class="row-why">${parts ? 'Участники: ' + esc(parts) : 'Участники: —'}${docs ? ' · врачей: ' + docs : ''}</div>
+          <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(fmtDate(p.date))}</span></div>
+          <div class="row-why"><b>${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}</b>${goal ? ' · ' + esc(goal) : ''}</div>
+          <div class="row-why">${parts ? 'Участники: ' + esc(parts) : 'Участники: —'}${docs ? ' · врачей: ' + docs : ''}${mgrById[p.clinic_id] ? ' · ' + esc(mgrById[p.clinic_id]) : ''}</div>
           <div class="vm-actions">
             <button class="btn ghost mini" data-edit-plan="${p.noteId}">Изменить</button>
             <button class="btn ghost mini" data-drop-plan="${p.noteId}" data-cid="${p.clinic_id}">Отменить визит</button>
@@ -4914,6 +4918,9 @@ async function openVisitModal(cfg) {
       <datalist id="vmClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}</option>`).join('')}</datalist>
     </div>
     <div class="field"><label>Дата визита</label><input type="date" id="vmDate" value="${esc(date)}" /></div>
+    <div class="field"><label>Название визита</label>
+      <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || (plan && plan.kind) || base.title || base.kind || 'Встреча')}" placeholder="например: мастер-класс по Литокласт" />
+    </div>
     <div class="field"><label>Что за визит</label>
       <select id="vmKind">${VISIT_KINDS.map(k => `<option value="${esc(k)}"${(((plan && plan.kind) || (idea && idea.kind) || base.kind || 'Встреча') === k) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>
     </div>
@@ -4987,6 +4994,7 @@ async function openVisitModal(cfg) {
       const payload = {
         date: d,
         kind: (document.getElementById('vmKind').value || 'Встреча'),
+        title: (document.getElementById('vmTitle').value || '').trim(),
         goal: (document.getElementById('vmGoal').value || '').trim(),
         participants: [...document.querySelectorAll('.vmPart:checked')].map(x => canonManager(x.value)),
         people: chosen.slice()
@@ -5164,10 +5172,11 @@ async function renderMyDay() {
     // v4.12.0: под городом — зачем контакт: цель визита или пометка к звонку
     const sub = [c.city, c.manager].filter(Boolean).join(' · ');
     const why = (c.actionType === 'visit') ? visitGoalOf(c.id) : (c.privateNote || '');
-    const vk = (c.actionType === 'visit') ? ((visitPlanOf(c.id) || {}).kind || 'Встреча') : '';
+    const vPlan = (c.actionType === 'visit') ? (visitPlanOf(c.id) || {}) : null;
+    const vk = vPlan ? visitTitleOf(vPlan) : '';
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
-        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}${vk ? `<span class="visit-kind">${esc(vk)}</span>` : ''}</span></span>
+        <span class="rn-wrap">${vk ? `<span class="visit-title-sm">${esc(vk)}</span>` : ''}<span class="list-row-name">${esc(c.name)}</span></span></span>
         <span class="row-next">${badge}</span>
       </div>
       ${subMarks(c, esc(sub || '—'))}
