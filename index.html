@@ -816,6 +816,16 @@ body.card-sliding #hoverCard, body.card-sliding #modal .modal-card { transition:
 body.detail-mode.card-open.swipe-drag #view { display: block; }
 /* v3.16.2: блок «Связаться» — узкий, по содержимому (был растянут на всю ширину) */
 .priv-block { padding: 7px 11px; margin-bottom: 8px; }
+/* v4.14.2: «Тип» — аккуратные кнопки-переключатели, а не селект, прилипший к дате */
+.priv-block .priv-row.compact { margin: 0 0 8px; }
+.priv-block .priv-row.compact:last-child { margin-bottom: 0; }
+.priv-block .priv-row.compact .lbl { min-width: 72px; }
+.priv-block input.date-inp, .priv-block input[type=text].date-inp { flex: 1 1 auto; min-width: 0; }
+.type-seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.seg-btn { padding: 5px 11px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); font: inherit; font-size: 13px; cursor: pointer; color: var(--ink); }
+.seg-btn:hover { border-color: #b9b9b9; }
+.seg-btn.active { background: #0f8a8a; color: #fff; border-color: #0f8a8a; }
+#cpVisitBox.hidden { display: none; }
 /* v3.17.0: сайт — отдельной плашкой, с полем правки */
 .site-block { padding: 8px 11px; margin-bottom: 8px; }
 .site-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -1873,7 +1883,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.14.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.14.2';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -6253,9 +6263,13 @@ function privBlock(c, canEditNow) {
         </span>
       </div>
       <div class="priv-row compact"><span class="lbl">Тип</span>
-        <select id="cpType" class="date-inp" ${canEditNow ? '' : 'disabled'} onchange="document.getElementById('cpVisitBox').classList.toggle('hidden', this.value!=='visit')">
-          ${opt('', 'Контакт')}${opt('call', 'Звонок')}${opt('visit', 'Визит')}${opt('other', 'Другое')}
-        </select>
+        <span class="type-seg" id="cpTypeSeg">
+          <button type="button" class="seg-btn${curType === '' ? ' active' : ''}" data-t="">Контакт</button>
+          <button type="button" class="seg-btn${curType === 'call' ? ' active' : ''}" data-t="call">Звонок</button>
+          <button type="button" class="seg-btn${curType === 'visit' ? ' active' : ''}" data-t="visit">Визит</button>
+          <button type="button" class="seg-btn${curType === 'other' ? ' active' : ''}" data-t="other">Другое</button>
+        </span>
+        <input type="hidden" id="cpType" value="${esc(curType)}" />
       </div>
       <div id="cpVisitBox" class="${curType === 'visit' ? '' : 'hidden'}">
         <div class="priv-row compact"><span class="lbl">Цель</span><input type="text" id="cpGoal" class="date-inp" value="${esc(vp.goal || '')}" placeholder="апробация Литокласт" ${canEditNow ? '' : 'disabled'} /></div>
@@ -6454,7 +6468,24 @@ document.addEventListener('click', async (ev) => {
     }
   });
 });
-function hydrateCard(cid) { if (cid) fillNotesBlock(cid); }
+function hydrateCard(cid) { if (cid) { fillNotesBlock(cid); setTimeout(bindTypeSeg, 30); } }
+// v4.14.2: переключатель «Тип» в карточке (Контакт / Звонок / Визит / Другое)
+function bindTypeSeg() {
+  const seg = document.getElementById('cpTypeSeg');
+  const inp = document.getElementById('cpType');
+  const box = document.getElementById('cpVisitBox');
+  if (!seg || !inp) return;
+  seg.querySelectorAll('.seg-btn').forEach(b => {
+    if (b.dataset.bound === '1' || b.disabled) return;
+    b.dataset.bound = '1';
+    b.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      seg.querySelectorAll('.seg-btn').forEach(x => x.classList.toggle('active', x === b));
+      inp.value = b.dataset.t || '';
+      if (box) box.classList.toggle('hidden', inp.value !== 'visit');
+    });
+  });
+}
 document.addEventListener('click', async (ev) => {
   const save = ev.target.closest('#cpSave');
   if (save) {
