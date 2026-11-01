@@ -279,7 +279,7 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .plan-tbl thead th:first-child { z-index: 4; }
 .plan-tbl thead th.on { color: var(--ink); }
 .pl-row:hover { background: #f7fbfb; cursor: pointer; }
-.pl-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-name { white-space: nowrap; overflow: visible; }
 .pl-name b { font-weight: 600; }
 .pl-city { color: var(--muted); margin-left: 6px; font-size: 12px; }
 .pl-mgr td { background: #eef7f7; font-size: 13px; color: #0f8a8a; cursor: pointer; }
@@ -287,6 +287,7 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .pl-ok { color: var(--brand, #0f8a8a); }
 .pl-mid { color: #b8860b; }
 .pl-bad { color: var(--danger, #c0392b); }
+.pl-over { color: #1a73e8; font-weight: 600; }   /* v4.32.0: 130%+ — перевыполнение, значит план был занижен */
 .pl-visit { color: var(--muted); }
 /* v4.28.0: на телефоне — минимум «Плана»: клиника, план, факт, %, Г/Г, визит */
 @media (max-width: 899px) {
@@ -825,7 +826,8 @@ input[type=search]::-webkit-search-cancel-button { display: none; }
 .money-tbl tbody tr.mny-m td { color: var(--muted); font-size: 11.5px; padding-top: 1px; padding-bottom: 1px; }
 /* v4.28.1: «План» — сетка и воздух важнее компактных стилей таблицы денег */
 .plan-tbl.money-tbl th, .plan-tbl.money-tbl td { padding: 9px 16px; border-bottom: 1px solid #e2e2e2; border-right: 1px solid #ececec; }
-.plan-tbl.money-tbl th:first-child, .plan-tbl.money-tbl td:first-child { width: auto; min-width: 300px; max-width: 320px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-tbl.money-tbl { table-layout: auto; }
+.plan-tbl.money-tbl th:first-child, .plan-tbl.money-tbl td:first-child { width: 1%; min-width: 0; max-width: none; text-align: left; white-space: nowrap; overflow: visible; text-overflow: clip; }
 .plan-tbl.money-tbl thead th { font-size: 12px; color: var(--muted); border-bottom: 1px solid #cfcfcf; }
 @media (max-width: 899px) {
   .plan-tbl.money-tbl th, .plan-tbl.money-tbl td { padding: 7px 8px; font-size: 12px; }
@@ -1964,7 +1966,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.31.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.32.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3978,7 +3980,9 @@ async function renderPlan() {
   const mgrOrder = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'ru'));
 
   const fmtM = v => v == null ? '—' : fmtMoney(v);
-  const cellPct = v => v == null ? '—' : `<span class="${v >= 100 ? 'pl-ok' : (v >= 60 ? 'pl-mid' : 'pl-bad')}">${v}%</span>`;
+  // v4.32.0: красный <60%, жёлтый 60–99%, зелёный 100–129%, синий ≥130% (перевыполнение = плохое планирование)
+  // v4.32.0: красный <70%, жёлтый 70–99%, зелёный 100–129%, синий ≥130%
+  const cellPct = v => v == null ? '—' : `<span class="${v >= 130 ? 'pl-over' : (v >= 100 ? 'pl-ok' : (v >= 70 ? 'pl-mid' : 'pl-bad'))}">${v}%</span>`;
   const th = (k, t, extra, title) => `<th data-plan-sort="${k}"${title ? ` title="${esc(title)}"` : ''} class="pl-th${PLAN_ST.sort === k ? ' on' : ''}${extra ? ' ' + extra : ''}">${t}${PLAN_ST.sort === k ? (PLAN_ST.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`;
 
   const head = `<tr>
