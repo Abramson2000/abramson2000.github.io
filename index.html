@@ -2026,7 +2026,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.49.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.50.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4502,7 +4502,13 @@ async function renderVisits() {
   const rowHtml = (p) => `<div class="card list-row" data-visit="${p.noteId}">
       <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(visitRange(p))}</span></div>
       <div class="row-why"><b>${esc(byId[p.clinic_id] || p.city || 'без клиники')}</b>${(p.city || cityById[p.clinic_id]) ? ' · ' + esc(p.city || cityById[p.clinic_id]) : ''}</div>
-      <div class="row-why">${(p.participants || []).length ? 'Участники: ' + esc((p.participants || []).join(', ')) : 'Участники: —'}${(p.people || []).length ? ' · врачей: ' + p.people.length : ''}${mgrById[p.clinic_id] ? ' · ' + esc(mgrById[p.clinic_id]) : ''}</div>
+      <div class="row-why">${(() => {
+        const parts = (p.participants || []).map(canonManager).filter(Boolean);
+        const mgr = String(mgrById[p.clinic_id] || '').trim();
+        const who = parts.length ? parts : (mgr ? [mgr] : []);
+        const uniq = [...new Set(who)];
+        return (uniq.length ? 'Участники: ' + esc(uniq.join(', ')) : 'Участники: —') + ((p.people || []).length ? ' · врачей: ' + p.people.length : '');
+      })()}</div>
       <div class="vm-actions">
         <button class="btn ghost mini" data-edit-plan="${p.noteId}">Изменить</button>
         <button class="btn ghost mini" data-drop-plan="${p.noteId}" data-cid="${p.clinic_id}">Отменить визит</button>
