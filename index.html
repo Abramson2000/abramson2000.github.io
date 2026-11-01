@@ -292,8 +292,9 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .pl-over { color: #1a73e8; font-weight: 600; }
 /* v4.39.0: название визита — бейдж цветом акцента */
 /* v4.40.0: название визита крупным заголовком в карточке */
-.month-bar { display: flex; align-items: center; gap: 10px; padding: 4px 16px 8px; }
-.month-stat { font-size: 13px; color: var(--muted); }
+.month-bar { display: flex; align-items: center; gap: 8px; padding: 4px 16px 8px; }
+.month-bar .btn { flex: 0 0 auto; width: 30px; min-width: 30px; height: 28px; padding: 0; font-size: 15px; line-height: 1; }
+.month-stat { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .month-stat b { color: var(--ink); }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px 2px; padding: 0 10px 16px; align-items: start; }
 .cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px 3px; grid-column: 1 / -1; margin-bottom: 10px; }
@@ -2024,7 +2025,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.47.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.48.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
