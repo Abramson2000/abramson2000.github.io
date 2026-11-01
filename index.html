@@ -2309,6 +2309,8 @@ function openModal(title, bodyHtml) {
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalBody').innerHTML = bodyHtml;
   document.getElementById('modal').classList.remove('hidden');
+  // v4.16.1: если в форме есть выбор ЛПУ — сразу подключаем поиск
+  setTimeout(() => { try { bindClinicPicker(); } catch (_) {} }, 0);
 }
 
 // v3.16.0: при открытой клавиатуре подтягиваем кнопку «Сохранить» в видимую часть формы
@@ -5205,6 +5207,42 @@ async function refClinicOptions(selectedId) {
   return all.map(c => `<option value="${c.id}"${String(c.id) === String(selectedId) ? ' selected' : ''}>${esc(c.name)}${c.city ? ' · ' + esc(c.city) : ''}</option>`).join('');
 }
 
+// v4.16.1: выбор ЛПУ — поиск сверху + полный список (рабочие клиники И справочник).
+// Раньше в карточке врача были только справочные карточки — рабочих больниц там не было вообще.
+function clinicPickerHtml(items, selectedId) {
+  const list = (items || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+  const opt = (c) => `<option value="${c.id}"${String(c.id) === String(selectedId) ? ' selected' : ''}`
+    + ` data-q="${esc(((c.name || '') + ' ' + (c.city || '')).toLowerCase())}">`
+    + `${esc(c.name)}${c.city ? ' · ' + esc(c.city) : ''}</option>`;
+  const work = list.filter(c => !isRefKind(c.kind));
+  const refs = list.filter(c => isRefKind(c.kind));
+  return `<input type="text" id="f_clinicSearch" placeholder="Поиск ЛПУ: название или город" autocomplete="off" />`
+    + `<select id="f_clinic"><option value="">— выберите —</option>`
+    + (work.length ? `<optgroup label="Клиники в работе">${work.map(opt).join('')}</optgroup>` : '')
+    + (refs.length ? `<optgroup label="Справочник">${refs.map(opt).join('')}</optgroup>` : '')
+    + `</select>`;
+}
+function bindClinicPicker() {
+  const inp = document.getElementById('f_clinicSearch');
+  const sel = document.getElementById('f_clinic');
+  if (!inp || !sel || inp.dataset.bound === '1') return;
+  inp.dataset.bound = '1';
+  inp.addEventListener('input', () => {
+    const q = inp.value.trim().toLowerCase();
+    sel.querySelectorAll('option').forEach(o => {
+      if (!o.value) return;
+      const hit = !q || String(o.dataset.q || '').includes(q);
+      o.hidden = !hit;
+      o.style.display = hit ? '' : 'none';
+    });
+    sel.querySelectorAll('optgroup').forEach(g => {
+      const anyVisible = [...g.querySelectorAll('option')].some(o => !o.hidden);
+      g.hidden = !anyVisible;
+      g.style.display = anyVisible ? '' : 'none';
+    });
+  });
+}
+
 // карточка организации справочника
 async function openRefOrgForm(id, kind) {
   const c = id ? await getClinic(id) : {};
@@ -5244,13 +5282,14 @@ async function saveRefOrg(id, kind) {
 // карточка врача справочника
 async function openRefDoctorForm(id) {
   const p = id ? await getPerson(id) : {};
-  const [regions, cities, clinicOpts] = await Promise.all([
-    datalistOptions('region'), datalistOptions('city'), refClinicOptions(p.clinicId)
+  const [regions, cities, allClinics] = await Promise.all([
+    datalistOptions('region'), datalistOptions('city'), listClinics()
   ]);
+  const clinicOpts = clinicPickerHtml((allClinics || []).filter(c => !c.markedDel), p.clinicId);
   openModal(id ? 'Врач: ' + (p.fullName || '') : 'Новый врач', `
     <div class="field"><label>ФИО *</label><input id="f_fullName" value="${esc(p.fullName)}" /></div>
     <div class="field"><label>Должность</label><input id="f_position" value="${esc(p.position)}" /></div>
-    <div class="field"><label>Учреждение</label><select id="f_clinic"><option value="">— выберите —</option>${clinicOpts}</select></div>
+    <div class="field"><label>Учреждение</label>${clinicOpts}</div>
     <div class="row2">
       <div class="field"><label>Регион</label><input id="fm_region" list="dl_region" value="${esc(p.region)}" /><datalist id="dl_region">${regions}</datalist></div>
       <div class="field"><label>Город</label><input id="fm_city" list="dl_city" value="${esc(p.city)}" /><datalist id="dl_city">${cities}</datalist></div>
@@ -5530,14 +5569,13 @@ async function openPersonForm(id, presetClinicId, opts) {
   const o = opts || {};
   const p = id ? await getPerson(id) : (presetClinicId != null ? { clinicId: presetClinicId } : {});
   const isDoc = isRefDoc(p) || !!o.refdoc;
-  const clinicOptions = isDoc ? await refClinicOptions(p.clinicId) : await clinicSelectOptions(p.clinicId);
+  const allClinicsNow = (await listClinics()).filter(c => !c.markedDel);
+  const clinicOptions = clinicPickerHtml(allClinicsNow, p.clinicId);
 
   openModal(id ? (isDoc ? 'Изменить врача' : 'Изменить человека') : (isDoc ? 'Новый врач' : 'Новый человек'), `
     <div class="field"><label>ФИО *</label><input id="f_fullName" value="${esc(p.fullName)}" /></div>
     <div class="field"><label>Должность</label><input id="f_position" value="${esc(p.position)}" /></div>
-    <div class="field"><label>Учреждение (клиника) *</label>
-      <select id="f_clinic"><option value="">— выберите —</option>${clinicOptions}</select>
-    </div>
+    <div class="field"><label>Учреждение (клиника) *</label>${clinicOptions}</div>
     <div class="row2">
       <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(p.phone)}" /></div>
       <div class="field"><label>Почта</label><input id="f_email" value="${esc(p.email)}" /></div>
