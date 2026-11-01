@@ -296,9 +296,9 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .month-stat { font-size: 13px; color: var(--muted); }
 .month-stat b { color: var(--ink); }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px 2px; padding: 0 10px 16px; align-items: start; }
-.cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px 2px; grid-column: 1 / -1; margin-bottom: 6px; }
-.cal-dnum { height: 20px; font-size: 11px; color: var(--muted); text-align: center; line-height: 20px; }
-.cal-bar { height: 20px; line-height: 20px; border-radius: 6px; padding: 0 6px; font-size: 11px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px 3px; grid-column: 1 / -1; margin-bottom: 10px; }
+.cal-dnum { height: 24px; font-size: 12.5px; color: var(--muted); text-align: center; line-height: 20px; }
+.cal-bar { height: 26px; line-height: 26px; border-radius: 7px; padding: 0 8px; font-size: 12.5px; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
 .cal-bar.past { background: #e6f0fb; color: #2c6fb0; }
 .cal-bar.now { background: #e8f6ec; color: #1f7a45; }
 .cal-bar.idea { background: #fff6d9; color: #8a6d00; border: 1px dashed #e0cd7a; }
@@ -473,6 +473,15 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
 .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--brand); border-color: transparent; }
 
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* v4.45.0: окно визита на телефоне — без езды вправо-влево */
+@media (max-width: 899px) {
+  #modal .modal-card { max-width: 100vw; box-sizing: border-box; }
+  #modal .row2 { grid-template-columns: 1fr; gap: 8px; }
+  #modal .field input, #modal .field select, #modal .field textarea { width: 100%; min-width: 0; box-sizing: border-box; }
+  #modalBody { overflow-x: hidden; }
+  #modal .vm-docs { max-height: 180px; overflow-y: auto; }
+  #modal .vm-chks { gap: 8px 12px; }
+}
 
 .btn {
   width: 100%; padding: 13px; border: none; border-radius: 11px; font-size: 16px; font-weight: 700;
@@ -2011,7 +2020,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.44.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.46.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2428,7 +2437,9 @@ document.addEventListener('click', ev => {
   toggleTagFilter(el.dataset.grp || 'tags', el.dataset.tagf);
 }, true);
 
+let __modalScrollY = 0, __closingModal = false;
 function openModal(title, bodyHtml) {
+  __modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalBody').innerHTML = bodyHtml;
   document.getElementById('modal').classList.remove('hidden');
@@ -2445,7 +2456,21 @@ document.addEventListener('focusin', (e) => {
 });
 
 function closeModal() {
-  document.getElementById('modal').classList.add('hidden');
+  const m = document.getElementById('modal');
+  if (m) m.classList.add('hidden');
+  // v4.46.0: на iOS после высокой формы страница оставалась прокрученной ниже контента — «белый экран»
+  if (__closingModal) return;
+  __closingModal = true;
+  requestAnimationFrame(() => {
+    try {
+      if (document.body.classList.contains('card-open') && !state.selId) document.body.classList.remove('card-open');
+      const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      window.scrollTo(0, Math.min(__modalScrollY, maxY));
+      const v = document.getElementById('view');
+      if (v && v.getBoundingClientRect().height < 40) { try { render(); } catch (_) {} }
+    } catch (_) {}
+    __closingModal = false;
+  });
 }
 
 async function datalistOptions(type) {
@@ -3758,7 +3783,7 @@ async function openVisitCard(plan) {
     <div class="detail-block"><div class="k">Тип</div><div class="v">${esc(plan.kind || 'Встреча')}</div></div>
     <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c ? c.name : ('#' + plan.clinic_id))}${c && c.city ? ' · ' + esc(c.city) : ''}</div></div>
     <div class="detail-block"><div class="k">Когда</div><div class="v">${esc(visitRange(plan))}</div></div>
-    <div class="detail-block"><div class="k">Цель</div><div class="v">${esc(plan.goal || '—')}</div></div>
+    <div class="detail-block"><div class="k">Комментарии</div><div class="v">${esc(plan.goal || '—')}</div></div>
     <div class="detail-block"><div class="k">Участники</div><div class="v">${esc(parts)}</div></div>
     <div class="detail-block"><div class="k">Врачи</div><div class="v">${docRows}</div></div>
     <div class="btn-row">
@@ -4353,33 +4378,35 @@ async function renderVisits() {
   const past = visitRows.filter(p => visitEnd(p) < today);
   const future = visitRows.filter(p => visitEnd(p) >= today);
 
-  // ---- месячный обзор ----
+  // ---- месячные итоги (показываем внизу страницы) ----
   const curMonth = VISITS_UI.month || visitMonthKey(today);
+  const monthStart = curMonth + '-01';
+  const daysInMonthNum = new Date(Number(curMonth.slice(0, 4)), Number(curMonth.slice(5, 7)), 0).getDate();
+  const monthEnd = curMonth + '-' + String(daysInMonthNum).padStart(2, '0');
   const inMonth = visitRows.filter(p => {
     const a = String(p.date).slice(0, 10), b = visitEnd(p);
-    const m1 = visitMonthKey(a), m2 = visitMonthKey(b);
-    return (curMonth >= m1 && curMonth <= m2) || m1 === curMonth || m2 === curMonth;
+    return !(b < monthStart || a > monthEnd);
   });
-  const cities = new Set(inMonth.map(p => cityById[p.clinic_id] || '').filter(Boolean));
-  // дни считаем как пересечение визита с текущим месяцем, без двойного счёта
-  const monthStart = curMonth + '-01';
-  const monthEnd = curMonth + '-' + String(new Date(Number(curMonth.slice(0,4)), Number(curMonth.slice(5,7)), 0).getDate()).padStart(2, '0');
+  const localISO = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   const daySet = new Set();
   inMonth.forEach(p => {
-    const a = String(p.date).slice(0, 10) < monthStart ? monthStart : String(p.date).slice(0, 10);
-    const b = visitEnd(p) > monthEnd ? monthEnd : visitEnd(p);
-    for (let d = new Date(a + 'T00:00:00'); ; d.setDate(d.getDate() + 1)) {
-      const iso = d.toISOString().slice(0, 10);
-      if (iso > b) break;
-      daySet.add(iso);
+    const a0 = String(p.date).slice(0, 10), b0 = visitEnd(p);
+    const aa = a0 < monthStart ? monthStart : a0;
+    const bb = b0 > monthEnd ? monthEnd : b0;
+    const pa = aa.split('-').map(Number), pb = bb.split('-').map(Number);
+    for (let d = new Date(pa[0], pa[1] - 1, pa[2]), e = new Date(pb[0], pb[1] - 1, pb[2]); d <= e; d.setDate(d.getDate() + 1)) {
+      daySet.add(localISO(d));
     }
   });
   const days = daySet.size;
-  const monthHtml = `<div class="md-sec">Обзор · ${esc(monthLabel(curMonth))}</div>
-    <div class="month-bar">
-      <button class="btn ghost mini" data-month="-1">‹</button>
-      <span class="month-stat">визитов <b>${inMonth.length}</b> · городов <b>${cities.size}</b> · дней в поездках <b>${days}</b>${cities.size ? ' · ' + esc([...cities].slice(0, 4).join(', ')) : ''}</span>
-      <button class="btn ghost mini" data-month="1">›</button>
+  const cities = new Set(inMonth.map(p => String(p.city || cityById[p.clinic_id] || '').trim()).filter(Boolean));
+  const statsHtml = `<div class="md-gap">
+      <div class="md-sec">Итоги · ${esc(monthLabel(curMonth))}</div>
+      <div class="month-bar">
+        <button class="btn ghost mini" data-month="-1">‹</button>
+        <span class="month-stat">визитов <b>${inMonth.length}</b> · городов <b>${cities.size}</b> · дней <b>${days}</b>${cities.size ? ' · ' + esc([...cities].slice(0, 5).join(', ')) : ''}</span>
+        <button class="btn ghost mini" data-month="1">›</button>
+      </div>
     </div>`;
 
   // ---- календарь месяца: полосы на несколько дней, дни фиксированной высоты ----
@@ -4391,11 +4418,11 @@ async function renderVisits() {
     const monthEnd = curMonth + '-' + String(daysInMonth).padStart(2, '0');
     const shortTitle = (t) => { const v = String(t || '').trim(); return v.length > 18 ? v.slice(0, 18) + '…' : v; };
     const labelOf = (p) => {
-      const city = String(cityById[p.clinic_id] || '').trim();
+      const city = String(p.city || cityById[p.clinic_id] || '').trim();
       const name = shortTitle(visitTitleOf(p) || p.goal || '');
       const isMoscow = /москва/i.test(city);
       if (city && !isMoscow) return city + ' · ' + name;
-      return (byId[p.clinic_id] || city || '') + ' · ' + name;
+      return ((byId[p.clinic_id] || '') + (city ? (byId[p.clinic_id] ? ' · ' + city : city) : '') || 'Визит') + ' · ' + name;
     };
     const evs = [];
     visitRows.forEach(p => {
@@ -4453,11 +4480,6 @@ async function renderVisits() {
     }).join('');
 
     calHtml = `<div class="md-sec">Календарь · ${esc(monthLabel(curMonth))}</div>
-      <div class="month-bar">
-        <button class="btn ghost mini" data-month="-1">‹</button>
-        <span class="month-stat">визитов <b>${inMonth.length}</b> · городов <b>${cities.size}</b> · дней в поездках <b>${days}</b>${cities.size ? ' · ' + esc([...cities].slice(0, 4).join(', ')) : ''}</span>
-        <button class="btn ghost mini" data-month="1">›</button>
-      </div>
       <div class="cal-grid">
         ${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => `<div class="cal-dow">${d}</div>`).join('')}
         ${weeksHtml}
@@ -4467,7 +4489,7 @@ async function renderVisits() {
   // ---- список: прошедшие и предстоящие ----
   const rowHtml = (p) => `<div class="card list-row" data-visit="${p.noteId}">
       <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(visitRange(p))}</span></div>
-      <div class="row-why"><b>${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}</b>${cityById[p.clinic_id] ? ' · ' + esc(cityById[p.clinic_id]) : ''}${p.goal ? ' · ' + esc(p.goal) : ''}</div>
+      <div class="row-why"><b>${esc(byId[p.clinic_id] || p.city || 'без клиники')}</b>${(p.city || cityById[p.clinic_id]) ? ' · ' + esc(p.city || cityById[p.clinic_id]) : ''}</div>
       <div class="row-why">${(p.participants || []).length ? 'Участники: ' + esc((p.participants || []).join(', ')) : 'Участники: —'}${(p.people || []).length ? ' · врачей: ' + p.people.length : ''}${mgrById[p.clinic_id] ? ' · ' + esc(mgrById[p.clinic_id]) : ''}</div>
       <div class="vm-actions">
         <button class="btn ghost mini" data-edit-plan="${p.noteId}">Изменить</button>
@@ -4501,22 +4523,20 @@ async function renderVisits() {
   const chip = (val, label) => `<button class="pl-chip${MGR_FILTER === val ? ' on' : ''}" data-visits-mgr="${val}">${label}</button>`;
   view.innerHTML = `
     <div class="plan-bar">
-      <input type="text" id="visitsSearch" placeholder="Поиск по клинике" value="${esc(sV || '')}" />
       <button class="btn ghost mini" id="visitsModeBtn">${VISITS_UI.mode === 'cal' ? 'Список' : 'Календарь'}</button>
       <button class="btn primary mini" id="newIdeaBtn">＋ Идея</button>
     </div>
     <div class="plan-filters" style="display:flex">
-      ${chip('', 'Все')}${chip('__dept', 'Мой отдел')}${chip('Мазаева', 'Мазаева')}${chip('Евсеев', 'Евсеев')}
+      ${chip('', 'Все')}${chip('Абрамов', 'Абрамов')}${chip('Осечкина', 'Осечкина')}${chip('Скокова', 'Скокова')}
     </div>
     ${calHtml}
     ${VISITS_UI.mode === 'cal' ? '' : ideasHtml}
-    ${listHtml}`;
+    ${listHtml}
+    ${statsHtml}`;
 
   const nb = document.getElementById('newIdeaBtn');
   if (nb) nb.addEventListener('click', () => openIdeaModal());
 
-  const vs = document.getElementById('visitsSearch');
-  if (vs) vs.addEventListener('input', () => { state.search = vs.value; renderVisits(); });
 
   const mb = document.getElementById('visitsModeBtn');
   if (mb) mb.addEventListener('click', () => {
@@ -5005,7 +5025,7 @@ async function saveVisitPlanRow(clinicId, plan, noteId) {
   const body = VISIT_MARK + JSON.stringify(plan || {});
   const cid = (clinicId == null) ? null : Number(clinicId);
   if (noteId) {
-    const { error } = await sb.from('notes').update({ text: body }).eq('id', Number(noteId));
+    const { error } = await sb.from('notes').update({ text: body, clinic_id: cid }).eq('id', Number(noteId));
     if (error) throw error;
   } else {
     const { error } = await sb.from('notes').insert({
@@ -5123,7 +5143,7 @@ async function openVisitModal(cfg) {
     <div class="field"><label>Название визита</label>
       <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || (plan && plan.kind) || base.title || base.kind || 'Встреча')}" placeholder="например: мастер-класс по Литокласт" />
     </div>
-    <div class="field"><label>Цель</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || base.goal || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
+    <div class="field"><label>Комментарии</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || base.goal || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
     <div class="field"><label>Участники (визит виден каждому из них)</label><div class="vm-chks">${participantsHtml(partSel)}</div></div>
     <div class="field"><label>Врачи в визите — из любой клиники</label>
       <input type="text" id="vmDocSearch" list="vmDocList" placeholder="начни печатать фамилию врача" autocomplete="off" />
@@ -5378,7 +5398,7 @@ async function renderMyDay() {
   const row = (c, badge) => {
     // v4.12.0: под городом — зачем контакт: цель визита или пометка к звонку
     const sub = [c.city, c.manager].filter(Boolean).join(' · ');
-    const why = (c.actionType === 'visit') ? visitGoalOf(c.id) : (c.privateNote || '');
+    const why = (c.actionType === 'visit') ? '' : (c.privateNote || '');
     const vPlan = (c.actionType === 'visit') ? (visitPlanOf(c.id) || {}) : null;
     const vk = vPlan ? visitTitleOf(vPlan) : '';
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
@@ -6398,11 +6418,25 @@ function shortPos(p) {
   if (!s) return '';
   const l = s.toLowerCase().replace(/ё/g, 'е');
   const has = re => re.test(l);
+  // v4.45.0: «Зав УО», «Зав ХО», «Зав АиР» — по названию отделения
+  const DEPT_ABBR = [
+    [/урогинеколог/, 'УГО'], [/уролог/, 'УО'], [/хирург/, 'ХО'], [/анестези|реанимат/, 'АиР'],
+    [/гинеколог/, 'ГО'], [/терапевт/, 'ТО'], [/кардиолог/, 'КО'], [/невролог/, 'НО'],
+    [/онколог/, 'ОО'], [/эндоскоп/, 'ЭО'], [/офтальмолог/, 'ОфтО'], [/травматолог/, 'ТрО'],
+    [/нефролог/, 'НфО'], [/пульмонолог/, 'ПулО'], [/гастроэнтеролог/, 'ГЭО'], [/инфекцион/, 'ИО'],
+    [/педиатр/, 'ПедО'], [/родильн|роддом/, 'РД'], [/поликлиник/, 'Пол'], [/функцион/, 'ФД'],
+    [/лучев|радиолог/, 'РДО'], [/патологоанатом/, 'ПАО']
+  ];
+  const deptAbbr = (str) => {
+    const l2 = String(str).toLowerCase().replace(/ё/g, 'е');
+    for (const [re, ab] of DEPT_ABBR) if (re.test(l2)) return ab;
+    return '';
+  };
   if (has(/помощник\s+зав/)) return 'Помощник заведующего';
   if (has(/зам.*главн.*врач|зам.*главврач/)) return 'Зам. главврача';
-  if (has(/зам.*хирург/)) return 'Зам. по хирургии';
+  if (has(/зам.*хирург/)) return 'Зам ПоХ';
   if (has(/зам.*эконом/)) return 'Зам. по экономике';
-  if (has(/^зам(\s|$|\.)/) || has(/заместител/)) return 'Заместитель';
+  if (has(/^зам(\s|$|\.)/) || has(/заместител/)) { const ab = deptAbbr(s); return ab ? 'Зам ' + ab : 'Заместитель'; }
   if (has(/главн.*врач|главврач/)) return 'Главврач';
   if (has(/(^|\s)гл\.?\s+уролог|главн.*уролог/)) return 'Главный уролог';
   if (has(/профессор/)) return 'Профессор';
@@ -6417,7 +6451,8 @@ function shortPos(p) {
     if (has(/кафедр|каф\.?\s/)) return 'Зав. кафедрой';
     if (has(/оперблок/)) return 'Зав. оперблоком';
     if (has(/лаборатор/)) return 'Зав. лабораторией';
-    return 'Зав. отделением';
+    const ab = deptAbbr(s);
+    return ab ? 'Зав ' + ab : 'Зав. отделением';
   }
   if (has(/ген.*директор/)) return 'Ген. директор';
   if (has(/директор/)) return 'Директор';
