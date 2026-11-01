@@ -828,6 +828,11 @@ body.detail-mode.card-open.swipe-drag #view { display: block; }
 #cpVisitBox.hidden { display: none; }
 /* v3.17.0: сайт — отдельной плашкой, с полем правки */
 .site-block { padding: 8px 11px; margin-bottom: 8px; }
+/* v4.15.0: сайт — маленький значок-кнопка, без текста адреса */
+.site-ico { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: #0f8a8a; transition: background .15s, border-color .15s; }
+.site-ico:hover { background: #e9f6f6; border-color: #0f8a8a; }
+.site-block .site-row { display: flex; align-items: center; gap: 8px; }
+.site-block .k { margin-bottom: 4px; }
 .site-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .site-input { flex: 1 1 150px; min-width: 0; height: 30px; box-sizing: border-box; padding: 4px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); font: inherit; font-size: 13px; }
 .site-empty { color: var(--muted); font-size: 13px; }
@@ -1883,7 +1888,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.14.2';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.15.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5596,10 +5601,16 @@ function splitSite(sit) {
   return { site, rest: rest.join('\n').replace(/^\s+|\s+$/g, '') };
 }
 // v3.17.0: САЙТ — отдельной плашкой (после людей) и с правкой на месте
+// v4.15.0: вместо длинной ссылки — значок, адрес читать не нужно (в подсказке при наведении)
 function siteLineHtml(site) {
-  if (!site) return `<span class="site-empty">не указан</span>`;
-  let dom = site; try { dom = new URL(site).hostname.replace(/^www\./, ''); } catch (e) {}
-  return `<a class="site-link" href="${esc(site)}" target="_blank" rel="noopener">🌐 ${esc(dom)}</a>`;
+  if (!site) return `<span class="site-empty">—</span>`;
+  let dom = site;
+  try { dom = new URL(site).hostname.replace(/^www\./, ''); } catch (e) {}
+  return `<a class="site-ico" href="${esc(site)}" target="_blank" rel="noopener" title="${esc(dom)}" aria-label="Открыть сайт ${esc(dom)}">`
+    + `<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">`
+    + `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>`
+    + `<path d="M3 12h18M12 3c2.6 2.7 2.6 15.3 0 18M12 3c-2.6 2.7-2.6 15.3 0 18" fill="none" stroke="currentColor" stroke-width="1.6"/>`
+    + `</svg></a>`;
 }
 function withSite(situation, site) {
   const { rest } = splitSite(situation);
