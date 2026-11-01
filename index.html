@@ -1717,6 +1717,9 @@ async function linkedPairInfo(c) {
 }
 // компактный блок «Связанная запись»: ссылка на парную карточку + её признаки (только для справки)
 function pairBlockHtml(pair) {
+  // v4.25.0: блок «Связанная запись» убран из карточки по просьбе Саши —
+  // связка карточек остаётся в данных (на ней держится синхронизация меток), но не мозолит глаза
+  return '';
   if (!pair || !pair.others || !pair.others.length) return '';
   const selfCard = (pair.cards || []).filter(x => x && Number(x.id) === Number(pair.selfId))[0] || null;
   const setOf = c => c ? [...cardProducts(c), ...cardSources(c), ...otherTagsOnly(c.tags)].sort().join('|') : null;
@@ -1934,7 +1937,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.24.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.25.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
