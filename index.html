@@ -236,6 +236,16 @@ body {
 .cns-head .md-mgr-pop { left: auto; right: 0; }
 .priv-row.compact #cpSave { margin-left: auto; }
 .cns-head b { color: var(--ink); }
+/* v4.12.0: «Мой день» — крупные заголовки секций, подзаголовки «Звонки/Визиты»,
+   разрыв перед «Требуют внимания» и строка с целью визита */
+.md-sec { padding: 12px 16px 6px; font-size: 17px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.md-sec b { font-weight: 700; }
+.md-sub { padding: 8px 16px 2px; font-size: 13px; letter-spacing: .02em; color: var(--muted); }
+.md-gap { margin-top: 36px; border-top: 1px solid #e8e8e8; padding-top: 6px; }
+.md-gap .md-sec { font-size: 15px; color: var(--muted); font-weight: 600; }
+.row-why { padding: 4px 0 0; font-size: 13px; line-height: 1.35; color: var(--muted); }
+.md-idea-row { display: flex; align-items: center; gap: 10px; }
+.md-idea-row .grow { flex: 1; min-width: 0; }
 .cns-add { margin-left: auto; flex: none; background: var(--brand-dark); color: #fff; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 .cns-add:hover { background: var(--brand-dark); }
 .doc-badge{display:inline-block;font-size:10.5px;line-height:1.5;padding:0 6px;border-radius:6px;background:rgba(20,120,80,.12);color:#14784f;margin-right:6px;vertical-align:1px}
@@ -1856,7 +1866,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.11.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.12.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3561,9 +3571,73 @@ async function renderCalls() {
   renderActionList('call', 'Звонки');
 }
 
-function renderVisits() {
-  // v3.14.0: «Визиты» — те же данные, что «Мой день» и «Звонки», только тип = «Визит»
-  renderActionList('visit', 'Визиты');
+async function renderVisits() {
+  // v4.12.0: «Визиты» — календарь по неделям + идеи визитов, у которых подошёл срок
+  const view = document.getElementById('view');
+  state.defaultAction = 'visit';
+  await loadVisitMeta();
+  let rows = [], ideas = [];
+  try {
+    rows = (await listClinics()).filter(c => !c.markedDel && c.nextContact && (c.kind || 'hospital') === 'hospital' && c.actionType === 'visit');
+    const sV = state.search;
+    if (sV) rows = rows.filter(c => (c.name || '').toLowerCase().includes(sV) || (c.city || '').toLowerCase().includes(sV));
+    ideas = (await loadVisitIdeas()).filter(i => !i.remind || i.remind <= todayISO());
+  } catch (e) {
+    view.innerHTML = '<div class="empty-state">\u26a0\ufe0f Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+    return;
+  }
+
+  const nameById = {};
+  rows.forEach(c => { nameById[c.id] = c.name; });
+
+  const ideasHtml = ideas.length ? `<div class="md-sec">Идеи визитов · <b>${ideas.length}</b></div>
+    <div class="list">${ideas.map(i => {
+      const win = (i.from && i.to) ? (fmtDate(i.from) + ' — ' + fmtDate(i.to)) : (i.from ? 'с ' + fmtDate(i.from) : 'окно не задано');
+      return `<div class="card list-row">
+        <div class="md-idea-row"><div class="grow">
+          <div class="list-row-name">${esc(nameById[i.clinic_id] || ('клиника #' + i.clinic_id))}</div>
+          <div class="row-why">${esc(i.goal || 'визит')} · ${esc(win)}</div>
+        </div><button class="btn primary mini" data-plan-idea="${i.noteId}">Выбрать дату</button></div>
+      </div>`;
+    }).join('')}</div>` : '';
+
+  // календарь: 8 недель от сегодня, только дни с визитами
+  const byDate = {};
+  rows.forEach(c => { const d = String(c.nextContact).slice(0, 10); (byDate[d] = byDate[d] || []).push(c); });
+  const start = todayISO();
+  const weeksMap = {};
+  for (let i = 0; i < 56; i++) {
+    const d = addDaysISO(start, i);
+    if (!byDate[d]) continue;
+    const w = Math.floor(i / 7);
+    (weeksMap[w] = weeksMap[w] || { from: addDaysISO(start, w * 7), days: [] }).days.push({ d, list: byDate[d] });
+  }
+  const weekKeys = Object.keys(weeksMap).map(Number).sort((a, b) => a - b);
+  const calHtml = weekKeys.length ? weekKeys.map(w => {
+    const wk = weeksMap[w];
+    const to = addDaysISO(wk.from, 6);
+    return `<div class="md-sec" style="font-size:15px">${fmtDate(wk.from)} — ${fmtDate(to)}</div>`
+      + wk.days.map(day => `<div class="md-sub">${fmtDate(day.d)}</div><div class="list">` + day.list.map(c => {
+        const goal = visitGoalOf(c.id);
+        return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
+          <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span><span class="row-next">${esc(c.city || '')}</span></div>
+          ${goal ? `<div class="row-why">${esc(goal)}</div>` : ''}
+        </div>`;
+      }).join('') + `</div>`).join('');
+  }).join('') : `<div class="empty">Запланированных визитов нет. Запиши идею — кнопкой «＋ Идея» сверху или скажи мне вслух.</div>`;
+
+  view.innerHTML = `<div class="md-tools"><button class="btn primary mini" id="newIdeaBtn">＋ Идея визита</button></div>`
+    + ideasHtml
+    + `<div class="md-gap">${calHtml}</div>`;
+
+  const nb = document.getElementById('newIdeaBtn');
+  if (nb) nb.addEventListener('click', () => openIdeaModal());
+  view.querySelectorAll('[data-plan-idea]').forEach(btn => btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const nid = Number(btn.dataset.planIdea);
+    const idea = ideas.find(x => Number(x.noteId) === nid);
+    if (idea) await openVisitPlanModal(idea.clinic_id, idea);
+  }));
 }
 
 // общий список запланированных действий из того же источника данных
@@ -3931,6 +4005,146 @@ async function renderStub(title) {
     '<div class="empty">Раздел-заготовка. Содержимое появится отдельным заданием.</div>';
 }
 
+// ---------- v4.12.0: визиты и идеи визитов ----------
+// Отдельных таблиц не заводим: детали визита и замыслы живут служебными записями в notes.
+//   [[V]]{goal,who,addr} — цель визита по клинике (для карточки и «Моего дня»)
+//   [[I]]{goal,from,to,remind,status,planned} — замысел визита (идея), пока нет даты
+// В ленту истории такие записи не попадают (фильтр в allNotesByClinic).
+const VISIT_MARK = '[[V]]', IDEA_MARK = '[[I]]';
+let visitPlans = null;
+let visitIdeasCache = null;
+function parseVisitText(t, mark) {
+  const s = String(t || '');
+  if (s.indexOf(mark) !== 0) return null;
+  try { return JSON.parse(s.slice(mark.length)); } catch (_) { return null; }
+}
+function invalidateVisitCache() { visitPlans = null; visitIdeasCache = null; }
+function todayISO() {
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+function addDaysISO(iso, days) {
+  const d = new Date(String(iso).slice(0, 10) + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+async function loadVisitMeta() {
+  if (visitPlans) return visitPlans;
+  const plans = {};
+  try {
+    const { data } = await sb.from('notes').select('id,clinic_id,text,created_at').order('created_at', { ascending: false }).limit(2000);
+    (data || []).forEach(n => {
+      const v = parseVisitText(n.text, VISIT_MARK);
+      if (v && !plans[Number(n.clinic_id)]) plans[Number(n.clinic_id)] = v;
+    });
+  } catch (_) {}
+  visitPlans = plans;
+  return plans;
+}
+function visitPlanOf(id) { return (visitPlans && visitPlans[Number(id)]) || null; }
+function visitGoalOf(id) { const p = visitPlanOf(id); return (p && p.goal) ? p.goal : ''; }
+async function loadVisitIdeas() {
+  if (visitIdeasCache) return visitIdeasCache;
+  const out = [];
+  try {
+    const { data } = await sb.from('notes').select('id,clinic_id,text,created_at').order('created_at', { ascending: false }).limit(2000);
+    (data || []).forEach(n => {
+      const v = parseVisitText(n.text, IDEA_MARK);
+      if (v && (v.status || 'idea') === 'idea') out.push(Object.assign({ noteId: n.id, clinic_id: Number(n.clinic_id), created: n.created_at }, v));
+    });
+  } catch (_) {}
+  visitIdeasCache = out;
+  return out;
+}
+async function saveVisitIdeaRow(clinicId, goal, from, to, remindISO) {
+  const payload = { goal: goal || '', from: from || null, to: to || null, remind: remindISO || addDaysISO(todayISO(), 4), status: 'idea' };
+  const { error } = await sb.from('notes').insert({
+    clinic_id: Number(clinicId), text: IDEA_MARK + JSON.stringify(payload),
+    author_email: CURRENT_EMAIL || null, author_name: myManagerName() || window.CURRENT_MANAGER || null, source: 'visit_idea'
+  });
+  if (error) throw error;
+  invalidateVisitCache();
+}
+async function saveVisitPlanRow(clinicId, plan) {
+  const { error } = await sb.from('notes').insert({
+    clinic_id: Number(clinicId), text: VISIT_MARK + JSON.stringify(plan || {}),
+    author_email: CURRENT_EMAIL || null, author_name: myManagerName() || window.CURRENT_MANAGER || null, source: 'visit_plan'
+  });
+  if (error) throw error;
+  invalidateVisitCache();
+}
+// превращаем замысел в реальный визит: дата + тип «Визит» + цель
+async function openVisitPlanModal(clinicId, idea) {
+  const c = await getClinic(Number(clinicId));
+  if (!c) { toast('Клиника не найдена'); return; }
+  const vp = visitPlanOf(c.id) || {};
+  const ideaId = idea ? idea.noteId : null;
+  const defDate = (idea && idea.from) ? idea.from : (c.nextContact ? String(c.nextContact).slice(0, 10) : '');
+  openModal('Спланировать визит', `
+    <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c.name)}${c.city ? ' · ' + esc(c.city) : ''}</div></div>
+    <div class="field"><label>Дата визита</label><input type="date" id="vpDate" value="${esc(defDate)}" /></div>
+    <div class="field"><label>Цель визита</label><input type="text" id="vpGoal" value="${esc((idea && idea.goal) || vp.goal || '')}" placeholder="например: апробация Литокласт" /></div>
+    <div class="field"><label>Кто едет</label><input type="text" id="vpWho" value="${esc(vp.who || '')}" placeholder="Абрамов / представитель" /></div>
+    <div class="field"><label>Адрес и детали</label><input type="text" id="vpAddr" value="${esc(vp.addr || '')}" placeholder="корпус, кабинет, контакт на месте" /></div>
+    <div class="btn-row"><button class="btn" id="vpSave">Запланировать</button><button class="btn ghost" id="vpCancel">Отмена</button></div>
+  `);
+  document.getElementById('vpCancel').addEventListener('click', closeModal);
+  document.getElementById('vpSave').addEventListener('click', async () => {
+    const btn = document.getElementById('vpSave');
+    btn.disabled = true;
+    const date = (document.getElementById('vpDate').value || '').slice(0, 10);
+    if (!date) { toast('Нужна дата визита'); btn.disabled = false; return; }
+    const plan = {
+      goal: (document.getElementById('vpGoal').value || '').trim(),
+      who: (document.getElementById('vpWho').value || '').trim(),
+      addr: (document.getElementById('vpAddr').value || '').trim()
+    };
+    try {
+      await saveClinicPrivate(c.id, c.manager || null, { next_contact: date, action_type: 'visit' });
+      await saveVisitPlanRow(c.id, plan);
+      if (ideaId) {
+        await sb.from('notes').update({ text: IDEA_MARK + JSON.stringify(Object.assign({}, idea, { status: 'planned', planned: date, noteId: undefined })) }).eq('id', ideaId);
+        invalidateVisitCache();
+      }
+      closeModal();
+      toast('✓ Визит запланирован на ' + fmtDate(date));
+      await render();
+    } catch (e) { btn.disabled = false; toast('⚠️ Не сохранено: ' + (e && e.message ? e.message : e)); }
+  });
+}
+// новая идея визита (кнопка «＋ Идея» в «Визитах»)
+async function openIdeaModal(presetClinicId) {
+  let list = [];
+  try { list = (await listClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital'); } catch (_) {}
+  list.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+  const opts = list.map(c => `<option value="${c.id}"${Number(presetClinicId) === c.id ? ' selected' : ''}>${esc(c.name)}${c.city ? ' — ' + esc(c.city) : ''}</option>`).join('');
+  openModal('Идея визита', `
+    <div class="field"><label>Клиника</label><select id="viClinic">${opts}</select></div>
+    <div class="field"><label>Зачем ехать</label><input type="text" id="viGoal" placeholder="апробация Литокласт" /></div>
+    <div class="field"><label>Ориентир: с какого числа</label><input type="date" id="viFrom" /></div>
+    <div class="field"><label>Ориентир: по какое</label><input type="date" id="viTo" /></div>
+    <div class="field"><label>Напомнить через (дней)</label><input type="number" id="viRemind" value="4" min="1" max="90" /></div>
+    <div class="btn-row"><button class="btn" id="viSave">Записать идею</button><button class="btn ghost" id="viCancel">Отмена</button></div>
+  `);
+  document.getElementById('viCancel').addEventListener('click', closeModal);
+  document.getElementById('viSave').addEventListener('click', async () => {
+    const btn = document.getElementById('viSave');
+    btn.disabled = true;
+    const cid = Number(document.getElementById('viClinic').value);
+    const goal = (document.getElementById('viGoal').value || '').trim();
+    const from = document.getElementById('viFrom').value || null;
+    const to = document.getElementById('viTo').value || null;
+    const days = Math.max(1, Math.min(90, Number(document.getElementById('viRemind').value) || 4));
+    if (!cid) { toast('Выбери клинику'); btn.disabled = false; return; }
+    try {
+      await saveVisitIdeaRow(cid, goal, from, to, addDaysISO(todayISO(), days));
+      closeModal();
+      toast('✓ Идея записана, напомню ' + fmtDate(addDaysISO(todayISO(), days)));
+      await render();
+    } catch (e) { btn.disabled = false; toast('⚠️ Не сохранено: ' + (e && e.message ? e.message : e)); }
+  });
+}
+
 // ---------- «Мой день»: завершение и перенос ----------
 // v3.15.0: «Выполнено» пишет запись в историю и закрывает контакт (отменяемо);
 // «Перенести» меняет дату у той же записи (без дублей).
@@ -4013,6 +4227,10 @@ async function renderMyDay() {
   let clinics = (await listClinics()).filter(c => !c.markedDel && ((c.kind || 'hospital') === 'hospital' || (isRefClinicCard(c) && String(c.manager || '').trim() !== '')));
   const MGR_PICK = ['Абрамов', 'Осечкина', 'Скокова'];   // v3.15.2: в «Моём дне» — только эти менеджеры
   const mgrs = MGR_PICK.filter(m => clinics.some(c => (c.manager || '') === m));
+  // v4.12.0: имена для блока идей + цели визитов (из служебных записей notes)
+  const nameById = {}; clinics.forEach(c => { nameById[c.id] = c.name; });
+  await loadVisitMeta();
+  const ideasDue = (await loadVisitIdeas()).filter(i => !i.remind || i.remind <= todayISO());
   if (state.mydayMgr) clinics = clinics.filter(c => (c.manager || '') === state.mydayMgr);
   // v3.26.2: поиск работает и в «Моём дне» (раньше строка поиска здесь молчала)
   clinics = clinics.filter(c => matchFilters(state.filters, c));   // v3.33.0: метки-фильтры и здесь
@@ -4029,19 +4247,27 @@ async function renderMyDay() {
   const week = withDate.filter(c => days(c) > 0 && days(c) <= 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
   const later = withDate.filter(c => days(c) > 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
   const row = (c, badge) => {
-    // v3.16.3: в строке только город и менеджер — суть задачи видна в карточке, дублировать не нужно
+    // v4.12.0: под городом — зачем контакт: цель визита или пометка к звонку
     const sub = [c.city, c.manager].filter(Boolean).join(' · ');
+    const why = (c.actionType === 'visit') ? visitGoalOf(c.id) : (c.privateNote || '');
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
         <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
         <span class="row-next">${badge}</span>
       </div>
       ${subMarks(c, esc(sub || '—'))}
+      ${why ? `<div class="row-why">${esc(why)}</div>` : ''}
     </div>`;
   };
-  const block = (title, list, badgeFn, useChip) => list.length
-    ? `<div class="cns-head"><span>${title}${list.length ? ' · <b>' + list.length + '</b>' : ''}</span>${useChip && mgrSel ? mgrSel : ''}</div><div class="list">${list.map(c => row(c, badgeFn(c))).join('')}</div>`
-    : '';
+  // v4.12.0: секция делится на «Звонки» и «Визиты» — визит видно сразу
+  const block = (title, list, badgeFn, useChip) => {
+    if (!list.length) return '';
+    const calls = list.filter(c => c.actionType !== 'visit');
+    const visits = list.filter(c => c.actionType === 'visit');
+    const sub = (t, arr) => arr.length ? `<div class="md-sub">${t} · ${arr.length}</div><div class="list">${arr.map(c => row(c, badgeFn(c))).join('')}</div>` : '';
+    return `<div class="md-sec">${title} · <b>${list.length}</b>${useChip && mgrSel ? mgrSel : ''}</div>`
+      + sub('Звонки', calls) + sub('Визиты', visits);
+  };
   // v3.18.0: «Требуют внимания» — снижение ПО ВСЕМ продуктам: сравниваем годовые итоги 2025 и 2026
   // (Boston + HugeMed вместе; отсутствующее значение не считаем нулём)
   const sumY = (c, y) => {
@@ -4079,12 +4305,23 @@ async function renderMyDay() {
   const bOver = block('Просрочено', over, c => fmtDate(c.nextContact), true);
   const bToday = block('Сегодня', tod, c => fmtDate(c.nextContact), !over.length);
   const bLater = block('Позже', [...week, ...later].slice(0, 20), c => fmtDate(c.nextContact), !over.length && !tod.length);
+  const ideasBlock = ideasDue.length ? `<div class="md-sec">Пора выбрать дату визита · <b>${ideasDue.length}</b></div>
+    <div class="list">${ideasDue.map(i => {
+      const nm = nameById[i.clinic_id] || ('клиника #' + i.clinic_id);
+      const win = (i.from && i.to) ? (fmtDate(i.from) + ' — ' + fmtDate(i.to)) : (i.from ? 'с ' + fmtDate(i.from) : '');
+      return `<div class="card list-row">
+        <div class="md-idea-row"><div class="grow">
+          <div class="list-row-name">${esc(nm)}</div>
+          <div class="row-why">${esc(i.goal || 'визит')}${win ? ' · ' + esc(win) : ''}</div>
+        </div><button class="btn primary mini" data-plan-idea="${i.noteId}">Выбрать дату</button></div>
+      </div>`;
+    }).join('')}</div>` : '';
   const chipInHead = !!(bOver || bToday || bLater);
   const toolsRow = mgrSel ? `<div class="md-tools">${mgrSel}</div>` : '';
   view.innerHTML = (mgrSel && !chipInHead ? toolsRow : '')
-    + bOver + bToday + bLater
+    + ideasBlock + bOver + bToday + bLater
     + (!withDate.length ? `<div class="empty">${sMD ? 'Ничего не найдено' : `Запланированных контактов нет. Клиник в базе: ${clinics.length}.`}</div>` : '')
-    + (sMD ? '' : attBlock);
+    + (sMD ? '' : `<div class="md-gap">${attBlock}</div>`);
   const mb = document.getElementById('mdMgrBtn');
   const mp = document.getElementById('mdMgrPop');
   const mbox = document.getElementById('mdMgrBox');
@@ -4102,6 +4339,13 @@ async function renderMyDay() {
     }));
     document.addEventListener('click', () => { mp.classList.add('hidden'); if (mbox) mbox.classList.remove('pop-open'); }, { once: true });
   }
+  // v4.12.0: кнопка «Выбрать дату» у идеи визита
+  view.querySelectorAll('[data-plan-idea]').forEach(btn => btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const nid = Number(btn.dataset.planIdea);
+    const idea = ideasDue.find(x => Number(x.noteId) === nid);
+    if (idea) await openVisitPlanModal(idea.clinic_id, idea);
+  }));
   // v3.20.3: чип выбора порядка в блоке «Требуют внимания»
   const ab = document.getElementById('attSrtBtn');
   const ap = document.getElementById('attSrtPop');
@@ -5781,6 +6025,9 @@ function privBlock(c, canEditNow) {
   // Поле «Текущая ситуация» убрано — теперь одна лента записей ниже (п.3 дополнения),
   // сам текст ситуации сохранён: он перенесён в записи, в базе не тронут.
   // v3.28.0: свой календарь (выбор дня подтверждает сразу), очистка даты — отдельной кнопкой ✕
+  const vp = visitPlanOf(c.id) || {};
+  const curType = c.actionType || '';
+  const opt = (v, t) => `<option value="${v}"${curType === v ? ' selected' : ''}>${t}</option>`;
   return `<div class="detail-block priv-block" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">
       <div class="priv-row compact"><span class="lbl">Связаться</span>
         <span class="date-wrap">
@@ -5789,6 +6036,16 @@ function privBlock(c, canEditNow) {
           ${canEditNow ? `<button type="button" class="date-cal" id="cpCal" data-cid="${c.id}" title="Календарь">📅</button>
           <button type="button" class="date-clear${d ? '' : ' hidden'}" id="cpClear" data-cid="${c.id}" title="Очистить дату">✕</button>` : ''}
         </span>
+      </div>
+      <div class="priv-row compact"><span class="lbl">Тип</span>
+        <select id="cpType" class="date-inp" ${canEditNow ? '' : 'disabled'} onchange="document.getElementById('cpVisitBox').classList.toggle('hidden', this.value!=='visit')">
+          ${opt('', 'Контакт')}${opt('call', 'Звонок')}${opt('visit', 'Визит')}${opt('other', 'Другое')}
+        </select>
+      </div>
+      <div id="cpVisitBox" class="${curType === 'visit' ? '' : 'hidden'}">
+        <div class="priv-row compact"><span class="lbl">Цель</span><input type="text" id="cpGoal" class="date-inp" value="${esc(vp.goal || '')}" placeholder="апробация Литокласт" ${canEditNow ? '' : 'disabled'} /></div>
+        <div class="priv-row compact"><span class="lbl">Кто едет</span><input type="text" id="cpWho" class="date-inp" value="${esc(vp.who || '')}" placeholder="Абрамов" ${canEditNow ? '' : 'disabled'} /></div>
+        <div class="priv-row compact"><span class="lbl">Адрес</span><input type="text" id="cpAddr" class="date-inp" value="${esc(vp.addr || '')}" placeholder="корпус, кабинет" ${canEditNow ? '' : 'disabled'} /></div>
       </div>
     </div>`;
 }
@@ -5846,7 +6103,11 @@ async function allNotesByClinic() {
       const { data } = await sb.from('notes').select('id,clinic_id,text,author_email,author_name,created_at')
         .order('created_at', { ascending: false });
       const map = {};
-      (data || []).forEach(n => { const k = Number(n.clinic_id); (map[k] = map[k] || []).push(n); });
+      // v4.12.0: служебные записи визитов и идей в ленту истории не попадают
+      (data || []).forEach(n => {
+        if (/^\[\[(V|I)\]\]/.test(String(n.text || ''))) return;
+        const k = Number(n.clinic_id); (map[k] = map[k] || []).push(n);
+      });
       return map;
     } catch (_) { return {}; }
   });
@@ -5992,6 +6253,16 @@ document.addEventListener('click', async (ev) => {
     if (tp) fields.action_type = tp.value || null;
     try {
       await saveClinicPrivate(cid, save.dataset.mgr || null, fields);
+      // v4.12.0: цель и детали визита сохраняем только когда тип — «Визит»
+      if (fields.action_type === 'visit') {
+        const gEl = document.getElementById('cpGoal'), wEl = document.getElementById('cpWho'), aEl = document.getElementById('cpAddr');
+        const plan = {
+          goal: ((gEl && gEl.value) || '').trim(),
+          who: ((wEl && wEl.value) || '').trim(),
+          addr: ((aEl && aEl.value) || '').trim()
+        };
+        if (plan.goal || plan.who || plan.addr) await saveVisitPlanRow(cid, plan);
+      }
       toast('✓ Работа и продажи сохранены');
     } catch (e) {
       toast('⚠️ Не сохранилось: ' + (e && e.message ? e.message : e) + ' — текст оставлен в поле');
