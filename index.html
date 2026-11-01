@@ -334,6 +334,7 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 /* v4.28.0: на телефоне — минимум «Плана»: клиника, план, факт, %, Г/Г, визит */
 /* v4.35.0: на телефоне — без фильтров, без горизонтального скролла, компактно */
 body.plan-mode .search-row, body.plan-mode #searchTop { display: none; }
+body.visits-mode .search-row, body.visits-mode #searchTop { display: none; }
 @media (max-width: 899px) {
   .plan-tbl .pl-q, .plan-tbl .pl-opt, .plan-tbl .pl-visit { display: none; }
   .plan-bar { padding: 8px 6px; gap: 6px; }
@@ -2025,7 +2026,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.48.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.49.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3570,6 +3571,7 @@ async function render() {
   const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'money', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
   document.body.classList.toggle('detail-mode', PANEL_VIEWS.includes(state.view));
   document.body.classList.toggle('plan-mode', state.view === 'plan');   // v4.28.0: «План» — на всю ширину
+  document.body.classList.toggle('visits-mode', state.view === 'visits');   // v4.49.0: в «Визитах» поиск не нужен
   // v3.15.0: до выбора — короткая подсказка в правой панели
   if (document.body.classList.contains('detail-mode') && !state.selId) showPanelHint();
   // v3.14.0: тип действия подставляется только при работе из «Звонков»/«Визитов»
@@ -4364,10 +4366,13 @@ async function renderVisits() {
   // фильтр по менеджерам: Все / Мой отдел / Мазаева / Евсеев
   const MGR_FILTER = localStorage.getItem('visitsMgr') || '';
   const DEPT = ['Абрамов', 'Осечкина', 'Скокова'];
-  const passMgr = (cid) => {
+  const passMgr = (rec) => {
     if (!MGR_FILTER) return true;
+    const cid = (rec && rec.clinic_id != null) ? rec.clinic_id : null;
+    const parts = ((rec && rec.participants) || []).map(canonManager);
+    if (parts.includes(MGR_FILTER)) return true;               // совместная поездка: визит виден участнику
     const m = String(mgrById[cid] || '').trim();
-    if (MGR_FILTER === '__dept') return DEPT.includes(m);
+    if (MGR_FILTER === '__dept') return DEPT.includes(m) || parts.some(x => DEPT.includes(x));
     return m === MGR_FILTER;
   };
 
@@ -4377,7 +4382,7 @@ async function renderVisits() {
 
   const ideaRows = (ideas || []).filter(i => visible(i) && match(byId[i.clinic_id] || ''));
   const visitRows = (plans || [])
-    .filter(p => p.date && visible(p) && passMgr(p.clinic_id) && match(byId[p.clinic_id] || ''))
+    .filter(p => p.date && visible(p) && passMgr(p) && match(byId[p.clinic_id] || p.city || ''))
     .sort((a, b) => String(a.date).localeCompare(String(b.date)));
 
   const past = visitRows.filter(p => visitEnd(p) < today);
