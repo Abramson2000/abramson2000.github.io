@@ -2026,7 +2026,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.50.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.51.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5137,10 +5137,11 @@ async function openVisitModal(cfg) {
   const idea = cfg.idea || null;
   const plan = cfg.plan || null;
   const cur = cfg.clinicId ? all.find(c => Number(c.id) === Number(cfg.clinicId)) : null;
-  const base = plan || (cur ? visitPlanOf(cur.id) : null) || {};
-  const date = (plan && plan.date) || (idea && idea.planned) || (idea && idea.from) || (cur && cur.nextContact ? String(cur.nextContact).slice(0, 10) : '');
-  const partSel = ((plan && plan.participants) || (idea && idea.participants) || base.participants || []).map(canonManager);
-  const chosen = ((plan && plan.people) || base.people || []).map(Number);
+  // v4.51.0: НИКАКОГО шаблона — новый визит открывается пустым, без данных прошлых визитов
+  const base = plan || {};
+  const date = (plan && plan.date) || (idea && (idea.planned || idea.from)) || '';
+  const partSel = ((plan && plan.participants) || (idea && idea.participants) || []).map(canonManager);
+  const chosen = ((plan && plan.people) || []).map(Number);
   const title = plan ? 'Изменить визит' : 'Спланировать визит';
 
   openModal(title, `
@@ -5148,7 +5149,7 @@ async function openVisitModal(cfg) {
       <select id="vmKind">${VISIT_KINDS.map(k => `<option value="${esc(k)}"${(((plan && plan.kind) || (idea && idea.kind) || base.kind || 'Встреча') === k) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>
     </div>
     <div class="field"><label>Город</label>
-      <input type="text" id="vmCity" value="${esc((plan && plan.city) || (cur && cur.city) || '')}" placeholder="например: Красноярск" autocomplete="off" />
+      <input type="text" id="vmCity" value="${esc((plan && plan.city) || '')}" placeholder="например: Красноярск" autocomplete="off" />
     </div>
     <div class="field"><label>Клиника (не обязательно для конференции)</label>
       <input type="text" id="vmClinicName" list="vmClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно оставить пустым, если это конференция" autocomplete="off" />
@@ -5159,9 +5160,9 @@ async function openVisitModal(cfg) {
       <div class="field"><label>По какое число</label><input type="date" id="vmDateTo" value="${esc((plan && plan.dateTo) || (idea && idea.to) || date)}" /></div>
     </div>
     <div class="field"><label>Название визита</label>
-      <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || (plan && plan.kind) || base.title || base.kind || 'Встреча')}" placeholder="например: мастер-класс по Литокласт" />
+      <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || '')}" placeholder="например: мастер-класс по Литокласт" />
     </div>
-    <div class="field"><label>Комментарии</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || base.goal || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
+    <div class="field"><label>Комментарии</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
     <div class="field"><label>Участники (визит виден каждому из них)</label><div class="vm-chks">${participantsHtml(partSel)}</div></div>
     <div class="field"><label>Врачи в визите — из любой клиники</label>
       <input type="text" id="vmDocSearch" list="vmDocList" placeholder="начни печатать фамилию врача" autocomplete="off" />
