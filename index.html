@@ -250,6 +250,9 @@ body {
 .vm-chk { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .vm-docs { max-height: 220px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
 .vm-actions { display: flex; gap: 8px; padding-top: 8px; flex-wrap: wrap; }
+.vm-chip { display: inline-flex; align-items: center; gap: 6px; background: #f0f0f2; border-radius: 14px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
+.vm-chip:hover { background: #e4e4e8; }
+.vm-doc-chips { margin-top: 8px; }
 .cns-add { margin-left: auto; flex: none; background: var(--brand-dark); color: #fff; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 .cns-add:hover { background: var(--brand-dark); }
 .doc-badge{display:inline-block;font-size:10.5px;line-height:1.5;padding:0 6px;border-radius:6px;background:rgba(20,120,80,.12);color:#14784f;margin-right:6px;vertical-align:1px}
@@ -1870,7 +1873,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.13.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.14.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4061,7 +4064,14 @@ async function renderStub(title) {
 //   [[V]]{date,goal,who,addr,participants[],people[]} — визит (date — конкретный день)
 //   [[I]]{goal,from,to,remind,participants[],status} — замысел: дата ещё не выбрана
 const VISIT_MARK = '[[V]]', IDEA_MARK = '[[I]]';
-const VISIT_MANAGERS = ['Абрамов', 'Осечкина', 'Скокова', 'Настя', 'Галя'];
+// Кто есть кто: в базе менеджер записан фамилией, «Настя» и «Галя» — обиходные имена.
+const VISIT_MANAGERS = [
+  { id: 'Абрамов', label: 'Абрамов (Саша)' },
+  { id: 'Осечкина', label: 'Осечкина (Настя)' },
+  { id: 'Скокова', label: 'Скокова (Галя)' }
+];
+const VISIT_MANAGER_ALIAS = { 'Саша': 'Абрамов', 'Настя': 'Осечкина', 'Галя': 'Скокова' };
+function canonManager(name) { const v = String(name || '').trim(); return VISIT_MANAGER_ALIAS[v] || v; }
 let visitPlansMap = null, visitPlansList = null, visitIdeasCache = null;
 
 function parseVisitText(t, mark) {
@@ -4145,7 +4155,8 @@ async function clinicDoctors(cid) {
 }
 function participantsHtml(sel) {
   const on = sel || [];
-  return VISIT_MANAGERS.map(m => `<label class="vm-chk"><input type="checkbox" class="vmPart" value="${esc(m)}"${on.includes(m) ? ' checked' : ''}/> ${esc(m)}</label>`).join('');
+  const onCanon = (on || []).map(canonManager);
+  return VISIT_MANAGERS.map(m => `<label class="vm-chk"><input type="checkbox" class="vmPart" value="${esc(m.id)}"${onCanon.includes(m.id) ? ' checked' : ''}/> ${esc(m.label)}</label>`).join('');
 }
 function doctorsHtml(docs, sel) {
   const on = (sel || []).map(Number);
@@ -4161,20 +4172,36 @@ async function doctorsBlockFor(cid, sel) {
 }
 
 // Модалка визита: поиск клиники, дата, цель, участники, врачи
+async function allPeopleList() {
+  if (window.__allPeople) return window.__allPeople;
+  try {
+    const people = await listPeople();
+    const arr = (people || []).slice().sort((a, b) => String(a.full_name || '').localeCompare(String(b.full_name || ''), 'ru'));
+    window.__allPeople = arr;
+    return arr;
+  } catch (_) { return []; }
+}
+function peopleLabel(p) { return (p.full_name || ('#' + p.id)) + (p.position ? ' · ' + p.position : ''); }
+
 async function openVisitModal(cfg) {
   cfg = cfg || {};
-  let all = [];
-  try { all = (await listClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital'); } catch (_) {}
+  let all = [], people = [];
+  try {
+    all = (await listClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital');
+    people = await allPeopleList();
+  } catch (_) {}
   all.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
-  const byName = {};
+  const byName = {}, peopleById = {}, peopleByName = {};
   all.forEach(c => { byName[String(c.name || '').toLowerCase()] = c; });
+  people.forEach(p => { peopleById[Number(p.id)] = p; peopleByName[String(p.full_name || '').toLowerCase()] = p; });
+
   const idea = cfg.idea || null;
   const plan = cfg.plan || null;
   const cur = cfg.clinicId ? all.find(c => Number(c.id) === Number(cfg.clinicId)) : null;
   const base = plan || (cur ? visitPlanOf(cur.id) : null) || {};
   const date = (plan && plan.date) || (idea && idea.planned) || (idea && idea.from) || (cur && cur.nextContact ? String(cur.nextContact).slice(0, 10) : '');
-  const partSel = (plan && plan.participants) || (idea && idea.participants) || base.participants || [];
-  const docsSel = (plan && plan.people) || base.people || [];
+  const partSel = ((plan && plan.participants) || (idea && idea.participants) || base.participants || []).map(canonManager);
+  const chosen = ((plan && plan.people) || base.people || []).map(Number);
   const title = plan ? 'Изменить визит' : 'Спланировать визит';
 
   openModal(title, `
@@ -4187,19 +4214,61 @@ async function openVisitModal(cfg) {
     <div class="field"><label>Кто едет</label><input type="text" id="vmWho" value="${esc((plan && plan.who) || base.who || '')}" placeholder="Абрамов" /></div>
     <div class="field"><label>Адрес и детали</label><input type="text" id="vmAddr" value="${esc((plan && plan.addr) || base.addr || '')}" placeholder="корпус, кабинет, контакт на месте" /></div>
     <div class="field"><label>Участники (визит виден каждому из них)</label><div class="vm-chks">${participantsHtml(partSel)}</div></div>
-    <div class="field"><label>Врачи в визите</label><div id="vmDocsBox"><div class="row-why">Загружаю врачей…</div></div></div>
+    <div class="field"><label>Врачи в визите — из любой клиники</label>
+      <input type="text" id="vmDocSearch" list="vmDocList" placeholder="начни печатать фамилию врача" autocomplete="off" />
+      <datalist id="vmDocList">${people.map(p => `<option value="${esc(p.full_name || '')}">${esc(p.position || '')}</option>`).join('')}</datalist>
+      <div id="vmDocChips" class="vm-chks vm-doc-chips"></div>
+      <div class="row-why" id="vmClinicDocsHint"></div>
+    </div>
     <div class="btn-row"><button class="btn" id="vmSave">${plan ? 'Сохранить' : 'Запланировать'}</button><button class="btn ghost" id="vmCancel">Отмена</button></div>
   `);
 
-  await doctorsBlockFor(cur ? cur.id : null, docsSel);
-  const nameInp = document.getElementById('vmClinicName');
-  if (nameInp) {
-    nameInp.addEventListener('change', async () => {
-      const c = byName[String(nameInp.value || '').trim().toLowerCase()];
-      const picked = [...document.querySelectorAll('.vmDoc:checked')].map(x => Number(x.value));
-      await doctorsBlockFor(c ? c.id : null, picked);
-    });
+  const chipsBox = document.getElementById('vmDocChips');
+  const hintBox = document.getElementById('vmClinicDocsHint');
+  function renderChips() {
+    if (!chipsBox) return;
+    chipsBox.innerHTML = chosen.length
+      ? chosen.map(id => {
+          const p = peopleById[id];
+          return `<span class="vm-chip" data-del-doc="${id}" title="Убрать">${esc(p ? peopleLabel(p) : ('#' + id))} ✕</span>`;
+        }).join('')
+      : '<span class="row-why">Пока никого не добавили</span>';
+    chipsBox.querySelectorAll('[data-del-doc]').forEach(ch => ch.addEventListener('click', () => {
+      const id = Number(ch.dataset.delDoc);
+      const i = chosen.indexOf(id);
+      if (i >= 0) chosen.splice(i, 1);
+      renderChips();
+    }));
   }
+  async function renderClinicHint(cid) {
+    if (!hintBox) return;
+    if (!cid) { hintBox.textContent = ''; return; }
+    const docs = await clinicDoctors(cid);
+    if (!docs.length) { hintBox.textContent = 'У этой клиники врачи не привязаны — добавь их по фамилии выше.'; return; }
+    hintBox.innerHTML = 'Быстро добавить врачей клиники: ' + docs.map(d => `<button type="button" class="btn ghost mini" data-add-doc="${d.id}">${esc(d.full_name || ('#' + d.id))}</button>`).join(' ');
+    hintBox.querySelectorAll('[data-add-doc]').forEach(bt => bt.addEventListener('click', () => {
+      const id = Number(bt.dataset.addDoc);
+      if (!chosen.includes(id)) chosen.push(id);
+      renderChips();
+    }));
+  }
+  renderChips();
+  await renderClinicHint(cur ? cur.id : null);
+
+  const nameInp = document.getElementById('vmClinicName');
+  if (nameInp) nameInp.addEventListener('change', async () => {
+    const c = byName[String(nameInp.value || '').trim().toLowerCase()];
+    await renderClinicHint(c ? c.id : null);
+  });
+
+  const docSearch = document.getElementById('vmDocSearch');
+  if (docSearch) docSearch.addEventListener('change', () => {
+    const nm = String(docSearch.value || '').trim().toLowerCase();
+    const p = peopleByName[nm] || people.find(x => String(x.full_name || '').toLowerCase().includes(nm));
+    if (p && !chosen.includes(Number(p.id))) { chosen.push(Number(p.id)); renderChips(); }
+    docSearch.value = '';
+  });
+
   document.getElementById('vmCancel').addEventListener('click', closeModal);
   document.getElementById('vmSave').addEventListener('click', async () => {
     const btn = document.getElementById('vmSave');
@@ -4215,8 +4284,8 @@ async function openVisitModal(cfg) {
         goal: (document.getElementById('vmGoal').value || '').trim(),
         who: (document.getElementById('vmWho').value || '').trim(),
         addr: (document.getElementById('vmAddr').value || '').trim(),
-        participants: [...document.querySelectorAll('.vmPart:checked')].map(x => x.value),
-        people: [...document.querySelectorAll('.vmDoc:checked')].map(x => Number(x.value))
+        participants: [...document.querySelectorAll('.vmPart:checked')].map(x => canonManager(x.value)),
+        people: chosen.slice()
       };
       await saveClinicPrivate(c.id, c.manager || null, { next_contact: d, action_type: 'visit' });
       await saveVisitPlanRow(c.id, payload, plan && plan.noteId);
@@ -4265,7 +4334,7 @@ async function openIdeaModal(presetClinicId, idea) {
         goal: (document.getElementById('viGoal').value || '').trim(),
         from: document.getElementById('viFrom').value || null,
         to: document.getElementById('viTo').value || null,
-        participants: [...document.querySelectorAll('.vmPart:checked')].map(x => x.value),
+        participants: [...document.querySelectorAll('.vmPart:checked')].map(x => canonManager(x.value)),
         remind: (idea && idea.remind) ? idea.remind : addDaysISO(todayISO(), days),
         status: 'idea'
       };
