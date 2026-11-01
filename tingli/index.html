@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="小山听力">
 <meta name="description" content="小山听力 — тренажёр китайского на слух: уроки, фразы, слова, диктанты и повторение по расписанию.">
 
-<link rel="stylesheet" href="writing.5.95.2.css">
+<link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
@@ -1022,7 +1022,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   <div class="sb-ver" id="sbVerLine"></div>
 </div>
 <script src="offline.5.95.2.js"></script>
-<script src="writing.5.95.2.js"></script>
+<script src="writing.5.95.2.js?v=5.98.0"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -32545,7 +32545,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.97.0';
+const APP_VER = '5.98.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32893,6 +32893,7 @@ document.addEventListener('click', function (e) {
     // The writing panel is one layer of this exercise, not another lesson.
     if (window.TingliWritingFocus && window.TingliWritingFocus.isOpen()) {
       clearShift(false);
+      try { if (window.TingliWritingFocus.save) window.TingliWritingFocus.save(); } catch (_) {}
       window.TingliWritingFocus.close();
       return;
     }

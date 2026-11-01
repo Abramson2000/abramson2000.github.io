@@ -42,11 +42,14 @@
     return btn;
   }
   function showStep(){
-    if(!active || !active.items)return;
+    if(!active)return;
     const a=active,nav=a.screen.querySelector('.tl-writing-nav');
-    nav.querySelector('.tl-writing-prev').disabled=a.index===0;
-    nav.querySelector('.tl-writing-count').textContent=(a.index+1)+' / '+a.items.length;
-    nav.querySelector('.tl-writing-next').textContent=a.index===a.items.length-1 ? 'К списку' : 'Дальше →';
+    if(!nav)return;
+    const prev=nav.querySelector('.tl-writing-prev'),next=nav.querySelector('.tl-writing-next'),cnt=nav.querySelector('.tl-writing-count');
+    if(!a.items){ prev.disabled=false; cnt.textContent=''; next.textContent='Готово'; return; }
+    prev.disabled=a.index===0;
+    cnt.textContent=(a.index+1)+' / '+a.items.length;
+    next.textContent=a.index===a.items.length-1 ? 'К списку' : 'Дальше →';
   }
   function step(delta){
     if(!active || !active.items || !saveAnswer())return;
@@ -70,7 +73,7 @@
   }
   function close(){
     if(!active)return;
-    if(active.marker.isConnected && !saveAnswer())return;
+    saveAnswer();                       // v5.98.0: сохраняем всегда, даже при закрытии свайпом
     const a=active;active=null;
     a.input.blur();
     if(a.input.matches('.hw-ans')){ hwToButton(a.input); }
@@ -92,13 +95,12 @@
     screen.querySelector('.sub').textContent=heading.subtitle;
     screen.querySelector('.tl-writing-label').textContent=heading.label;
     screen.querySelector('.tl-writing-label').hidden=!heading.label;
-    if(items){
-      const nav=document.createElement('footer');nav.className='tl-writing-nav';
-      nav.innerHTML='<div class="tl-writing-save-error" role="alert" hidden>Не удалось сохранить ответ. Оставь экран открытым и попробуй ещё раз.</div><div class="tl-writing-nav-row"><button class="tl-writing-prev" type="button" aria-label="Предыдущий пункт ДЗ">←</button><span class="tl-writing-count" aria-live="polite"></span><button class="tl-writing-next" type="button">Дальше →</button></div>';
-      screen.appendChild(nav);
-      nav.querySelector('.tl-writing-prev').addEventListener('click',()=>step(-1));
-      nav.querySelector('.tl-writing-next').addEventListener('click',()=>step(1));
-    }
+    // v5.98.0: кнопки «Назад» и «Дальше» есть всегда — и когда пункт один
+    const nav=document.createElement('footer');nav.className='tl-writing-nav';
+    nav.innerHTML='<div class="tl-writing-save-error" role="alert" hidden>Не удалось сохранить ответ. Оставь экран открытым и попробуй ещё раз.</div><div class="tl-writing-nav-row"><button class="tl-writing-prev" type="button" aria-label="Назад">← Назад</button><span class="tl-writing-count" aria-live="polite"></span><button class="tl-writing-next" type="button">Дальше →</button></div>';
+    screen.appendChild(nav);
+    nav.querySelector('.tl-writing-prev').addEventListener('click',()=>{ if(items) step(-1); else close(); });
+    nav.querySelector('.tl-writing-next').addEventListener('click',()=>{ if(items) step(1); else { if(saveAnswer()) close(); } });
     const body=screen.querySelector('.tl-writing-body'),marker=document.createComment('writing answer location');
     const hidden=[...document.body.children].filter(el=>!['SCRIPT','STYLE','LINK'].includes(el.tagName)).map(el=>[el,el.inert]);
     const selection=[input.selectionStart,input.selectionEnd],scrollY=root.scrollY;
@@ -146,5 +148,7 @@
   root.addEventListener('resize',viewport);
   if(root.visualViewport){root.visualViewport.addEventListener('resize',viewport);root.visualViewport.addEventListener('scroll',viewport);}
   new MutationObserver(()=>{if(active && !active.marker.isConnected)close();}).observe(document.body,{childList:true,subtree:true});
-  root.TingliWritingFocus={isOpen:()=>!!active,close:()=>close()};
+  root.addEventListener('pagehide',function(){ if(active) saveAnswer(); });
+  document.addEventListener('visibilitychange',function(){ if(document.hidden && active) saveAnswer(); });
+  root.TingliWritingFocus={isOpen:()=>!!active,close:()=>close(),save:()=>saveAnswer()};
 })(window);
