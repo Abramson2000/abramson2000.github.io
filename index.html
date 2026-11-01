@@ -2011,7 +2011,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.43.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.44.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3748,7 +3748,7 @@ async function openVisitCard(plan) {
     const nm = p.fullName || p.full_name || ('#' + p.id);
     const tel = String(p.phone || '').replace(/[^\d+]/g, '');
     return `<div class="priv-row compact"><span class="lbl">${esc(nm)}</span>`
-      + `<span style="flex:1;min-width:0;color:var(--muted);font-size:13px">${esc(p.position || '')}</span>`
+      + `<span style="flex:1;min-width:0;color:var(--muted);font-size:13px" title="${esc(p.position || '')}">${esc(shortPos(p.position))}</span>`
       + (tel ? `<a class="btn ghost mini" href="tel:${esc(tel)}">Позвонить</a>` : '<span class="row-why">телефона нет</span>')
       + `</div>`;
   }).join('') : '<div class="row-why">Врачи не добавлены</div>';
@@ -3924,7 +3924,7 @@ async function savePlanYear(clinicId, amount) {
     if (error) throw error;
   } else {
     const { error } = await sb.from('notes').insert({
-      clinic_id: Number(clinicId), text: body,
+      clinic_id: cid, text: body,
       author_email: CURRENT_EMAIL || null, author_name: myManagerName() || window.CURRENT_MANAGER || null, source: 'plan'
     });
     if (error) throw error;
@@ -4957,7 +4957,7 @@ const VISIT_MANAGERS = [
   { id: 'Евсеев', label: 'Евсеев' }
 ];
 const VISIT_MANAGER_ALIAS = { 'Саша': 'Абрамов', 'Настя': 'Осечкина', 'Галя': 'Скокова' };
-const VISIT_KINDS = ['Встреча', 'Апробация', 'Мастер-класс', 'Конференция', 'Другое'];
+const VISIT_KINDS = ['Встреча', 'Апробация', 'Мастер-класс', 'Конференция'];
 function canonManager(name) { const v = String(name || '').trim(); return VISIT_MANAGER_ALIAS[v] || v; }
 let visitPlansMap = null, visitPlansList = null, visitIdeasCache = null;
 
@@ -4984,7 +4984,7 @@ async function loadVisitNotes() {
     (data || []).forEach(n => {
       const v = parseVisitText(n.text, VISIT_MARK);
       if (v) {
-        const rec = Object.assign({ noteId: n.id, clinic_id: Number(n.clinic_id) }, v);
+        const rec = Object.assign({ noteId: n.id, clinic_id: (n.clinic_id == null ? null : Number(n.clinic_id)) }, v);
         list.push(rec);
         if (!plans[rec.clinic_id]) plans[rec.clinic_id] = v;
         return;
@@ -5003,6 +5003,7 @@ function visitGoalOf(id) { const p = visitPlanOf(id); return p && p.goal ? p.goa
 
 async function saveVisitPlanRow(clinicId, plan, noteId) {
   const body = VISIT_MARK + JSON.stringify(plan || {});
+  const cid = (clinicId == null) ? null : Number(clinicId);
   if (noteId) {
     const { error } = await sb.from('notes').update({ text: body }).eq('id', Number(noteId));
     if (error) throw error;
@@ -5029,6 +5030,17 @@ async function saveVisitIdeaRow(clinicId, idea, noteId) {
   }
   invalidateVisitCache();
 }
+// v4.44.0: должность врача в визите — кратко: «Зав УО», «Зам ПХ»
+function shortPos(pos) {
+  const src = String(pos || '').trim();
+  if (!src) return '';
+  const words = src.split(/[\s\-–]+/).filter(Boolean);
+  if (words.length === 1) return src.length > 9 ? src.slice(0, 9) + '…' : src;
+  const head = words[0].slice(0, 3);
+  const tail = words.slice(1, 3).map(w => w[0].toUpperCase()).join('');
+  return head.charAt(0).toUpperCase() + head.slice(1) + (tail ? ' ' + tail : '');
+}
+
 async function clinicDoctors(cid) {
   try {
     const { data: links } = await sb.from('clinic_people').select('person_id').eq('clinic_id', Number(cid));
@@ -5094,8 +5106,14 @@ async function openVisitModal(cfg) {
   const title = plan ? 'Изменить визит' : 'Спланировать визит';
 
   openModal(title, `
-    <div class="field"><label>Клиника (начни печатать — найдётся)</label>
-      <input type="text" id="vmClinicName" list="vmClinicList" value="${esc(cur ? cur.name : '')}" placeholder="КМКБ №4" autocomplete="off" />
+    <div class="field"><label>Тип визита</label>
+      <select id="vmKind">${VISIT_KINDS.map(k => `<option value="${esc(k)}"${(((plan && plan.kind) || (idea && idea.kind) || base.kind || 'Встреча') === k) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Город</label>
+      <input type="text" id="vmCity" value="${esc((plan && plan.city) || (cur && cur.city) || '')}" placeholder="например: Красноярск" autocomplete="off" />
+    </div>
+    <div class="field"><label>Клиника (не обязательно для конференции)</label>
+      <input type="text" id="vmClinicName" list="vmClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно оставить пустым, если это конференция" autocomplete="off" />
       <datalist id="vmClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}</option>`).join('')}</datalist>
     </div>
     <div class="row2">
@@ -5104,9 +5122,6 @@ async function openVisitModal(cfg) {
     </div>
     <div class="field"><label>Название визита</label>
       <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || (plan && plan.kind) || base.title || base.kind || 'Встреча')}" placeholder="например: мастер-класс по Литокласт" />
-    </div>
-    <div class="field"><label>Что за визит</label>
-      <select id="vmKind">${VISIT_KINDS.map(k => `<option value="${esc(k)}"${(((plan && plan.kind) || (idea && idea.kind) || base.kind || 'Встреча') === k) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>
     </div>
     <div class="field"><label>Цель</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || base.goal || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
     <div class="field"><label>Участники (визит виден каждому из них)</label><div class="vm-chks">${participantsHtml(partSel)}</div></div>
@@ -5172,7 +5187,11 @@ async function openVisitModal(cfg) {
     try {
       const nm = String((document.getElementById('vmClinicName').value || '')).trim();
       const c = byName[nm.toLowerCase()] || (cur && nm.toLowerCase() === String(cur.name || '').toLowerCase() ? cur : null);
-      if (!c) { toast('Клиника не найдена — выбери из подсказки'); btn.disabled = false; return; }
+      const kindNow = (document.getElementById('vmKind').value || 'Встреча');
+      const cityNow = (document.getElementById('vmCity').value || '').trim();
+      if (!c && !(kindNow === 'Конференция' && cityNow)) {
+        toast(c ? '' : 'Для конференции достаточно указать город'); btn.disabled = false; return;
+      }
       const d = (document.getElementById('vmDate').value || '').slice(0, 10);
       let dTo = (document.getElementById('vmDateTo').value || '').slice(0, 10) || d;
       if (!d) { toast('Нужна дата визита'); btn.disabled = false; return; }
@@ -5180,14 +5199,15 @@ async function openVisitModal(cfg) {
       const payload = {
         date: d,
         dateTo: dTo,
+        city: (document.getElementById('vmCity').value || '').trim(),
         kind: (document.getElementById('vmKind').value || 'Встреча'),
         title: (document.getElementById('vmTitle').value || '').trim(),
         goal: (document.getElementById('vmGoal').value || '').trim(),
         participants: [...document.querySelectorAll('.vmPart:checked')].map(x => canonManager(x.value)),
         people: chosen.slice()
       };
-      await saveClinicPrivate(c.id, c.manager || null, { next_contact: d, action_type: 'visit' });
-      await saveVisitPlanRow(c.id, payload, plan && plan.noteId);
+      if (c) await saveClinicPrivate(c.id, c.manager || null, { next_contact: d, action_type: 'visit' });
+      await saveVisitPlanRow(c ? c.id : null, payload, plan && plan.noteId);
       if (idea && idea.noteId) {
         const rest = Object.assign({}, idea); delete rest.noteId;
         await saveVisitIdeaRow(idea.clinic_id, Object.assign(rest, { status: 'planned', planned: d }), idea.noteId);
