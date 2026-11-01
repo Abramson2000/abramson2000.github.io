@@ -1931,7 +1931,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.23.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.23.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3865,7 +3865,7 @@ async function renderPlan() {
   const head = `<tr>
       <th class="pl-th">Клиника</th>
       ${th('plan', 'План')}${th('fact', 'Факт')}${th('pct', '%')}
-      ${th('left', 'Осталось')}${th('perMonth', 'Вт. месяце')}
+      ${th('left', 'Осталось')}${th('perMonth', 'В месяц')}
       ${th('q1', 'I')}${th('q2', 'II')}${th('q3', 'III')}${th('q4', 'IV')}
       ${th('yoy', 'Г/Г')}<th class="pl-th">Визит</th>
     </tr>`;
@@ -3897,10 +3897,15 @@ async function renderPlan() {
 
   const totP = rows.reduce((s, r) => s + Number(r.plan || 0), 0);
   const totF = rows.reduce((s, r) => s + Number(r.fact || 0), 0);
-  body += `<tr class="pl-total"><td>Итого</td><td>${fmtM(totP)}</td><td>${fmtM(totF)}</td>
-      <td>${totP ? Math.round(totF / totP * 100) + '%' : '—'}</td>
-      <td>${fmtM(Math.max(0, totP - totF))}</td><td>${fmtM(Math.round(Math.max(0, totP - totF) / 3))}</td>
-      <td colspan="6"></td></tr>`;
+  const totLeft = Math.max(0, totP - totF);
+  body += `<tr class="pl-total">`
+    + `<td>Итого</td>`
+    + `<td>${fmtM(Math.round(totP))}</td>`
+    + `<td>${fmtM(Math.round(totF))}</td>`
+    + `<td>${totP ? Math.round(totF / totP * 100) + '%' : '—'}</td>`
+    + `<td>${fmtM(Math.round(totLeft))}</td>`
+    + `<td>${fmtM(Math.round(totLeft / 3))}</td>`
+    + `<td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
 
   const mgrOpts = ['', ...mgrOrder].map(m => `<option value="${esc(m)}"${PLAN_ST.mgr === m ? ' selected' : ''}>${esc(m || 'Все менеджеры')}</option>`).join('');
 
@@ -3932,8 +3937,13 @@ async function renderPlan() {
     renderPlan();
   }));
   view.querySelectorAll('[data-plan-clinic]').forEach(tr => tr.addEventListener('click', async () => {
-    state.view = 'clinics'; state.selId = Number(tr.dataset.planClinic); state.selKind = 'clinic';
+    const id = Number(tr.dataset.planClinic);
+    state.view = 'clinics'; state.selId = id; state.selKind = 'clinic';
     await render();
+    // карточка рисуется по строке списка — находим её и раскрываем
+    const row = document.querySelector('.list-row[data-id="' + id + '"][data-kind="clinic"]')
+      || document.querySelector('.list-row[data-id="' + id + '"]');
+    if (row) { row.classList.add('selected'); try { await showHoverCard(row, true); } catch (_) {} }
   }));
 }
 
