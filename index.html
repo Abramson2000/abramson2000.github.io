@@ -2005,7 +2005,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.42.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.42.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4354,27 +4354,27 @@ async function renderVisits() {
     const m1 = visitMonthKey(a), m2 = visitMonthKey(b);
     return (curMonth >= m1 && curMonth <= m2) || m1 === curMonth || m2 === curMonth;
   });
-  const cities = new Set(inMonth.map(p => cityById[p.clinic_id] || ''));
-  let days = 0;
+  const cities = new Set(inMonth.map(p => cityById[p.clinic_id] || '').filter(Boolean));
+  // дни считаем как пересечение визита с текущим месяцем, без двойного счёта
+  const monthStart = curMonth + '-01';
+  const monthEnd = curMonth + '-' + String(new Date(Number(curMonth.slice(0,4)), Number(curMonth.slice(5,7)), 0).getDate()).padStart(2, '0');
+  const daySet = new Set();
   inMonth.forEach(p => {
-    const a = new Date(String(p.date).slice(0, 10) + 'T00:00:00');
-    const b = new Date(visitEnd(p) + 'T00:00:00');
-    const n = Math.round((b - a) / 86400000) + 1;
-    const from = String(p.date).slice(0, 10) < curMonth + '-01' ? curMonth + '-01' : String(p.date).slice(0, 10);
-    days += (m1ok(p, curMonth) ? n : n);
+    const a = String(p.date).slice(0, 10) < monthStart ? monthStart : String(p.date).slice(0, 10);
+    const b = visitEnd(p) > monthEnd ? monthEnd : visitEnd(p);
+    for (let d = new Date(a + 'T00:00:00'); ; d.setDate(d.getDate() + 1)) {
+      const iso = d.toISOString().slice(0, 10);
+      if (iso > b) break;
+      daySet.add(iso);
+    }
   });
-  function m1ok() { return true; }
+  const days = daySet.size;
   const monthHtml = `<div class="md-sec">Обзор · ${esc(monthLabel(curMonth))}</div>
     <div class="month-bar">
       <button class="btn ghost mini" data-month="-1">‹</button>
-      <span class="month-stat">визитов <b>${inMonth.length}</b> · городов <b>${cities.size}</b> · дней <b>${days}</b></span>
+      <span class="month-stat">визитов <b>${inMonth.length}</b> · городов <b>${cities.size}</b> · дней в поездках <b>${days}</b>${cities.size ? ' · ' + esc([...cities].slice(0, 4).join(', ')) : ''}</span>
       <button class="btn ghost mini" data-month="1">›</button>
-    </div>
-    ${inMonth.length ? `<div class="list">${inMonth.map(p => `
-      <div class="card list-row" data-visit="${p.noteId}">
-        <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(visitRange(p))}</span></div>
-        <div class="row-why"><b>${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}</b>${cityById[p.clinic_id] ? ' · ' + esc(cityById[p.clinic_id]) : ''}${p.goal ? ' · ' + esc(p.goal) : ''}</div>
-      </div>`).join('')}</div>` : '<div class="empty">В этом месяце визитов нет.</div>'}`;
+    </div>`;
 
   // ---- календарь месяца ----
   let calHtml = '';
