@@ -1888,7 +1888,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.16.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.17.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3595,6 +3595,59 @@ async function renderCalls() {
   renderActionList('call', 'Звонки');
 }
 
+// v4.17.0: карточка самого визита — план, участники, врачи с телефонами
+async function openVisitCard(plan) {
+  if (!plan) return;
+  let c = null;
+  try { c = await getClinic(plan.clinic_id); } catch (_) {}
+  const people = await allPeopleList();
+  const byIdP = {};
+  (people || []).forEach(p => { byIdP[Number(p.id)] = p; });
+  const docs = (plan.people || []).map(id => byIdP[Number(id)]).filter(Boolean);
+  const parts = (plan.participants || []).join(', ') || '—';
+  const docRows = docs.length ? docs.map(p => {
+    const nm = p.fullName || p.full_name || ('#' + p.id);
+    const tel = String(p.phone || '').replace(/[^\d+]/g, '');
+    return `<div class="priv-row compact"><span class="lbl">${esc(nm)}</span>`
+      + `<span style="flex:1;min-width:0;color:var(--muted);font-size:13px">${esc(p.position || '')}</span>`
+      + (tel ? `<a class="btn ghost mini" href="tel:${esc(tel)}">Позвонить</a>` : '<span class="row-why">телефона нет</span>')
+      + `</div>`;
+  }).join('') : '<div class="row-why">Врачи не добавлены</div>';
+
+  openModal('Визит · ' + fmtDate(plan.date), `
+    <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c ? c.name : ('#' + plan.clinic_id))}${c && c.city ? ' · ' + esc(c.city) : ''}</div></div>
+    <div class="detail-block"><div class="k">Когда</div><div class="v">${esc(fmtDate(plan.date))}</div></div>
+    <div class="detail-block"><div class="k">Цель</div><div class="v">${esc(plan.goal || '—')}</div></div>
+    <div class="detail-block"><div class="k">Участники</div><div class="v">${esc(parts)}</div></div>
+    <div class="detail-block"><div class="k">Врачи</div><div class="v">${docRows}</div></div>
+    <div class="btn-row">
+      <button class="btn" id="vcEdit">Изменить визит</button>
+      <button class="btn ghost" id="vcDrop">Отменить визит</button>
+      ${c ? `<button class="btn ghost" id="vcClinic">Открыть клинику</button>` : ''}
+    </div>
+  `);
+  document.getElementById('vcEdit').addEventListener('click', async () => {
+    closeModal();
+    await openVisitModal({ clinicId: plan.clinic_id, plan });
+  });
+  document.getElementById('vcDrop').addEventListener('click', async () => {
+    try {
+      await sb.from('notes').delete().eq('id', Number(plan.noteId));
+      await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', Number(plan.clinic_id));
+      invalidateVisitCache();
+      closeModal();
+      toast('✓ Визит отменён');
+      await render();
+    } catch (e) { toast('⚠️ Не удалось: ' + (e && e.message ? e.message : e)); }
+  });
+  const vc = document.getElementById('vcClinic');
+  if (vc) vc.addEventListener('click', async () => {
+    closeModal();
+    state.view = 'clinics'; state.selId = plan.clinic_id; state.selKind = 'clinic';
+    await render();
+  });
+}
+
 async function renderVisits() {
   // v4.13.0: визиты и идеи — с названиями клиник, участниками и врачами
   const view = document.getElementById('view');
@@ -3663,13 +3716,13 @@ async function renderVisits() {
         const goal = p.goal || '';
         const parts = (p.participants || []).join(', ');
         const docs = (p.people || []).length;
-        return `<div class="card list-row" data-id="${p.clinic_id}" data-kind="clinic">
+        return `<div class="card list-row" data-visit="${p.noteId}">
           <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}</span></span><span class="row-next">${esc(mgrById[p.clinic_id] || '')}</span></div>
           ${goal ? `<div class="row-why">${esc(goal)}</div>` : ''}
           <div class="row-why">${parts ? 'Участники: ' + esc(parts) : 'Участники: —'}${docs ? ' · врачей: ' + docs : ''}</div>
           <div class="vm-actions">
             <button class="btn ghost mini" data-edit-plan="${p.noteId}">Изменить</button>
-            <button class="btn ghost mini" data-drop-plan="${p.noteId}" data-cid="${p.clinic_id}">Снять визит</button>
+            <button class="btn ghost mini" data-drop-plan="${p.noteId}" data-cid="${p.clinic_id}">Отменить визит</button>
           </div>
         </div>`;
       }).join('') + `</div>`).join('');
@@ -3704,9 +3757,15 @@ async function renderVisits() {
       await sb.from('notes').delete().eq('id', nid);
       await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', cid);
       invalidateVisitCache();
-      toast('✓ Визит снят');
+      toast('✓ Визит отменён');
       await render();
     } catch (err) { toast('⚠️ Не удалось: ' + (err && err.message ? err.message : err)); }
+  }));
+  // v4.17.0: клик по визиту открывает карточку визита, а не клиники
+  view.querySelectorAll('[data-visit]').forEach(el => el.addEventListener('click', async (e) => {
+    if (e.target.closest('button')) return;
+    const plan = plans.find(x => Number(x.noteId) === Number(el.dataset.visit));
+    if (plan) await openVisitCard(plan);
   }));
 }
 
@@ -4085,7 +4144,9 @@ const VISIT_MARK = '[[V]]', IDEA_MARK = '[[I]]';
 const VISIT_MANAGERS = [
   { id: 'Абрамов', label: 'Абрамов (Саша)' },
   { id: 'Осечкина', label: 'Осечкина (Настя)' },
-  { id: 'Скокова', label: 'Скокова (Галя)' }
+  { id: 'Скокова', label: 'Скокова (Галя)' },
+  { id: 'Мазаева', label: 'Мазаева' },
+  { id: 'Евсеев', label: 'Евсеев' }
 ];
 const VISIT_MANAGER_ALIAS = { 'Саша': 'Абрамов', 'Настя': 'Осечкина', 'Галя': 'Скокова' };
 function canonManager(name) { const v = String(name || '').trim(); return VISIT_MANAGER_ALIAS[v] || v; }
@@ -4230,8 +4291,6 @@ async function openVisitModal(cfg) {
     </div>
     <div class="field"><label>Дата визита</label><input type="date" id="vmDate" value="${esc(date)}" /></div>
     <div class="field"><label>Цель</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || base.goal || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
-    <div class="field"><label>Кто едет</label><input type="text" id="vmWho" value="${esc((plan && plan.who) || base.who || '')}" placeholder="Абрамов" /></div>
-    <div class="field"><label>Адрес и детали</label><input type="text" id="vmAddr" value="${esc((plan && plan.addr) || base.addr || '')}" placeholder="корпус, кабинет, контакт на месте" /></div>
     <div class="field"><label>Участники (визит виден каждому из них)</label><div class="vm-chks">${participantsHtml(partSel)}</div></div>
     <div class="field"><label>Врачи в визите — из любой клиники</label>
       <input type="text" id="vmDocSearch" list="vmDocList" placeholder="начни печатать фамилию врача" autocomplete="off" />
@@ -4301,8 +4360,6 @@ async function openVisitModal(cfg) {
       const payload = {
         date: d,
         goal: (document.getElementById('vmGoal').value || '').trim(),
-        who: (document.getElementById('vmWho').value || '').trim(),
-        addr: (document.getElementById('vmAddr').value || '').trim(),
         participants: [...document.querySelectorAll('.vmPart:checked')].map(x => canonManager(x.value)),
         people: chosen.slice()
       };
@@ -5227,19 +5284,32 @@ function bindClinicPicker() {
   const sel = document.getElementById('f_clinic');
   if (!inp || !sel || inp.dataset.bound === '1') return;
   inp.dataset.bound = '1';
+  const escT = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // снимок всех вариантов: прятать <option> бесполезно — нативный список этого не понимает,
+  // поэтому при вводе пересобираем содержимое select заново
+  const items = [...sel.querySelectorAll('option')].filter(o => o.value).map(o => ({
+    id: String(o.value),
+    text: o.textContent,
+    q: String(o.dataset.q || o.textContent).toLowerCase(),
+    group: o.closest('optgroup') ? o.closest('optgroup').label : ''
+  }));
+  const current = () => sel.value;
+  sel.addEventListener('change', () => { inp.dataset.keep = sel.value || ''; });
   inp.addEventListener('input', () => {
     const q = inp.value.trim().toLowerCase();
-    sel.querySelectorAll('option').forEach(o => {
-      if (!o.value) return;
-      const hit = !q || String(o.dataset.q || '').includes(q);
-      o.hidden = !hit;
-      o.style.display = hit ? '' : 'none';
+    const keep = inp.dataset.keep || '';
+    const hit = q ? items.filter(i => i.q.includes(q)) : items;
+    const groups = {};
+    hit.forEach(i => { (groups[i.group] = groups[i.group] || []).push(i); });
+    let html = '<option value="">— выберите —</option>';
+    Object.keys(groups).forEach(g => {
+      const opts = groups[g].map(i => `<option value="${i.id}"${i.id === keep ? ' selected' : ''}>${escT(i.text)}</option>`).join('');
+      html += g ? `<optgroup label="${escT(g)}">${opts}</optgroup>` : opts;
     });
-    sel.querySelectorAll('optgroup').forEach(g => {
-      const anyVisible = [...g.querySelectorAll('option')].some(o => !o.hidden);
-      g.hidden = !anyVisible;
-      g.style.display = anyVisible ? '' : 'none';
-    });
+    sel.innerHTML = html;
+    // если выбранное скрылось — оставляем выбор пустым; если совпало одно — сразу его и ставим
+    if (keep && hit.some(i => i.id === keep)) sel.value = keep;
+    else sel.value = hit.length === 1 ? hit[0].id : '';
   });
 }
 
@@ -6875,8 +6945,13 @@ function clinicFromCache(id) {
 function siteChipHtml(situation) {
   const { site } = splitSite(situation);
   if (!site) return '';
-  let dom = site; try { dom = new URL(site).hostname.replace(/^www\./, ''); } catch (_) {}
-  return `<a class="site-chip" href="${esc(site)}" target="_blank" rel="noopener" title="${esc(site)}">🌐 ${esc(dom)}</a>`;
+  let dom = site;
+  try { dom = new URL(site).hostname.replace(/^www\./, ''); } catch (_) {}
+  return `<a class="site-ico" href="${esc(site)}" target="_blank" rel="noopener" title="${esc(dom)}" aria-label="Открыть сайт ${esc(dom)}">`
+    + `<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">`
+    + `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>`
+    + `<path d="M3 12h18M12 3c2.6 2.7 2.6 15.3 0 18M12 3c-2.6 2.7-2.6 15.3 0 18" fill="none" stroke="currentColor" stroke-width="1.6"/>`
+    + `</svg></a>`;
 }
 
 {
