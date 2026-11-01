@@ -1873,7 +1873,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.14.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.14.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4147,7 +4147,7 @@ async function clinicDoctors(cid) {
     const { data: links } = await sb.from('clinic_people').select('person_id').eq('clinic_id', Number(cid));
     const ids = (links || []).map(l => Number(l.person_id));
     if (!ids.length) return [];
-    const people = await listPeople();
+    const people = await allPeopleList();
     const map = {};
     (people || []).forEach(p => { map[Number(p.id)] = p; });
     return ids.map(id => map[id]).filter(Boolean);
@@ -4176,7 +4176,9 @@ async function allPeopleList() {
   if (window.__allPeople) return window.__allPeople;
   try {
     const people = await listPeople();
-    const arr = (people || []).slice().sort((a, b) => String(a.full_name || '').localeCompare(String(b.full_name || ''), 'ru'));
+    // listPeople отдаёт camelCase (fullName), а ниже нужен full_name — приводим к одному виду
+    const arr = (people || []).map(p => Object.assign({}, p, { full_name: p.full_name || p.fullName }))
+      .sort((a, b) => String(a.full_name || '').localeCompare(String(b.full_name || ''), 'ru'));
     window.__allPeople = arr;
     return arr;
   } catch (_) { return []; }
@@ -6364,6 +6366,8 @@ async function fillNotesBlock0(cid) {
     }
   } catch (_) { list = []; box.classList.remove('hidden'); box.innerHTML = '<span style="color:var(--muted)">нет доступа к заметкам</span>'; return; }
   // v3.16.2: пустую историю и счётчик не показываем; у записи — дата и автор (если известны)
+  // v4.14.1: служебные записи визитов/идей не должны попадать в комментарии карточки
+  list = (list || []).filter(n => !/^\[\[(V|I)\]\]/.test(String(n.text || '')));
   renderNotesBox(box, list || [], canEdit);
 }
 // v3.16.2: правка ранее записанного (карандаш → текст → «Сохранить»/«Отмена»)
