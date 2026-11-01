@@ -256,21 +256,23 @@ body {
 .ctrl-x { position: absolute; top: 6px; right: 8px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 13px; line-height: 1; cursor: pointer; padding: 0; }
 .ctrl-x:hover { background: #f0f0f2; color: var(--ink); }
 /* v4.23.0: вкладка «План» */
-.plan-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; }
+.plan-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 12px; }
 .plan-bar input[type=text] { flex: 1 1 180px; min-width: 140px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; }
 .plan-bar select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; background: #fff; }
 .pl-chk { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
 .plan-chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
 .pl-chip { padding: 5px 11px; border: 1px solid var(--line); border-radius: 14px; background: var(--card, #fff); font: inherit; font-size: 13px; cursor: pointer; color: var(--ink); }
 .pl-chip.on { background: #0f8a8a; border-color: #0f8a8a; color: #fff; }
-.plan-wrap { overflow: auto; padding: 0 16px 24px; max-height: calc(100vh - 190px); }
+/* v4.28.0: «План» на компьютере — во всю ширину, с воздухом в ячейках */
+body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-left: 10px; padding-right: 10px; }
+.plan-wrap { overflow: auto; padding: 0 10px 24px; max-height: calc(100vh - 190px); }
 .plan-tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
 /* v4.26.0: сетка — вертикальные и горизонтальные линии, иначе цифры сливаются */
-.plan-tbl th, .plan-tbl td { padding: 7px 8px; border-bottom: 1px solid #e6e6e6; border-right: 1px solid #ececec; white-space: nowrap; text-align: right; }
+.plan-tbl th, .plan-tbl td { padding: 9px 16px; border-bottom: 1px solid #e6e6e6; border-right: 1px solid #ececec; white-space: nowrap; text-align: right; }
 .plan-tbl th:last-child, .plan-tbl td:last-child { border-right: 0; }
 .plan-tbl tbody tr:nth-child(even) td { background: #fafafa; }
 .plan-tbl tbody tr.pl-row:hover td { background: #eef7f7; }
-.plan-tbl th:first-child, .plan-tbl td:first-child { text-align: left; white-space: normal; min-width: 210px; position: sticky; left: 0; background: var(--card, #fff); z-index: 1; }
+.plan-tbl th:first-child, .plan-tbl td:first-child { text-align: left; white-space: normal; min-width: 300px; position: sticky; left: 0; background: var(--card, #fff); z-index: 1; }
 .plan-tbl tbody tr:nth-child(even) td:first-child { background: #fafafa; }
 /* закреплённая шапка при прокрутке */
 .plan-tbl thead th { position: sticky; top: 0; background: var(--card, #fff); z-index: 3; font-weight: 600; color: var(--muted); cursor: pointer; box-shadow: inset 0 -1px 0 #cfcfcf; }
@@ -285,6 +287,15 @@ body {
 .pl-mid { color: #b8860b; }
 .pl-bad { color: var(--danger, #c0392b); }
 .pl-visit { color: var(--muted); }
+/* v4.28.0: на телефоне — минимум «Плана»: клиника, план, факт, %, Г/Г, визит */
+@media (max-width: 899px) {
+  .plan-tbl .pl-q, .plan-tbl .pl-opt { display: none; }
+  .plan-tbl th, .plan-tbl td { padding: 7px 8px; font-size: 12px; }
+  .plan-tbl th:first-child, .plan-tbl td:first-child { min-width: 132px; }
+  .plan-wrap { max-height: calc(100vh - 230px); padding: 0 4px 18px; }
+  .plan-tbl .pl-visit { max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+  .plan-bar { padding: 8px 8px; gap: 6px; }
+}
 .md-gap .list-row { position: relative; }
 .vm-doc-chips { margin-top: 8px; }
 .cns-add { margin-left: auto; flex: none; background: var(--brand-dark); color: #fff; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
@@ -1944,7 +1955,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.27.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.28.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2526,7 +2537,12 @@ async function bootstrap(preferredUser) {
   CURRENT_EMAIL = user.email || null;
   // v4.11.0: при входе всегда открываем «Мой день» и ставим фильтр по своему менеджеру
   // (у Абрамова — Абрамов, у Скоковой — Скокова, у Осечкиной — Осечкина).
-  state.view = 'myday';
+  // v4.28.0: возвращаемся в тот раздел, где остановились (раньше всегда открывался «Мой день»)
+  let savedView = '';
+  try { savedView = localStorage.getItem('crm-last-view') || ''; } catch (_) {}
+  const KNOWN_VIEWS = ['myday', 'clinics', 'distributors', 'people', 'plan', 'money', 'calls', 'visits',
+    'cns', 'air', 'endo', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'analysis', 'sasha', 'nastya', 'galya'];
+  state.view = (savedView && KNOWN_VIEWS.includes(savedView)) ? savedView : 'myday';
   state.mydayMgr = myDayDefaultManager();
   rcHydrate();   // v3.16.2: показываем прошлые данные сразу, свежесть догоняем в фоне
   Object.keys(WORKLISTS).forEach(k => {
@@ -2807,7 +2823,7 @@ document.addEventListener('touchend', () => {
 function setActiveTab(view) {
   document.querySelectorAll('.tab').forEach(b => {
     const v = b.dataset.view;
-    b.classList.toggle('active', v === view || (v === 'analysis' && ['analysis', 'money', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(view)));
+    b.classList.toggle('active', v === view || (v === 'analysis' && ['analysis', 'money', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(view)));
   });
 }
 
@@ -2819,7 +2835,7 @@ function cabinetRoute() {
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     let v = btn.dataset.view === 'back' ? 'clinics' : btn.dataset.view;
-    if (v === 'money' && CURRENT_ROLE === 'guest') v = 'visits';  // без доступа к деньгам — сразу на Визиты
+    if ((v === 'money' || v === 'plan') && CURRENT_ROLE === 'guest') v = 'visits';  // без доступа к деньгам — сразу на Визиты
     if (isRefEdit() && REFEDIT_DENIED.includes(v)) v = 'clinics';
     if (v === 'managers') v = 'sasha';  // «Менеджеры» — сразу на свой лист (3-й стол)
     if (v === 'nastya' && !WORKLISTS.nastya.emails.includes(CURRENT_EMAIL)) v = 'clinics';
@@ -2885,7 +2901,7 @@ async function updateFiltersUI() {
   const fab = document.getElementById('fab');
   fab.classList.toggle('hidden', FAB_HIDDEN_VIEWS.includes(state.view));
   // мобильная нижняя плашка: у Саши свой 3-й стол (Саша/Настя/Галя), у остальных 2-й стол анализа
-  const inAnalysis = ['analysis', 'money', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(state.view);
+  const inAnalysis = ['analysis', 'money', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers'].includes(state.view);
   const mainBar = document.getElementById('tabbar-main');
   const anBar = document.getElementById('tabbar-analysis');
   const mgBar = document.getElementById('tabbar-managers');
@@ -2938,6 +2954,8 @@ function setView(v) {
   if (v === state.view) return;
   saveViewState(state.view);
   state.view = v;
+  // v4.28.0: запоминаем раздел — при возврате в приложение не сбрасываемся на «Мой день»
+  try { localStorage.setItem('crm-last-view', v); } catch (_) {}
   state.selId = null;
   state.selKind = null;
   loadViewState(v);
@@ -3465,6 +3483,7 @@ async function render() {
   if (isRefEdit() && REFEDIT_DENIED.includes(state.view)) { state.view = 'clinics'; }
   const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'money', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
   document.body.classList.toggle('detail-mode', PANEL_VIEWS.includes(state.view));
+  document.body.classList.toggle('plan-mode', state.view === 'plan');   // v4.28.0: «План» — на всю ширину
   // v3.15.0: до выбора — короткая подсказка в правой панели
   if (document.body.classList.contains('detail-mode') && !state.selId) showPanelHint();
   // v3.14.0: тип действия подставляется только при работе из «Звонков»/«Визитов»
@@ -3810,8 +3829,10 @@ const PLAN_DEPT = ['Абрамов', 'Осечкина', 'Скокова'];
 async function renderPlan() {
   const view = document.getElementById('view');
   let all = [], mon = {}, plans = {}, vplans = [];
+  const isMgrPlan = CURRENT_ROLE === 'manager';
   try {
-    all = await listAllClinics();
+    // v4.28.0: менеджер видит в «Плане» ТОЛЬКО свои клиники (listClinics фильтрует по ответственному)
+    all = isMgrPlan ? await listClinics() : await listAllClinics();
     mon = await loadMonthlyAll();
     plans = await loadPlans();
     vplans = await loadVisitPlans();
@@ -3880,8 +3901,8 @@ async function renderPlan() {
   const head = `<tr>
       ${th('name', 'Клиника')}
       ${th('plan', 'План')}${th('fact', 'Факт')}${th('pct', '%')}
-      ${th('left', 'Осталось')}${th('perMonth', 'В месяц')}
-      ${th('q1', 'I', '', 'I квартал 2026')}${th('q2', 'II', '', 'II квартал 2026')}${th('q3', 'III', '', 'III квартал 2026')}${th('q4', 'IV', '', 'IV квартал 2026')}
+      ${th('left', 'Осталось', 'pl-opt')}${th('perMonth', 'В месяц', 'pl-opt')}
+      ${th('q1', 'I', 'pl-q', 'I квартал 2026')}${th('q2', 'II', 'pl-q', 'II квартал 2026')}${th('q3', 'III', 'pl-q', 'III квартал 2026')}${th('q4', 'IV', 'pl-q', 'IV квартал 2026')}
       ${th('yoy', 'Г/Г', '', 'Год к году: факт января–сентября 2026 против того же периода 2025')}<th class="pl-th">Визит</th>
     </tr>`;
 
@@ -3890,12 +3911,12 @@ async function renderPlan() {
       <td>${fmtM(r.plan)}</td>
       <td>${fmtM(r.fact)}</td>
       <td>${cellPct(r.pct)}</td>
-      <td>${fmtM(r.left)}</td>
-      <td>${r.perMonth ? fmtM(Math.round(r.perMonth)) : '—'}</td>
-      <td>${r.q[0] ? fmtM(r.q[0]) : '—'}</td>
-      <td>${r.q[1] ? fmtM(r.q[1]) : '—'}</td>
-      <td>${r.q[2] ? fmtM(r.q[2]) : '—'}</td>
-      <td>${r.q[3] ? fmtM(r.q[3]) : '—'}</td>
+      <td class="pl-opt">${fmtM(r.left)}</td>
+      <td class="pl-opt">${r.perMonth ? fmtM(Math.round(r.perMonth)) : '—'}</td>
+      <td class="pl-q">${r.q[0] ? fmtM(r.q[0]) : '—'}</td>
+      <td class="pl-q">${r.q[1] ? fmtM(r.q[1]) : '—'}</td>
+      <td class="pl-q">${r.q[2] ? fmtM(r.q[2]) : '—'}</td>
+      <td class="pl-q">${r.q[3] ? fmtM(r.q[3]) : '—'}</td>
       <td>${r.yoy == null ? '—' : `<span class="${r.yoy >= 0 ? 'pl-ok' : 'pl-bad'}">${r.yoy > 0 ? '+' : ''}${r.yoy}%</span>`}</td>
       <td class="pl-visit">${esc(r.visit || '')}</td>
     </tr>`;
@@ -3922,9 +3943,9 @@ async function renderPlan() {
     + `<td>${fmtM(Math.round(totP))}</td>`
     + `<td>${fmtM(Math.round(totF))}</td>`
     + `<td>${totP ? Math.round(totF / totP * 100) + '%' : '—'}</td>`
-    + `<td>${fmtM(Math.round(totLeft))}</td>`
-    + `<td>${fmtM(Math.round(totLeft / 3))}</td>`
-    + `<td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+    + `<td class="pl-opt">${fmtM(Math.round(totLeft))}</td>`
+    + `<td class="pl-opt">${fmtM(Math.round(totLeft / 3))}</td>`
+    + `<td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td></td><td></td></tr>`;
 
   const deptOn = PLAN_DEPT.every(m => PLAN_ST.mgrs.includes(m)) && PLAN_ST.mgrs.length === PLAN_DEPT.length;
   const chips = `<div class="plan-chips">
@@ -3937,7 +3958,7 @@ async function renderPlan() {
       <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
       <label class="pl-chk"><input type="checkbox" id="planOnlyPlan"${PLAN_ST.onlyPlan ? ' checked' : ''}/> только с планом</label>
       <label class="pl-chk"><input type="checkbox" id="planOnlyFail"${PLAN_ST.onlyFail ? ' checked' : ''}/> только с провалом</label>
-      ${chips}
+      ${isMgrPlan ? '' : chips}
     </div>
     <div class="plan-wrap"><table class="money-tbl plan-tbl"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 
