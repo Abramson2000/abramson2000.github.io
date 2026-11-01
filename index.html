@@ -297,9 +297,9 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .month-stat { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .month-stat b { color: var(--ink); }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px 2px; padding: 0 10px 16px; align-items: start; }
-.cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px 3px; grid-column: 1 / -1; margin-bottom: 10px; }
+.cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px 3px; grid-column: 1 / -1; margin-bottom: 12px; }
 .cal-dnum { height: 24px; font-size: 12.5px; color: var(--muted); text-align: center; line-height: 20px; }
-.cal-bar { height: 26px; line-height: 26px; border-radius: 7px; padding: 0 8px; font-size: 12.5px; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.cal-bar { height: 40px; line-height: 40px; border-radius: 9px; padding: 0 10px; font-size: 13px; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
 .cal-bar.past { background: #e6f0fb; color: #2c6fb0; }
 .cal-bar.now { background: #e8f6ec; color: #1f7a45; }
 .cal-bar.idea { background: #fff6d9; color: #8a6d00; border: 1px dashed #e0cd7a; }
@@ -336,7 +336,6 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 body.plan-mode .search-row, body.plan-mode #searchTop { display: none; }
 body.visits-mode .search-row, body.visits-mode #searchTop { display: none; }
 /* v4.52.0: «Визиты» на компьютере — во всю ширину, заголовки компактнее */
-body.visits-mode .work > #view { max-width: none; }
 body.visits-mode .md-sec { padding-top: 7px; padding-bottom: 4px; font-size: 15px; }
 /* явная отсечка между предстоящими и прошедшими */
 .visits-sep { display: flex; align-items: center; gap: 10px; margin: 22px 12px 8px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
@@ -2033,7 +2032,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.52.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.53.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5157,7 +5156,7 @@ async function openVisitModal(cfg) {
       <select id="vmKind">${VISIT_KINDS.map(k => `<option value="${esc(k)}"${(((plan && plan.kind) || (idea && idea.kind) || base.kind || 'Встреча') === k) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>
     </div>
     <div class="field"><label>Город</label>
-      <input type="text" id="vmCity" value="${esc((plan && plan.city) || '')}" placeholder="например: Красноярск" autocomplete="off" />
+      <input type="text" id="vmCity" value="${esc((plan && plan.city) || (idea && idea.city) || '')}" placeholder="например: Красноярск" autocomplete="off" />
     </div>
     <div class="field"><label>Клиника (не обязательно для конференции)</label>
       <input type="text" id="vmClinicName" list="vmClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно оставить пустым, если это конференция" autocomplete="off" />
@@ -5286,6 +5285,15 @@ async function openIdeaModal(presetClinicId, idea) {
       <input type="text" id="viClinicName" list="viClinicList" value="${esc(cur ? cur.name : '')}" placeholder="КМКБ №4" autocomplete="off" />
       <datalist id="viClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}</option>`).join('')}</datalist>
     </div>
+    <div class="field"><label>Название визита</label>
+      <input type="text" id="viTitle" value="${esc((idea && idea.title) || '')}" placeholder="например: мастер-класс по Литокласт" />
+    </div>
+    <div class="field"><label>Тип визита</label>
+      <select id="viKind">${VISIT_KINDS.map(k => `<option value="${esc(k)}"${(((idea && idea.kind) || 'Встреча') === k) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Город</label>
+      <input type="text" id="viCity" value="${esc((idea && idea.city) || '')}" placeholder="например: Красноярск" />
+    </div>
     <div class="field"><label>Зачем ехать</label><input type="text" id="viGoal" value="${esc((idea && idea.goal) || '')}" placeholder="апробация Литокласт" /></div>
     <div class="field"><label>Ориентир: с какого числа</label><input type="date" id="viFrom" value="${esc((idea && idea.from) || '')}" /></div>
     <div class="field"><label>Ориентир: по какое</label><input type="date" id="viTo" value="${esc((idea && idea.to) || '')}" /></div>
@@ -5303,6 +5311,9 @@ async function openIdeaModal(presetClinicId, idea) {
       if (!c) { toast('Клиника не найдена — выбери из подсказки'); btn.disabled = false; return; }
       const days = Math.max(1, Math.min(90, Number(document.getElementById('viRemind').value) || 4));
       const payload = {
+        title: (document.getElementById('viTitle').value || '').trim(),
+        kind: (document.getElementById('viKind').value || 'Встреча'),
+        city: (document.getElementById('viCity').value || '').trim(),
         goal: (document.getElementById('viGoal').value || '').trim(),
         from: document.getElementById('viFrom').value || null,
         to: document.getElementById('viTo').value || null,
