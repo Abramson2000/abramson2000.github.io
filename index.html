@@ -1888,7 +1888,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.18.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.19.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3614,7 +3614,8 @@ async function openVisitCard(plan) {
       + `</div>`;
   }).join('') : '<div class="row-why">Врачи не добавлены</div>';
 
-  openModal('Визит · ' + fmtDate(plan.date), `
+  openModal('Визит · ' + (plan.kind || 'Встреча') + ' · ' + fmtDate(plan.date), `
+    <div class="detail-block"><div class="k">Что за визит</div><div class="v">${esc(plan.kind || 'Встреча')}</div></div>
     <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c ? c.name : ('#' + plan.clinic_id))}${c && c.city ? ' · ' + esc(c.city) : ''}</div></div>
     <div class="detail-block"><div class="k">Когда</div><div class="v">${esc(fmtDate(plan.date))}</div></div>
     <div class="detail-block"><div class="k">Цель</div><div class="v">${esc(plan.goal || '—')}</div></div>
@@ -3628,6 +3629,7 @@ async function openVisitCard(plan) {
   `);
   document.getElementById('vcEdit').addEventListener('click', async () => {
     closeModal();
+    try { if (document.body.classList.contains('card-open')) { state.selId = null; closeCardToList(); } } catch (_) {}
     await openVisitModal({ clinicId: plan.clinic_id, plan });
   });
   document.getElementById('vcDrop').addEventListener('click', async () => {
@@ -3781,7 +3783,7 @@ async function renderVisits() {
         return `<div class="card list-row" data-visit="${p.noteId}">
           <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}</span></span><span class="row-next">${esc(mgrById[p.clinic_id] || '')}</span></div>
           ${goal ? `<div class="row-why">${esc(goal)}</div>` : ''}
-          <div class="row-why">${parts ? 'Участники: ' + esc(parts) : 'Участники: —'}${docs ? ' · врачей: ' + docs : ''}</div>
+          <div class="row-why">${p.kind ? esc(p.kind) + ' · ' : ''}${parts ? 'Участники: ' + esc(parts) : 'Участники: —'}${docs ? ' · врачей: ' + docs : ''}</div>
           <div class="vm-actions">
             <button class="btn ghost mini" data-edit-plan="${p.noteId}">Изменить</button>
             <button class="btn ghost mini" data-drop-plan="${p.noteId}" data-cid="${p.clinic_id}">Отменить визит</button>
@@ -4204,13 +4206,14 @@ async function renderStub(title) {
 const VISIT_MARK = '[[V]]', IDEA_MARK = '[[I]]';
 // Кто есть кто: в базе менеджер записан фамилией, «Настя» и «Галя» — обиходные имена.
 const VISIT_MANAGERS = [
-  { id: 'Абрамов', label: 'Абрамов (Саша)' },
-  { id: 'Осечкина', label: 'Осечкина (Настя)' },
-  { id: 'Скокова', label: 'Скокова (Галя)' },
+  { id: 'Абрамов', label: 'Абрамов' },
+  { id: 'Осечкина', label: 'Осечкина' },
+  { id: 'Скокова', label: 'Скокова' },
   { id: 'Мазаева', label: 'Мазаева' },
   { id: 'Евсеев', label: 'Евсеев' }
 ];
 const VISIT_MANAGER_ALIAS = { 'Саша': 'Абрамов', 'Настя': 'Осечкина', 'Галя': 'Скокова' };
+const VISIT_KINDS = ['Встреча', 'Апробация', 'Мастер-класс', 'Другое'];
 function canonManager(name) { const v = String(name || '').trim(); return VISIT_MANAGER_ALIAS[v] || v; }
 let visitPlansMap = null, visitPlansList = null, visitIdeasCache = null;
 
@@ -4352,6 +4355,9 @@ async function openVisitModal(cfg) {
       <datalist id="vmClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}</option>`).join('')}</datalist>
     </div>
     <div class="field"><label>Дата визита</label><input type="date" id="vmDate" value="${esc(date)}" /></div>
+    <div class="field"><label>Что за визит</label>
+      <select id="vmKind">${VISIT_KINDS.map(k => `<option value="${esc(k)}"${(((plan && plan.kind) || (idea && idea.kind) || base.kind || 'Встреча') === k) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>
+    </div>
     <div class="field"><label>Цель</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || base.goal || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
     <div class="field"><label>Участники (визит виден каждому из них)</label><div class="vm-chks">${participantsHtml(partSel)}</div></div>
     <div class="field"><label>Врачи в визите — из любой клиники</label>
@@ -4421,6 +4427,7 @@ async function openVisitModal(cfg) {
       if (!d) { toast('Нужна дата визита'); btn.disabled = false; return; }
       const payload = {
         date: d,
+        kind: (document.getElementById('vmKind').value || 'Встреча'),
         goal: (document.getElementById('vmGoal').value || '').trim(),
         participants: [...document.querySelectorAll('.vmPart:checked')].map(x => canonManager(x.value)),
         people: chosen.slice()
@@ -4432,6 +4439,12 @@ async function openVisitModal(cfg) {
         await saveVisitIdeaRow(idea.clinic_id, Object.assign(rest, { status: 'planned', planned: d }), idea.noteId);
       }
       closeModal();
+      // v4.19.0: на телефоне после сохранения оставался card-open — экран схлопывался в белый
+      try {
+        state.selId = null; state.selKind = null;
+        if (document.body.classList.contains('card-open')) closeCardToList();
+        document.body.classList.remove('card-open');
+      } catch (_) {}
       toast('✓ Визит на ' + fmtDate(d));
       await render();
     } catch (e) { btn.disabled = false; toast('⚠️ Не сохранено: ' + (e && e.message ? e.message : e)); }
