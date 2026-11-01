@@ -822,6 +822,14 @@ input[type=search]::-webkit-search-cancel-button { display: none; }
 .mny-yr:hover td { color: var(--brand); }
 .mny-yr .mm-caret { font-size: 8px; }
 .money-tbl tbody tr.mny-m td { color: var(--muted); font-size: 11.5px; padding-top: 1px; padding-bottom: 1px; }
+/* v4.28.1: «План» — сетка и воздух важнее компактных стилей таблицы денег */
+.plan-tbl.money-tbl th, .plan-tbl.money-tbl td { padding: 9px 16px; border-bottom: 1px solid #e2e2e2; border-right: 1px solid #ececec; }
+.plan-tbl.money-tbl th:first-child, .plan-tbl.money-tbl td:first-child { width: auto; min-width: 300px; text-align: left; }
+.plan-tbl.money-tbl thead th { font-size: 12px; color: var(--muted); border-bottom: 1px solid #cfcfcf; }
+@media (max-width: 899px) {
+  .plan-tbl.money-tbl th, .plan-tbl.money-tbl td { padding: 7px 8px; font-size: 12px; }
+  .plan-tbl.money-tbl th:first-child, .plan-tbl.money-tbl td:first-child { min-width: 132px; width: auto; }
+}
 .mny-gran { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); margin: 2px 0 6px; }
 .mny-g { font: inherit; font-size: 11.5px; line-height: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; }
 .mny-g.on { color: var(--brand); border-color: var(--brand); }
@@ -1955,7 +1963,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.28.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.28.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
