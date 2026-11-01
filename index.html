@@ -287,7 +287,19 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .pl-ok { color: var(--brand, #0f8a8a); }
 .pl-mid { color: #b8860b; }
 .pl-bad { color: var(--danger, #c0392b); }
-.pl-over { color: #1a73e8; font-weight: 600; }   /* v4.32.0: 130%+ — перевыполнение, значит план был занижен */
+.pl-over { color: #1a73e8; font-weight: 600; }
+/* v4.36.0: «План» на телефоне — карточками, без таблицы и прокрутки вбок */
+.pl-cards { display: flex; flex-direction: column; gap: 6px; padding: 6px 8px 16px; }
+.pl-card { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; background: var(--card, #fff); }
+.pl-card-fail { background: #fdf1ef; border-color: #f3d9d4; }
+.pl-card-done { background: #eef8f1; border-color: #d6ecdd; }
+.pl-card-top { display: flex; align-items: baseline; gap: 8px; justify-content: space-between; }
+.pl-card-name { font-weight: 600; font-size: 14px; line-height: 1.25; }
+.pl-card-city { font-weight: 400; color: var(--muted); font-size: 12px; }
+.pl-card-pct { font-weight: 700; font-size: 14px; flex: 0 0 auto; }
+.pl-card-mid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; font-size: 12.5px; color: var(--muted); }
+.pl-card-mid b { color: var(--ink); font-weight: 600; }
+.pl-cards-total { padding: 10px 12px 20px; font-size: 13px; color: var(--muted); }   /* v4.32.0: 130%+ — перевыполнение, значит план был занижен */
 .pl-visit { color: var(--muted); }
 /* v4.35.0: слегка красным — план не выполнен, слегка зелёным — выполнен */
 .plan-tbl tbody tr.pl-fail td, .plan-tbl tbody tr.pl-fail td:first-child { background: #fdf1ef; }
@@ -1974,7 +1986,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.35.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.36.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4042,6 +4054,44 @@ async function renderPlan() {
     + `<td class="pl-opt">${fmtM(Math.round(totLeft))}</td>`
     + `<td class="pl-opt">${fmtM(Math.round(totLeft / 3))}</td>`
     + `<td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td></td><td></td></tr>`;
+
+  // v4.36.0: на телефоне таблица не влезает — рисуем карточками, без горизонтальной прокрутки
+  const isNarrow = window.innerWidth < 900;
+  if (isNarrow) {
+    const cardHtml = (r) => {
+      const tint = r.pct == null ? '' : (r.pct >= 100 ? ' pl-card-done' : ' pl-card-fail');
+      const pctTxt = r.pct == null ? '—' : r.pct + '%';
+      const pctCls = r.pct == null ? '' : (r.pct >= 130 ? 'pl-over' : (r.pct >= 100 ? 'pl-ok' : (r.pct >= 70 ? 'pl-mid' : 'pl-bad')));
+      const yoy = r.yoy == null ? '' : `<span class="${r.yoy >= 0 ? 'pl-ok' : 'pl-bad'}">${r.yoy > 0 ? '+' : ''}${r.yoy}%</span>`;
+      return `<div class="pl-card${tint}">
+        <div class="pl-card-top" data-plan-clinic="${r.id}">
+          <span class="pl-card-name">${esc(r.name)}${r.city ? ' <span class="pl-card-city">' + esc(r.city) + '</span>' : ''}</span>
+          <span class="pl-card-pct ${pctCls}">${pctTxt}</span>
+        </div>
+        <div class="pl-card-mid" data-sale-cell="${r.id}">
+          <span>план <b>${fmtM(r.plan)}</b></span>
+          <span>факт <b>${fmtM(r.fact)}</b></span>
+          ${yoy ? `<span>Г/Г ${yoy}</span>` : ''}
+        </div>
+      </div>`;
+    };
+    const totP = rows.reduce((a, r) => a + Number(r.plan || 0), 0);
+    const totF = rows.reduce((a, r) => a + Number(r.fact || 0), 0);
+    view.innerHTML = `<div class="plan-bar"><input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" /></div>`
+      + `<div class="pl-cards">${list.map(cardHtml).join('')}</div>`
+      + `<div class="pl-cards-total">Итого: план ${fmtM(totP)} · факт ${fmtM(totF)} · ${totP ? Math.round(totF / totP * 100) : 0}%</div>`;
+    const ps2 = document.getElementById('planSearch');
+    if (ps2) ps2.addEventListener('input', () => { PLAN_ST.q = ps2.value; renderPlan(); });
+    view.querySelectorAll('[data-plan-clinic]').forEach(el => el.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await openClinicCardModal(Number(el.dataset.planClinic));
+    }));
+    view.querySelectorAll('[data-sale-cell]').forEach(el => el.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await openSalesPopup(Number(el.dataset.saleCell));
+    }));
+    return;
+  }
 
   const deptOn = PLAN_DEPT.every(m => PLAN_ST.mgrs.includes(m)) && PLAN_ST.mgrs.length === PLAN_DEPT.length;
   const chips = `<div class="plan-chips">
