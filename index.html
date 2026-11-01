@@ -295,7 +295,13 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .month-bar { display: flex; align-items: center; gap: 10px; padding: 4px 16px 8px; }
 .month-stat { font-size: 13px; color: var(--muted); }
 .month-stat b { color: var(--ink); }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 0 10px 16px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px 2px; padding: 0 10px 16px; align-items: start; }
+.cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px 2px; grid-column: 1 / -1; margin-bottom: 6px; }
+.cal-dnum { height: 20px; font-size: 11px; color: var(--muted); text-align: center; line-height: 20px; }
+.cal-bar { height: 20px; line-height: 20px; border-radius: 6px; padding: 0 6px; font-size: 11px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.cal-bar.past { background: #e6f0fb; color: #2c6fb0; }
+.cal-bar.now { background: #e8f6ec; color: #1f7a45; }
+.cal-bar.idea { background: #fff6d9; color: #8a6d00; border: 1px dashed #e0cd7a; }
 .cal-dow { font-size: 11px; color: var(--muted); text-align: center; padding: 2px 0; }
 .cal-cell { min-height: 58px; border: 1px solid #e8e8e8; border-radius: 8px; padding: 3px; font-size: 11px; background: var(--card, #fff); }
 .cal-cell.empty { border: 0; background: transparent; }
@@ -2005,7 +2011,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.42.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.43.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4376,38 +4382,85 @@ async function renderVisits() {
       <button class="btn ghost mini" data-month="1">›</button>
     </div>`;
 
-  // ---- календарь месяца ----
+  // ---- календарь месяца: полосы на несколько дней, дни фиксированной высоты ----
   let calHtml = '';
   if (VISITS_UI.mode === 'cal') {
     const yy = Number(curMonth.slice(0, 4)), mm = Number(curMonth.slice(5, 7));
-    const first = new Date(yy, mm - 1, 1);
     const daysInMonth = new Date(yy, mm, 0).getDate();
-    const startDow = (first.getDay() + 6) % 7; // Пн = 0
-    const cells = [];
-    for (let i = 0; i < startDow; i++) cells.push('');
-    for (let d = 1; d <= daysInMonth; d++) cells.push(curMonth + '-' + String(d).padStart(2, '0'));
-    const byDay = {};
+    const monthStart = curMonth + '-01';
+    const monthEnd = curMonth + '-' + String(daysInMonth).padStart(2, '0');
+    const shortTitle = (t) => { const v = String(t || '').trim(); return v.length > 18 ? v.slice(0, 18) + '…' : v; };
+    const labelOf = (p) => {
+      const city = String(cityById[p.clinic_id] || '').trim();
+      const name = shortTitle(visitTitleOf(p) || p.goal || '');
+      const isMoscow = /москва/i.test(city);
+      if (city && !isMoscow) return city + ' · ' + name;
+      return (byId[p.clinic_id] || city || '') + ' · ' + name;
+    };
+    const evs = [];
     visitRows.forEach(p => {
-      const a = String(p.date).slice(0, 10), b = visitEnd(p);
-      for (let d = new Date(a + 'T00:00:00'); ; d.setDate(d.getDate() + 1)) {
-        const iso = d.toISOString().slice(0, 10);
-        if (iso > b) break;
-        if (visitMonthKey(iso) === curMonth) (byDay[iso] = byDay[iso] || []).push(p);
-      }
+      const a0 = String(p.date).slice(0, 10), b0 = visitEnd(p);
+      const a = a0 < monthStart ? monthStart : a0;
+      const b = b0 > monthEnd ? monthEnd : b0;
+      if (a > b) return;
+      evs.push({ a, b, noteId: p.noteId, title: labelOf(p), cls: (b0 < today) ? 'past' : 'now' });
     });
+    (ideas || []).forEach(i => {
+      if (!i.from) return;
+      const a0 = String(i.from).slice(0, 10), b0 = String(i.to || i.from).slice(0, 10);
+      const a = a0 < monthStart ? monthStart : a0;
+      const b = b0 > monthEnd ? monthEnd : b0;
+      if (a > b) return;
+      const city = String(cityById[i.clinic_id] || '').trim();
+      const nm = shortTitle(i.goal || 'идея');
+      evs.push({ a, b, noteId: i.noteId, idea: true, cls: 'idea', title: (city && !/москва/i.test(city) ? city + ' · ' : '') + nm });
+    });
+
+    // разбиваем месяц на недели по понедельникам
+    const weeks = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const iso = curMonth + '-' + String(d).padStart(2, '0');
+      const dow = (new Date(yy, mm - 1, d).getDay() + 6) % 7; // Пн=0
+      if (!weeks.length || dow === 0) weeks.push({ cells: [] });
+      weeks[weeks.length - 1].cells.push({ iso, day: d, col: dow + 1 });
+    }
+
+    const weeksHtml = weeks.map(wk => {
+      const wStart = wk.cells[0].iso, wEnd = wk.cells[wk.cells.length - 1].iso;
+      const bars = [];
+      evs.forEach(ev => {
+        const a = ev.a > wStart ? ev.a : wStart;
+        const b = ev.b < wEnd ? ev.b : wEnd;
+        if (a > b) return;
+        const dayA = Number(a.slice(8)), dayB = Number(b.slice(8));
+        const colA = (new Date(yy, mm - 1, dayA).getDay() + 6) % 7 + 1;
+        const colB = (new Date(yy, mm - 1, dayB).getDay() + 6) % 7 + 1;
+        bars.push({ col: colA, span: Math.max(1, colB - colA + 1), title: ev.title, cls: ev.cls, noteId: ev.noteId, idea: ev.idea });
+      });
+      // раскладка полос по строкам, чтобы не перекрывались
+      const rowsUsed = [];
+      bars.sort((x, y) => x.col - y.col || y.span - x.span);
+      bars.forEach(bar => {
+        let r = 0;
+        while (rowsUsed[r] && rowsUsed[r].some(x => !(bar.col + bar.span - 1 < x.col || x.col + x.span - 1 < bar.col))) r++;
+        (rowsUsed[r] = rowsUsed[r] || []).push(bar);
+        bar.row = r + 2;
+      });
+      return `<div class="cal-week">
+        ${wk.cells.map(c => `<div class="cal-dnum" style="grid-column:${c.col};grid-row:1">${c.day}</div>`).join('')}
+        ${bars.map(b => `<div class="cal-bar ${b.cls}" style="grid-column:${b.col}/${b.col + b.span};grid-row:${b.row}" ${b.idea ? `data-idea="${b.noteId}"` : `data-visit="${b.noteId}"`} title="${esc(b.title)}">${esc(b.title)}</div>`).join('')}
+      </div>`;
+    }).join('');
+
     calHtml = `<div class="md-sec">Календарь · ${esc(monthLabel(curMonth))}</div>
+      <div class="month-bar">
+        <button class="btn ghost mini" data-month="-1">‹</button>
+        <span class="month-stat">визитов <b>${inMonth.length}</b> · городов <b>${cities.size}</b> · дней в поездках <b>${days}</b>${cities.size ? ' · ' + esc([...cities].slice(0, 4).join(', ')) : ''}</span>
+        <button class="btn ghost mini" data-month="1">›</button>
+      </div>
       <div class="cal-grid">
         ${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => `<div class="cal-dow">${d}</div>`).join('')}
-        ${cells.map(iso => {
-          if (!iso) return '<div class="cal-cell empty"></div>';
-          const list = byDay[iso] || [];
-          const dayNum = Number(iso.slice(8));
-          return `<div class="cal-cell${list.length ? ' has' : ''}${iso === today ? ' today' : ''}">
-            <div class="cal-day">${dayNum}</div>
-            ${list.slice(0, 2).map(p => `<div class="cal-ev" data-visit="${p.noteId}" title="${esc(byId[p.clinic_id] || '')}">${esc(visitTitleOf(p))}</div>`).join('')}
-            ${list.length > 2 ? `<div class="cal-more">+${list.length - 2}</div>` : ''}
-          </div>`;
-        }).join('')}
+        ${weeksHtml}
       </div>`;
   }
 
@@ -4455,9 +4508,8 @@ async function renderVisits() {
     <div class="plan-filters" style="display:flex">
       ${chip('', 'Все')}${chip('__dept', 'Мой отдел')}${chip('Мазаева', 'Мазаева')}${chip('Евсеев', 'Евсеев')}
     </div>
-    ${monthHtml}
     ${calHtml}
-    ${ideasHtml}
+    ${VISITS_UI.mode === 'cal' ? '' : ideasHtml}
     ${listHtml}`;
 
   const nb = document.getElementById('newIdeaBtn');
@@ -4905,7 +4957,7 @@ const VISIT_MANAGERS = [
   { id: 'Евсеев', label: 'Евсеев' }
 ];
 const VISIT_MANAGER_ALIAS = { 'Саша': 'Абрамов', 'Настя': 'Осечкина', 'Галя': 'Скокова' };
-const VISIT_KINDS = ['Встреча', 'Апробация', 'Мастер-класс', 'Выставка', 'Конференция', 'Другое'];
+const VISIT_KINDS = ['Встреча', 'Апробация', 'Мастер-класс', 'Конференция', 'Другое'];
 function canonManager(name) { const v = String(name || '').trim(); return VISIT_MANAGER_ALIAS[v] || v; }
 let visitPlansMap = null, visitPlansList = null, visitIdeasCache = null;
 
