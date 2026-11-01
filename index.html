@@ -1866,7 +1866,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.12.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.12.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3581,7 +3581,7 @@ async function renderVisits() {
     rows = (await listClinics()).filter(c => !c.markedDel && c.nextContact && (c.kind || 'hospital') === 'hospital' && c.actionType === 'visit');
     const sV = state.search;
     if (sV) rows = rows.filter(c => (c.name || '').toLowerCase().includes(sV) || (c.city || '').toLowerCase().includes(sV));
-    ideas = (await loadVisitIdeas()).filter(i => !i.remind || i.remind <= todayISO());
+    ideas = await loadVisitIdeas();
   } catch (e) {
     view.innerHTML = '<div class="empty-state">\u26a0\ufe0f Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
     return;
@@ -3596,7 +3596,7 @@ async function renderVisits() {
       return `<div class="card list-row">
         <div class="md-idea-row"><div class="grow">
           <div class="list-row-name">${esc(nameById[i.clinic_id] || ('клиника #' + i.clinic_id))}</div>
-          <div class="row-why">${esc(i.goal || 'визит')} · ${esc(win)}</div>
+          <div class="row-why">${esc(i.goal || 'визит')} · ${esc(win)}${i.remind ? ' · напомню ' + esc(fmtDate(i.remind)) : ''}</div>
         </div><button class="btn primary mini" data-plan-idea="${i.noteId}">Выбрать дату</button></div>
       </div>`;
     }).join('')}</div>` : '';
