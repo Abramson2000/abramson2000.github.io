@@ -1988,7 +1988,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.38.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.38.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4122,9 +4122,15 @@ async function renderPlan() {
     + `<td class="pl-opt">${fmtM(Math.round(totLeft / 3))}</td>`
     + `<td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td></td><td></td></tr>`;
 
-  // v4.36.0: на телефоне таблица не влезает — рисуем карточками, без горизонтальной прокрутки
+  // v4.38.1: на телефоне — карточками; все нужные значения считаем ЗДЕСЬ, до объявлений ниже
   const isNarrow = window.innerWidth < 900;
   if (isNarrow) {
+    const filtersOpenM = localStorage.getItem('planFilters') === '1';
+    const chipsM = isMgrPlan ? '' : `<div class="plan-chips">`
+      + `<button type="button" class="pl-chip${PLAN_ST.mgrs.length === 0 ? ' on' : ''}" data-pm="__all">Все</button>`
+      + `<button type="button" class="pl-chip${PLAN_DEPT.every(m => PLAN_ST.mgrs.includes(m)) && PLAN_ST.mgrs.length === PLAN_DEPT.length ? ' on' : ''}" data-pm="__dept">Мой отдел</button>`
+      + allMgrs.map(m => `<button type="button" class="pl-chip${PLAN_ST.mgrs.includes(m) ? ' on' : ''}" data-pm="${esc(m)}">${esc(m)}</button>`).join('')
+      + `</div>`;
     const cardHtml = (r) => {
       const tint = r.pct == null ? '' : (r.pct >= 100 ? ' pl-card-done' : ' pl-card-fail');
       const pctTxt = r.pct == null ? '—' : r.pct + '%';
@@ -4148,10 +4154,10 @@ async function renderPlan() {
         <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
         <button type="button" class="btn ghost mini" id="planFiltersBtn">Фильтры${PLAN_ST.mgrs.length || PLAN_ST.onlyPlan || PLAN_ST.onlyFail ? ' ·' : ''}</button>
       </div>
-      <div class="plan-filters${FILTERS_OPEN ? '' : ' hidden'}" id="planFilters">
+      <div class="plan-filters${filtersOpenM ? '' : ' hidden'}" id="planFilters">
         <label class="pl-chk"><input type="checkbox" id="planOnlyPlan"${PLAN_ST.onlyPlan ? ' checked' : ''}/> только с планом</label>
         <label class="pl-chk"><input type="checkbox" id="planOnlyFail"${PLAN_ST.onlyFail ? ' checked' : ''}/> только с провалом</label>
-        ${isMgrPlan ? '' : chips}
+        ${chipsM}
       </div>`
       + `<div class="pl-cards">${list.map(cardHtml).join('')}</div>`
       + `<div class="pl-cards-total">Итого: план ${fmtM(totP)} · факт ${fmtM(totF)} · ${totP ? Math.round(totF / totP * 100) : 0}%</div>`;
@@ -4175,7 +4181,6 @@ async function renderPlan() {
       else { const k = PLAN_ST.mgrs.indexOf(v); if (k >= 0) PLAN_ST.mgrs.splice(k, 1); else PLAN_ST.mgrs.push(v); }
       renderPlan();
     }));
-    // v4.37.1: тап по всей карточке открывает продажи (раньше обработчик был только на двух полосках)
     view.querySelectorAll('.pl-card').forEach(el => el.addEventListener('click', async (e) => {
       e.stopPropagation();
       const cell = el.querySelector('[data-sale-cell]') || el.querySelector('[data-plan-clinic]');
