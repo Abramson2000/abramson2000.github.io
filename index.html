@@ -475,7 +475,10 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 /* v4.45.0: окно визита на телефоне — без езды вправо-влево */
 @media (max-width: 899px) {
-  #modal .modal-card { max-width: 100vw; box-sizing: border-box; }
+  #modal .modal-card { max-width: 100vw; box-sizing: border-box; overflow-x: hidden; }
+  #modalBody, #modalBody * { max-width: 100%; box-sizing: border-box; }
+  #modal .field { min-width: 0; }
+  #modal .btn-row { flex-wrap: wrap; }
   #modal .row2 { grid-template-columns: 1fr; gap: 8px; }
   #modal .field input, #modal .field select, #modal .field textarea { width: 100%; min-width: 0; box-sizing: border-box; }
   #modalBody { overflow-x: hidden; }
@@ -2020,7 +2023,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.46.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.47.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4417,9 +4420,11 @@ async function renderVisits() {
     const monthStart = curMonth + '-01';
     const monthEnd = curMonth + '-' + String(daysInMonth).padStart(2, '0');
     const shortTitle = (t) => { const v = String(t || '').trim(); return v.length > 18 ? v.slice(0, 18) + '…' : v; };
+    const stripKind = (v) => String(v || '').replace(/^(встреча|апробация|мастер[- ]?класс|конференция)\s*[·:\-–]?\s*/i, '').trim();
     const labelOf = (p) => {
       const city = String(p.city || cityById[p.clinic_id] || '').trim();
-      const name = shortTitle(visitTitleOf(p) || p.goal || '');
+      const raw = visitTitleOf(p) || p.goal || '';
+      const name = shortTitle(stripKind(raw) || String(p.goal || '').trim() || raw);
       const isMoscow = /москва/i.test(city);
       if (city && !isMoscow) return city + ' · ' + name;
       return ((byId[p.clinic_id] || '') + (city ? (byId[p.clinic_id] ? ' · ' + city : city) : '') || 'Визит') + ' · ' + name;
@@ -4532,7 +4537,7 @@ async function renderVisits() {
     ${calHtml}
     ${VISITS_UI.mode === 'cal' ? '' : ideasHtml}
     ${listHtml}
-    ${statsHtml}`;
+    ${VISITS_UI.mode === 'cal' ? statsHtml : ''}`;
 
   const nb = document.getElementById('newIdeaBtn');
   if (nb) nb.addEventListener('click', () => openIdeaModal());
