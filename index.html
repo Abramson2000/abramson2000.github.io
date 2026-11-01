@@ -279,6 +279,7 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .plan-tbl thead th:first-child { z-index: 4; }
 .plan-tbl thead th.on { color: var(--ink); }
 .pl-row:hover { background: #f7fbfb; cursor: pointer; }
+.pl-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pl-name b { font-weight: 600; }
 .pl-city { color: var(--muted); margin-left: 6px; font-size: 12px; }
 .pl-mgr td { background: #eef7f7; font-size: 13px; color: #0f8a8a; cursor: pointer; }
@@ -824,7 +825,7 @@ input[type=search]::-webkit-search-cancel-button { display: none; }
 .money-tbl tbody tr.mny-m td { color: var(--muted); font-size: 11.5px; padding-top: 1px; padding-bottom: 1px; }
 /* v4.28.1: «План» — сетка и воздух важнее компактных стилей таблицы денег */
 .plan-tbl.money-tbl th, .plan-tbl.money-tbl td { padding: 9px 16px; border-bottom: 1px solid #e2e2e2; border-right: 1px solid #ececec; }
-.plan-tbl.money-tbl th:first-child, .plan-tbl.money-tbl td:first-child { width: auto; min-width: 300px; text-align: left; }
+.plan-tbl.money-tbl th:first-child, .plan-tbl.money-tbl td:first-child { width: auto; min-width: 300px; max-width: 320px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .plan-tbl.money-tbl thead th { font-size: 12px; color: var(--muted); border-bottom: 1px solid #cfcfcf; }
 @media (max-width: 899px) {
   .plan-tbl.money-tbl th, .plan-tbl.money-tbl td { padding: 7px 8px; font-size: 12px; }
@@ -1963,7 +1964,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.28.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.31.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3643,6 +3644,10 @@ function renderAnalysis() {
     ${isRefEdit() ? '' : `<div class="sheet-item" data-goto="money">
       <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
       <span>Деньги</span>
+    </div>
+    <div class="sheet-item" data-goto="plan">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+      <span>План</span>
     </div>`}
     <div class="sheet-item" data-goto="calls">
       <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -3834,13 +3839,83 @@ async function openCtrlExcluded() {
 const PLAN_ST = { mgrs: [], q: '', onlyPlan: false, onlyFail: false, sort: 'plan', dir: -1 };
 const PLAN_DEPT = ['Абрамов', 'Осечкина', 'Скокова'];
 
+// v4.30.0: карточка клиники поверх — из «Плана» открываем её, не уходя во вкладку «Клиники»
+async function openClinicCardModal(id) {
+  const c = await getClinic(id);
+  if (!c) { toast('Клиника не найдена'); return; }
+  const canEditC = canEditMain() || (isRefEdit() && isRefKind(c.kind));
+  let pair = { ids: [Number(id)], linked: null, others: [], moneyCard: c };
+  try { const pw = await linkedPairInfo(c); if (pw) pair = pw; } catch (_) {}
+  const moneyCard = pair.moneyCard || c;
+  let contacts = [], monthly = [];
+  try {
+    const [ct, mn] = await Promise.all([
+      peopleByClinic(id, (pair.ids || [Number(id)]).filter(x => Number(x) !== Number(id))),
+      listMonthly(moneyCard.id)
+    ]);
+    contacts = ct || []; monthly = mn || [];
+  } catch (_) {}
+  MNY_ROWS[moneyCard.id] = (monthly || []).slice();
+  const related = (pair.others || []).map(r => ({ id: r.id, name: r.name, kind: r.kind }));
+  openModal(c.name || 'Клиника',
+    clinicHeadHtml(c, canEditC) + clinicDetailBody(c, pair.linked, contacts, undefined, related, monthly, pair));
+  hydrateCard(Number(c.id) || 0);
+}
+
+// v4.31.0: клик по цифре в «Плане» — всплывающее окно с продажами клиники по месяцам
+async function openSalesPopup(id) {
+  const c = await getClinic(id);
+  if (!c) { toast('Клиника не найдена'); return; }
+  let rows = [];
+  try { rows = await listMonthly(id); } catch (_) { rows = []; }
+  const pl = planCache ? planOf(planCache, Number(id), 2026) : (await loadPlans(), planOf(planCache, Number(id), 2026));
+  const CUR = 2026, PREV = 2025, LAST_M = 9;
+  const sumM = (y, m) => {
+    let s = 0, has = false;
+    (rows || []).forEach(r => { if (Number(r.year) === y && Number(r.month) === m) { s += Number(r.sale || 0); has = true; } });
+    return has ? s : null;
+  };
+  const sumR = (y, a, b) => {
+    let s = 0, has = false;
+    (rows || []).forEach(r => { const m = Number(r.month); if (Number(r.year) === y && m >= a && m <= b) { s += Number(r.sale || 0); has = true; } });
+    return has ? s : null;
+  };
+  const fact = sumR(CUR, 1, LAST_M) || 0;
+  const prev = sumR(PREV, 1, LAST_M) || 0;
+  const pct = (a, b) => (b ? Math.round((a - b) / b * 100) : null);
+
+  const MN = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+  let body = '';
+  for (let m = 1; m <= LAST_M; m++) {
+    const a = sumM(CUR, m), b = sumM(PREV, m);
+    const d = (a != null && b != null) ? pct(a, b) : null;
+    body += `<tr><td>${MN[m - 1]}</td><td>${a != null ? fmtMoney(a) : '—'}</td><td>${b != null ? fmtMoney(b) : '—'}</td>`
+      + `<td>${d == null ? '—' : `<span class="${d >= 0 ? 'pl-ok' : 'pl-bad'}">${d > 0 ? '+' : ''}${d}%</span>`}</td></tr>`;
+  }
+  const q = [1, 2, 3, 4].map(n => sumR(CUR, (n - 1) * 3 + 1, n * 3));
+  const qRow = `<tr class="pl-total"><td>Кварталы</td><td colspan="3">I ${q[0] ? fmtMoney(q[0]) : '—'} · II ${q[1] ? fmtMoney(q[1]) : '—'} · III ${q[2] ? fmtMoney(q[2]) : '—'} · IV ${q[3] ? fmtMoney(q[3]) : '—'}</td></tr>`;
+  const head = `<tr><td>Итого янв–сен</td><td>${fmtMoney(fact)}</td><td>${fmtMoney(prev)}</td>`
+    + `<td>${prev ? `<span class="${fact >= prev ? 'pl-ok' : 'pl-bad'}">${pct(fact, prev) > 0 ? '+' : ''}${pct(fact, prev)}%</span>` : '—'}</td></tr>`;
+
+  openModal('Продажи · ' + (c.name || ''), `
+    <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c.name || '')}${c.city ? ' · ' + esc(c.city) : ''}</div></div>
+    ${pl ? `<div class="detail-block"><div class="k">План 2026</div><div class="v">${fmtMoney(pl)} ₽ · факт ${fmtMoney(fact)} ₽ · ${Math.round(fact / pl * 100)}%</div></div>` : ''}
+    <table class="money-tbl plan-tbl" style="width:100%">
+      <thead><tr><th>Месяц</th><th>2026</th><th>2025</th><th>Δ</th></tr></thead>
+      <tbody>${body}${head}${qRow}</tbody>
+    </table>
+    <div class="row-why" style="margin-top:8px">Продажи Boston по месяцам. Показаны январь–сентябрь: октябрь в базе пока не залит.</div>
+  `);
+}
+
 async function renderPlan() {
   const view = document.getElementById('view');
   let all = [], mon = {}, plans = {}, vplans = [];
   const isMgrPlan = CURRENT_ROLE === 'manager';
   try {
-    // v4.28.0: менеджер видит в «Плане» ТОЛЬКО свои клиники (listClinics фильтрует по ответственному)
-    all = isMgrPlan ? await listClinics() : await listAllClinics();
+    // v4.29.0: менеджер видит весь наш отдел (Абрамов, Осечкина, Скокова) — есть к чему стремиться,
+    // но чужих менеджеров (Веприков, Янус и пр.) не видит
+    all = (await listAllClinics()).filter(c => !isMgrPlan || PLAN_DEPT.includes(String(c.manager || '').trim()));
     mon = await loadMonthlyAll();
     plans = await loadPlans();
     vplans = await loadVisitPlans();
@@ -3916,16 +3991,16 @@ async function renderPlan() {
 
   const rowHtml = (r) => `<tr class="pl-row" data-plan-clinic="${r.id}">
       <td class="pl-name"><b>${esc(r.name)}</b><span class="pl-city">${esc(r.city)}</span></td>
-      <td>${fmtM(r.plan)}</td>
-      <td>${fmtM(r.fact)}</td>
-      <td>${cellPct(r.pct)}</td>
+      <td data-sale-cell="${r.id}">${fmtM(r.plan)}</td>
+      <td data-sale-cell="${r.id}">${fmtM(r.fact)}</td>
+      <td data-sale-cell="${r.id}">${cellPct(r.pct)}</td>
       <td class="pl-opt">${fmtM(r.left)}</td>
       <td class="pl-opt">${r.perMonth ? fmtM(Math.round(r.perMonth)) : '—'}</td>
-      <td class="pl-q">${r.q[0] ? fmtM(r.q[0]) : '—'}</td>
-      <td class="pl-q">${r.q[1] ? fmtM(r.q[1]) : '—'}</td>
-      <td class="pl-q">${r.q[2] ? fmtM(r.q[2]) : '—'}</td>
-      <td class="pl-q">${r.q[3] ? fmtM(r.q[3]) : '—'}</td>
-      <td>${r.yoy == null ? '—' : `<span class="${r.yoy >= 0 ? 'pl-ok' : 'pl-bad'}">${r.yoy > 0 ? '+' : ''}${r.yoy}%</span>`}</td>
+      <td class="pl-q" data-sale-cell="${r.id}">${r.q[0] ? fmtM(r.q[0]) : '—'}</td>
+      <td class="pl-q" data-sale-cell="${r.id}">${r.q[1] ? fmtM(r.q[1]) : '—'}</td>
+      <td class="pl-q" data-sale-cell="${r.id}">${r.q[2] ? fmtM(r.q[2]) : '—'}</td>
+      <td class="pl-q" data-sale-cell="${r.id}">${r.q[3] ? fmtM(r.q[3]) : '—'}</td>
+      <td data-sale-cell="${r.id}">${r.yoy == null ? '—' : `<span class="${r.yoy >= 0 ? 'pl-ok' : 'pl-bad'}">${r.yoy > 0 ? '+' : ''}${r.yoy}%</span>`}</td>
       <td class="pl-visit">${esc(r.visit || '')}</td>
     </tr>`;
 
@@ -3998,17 +4073,13 @@ async function renderPlan() {
     if (i >= 0) PLAN_ST.mgrs.splice(i, 1); else PLAN_ST.mgrs.push(m);
     renderPlan();
   }));
-  view.querySelectorAll('[data-plan-clinic]').forEach(tr => tr.addEventListener('click', async () => {
-    const id = Number(tr.dataset.planClinic);
-    // v4.23.2: карточка может быть справочной — тогда открываем соответствующий раздел, иначе строки не найдётся
-    let kind = 'hospital';
-    try { const c = await getClinic(id); if (c && c.kind) kind = c.kind; } catch (_) {}
-    if (isRefKind(kind)) state.view = (kind === 'ref_priv') ? 'refpriv' : 'refgos';
-    else state.view = (kind === 'distributor') ? 'distributors' : 'clinics';
-    state.selId = id; state.selKind = 'clinic';
-    await render();
-    const row = document.querySelector('.list-row[data-id="' + id + '"]');
-    if (row) { row.classList.add('selected'); try { await showHoverCard(row, true); } catch (_) {} }
+  view.querySelectorAll('[data-sale-cell]').forEach(td => td.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await openSalesPopup(Number(td.dataset.saleCell));
+  }));
+  view.querySelectorAll('[data-plan-clinic]').forEach(tr => tr.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-sale-cell]')) return;   // по цифрам — продажи, по названию — карточка
+    await openClinicCardModal(Number(tr.dataset.planClinic));
   }));
 }
 
