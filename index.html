@@ -1888,7 +1888,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.15.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.16.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -6261,9 +6261,6 @@ function privBlock(c, canEditNow) {
   // Поле «Текущая ситуация» убрано — теперь одна лента записей ниже (п.3 дополнения),
   // сам текст ситуации сохранён: он перенесён в записи, в базе не тронут.
   // v3.28.0: свой календарь (выбор дня подтверждает сразу), очистка даты — отдельной кнопкой ✕
-  const vp = visitPlanOf(c.id) || {};
-  const curType = c.actionType || '';
-  const opt = (v, t) => `<option value="${v}"${curType === v ? ' selected' : ''}>${t}</option>`;
   return `<div class="detail-block priv-block" data-cid="${c.id}" data-mgr="${esc(c.manager || '')}">
       <div class="priv-row compact"><span class="lbl">Связаться</span>
         <span class="date-wrap">
@@ -6272,20 +6269,6 @@ function privBlock(c, canEditNow) {
           ${canEditNow ? `<button type="button" class="date-cal" id="cpCal" data-cid="${c.id}" title="Календарь">📅</button>
           <button type="button" class="date-clear${d ? '' : ' hidden'}" id="cpClear" data-cid="${c.id}" title="Очистить дату">✕</button>` : ''}
         </span>
-      </div>
-      <div class="priv-row compact"><span class="lbl">Тип</span>
-        <span class="type-seg" id="cpTypeSeg">
-          <button type="button" class="seg-btn${curType === '' ? ' active' : ''}" data-t="">Контакт</button>
-          <button type="button" class="seg-btn${curType === 'call' ? ' active' : ''}" data-t="call">Звонок</button>
-          <button type="button" class="seg-btn${curType === 'visit' ? ' active' : ''}" data-t="visit">Визит</button>
-          <button type="button" class="seg-btn${curType === 'other' ? ' active' : ''}" data-t="other">Другое</button>
-        </span>
-        <input type="hidden" id="cpType" value="${esc(curType)}" />
-      </div>
-      <div id="cpVisitBox" class="${curType === 'visit' ? '' : 'hidden'}">
-        <div class="priv-row compact"><span class="lbl">Цель</span><input type="text" id="cpGoal" class="date-inp" value="${esc(vp.goal || '')}" placeholder="апробация Литокласт" ${canEditNow ? '' : 'disabled'} /></div>
-        <div class="priv-row compact"><span class="lbl">Кто едет</span><input type="text" id="cpWho" class="date-inp" value="${esc(vp.who || '')}" placeholder="Абрамов" ${canEditNow ? '' : 'disabled'} /></div>
-        <div class="priv-row compact"><span class="lbl">Адрес</span><input type="text" id="cpAddr" class="date-inp" value="${esc(vp.addr || '')}" placeholder="корпус, кабинет" ${canEditNow ? '' : 'disabled'} /></div>
       </div>
     </div>`;
 }
@@ -6508,20 +6491,14 @@ document.addEventListener('click', async (ev) => {
     // если элементов нет, значения в базе НЕ трогаем (текст ситуации не теряется)
     const fields = { next_contact: (nd && nd.value) || null };
     if (nt) fields.note = nt.value || null;
-    const tp = document.getElementById('cpType');
-    if (tp) fields.action_type = tp.value || null;
+    // v4.16.0: тип действия в карточке убран — дата из карточки считается звонком.
+    // Визит ставится только в разделе «Визиты» (там цель, участники и врачи) и не перебивается карточкой.
+    if (!fields.action_type) {
+      const vpNow = visitPlanOf(cid);
+      if (!vpNow || !vpNow.date) fields.action_type = 'call';
+    }
     try {
       await saveClinicPrivate(cid, save.dataset.mgr || null, fields);
-      // v4.12.0: цель и детали визита сохраняем только когда тип — «Визит»
-      if (fields.action_type === 'visit') {
-        const gEl = document.getElementById('cpGoal'), wEl = document.getElementById('cpWho'), aEl = document.getElementById('cpAddr');
-        const plan = {
-          goal: ((gEl && gEl.value) || '').trim(),
-          who: ((wEl && wEl.value) || '').trim(),
-          addr: ((aEl && aEl.value) || '').trim()
-        };
-        if (plan.goal || plan.who || plan.addr) await saveVisitPlanRow(cid, plan);
-      }
       toast('✓ Работа и продажи сохранены');
     } catch (e) {
       toast('⚠️ Не сохранилось: ' + (e && e.message ? e.message : e) + ' — текст оставлен в поле');
