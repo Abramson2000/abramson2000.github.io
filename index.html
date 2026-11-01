@@ -252,6 +252,30 @@ body {
 .vm-actions { display: flex; gap: 8px; padding-top: 8px; flex-wrap: wrap; }
 .vm-chip { display: inline-flex; align-items: center; gap: 6px; background: #f0f0f2; border-radius: 14px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
 .vm-chip:hover { background: #e4e4e8; }
+/* v4.21.0: убрать из контроля — маленький крестик в углу плитки */
+.ctrl-x { position: absolute; top: 6px; right: 8px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 13px; line-height: 1; cursor: pointer; padding: 0; }
+.ctrl-x:hover { background: #f0f0f2; color: var(--ink); }
+/* v4.23.0: вкладка «План» */
+.plan-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; }
+.plan-bar input[type=text] { flex: 1 1 180px; min-width: 140px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; }
+.plan-bar select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; background: #fff; }
+.pl-chk { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.plan-wrap { overflow: auto; padding: 0 16px 24px; }
+.plan-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.plan-tbl th, .plan-tbl td { padding: 7px 8px; border-bottom: 1px solid #eee; white-space: nowrap; text-align: right; }
+.plan-tbl th:first-child, .plan-tbl td:first-child { text-align: left; white-space: normal; min-width: 200px; }
+.plan-tbl thead th { position: sticky; top: 0; background: var(--card, #fff); z-index: 1; font-weight: 600; color: var(--muted); cursor: pointer; }
+.plan-tbl thead th.on { color: var(--ink); }
+.pl-row:hover { background: #f7fbfb; cursor: pointer; }
+.pl-name b { font-weight: 600; }
+.pl-city { color: var(--muted); margin-left: 6px; font-size: 12px; }
+.pl-mgr td { background: #eef7f7; font-size: 13px; color: #0f8a8a; cursor: pointer; }
+.pl-total td { background: #f4f4f6; font-weight: 700; }
+.pl-ok { color: var(--brand, #0f8a8a); }
+.pl-mid { color: #b8860b; }
+.pl-bad { color: var(--danger, #c0392b); }
+.pl-visit { color: var(--muted); }
+.md-gap .list-row { position: relative; }
 .vm-doc-chips { margin-top: 8px; }
 .cns-add { margin-left: auto; flex: none; background: var(--brand-dark); color: #fff; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 .cns-add:hover { background: var(--brand-dark); }
@@ -1109,6 +1133,10 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
         <span>Деньги <em class="cnt" data-cnt="money"></em></span>
       </button>
+      <button class="tab money-tab" data-view="plan">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+        <span>План</span>
+      </button>
       <button class="tab" data-view="calls">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         <span>Звонки</span>
@@ -1237,6 +1265,9 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
       </button>
     </nav>
     <nav class="tabbar hidden" id="tabbar-analysis">
+      <button class="tab money-tab" data-view="plan" aria-label="План" title="План">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+      </button>
       <button class="tab money-tab" data-view="money" aria-label="Деньги" title="Деньги">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
       </button>
@@ -1576,7 +1607,19 @@ async function saveClinicPrivate(clinicId, manager, fields) {
 
 async function listClinics() {
   const rows = await fetchAllRows('clinics', 'name', 'id');
-  return mergeClinicPrivate(rows.map(fromClinic));
+  let list = await mergeClinicPrivate(rows.map(fromClinic));
+  // v4.22.0: менеджер видит ТОЛЬКО свои клиники (Осечкина, Скокова). Админ и наблюдатели — все.
+  if (CURRENT_ROLE === 'manager' && !window.__ALLOW_ALL_CLINICS) {
+    const me = String(window.CURRENT_MANAGER || myManagerName() || '').trim();
+    if (me) list = list.filter(c => String(c.manager || '').trim() === me);
+  }
+  return list;
+}
+// все клиники без ограничения по менеджеру — для листов команды, справочников и выбора ЛПУ
+async function listAllClinics() {
+  const keep = window.__ALLOW_ALL_CLINICS;
+  window.__ALLOW_ALL_CLINICS = true;
+  try { return await listClinics(); } finally { window.__ALLOW_ALL_CLINICS = keep; }
 }
 async function getClinic(id) {
   const { data, error } = await sb.from('clinics').select('*').eq('id', id).maybeSingle();
@@ -1888,7 +1931,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.19.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.23.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2509,7 +2552,7 @@ async function bootstrap(preferredUser) {
   render();
   refreshCounts();
   // v3.27.3: в фоне прогреваем кэш людей и связок — тогда карточка клиники открывается мгновенно
-  setTimeout(() => { listPeople().catch(() => {}); listClinicLinks().catch(() => {}); getDict('manager').catch(() => {}); allNotesByClinic().catch(() => {}); }, 1200);
+  setTimeout(() => { listPeople().catch(() => {}); listClinicLinks().catch(() => {}); getDict('manager').catch(() => {}); allNotesByClinic().catch(() => {}); loadPlans().catch(() => {}); }, 1200);
 }
 
 // ⚠️ ВРЕМЕННО (по просьбе Саши 24.09.2026): вход без пароля.
@@ -2820,7 +2863,7 @@ Object.keys(FILTER_CFG).forEach(v => {
   VIEW_FILTER_KEYS[v] = keys;
 });
 // v3.28.0: виды, где кнопка «＋» не показывается (кнопку синхронизируем и в render())
-const FAB_HIDDEN_VIEWS = ['analysis', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
+const FAB_HIDDEN_VIEWS = ['analysis', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
 const EMPTY_FILTERS = { region: '', city: '', manager: '', type: '', tag: '', tags: [], prods: [], srcs: [] };
 const viewFilters = {};
 const viewSearch = {};
@@ -3407,7 +3450,7 @@ function decorateGoneRows() {
 })();
 async function render() {
   if (isRefEdit() && REFEDIT_DENIED.includes(state.view)) { state.view = 'clinics'; }
-  const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'money', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
+  const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'money', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
   document.body.classList.toggle('detail-mode', PANEL_VIEWS.includes(state.view));
   // v3.15.0: до выбора — короткая подсказка в правой панели
   if (document.body.classList.contains('detail-mode') && !state.selId) showPanelHint();
@@ -3455,6 +3498,7 @@ async function render() {
     else if (state.view === 'reffirm') await renderRefFirms();
     else if (state.view === 'refcontact') await renderContacts();
     else if (state.view === 'myday') await renderMyDay();
+    else if (state.view === 'plan') await renderPlan();
     else if (state.view === 'air') await renderProductList('АиР', 'АиР');
     else if (state.view === 'endo') await renderProductList('Эндо', 'Эндо');
     else if (state.view === 'visits') renderVisits();
@@ -3692,24 +3736,205 @@ async function loadMonthlyAll() {
 let ctrlExcCache = null;
 async function loadControlExclusions() {
   if (ctrlExcCache) return ctrlExcCache;
-  let ids = [];
+  let rows = [];
   try {
-    const { data } = await sb.from('dicts').select('value').eq('type', 'control_exclude');
-    ids = (data || []).map(x => Number(x.value)).filter(Boolean);
+    const { data } = await sb.from('dicts').select('type,value').in('type', ['control_exclude', 'control_exclude_init']);
+    rows = data || [];
   } catch (_) {}
-  if (!ids.length) {
+  // при первом заходе закрепляем «частные продажи» как реальные исключения — тогда их можно вернуть
+  if (!rows.some(r => r.type === 'control_exclude_init')) {
     try {
       const all = await listClinics();
-      ids = all.filter(c => /частное лицо/i.test(c.name || '')).map(c => Number(c.id));
+      // по умолчанию не контролируем частные продажи и дистрибьюторов — они не работают как клиники
+      const priv = all.filter(c => /частное лицо|дистрибьютор/i.test(c.name || '')).map(c => Number(c.id));
+      for (const id of priv) await sb.from('dicts').insert({ type: 'control_exclude', value: String(id) });
+      await sb.from('dicts').insert({ type: 'control_exclude_init', value: '1' });
+      rows = rows.concat(priv.map(id => ({ type: 'control_exclude', value: String(id) })));
     } catch (_) {}
   }
-  ctrlExcCache = ids;
+  ctrlExcCache = rows.filter(r => r.type === 'control_exclude').map(r => Number(r.value)).filter(Boolean);
   return ctrlExcCache;
 }
-async function saveControlExclusions(ids) {
-  ctrlExcCache = ids.slice();
-  const { error } = await sb.from('dicts').insert({ type: 'control_exclude', value: String(ids[ids.length - 1]) });
-  if (error) throw error;
+async function setControlExclusion(id, on) {
+  const cid = Number(id);
+  if (on) {
+    const { error } = await sb.from('dicts').insert({ type: 'control_exclude', value: String(cid) });
+    if (error) throw error;
+    if (ctrlExcCache && !ctrlExcCache.includes(cid)) ctrlExcCache.push(cid);
+  } else {
+    const { error } = await sb.from('dicts').delete().eq('type', 'control_exclude').eq('value', String(cid));
+    if (error) throw error;
+    if (ctrlExcCache) ctrlExcCache = ctrlExcCache.filter(x => x !== cid);
+  }
+}
+async function openCtrlExcluded() {
+  const ids = await loadControlExclusions();
+  const all = await listAllClinics();
+  const rows = all.filter(c => ids.includes(Number(c.id)));
+  openModal('Исключены из контроля', rows.length
+    ? `<div class="list">${rows.map(c => `<div class="card list-row">
+        <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
+        <button class="btn ghost mini" data-ctrl-back="${c.id}">Вернуть</button></div>
+        <div class="list-row-sub">${esc([c.city, c.manager].filter(Boolean).join(' · ') || '—')}</div>
+      </div>`).join('')}</div>`
+    : '<div class="empty">Никто не исключён.</div>');
+  document.querySelectorAll('[data-ctrl-back]').forEach(btn => btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    try {
+      await setControlExclusion(Number(btn.dataset.ctrlBack), false);
+      closeModal();
+      toast('✓ Возвращено в контроль');
+      await render();
+    } catch (err) { toast('⚠️ ' + (err && err.message ? err.message : err)); }
+  }));
+}
+
+
+// ---------- v4.23.0: вкладка «План» — годовой план против факта ----------
+const PLAN_ST = { mgr: '', q: '', onlyPlan: false, onlyFail: false, sort: 'plan', dir: -1 };
+
+async function renderPlan() {
+  const view = document.getElementById('view');
+  let all = [], mon = {}, plans = {}, vplans = [];
+  try {
+    all = await listAllClinics();
+    mon = await loadMonthlyAll();
+    plans = await loadPlans();
+    vplans = await loadVisitPlans();
+  } catch (e) {
+    view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+    return;
+  }
+  const CUR_Y = new Date().getFullYear(), PREV_Y = CUR_Y - 1, LAST_M = 9;
+  const sumR = (cid, y, m1, m2) => {
+    const rows = mon[Number(cid)] || [];
+    let s = 0, has = false;
+    rows.forEach(r => { const m = Number(r.month); if (Number(r.year) === y && m >= m1 && m <= m2) { s += Number(r.sale || 0); has = true; } });
+    return has ? s : null;
+  };
+  const today = todayISO();
+  const nextVisit = {};
+  (vplans || []).forEach(pl => {
+    if (!pl.date || String(pl.date) < today) return;
+    const id = Number(pl.clinic_id);
+    if (!nextVisit[id] || String(pl.date) < String(nextVisit[id].date)) nextVisit[id] = pl;
+  });
+
+  const rows = [];
+  (all || []).forEach(c => {
+    if (c.markedDel) return;
+    const plan = planOf(plans, c.id, CUR_Y);
+    const fact = sumR(c.id, CUR_Y, 1, LAST_M) || 0;
+    const prev = sumR(c.id, PREV_Y, 1, LAST_M) || 0;
+    if (!plan && !fact && !prev) return;
+    const q = [1, 2, 3, 4].map(n => sumR(c.id, CUR_Y, (n - 1) * 3 + 1, n * 3) || 0);
+    const v = nextVisit[Number(c.id)];
+    rows.push({
+      id: Number(c.id), name: c.name, city: c.city || '', mgr: c.manager || '—',
+      plan, fact, prev, q,
+      pct: plan ? Math.round(fact / plan * 100) : null,
+      left: plan ? Math.max(0, plan - fact) : null,
+      perMonth: plan ? Math.max(0, plan - fact) / Math.max(1, (12 - LAST_M)) : null,
+      yoy: prev ? Math.round((fact - prev) / prev * 100) : null,
+      visit: v ? (v.kind || 'Визит') + ' · ' + fmtDate(v.date) : ''
+    });
+  });
+
+  let list = rows;
+  if (PLAN_ST.q) { const q = PLAN_ST.q.toLowerCase(); list = list.filter(r => (r.name + ' ' + r.city).toLowerCase().includes(q)); }
+  if (PLAN_ST.mgr) list = list.filter(r => r.mgr === PLAN_ST.mgr);
+  if (PLAN_ST.onlyPlan) list = list.filter(r => r.plan > 0);
+  if (PLAN_ST.onlyFail) list = list.filter(r => r.yoy != null && r.yoy < 0);
+
+  const cmp = (a, b) => {
+    const k = PLAN_ST.sort, d = PLAN_ST.dir;
+    const av = a[k], bv = b[k];
+    if (typeof av === 'string' || typeof bv === 'string') return String(av || '').localeCompare(String(bv || ''), 'ru') * d;
+    return ((Number(av || 0) - Number(bv || 0))) * d;
+  };
+  list.sort(cmp);
+
+  const groups = {};
+  list.forEach(r => { (groups[r.mgr] = groups[r.mgr] || []).push(r); });
+  const mgrOrder = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'ru'));
+
+  const fmtM = v => v == null ? '—' : fmtMoney(v);
+  const cellPct = v => v == null ? '—' : `<span class="${v >= 100 ? 'pl-ok' : (v >= 60 ? 'pl-mid' : 'pl-bad')}">${v}%</span>`;
+  const th = (k, t, extra) => `<th data-plan-sort="${k}" class="pl-th${PLAN_ST.sort === k ? ' on' : ''}${extra ? ' ' + extra : ''}">${t}${PLAN_ST.sort === k ? (PLAN_ST.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`;
+
+  const head = `<tr>
+      <th class="pl-th">Клиника</th>
+      ${th('plan', 'План')}${th('fact', 'Факт')}${th('pct', '%')}
+      ${th('left', 'Осталось')}${th('perMonth', 'Вт. месяце')}
+      ${th('q1', 'I')}${th('q2', 'II')}${th('q3', 'III')}${th('q4', 'IV')}
+      ${th('yoy', 'Г/Г')}<th class="pl-th">Визит</th>
+    </tr>`;
+
+  const rowHtml = (r) => `<tr class="pl-row" data-plan-clinic="${r.id}">
+      <td class="pl-name"><b>${esc(r.name)}</b><span class="pl-city">${esc(r.city)}</span></td>
+      <td>${fmtM(r.plan)}</td>
+      <td>${fmtM(r.fact)}</td>
+      <td>${cellPct(r.pct)}</td>
+      <td>${fmtM(r.left)}</td>
+      <td>${r.perMonth ? fmtM(Math.round(r.perMonth)) : '—'}</td>
+      <td>${r.q[0] ? fmtM(r.q[0]) : '—'}</td>
+      <td>${r.q[1] ? fmtM(r.q[1]) : '—'}</td>
+      <td>${r.q[2] ? fmtM(r.q[2]) : '—'}</td>
+      <td>${r.q[3] ? fmtM(r.q[3]) : '—'}</td>
+      <td>${r.yoy == null ? '—' : `<span class="${r.yoy >= 0 ? 'pl-ok' : 'pl-bad'}">${r.yoy > 0 ? '+' : ''}${r.yoy}%</span>`}</td>
+      <td class="pl-visit">${esc(r.visit || '')}</td>
+    </tr>`;
+
+  let body = '';
+  mgrOrder.forEach(m => {
+    const g = groups[m];
+    const gp = g.reduce((s, r) => s + Number(r.plan || 0), 0);
+    const gf = g.reduce((s, r) => s + Number(r.fact || 0), 0);
+    body += `<tr class="pl-mgr" data-plan-mgr="${esc(m)}"><td colspan="12">
+        <b>${esc(m)}</b> · клиник ${g.length} · план ${fmtM(gp)} · факт ${fmtM(gf)} · ${gp ? Math.round(gf / gp * 100) : 0}%
+      </td></tr>` + g.map(rowHtml).join('');
+  });
+
+  const totP = rows.reduce((s, r) => s + Number(r.plan || 0), 0);
+  const totF = rows.reduce((s, r) => s + Number(r.fact || 0), 0);
+  body += `<tr class="pl-total"><td>Итого</td><td>${fmtM(totP)}</td><td>${fmtM(totF)}</td>
+      <td>${totP ? Math.round(totF / totP * 100) + '%' : '—'}</td>
+      <td>${fmtM(Math.max(0, totP - totF))}</td><td>${fmtM(Math.round(Math.max(0, totP - totF) / 3))}</td>
+      <td colspan="6"></td></tr>`;
+
+  const mgrOpts = ['', ...mgrOrder].map(m => `<option value="${esc(m)}"${PLAN_ST.mgr === m ? ' selected' : ''}>${esc(m || 'Все менеджеры')}</option>`).join('');
+
+  view.innerHTML = `<div class="plan-bar">
+      <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
+      <select id="planMgr">${mgrOpts}</select>
+      <label class="pl-chk"><input type="checkbox" id="planOnlyPlan"${PLAN_ST.onlyPlan ? ' checked' : ''}/> только с планом</label>
+      <label class="pl-chk"><input type="checkbox" id="planOnlyFail"${PLAN_ST.onlyFail ? ' checked' : ''}/> только с провалом</label>
+    </div>
+    <div class="plan-wrap"><table class="money-tbl plan-tbl"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+
+  const ps = document.getElementById('planSearch');
+  if (ps) ps.addEventListener('input', () => { PLAN_ST.q = ps.value; renderPlan(); });
+  const pm = document.getElementById('planMgr');
+  if (pm) pm.addEventListener('change', () => { PLAN_ST.mgr = pm.value; renderPlan(); });
+  const op = document.getElementById('planOnlyPlan');
+  if (op) op.addEventListener('change', () => { PLAN_ST.onlyPlan = op.checked; renderPlan(); });
+  const of = document.getElementById('planOnlyFail');
+  if (of) of.addEventListener('change', () => { PLAN_ST.onlyFail = of.checked; renderPlan(); });
+
+  view.querySelectorAll('[data-plan-sort]').forEach(h => h.addEventListener('click', () => {
+    const k = h.dataset.planSort;
+    if (PLAN_ST.sort === k) PLAN_ST.dir = -PLAN_ST.dir; else { PLAN_ST.sort = k; PLAN_ST.dir = -1; }
+    renderPlan();
+  }));
+  view.querySelectorAll('[data-plan-mgr]').forEach(td => td.addEventListener('click', () => {
+    const m = td.dataset.planMgr;
+    PLAN_ST.mgr = (PLAN_ST.mgr === m) ? '' : m;
+    renderPlan();
+  }));
+  view.querySelectorAll('[data-plan-clinic]').forEach(tr => tr.addEventListener('click', async () => {
+    state.view = 'clinics'; state.selId = Number(tr.dataset.planClinic); state.selKind = 'clinic';
+    await render();
+  }));
 }
 
 async function renderVisits() {
@@ -3896,7 +4121,7 @@ async function renderWorklist(key) {
     return;
   }
   let all = [];
-  try { all = (await listClinics()).filter(c => !c.markedDel); } catch (_) {}
+  try { all = (await listAllClinics()).filter(c => !c.markedDel); } catch (_) {}
   const byId = {}; all.forEach(c => { byId[c.id] = c; });
   // v3.33.0: в рабочих списках действуют те же метки-фильтры и поиск, что и в других разделах
   const wq = state.search || '';
@@ -4332,7 +4557,7 @@ async function openVisitModal(cfg) {
   cfg = cfg || {};
   let all = [], people = [];
   try {
-    all = (await listClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital');
+    all = (await listAllClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital');
     people = await allPeopleList();
   } catch (_) {}
   all.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
@@ -4662,15 +4887,20 @@ async function renderMyDay() {
       ? `<div class="list">${att.slice(0, 50).map(x => {
         const pr = pct(x.cur, x.prev);
         const pl = planOf(PLANS, x.c.id, CUR_Y);
-        const planLine = pl ? `<div class="row-why">план ${fmtMoney(pl)} ₽ · факт ${fmtMoney(x.cur)} ₽ · ${Math.round(x.cur / pl * 100)}%</div>` : '';
+        // план приводим к тому же периоду, что и сравнение: год → 9/12, квартал → 3/12
+        const pf = CTRL_MODE === 'q' ? 3 / 12 : LAST_M / 12;
+        const planPeriod = pl ? Math.round(pl * pf) : 0;
+        const periodName = CTRL_MODE === 'q' ? 'III кв' : 'янв–сен';
+        const planLine = planPeriod ? `<div class="row-why">план ${fmtMoney(planPeriod)} ₽ на ${periodName} · факт ${fmtMoney(x.cur)} ₽ · ${Math.round(x.cur / planPeriod * 100)}%</div>` : '';
         return `<div class="card list-row" data-id="${x.c.id}" data-kind="clinic">
           <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(x.c.name)}</span>${ownBadge(x.c)}</span><span class="nd nd-over">${pr}%</span></div>
           <div class="list-row-sub">${esc([x.c.city, x.c.manager].filter(Boolean).join(' · ') || '—')}</div>
           <div class="row-why">${esc(x.label)}: ${fmtMoney(x.cur)} против ${fmtMoney(x.prev)} ₽</div>
           ${planLine}
-          <div class="vm-actions"><button class="btn ghost mini" data-ctrl-hide="${x.c.id}">Убрать из контроля</button></div>
+          <button class="ctrl-x" data-ctrl-hide="${x.c.id}" title="Убрать из контроля" aria-label="Убрать из контроля">✕</button>
         </div>`;
       }).join('')}</div>
+      <div class="list-row-sub" style="margin-top:8px"><a href="#" id="ctrlExcLink" style="color:var(--muted)">Исключённые из контроля · ${EXC.length}</a></div>
       <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">${CTRL_MODE === 'q' ? 'Сравнение III квартала 2026 с III кварталом 2025.' : 'Сравнение января–сентября 2026 с тем же периодом 2025.'} Порог — падение от 20% при базе от 100 тыс. ₽. Месяц к месяцу не сравниваем.</div>`
       : `<div class="empty">Провалов ${CTRL_MODE === 'q' ? 'квартал к кварталу' : 'год к году'} нет.</div>`);
   const chip = () => state.mydayMgr || 'Все';
@@ -4736,15 +4966,14 @@ async function renderMyDay() {
   }
   view.querySelectorAll('[data-ctrl-hide]').forEach(btn => btn.addEventListener('click', async (e) => {
     e.stopPropagation(); e.preventDefault();
-    const cid = Number(btn.dataset.ctrlHide);
     try {
-      const ids = await loadControlExclusions();
-      if (!ids.includes(cid)) ids.push(cid);
-      await saveControlExclusions(ids);
+      await setControlExclusion(Number(btn.dataset.ctrlHide), true);
       toast('✓ Убрано из контроля');
       await render();
     } catch (err) { toast('⚠️ Не сохранено: ' + (err && err.message ? err.message : err)); }
   }));
+  const excLink = document.getElementById('ctrlExcLink');
+  if (excLink) excLink.addEventListener('click', async (e) => { e.preventDefault(); await openCtrlExcluded(); });
   view.querySelectorAll('[data-plan-idea]').forEach(btn => btn.addEventListener('click', async (e) => {
     e.stopPropagation();
     const nid = Number(btn.dataset.planIdea);
@@ -5381,7 +5610,7 @@ async function renderRefFirms() {
 }
 
 async function refClinicOptions(selectedId) {
-  const all = (await listClinics()).filter(c => isRefKind(c.kind))
+  const all = (await listAllClinics()).filter(c => isRefKind(c.kind))
     .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   return all.map(c => `<option value="${c.id}"${String(c.id) === String(selectedId) ? ' selected' : ''}>${esc(c.name)}${c.city ? ' · ' + esc(c.city) : ''}</option>`).join('');
 }
@@ -5475,7 +5704,7 @@ async function saveRefOrg(id, kind) {
 async function openRefDoctorForm(id) {
   const p = id ? await getPerson(id) : {};
   const [regions, cities, allClinics] = await Promise.all([
-    datalistOptions('region'), datalistOptions('city'), listClinics()
+    datalistOptions('region'), datalistOptions('city'), listAllClinics()
   ]);
   const clinicOpts = clinicPickerHtml((allClinics || []).filter(c => !c.markedDel), p.clinicId);
   openModal(id ? 'Врач: ' + (p.fullName || '') : 'Новый врач', `
@@ -5749,7 +5978,8 @@ async function saveClinic(id) {
 
   // деньги — только в закрытую часть, и только если на неё есть право
   const isBossNow = CURRENT_ROLE === 'admin';
-  const canMoney = isBossNow || (!!myManager() && myManager() === manager);
+  // v4.22.0: деньги правит только админ — менеджеры (Осечкина, Скокова) не могут
+  const canMoney = isBossNow;
   if (canMoney) { try { await saveClinicPrivate(id, manager, moneyFields); } catch (e) { toast('Клиника сохранена, деньги — нет: ' + (e.message || e)); } }
 
   await syncPairTags(id, tags);   // v3.37.0: классификация парной записи той же клиники
@@ -5761,7 +5991,7 @@ async function openPersonForm(id, presetClinicId, opts) {
   const o = opts || {};
   const p = id ? await getPerson(id) : (presetClinicId != null ? { clinicId: presetClinicId } : {});
   const isDoc = isRefDoc(p) || !!o.refdoc;
-  const allClinicsNow = (await listClinics()).filter(c => !c.markedDel);
+  const allClinicsNow = (await listAllClinics()).filter(c => !c.markedDel);
   const clinicOptions = clinicPickerHtml(allClinicsNow, p.clinicId);
 
   openModal(id ? (isDoc ? 'Изменить врача' : 'Изменить человека') : (isDoc ? 'Новый врач' : 'Новый человек'), `
@@ -5947,6 +6177,17 @@ function mnyCompare(c, src) {
     }
   }
   return html;
+}
+// v4.20.0: план на год — отдельной плашкой НАД продажами
+function planLineHtml(c) {
+  const pl = planCache ? planOf(planCache, c.id, 2026) : 0;
+  if (!pl) return '';
+  const fact = Number(c.sales_2026 || 0) + Number(c.hugemed_2026 || 0);
+  const done = Math.round(fact / pl * 100);
+  return `<div class="detail-block sales-line" id="planLine">
+      <span class="sl-k">План 2026</span>
+      <span class="sl-v"><b>${fmtMoney(pl)} ₽</b> · факт ${fmtMoney(fact)} ₽ · ${done}%</span>
+    </div>`;
 }
 function salesLineHtml(c) {
   return `<div class="detail-block sales-line" id="salesLine" data-clinic="${c.id}" title="Все продажи">
@@ -6413,6 +6654,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly, pa
   const canEditNow = canEditCard === undefined ? canEditCardNow() : !!canEditCard;
   const canPriv = canSeePrivate(mc);
   // v3.25.0: ПРОДАЖИ в карточке — ОДНОЙ строкой (последнее сравнение). Все данные — на отдельной странице
+  const planBlock = canPriv ? planLineHtml(mc) : '';
   const salesBlock = canPriv ? salesLineHtml(mc) : '';
   const peopleBlock = peopleBlockHtml(c, contacts, canEditNow);
   const relBlock = relBlockHtml(c, linked, related);
@@ -6421,6 +6663,7 @@ function clinicDetailBody(c, linked, contacts, canEditCard, related, monthly, pa
   const tagsBlock = cardTagsBlockHtml(c);   // v3.32.0: все метки карточки — одной строкой, клик = фильтр
   return `
     ${c.markedDel ? `<div class="detail-block mark-banner">⛔ Помечена на удаление</div>` : ''}
+    <div id="planWrap">${planBlock}</div>
     <div id="salesWrap">${salesBlock}</div>
     <div id="privWrap">${privBlock(mc, canEditNow)}</div>
     ${workBlockHtml(c, canEditNow)}
@@ -6561,7 +6804,7 @@ async function allNotesByClinic() {
       const map = {};
       // v4.12.0: служебные записи визитов и идей в ленту истории не попадают
       (data || []).forEach(n => {
-        if (/^\[\[(V|I)\]\]/.test(String(n.text || ''))) return;
+        if (/^\[\[/.test(String(n.text || ''))) return;
         const k = Number(n.clinic_id); (map[k] = map[k] || []).push(n);
       });
       return map;
@@ -6608,7 +6851,7 @@ async function fillNotesBlock0(cid) {
   } catch (_) { list = []; box.classList.remove('hidden'); box.innerHTML = '<span style="color:var(--muted)">нет доступа к заметкам</span>'; return; }
   // v3.16.2: пустую историю и счётчик не показываем; у записи — дата и автор (если известны)
   // v4.14.1: служебные записи визитов/идей не должны попадать в комментарии карточки
-  list = (list || []).filter(n => !/^\[\[(V|I)\]\]/.test(String(n.text || '')));
+  list = (list || []).filter(n => !/^\[\[/.test(String(n.text || '')));
   renderNotesBox(box, list || [], canEdit);
 }
 // v3.16.2: правка ранее записанного (карандаш → текст → «Сохранить»/«Отмена»)
