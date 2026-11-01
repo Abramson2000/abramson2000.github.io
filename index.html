@@ -289,14 +289,22 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .pl-bad { color: var(--danger, #c0392b); }
 .pl-over { color: #1a73e8; font-weight: 600; }   /* v4.32.0: 130%+ — перевыполнение, значит план был занижен */
 .pl-visit { color: var(--muted); }
+/* v4.35.0: слегка красным — план не выполнен, слегка зелёным — выполнен */
+.plan-tbl tbody tr.pl-fail td, .plan-tbl tbody tr.pl-fail td:first-child { background: #fdf1ef; }
+.plan-tbl tbody tr.pl-done td, .plan-tbl tbody tr.pl-done td:first-child { background: #eef8f1; }
+.plan-tbl tbody tr.pl-fail:hover td, .plan-tbl tbody tr.pl-done:hover td { filter: brightness(.98); }
 /* v4.28.0: на телефоне — минимум «Плана»: клиника, план, факт, %, Г/Г, визит */
+/* v4.35.0: на телефоне — без фильтров, без горизонтального скролла, компактно */
+body.plan-mode .search-row, body.plan-mode #searchTop { display: none; }
 @media (max-width: 899px) {
-  .plan-tbl .pl-q, .plan-tbl .pl-opt { display: none; }
-  .plan-tbl th, .plan-tbl td { padding: 7px 8px; font-size: 12px; }
-  .plan-tbl th:first-child, .plan-tbl td:first-child { min-width: 132px; }
-  .plan-wrap { max-height: calc(100vh - 230px); padding: 0 4px 18px; }
-  .plan-tbl .pl-visit { max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
-  .plan-bar { padding: 8px 8px; gap: 6px; }
+  .plan-tbl .pl-q, .plan-tbl .pl-opt, .plan-tbl .pl-visit { display: none; }
+  .plan-bar { padding: 8px 6px; gap: 6px; }
+  .plan-bar .pl-chk, .plan-bar .plan-chips { display: none; }
+  .plan-wrap { max-height: none; overflow-x: hidden; padding: 0 4px 18px; }
+  .plan-tbl.money-tbl { table-layout: fixed; width: 100%; }
+  .plan-tbl.money-tbl th, .plan-tbl.money-tbl td { padding: 6px 4px; font-size: 11.5px; }
+  .plan-tbl.money-tbl th:first-child, .plan-tbl.money-tbl td:first-child { width: 46%; min-width: 0; max-width: none; white-space: normal; overflow: visible; text-overflow: clip; }
+  .plan-tbl .pl-name { white-space: normal; }
 }
 .md-gap .list-row { position: relative; }
 .vm-doc-chips { margin-top: 8px; }
@@ -1136,10 +1144,6 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
       </button>
     </nav>
     <div class="d-foot" id="drawerFoot">Абрамовская база</div>
-      <button class="tab d-item" onclick="exportAllData()" title="Скачать всю базу в JSON">
-        <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
-        <span>Скачать копию базы</span>
-      </button>
   </aside>
 
   <aside class="sidebar">
@@ -1970,7 +1974,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.33.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.35.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3997,7 +4001,8 @@ async function renderPlan() {
       ${th('yoy', 'Г/Г', '', 'Год к году: факт января–сентября 2026 против того же периода 2025')}<th class="pl-th">Визит</th>
     </tr>`;
 
-  const rowHtml = (r) => `<tr class="pl-row" data-plan-clinic="${r.id}">
+  // v4.35.0: красим саму строку — красноватая при невыполненном плане, зеленоватая при выполненном
+  const rowHtml = (r) => `<tr class="pl-row${r.pct == null ? '' : (r.pct >= 100 ? ' pl-done' : ' pl-fail')}" data-plan-clinic="${r.id}">
       <td class="pl-name"><b>${esc(r.name)}</b><span class="pl-city">${esc(r.city)}</span></td>
       <td data-sale-cell="${r.id}">${fmtM(r.plan)}</td>
       <td data-sale-cell="${r.id}">${fmtM(r.fact)}</td>
@@ -5580,6 +5585,13 @@ async function renderDicts() {
         <button class="btn ghost" id="logoutBtn">${me ? 'Выйти' : 'Войти'}</button>
       </div>
     </div>
+    ${CURRENT_ROLE === 'admin' ? `<div class="detail-block">
+      <div class="k">Резервная копия</div>
+      <div class="account-row">
+        <span class="account-info">Вся база одним файлом JSON</span>
+        <button class="btn ghost" id="backupBtn">Скачать копию базы</button>
+      </div>
+    </div>` : ''}
     <div class="detail-block">
       <div class="k">Цвет выделения</div>
       <div class="accent-picker">
@@ -5610,6 +5622,8 @@ async function renderDicts() {
     </details>`;
   }
   view.innerHTML = html;
+  const bk = document.getElementById('backupBtn');
+  if (bk) bk.addEventListener('click', () => { try { window.exportAllData(); } catch (e) { toast('⚠️ ' + (e && e.message ? e.message : e)); } });
   const lo = document.getElementById('logoutBtn');
   if (lo) lo.addEventListener('click', async () => {
     if (!me) { showLogin(); return; }
