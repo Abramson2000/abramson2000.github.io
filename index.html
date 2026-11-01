@@ -290,6 +290,8 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .pl-mid { color: #b8860b; }
 .pl-bad { color: var(--danger, #c0392b); }
 .pl-over { color: #1a73e8; font-weight: 600; }
+/* v4.39.0: название визита — бейдж цветом акцента */
+.visit-kind { color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; font-size: 11.5px; font-weight: 600; margin-left: 6px; white-space: nowrap; vertical-align: 1px; }
 /* v4.36.0: «План» на телефоне — карточками, без таблицы и прокрутки вбок */
 .pl-cards { display: flex; flex-direction: column; gap: 6px; padding: 6px 8px 16px; }
 .pl-card { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; background: var(--card, #fff); }
@@ -1988,7 +1990,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.38.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.39.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4299,6 +4301,7 @@ async function renderVisits() {
         <div class="vm-actions">
           <button class="btn primary mini" data-plan-idea="${i.noteId}">Запланировать</button>
           <button class="btn ghost mini" data-edit-idea="${i.noteId}">Изменить</button>
+          <button class="btn ghost mini" data-drop-idea="${i.noteId}">Удалить</button>
         </div>
       </div>`;
     }).join('')}</div>` : '';
@@ -4323,9 +4326,9 @@ async function renderVisits() {
         const parts = (p.participants || []).join(', ');
         const docs = (p.people || []).length;
         return `<div class="card list-row" data-visit="${p.noteId}">
-          <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}</span></span><span class="row-next">${esc(mgrById[p.clinic_id] || '')}</span></div>
+          <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}${p.kind ? `<span class="visit-kind">${esc(p.kind)}</span>` : ''}</span></span><span class="row-next">${esc(mgrById[p.clinic_id] || '')}</span></div>
           ${goal ? `<div class="row-why">${esc(goal)}</div>` : ''}
-          <div class="row-why">${p.kind ? esc(p.kind) + ' · ' : ''}${parts ? 'Участники: ' + esc(parts) : 'Участники: —'}${docs ? ' · врачей: ' + docs : ''}</div>
+          <div class="row-why">${parts ? 'Участники: ' + esc(parts) : 'Участники: —'}${docs ? ' · врачей: ' + docs : ''}</div>
           <div class="vm-actions">
             <button class="btn ghost mini" data-edit-plan="${p.noteId}">Изменить</button>
             <button class="btn ghost mini" data-drop-plan="${p.noteId}" data-cid="${p.clinic_id}">Отменить визит</button>
@@ -4350,6 +4353,17 @@ async function renderVisits() {
     e.stopPropagation(); e.preventDefault();
     const idea = ideas.find(x => Number(x.noteId) === Number(btn.dataset.editIdea));
     if (idea) await openIdeaModal(idea.clinic_id, idea);
+  }));
+  view.querySelectorAll('[data-drop-idea]').forEach(btn => btn.addEventListener('click', async (e) => {
+    e.stopPropagation(); e.preventDefault();
+    const nid = Number(btn.dataset.dropIdea);
+    if (!confirm('Удалить идею визита?')) return;
+    try {
+      await sb.from('notes').delete().eq('id', nid);
+      invalidateVisitCache();
+      toast('✓ Идея удалена');
+      await render();
+    } catch (err) { toast('⚠️ Не удалось: ' + (err && err.message ? err.message : err)); }
   }));
   view.querySelectorAll('[data-edit-plan]').forEach(btn => btn.addEventListener('click', async (e) => {
     e.stopPropagation(); e.preventDefault();
@@ -5147,9 +5161,10 @@ async function renderMyDay() {
     // v4.12.0: под городом — зачем контакт: цель визита или пометка к звонку
     const sub = [c.city, c.manager].filter(Boolean).join(' · ');
     const why = (c.actionType === 'visit') ? visitGoalOf(c.id) : (c.privateNote || '');
+    const vk = (c.actionType === 'visit') ? ((visitPlanOf(c.id) || {}).kind || 'Встреча') : '';
     return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
       <div class="list-row-top">
-        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
+        <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}${vk ? `<span class="visit-kind">${esc(vk)}</span>` : ''}</span></span>
         <span class="row-next">${badge}</span>
       </div>
       ${subMarks(c, esc(sub || '—'))}
@@ -5242,6 +5257,7 @@ async function renderMyDay() {
         <div class="vm-actions">
           <button class="btn primary mini" data-plan-idea="${i.noteId}">Запланировать</button>
           <button class="btn ghost mini" data-edit-idea="${i.noteId}">Изменить</button>
+          <button class="btn ghost mini" data-drop-idea="${i.noteId}">Удалить</button>
         </div>
       </div>`;
     }).join('')}</div>` : '';
@@ -5302,6 +5318,17 @@ async function renderMyDay() {
     const nid = Number(btn.dataset.editIdea);
     const idea = ideasDue.find(x => Number(x.noteId) === nid);
     if (idea) await openIdeaModal(idea.clinic_id, idea);
+  }));
+  view.querySelectorAll('[data-drop-idea]').forEach(btn => btn.addEventListener('click', async (e) => {
+    e.stopPropagation(); e.preventDefault();
+    const nid = Number(btn.dataset.dropIdea);
+    if (!confirm('Удалить идею визита?')) return;
+    try {
+      await sb.from('notes').delete().eq('id', nid);
+      invalidateVisitCache();
+      toast('✓ Идея удалена');
+      await render();
+    } catch (err) { toast('⚠️ Не удалось: ' + (err && err.message ? err.message : err)); }
   }));
   // v3.20.3: чип выбора порядка в блоке «Требуют внимания»
   const ab = document.getElementById('attSrtBtn');
