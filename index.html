@@ -1944,7 +1944,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.26.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.27.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3875,14 +3875,14 @@ async function renderPlan() {
 
   const fmtM = v => v == null ? '—' : fmtMoney(v);
   const cellPct = v => v == null ? '—' : `<span class="${v >= 100 ? 'pl-ok' : (v >= 60 ? 'pl-mid' : 'pl-bad')}">${v}%</span>`;
-  const th = (k, t, extra) => `<th data-plan-sort="${k}" class="pl-th${PLAN_ST.sort === k ? ' on' : ''}${extra ? ' ' + extra : ''}">${t}${PLAN_ST.sort === k ? (PLAN_ST.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`;
+  const th = (k, t, extra, title) => `<th data-plan-sort="${k}"${title ? ` title="${esc(title)}"` : ''} class="pl-th${PLAN_ST.sort === k ? ' on' : ''}${extra ? ' ' + extra : ''}">${t}${PLAN_ST.sort === k ? (PLAN_ST.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`;
 
   const head = `<tr>
-      <th class="pl-th">Клиника</th>
+      ${th('name', 'Клиника')}
       ${th('plan', 'План')}${th('fact', 'Факт')}${th('pct', '%')}
       ${th('left', 'Осталось')}${th('perMonth', 'В месяц')}
-      ${th('q1', 'I')}${th('q2', 'II')}${th('q3', 'III')}${th('q4', 'IV')}
-      ${th('yoy', 'Г/Г')}<th class="pl-th">Визит</th>
+      ${th('q1', 'I', '', 'I квартал 2026')}${th('q2', 'II', '', 'II квартал 2026')}${th('q3', 'III', '', 'III квартал 2026')}${th('q4', 'IV', '', 'IV квартал 2026')}
+      ${th('yoy', 'Г/Г', '', 'Год к году: факт января–сентября 2026 против того же периода 2025')}<th class="pl-th">Визит</th>
     </tr>`;
 
   const rowHtml = (r) => `<tr class="pl-row" data-plan-clinic="${r.id}">
@@ -3901,7 +3901,11 @@ async function renderPlan() {
     </tr>`;
 
   let body = '';
-  mgrOrder.forEach(m => {
+  const flatName = (PLAN_ST.sort === 'name');
+  if (flatName) {
+    body = list.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ru') * (PLAN_ST.dir > 0 ? 1 : -1)).map(rowHtml).join('');
+  }
+  if (!flatName) mgrOrder.forEach(m => {
     const g = groups[m];
     const gp = g.reduce((s, r) => s + Number(r.plan || 0), 0);
     const gf = g.reduce((s, r) => s + Number(r.fact || 0), 0);
