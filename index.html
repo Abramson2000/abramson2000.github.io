@@ -1888,7 +1888,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.17.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.18.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3648,6 +3648,68 @@ async function openVisitCard(plan) {
   });
 }
 
+// ---------- v4.18.0: данные для «Пора вернуться» ----------
+let planCache = null;
+async function loadPlans() {
+  if (planCache) return planCache;
+  const rows = [];
+  for (let from = 0; from < 5000; from += 1000) {
+    const { data } = await sb.from('notes').select('clinic_id,text').like('text', '[[P]]%').range(from, from + 999);
+    if (!data) break;
+    rows.push(...data);
+    if (data.length < 1000) break;
+  }
+  const map = {};
+  rows.forEach(n => {
+    try { const o = JSON.parse(String(n.text).slice(5)); map[Number(n.clinic_id)] = o; } catch (_) {}
+  });
+  planCache = map;
+  return map;
+}
+function planOf(map, id, year) {
+  const p = map ? map[Number(id)] : null;
+  return (p && Number(p.year) === Number(year)) ? Number(p.plan || 0) : 0;
+}
+
+let monAllCache = null;
+async function loadMonthlyAll() {
+  if (monAllCache) return monAllCache;
+  const rows = [];
+  for (let from = 0; from < 40000; from += 1000) {
+    const { data, error } = await sb.from('sales_monthly').select('clinic_id,year,month,sale').range(from, from + 999);
+    if (error || !data) break;
+    rows.push(...data);
+    if (data.length < 1000) break;
+  }
+  const map = {};
+  rows.forEach(r => { const id = Number(r.clinic_id); (map[id] = map[id] || []).push(r); });
+  monAllCache = map;
+  return map;
+}
+// кого не контролируем: частные продажи и те, кого убрали руками (таблица dicts)
+let ctrlExcCache = null;
+async function loadControlExclusions() {
+  if (ctrlExcCache) return ctrlExcCache;
+  let ids = [];
+  try {
+    const { data } = await sb.from('dicts').select('value').eq('type', 'control_exclude');
+    ids = (data || []).map(x => Number(x.value)).filter(Boolean);
+  } catch (_) {}
+  if (!ids.length) {
+    try {
+      const all = await listClinics();
+      ids = all.filter(c => /частное лицо/i.test(c.name || '')).map(c => Number(c.id));
+    } catch (_) {}
+  }
+  ctrlExcCache = ids;
+  return ctrlExcCache;
+}
+async function saveControlExclusions(ids) {
+  ctrlExcCache = ids.slice();
+  const { error } = await sb.from('dicts').insert({ type: 'control_exclude', value: String(ids[ids.length - 1]) });
+  if (error) throw error;
+}
+
 async function renderVisits() {
   // v4.13.0: визиты и идеи — с названиями клиник, участниками и врачами
   const view = document.getElementById('view');
@@ -4548,32 +4610,56 @@ async function renderMyDay() {
     return `<div class="md-sec">${title} · <b>${list.length}</b>${useChip && mgrSel ? mgrSel : ''}</div>`
       + sub('Звонки', calls) + sub('Визиты', visits);
   };
-  // v3.18.0: «Требуют внимания» — снижение ПО ВСЕМ продуктам: сравниваем годовые итоги 2025 и 2026
-  // (Boston + HugeMed вместе; отсутствующее значение не считаем нулём)
-  const sumY = (c, y) => {
-    const v = [c['sales_' + y], c['hugemed_' + y]].filter(x => x != null && x !== '');
-    return v.length ? v.reduce((a, b) => a + Number(b), 0) : null;
+  // ---------- v4.18.0: «Пора вернуться» ----------
+  // Сравниваем ЛИБО год к году, ЛИБО квартал к кварталу — переключателем. Месяц к месяцу не сравниваем.
+  const MON_ALL = await loadMonthlyAll();
+  const EXC = await loadControlExclusions();
+  const PLANS = await loadPlans();
+  const CUR_Y = new Date().getFullYear();
+  const LAST_M = 9;
+  const CTRL_MODE = localStorage.getItem('ctrlMode') === 'q' ? 'q' : 'ytd';
+  const sumRange = (cid, y, m1, m2) => {
+    const rows = MON_ALL[Number(cid)] || [];
+    let s = 0, has = false;
+    rows.forEach(r => {
+      const m = Number(r.month);
+      if (Number(r.year) === y && m >= m1 && m <= m2) { s += Number(r.sale || 0); has = true; }
+    });
+    return has ? s : null;
   };
-  const att = clinics.map(c => ({ c, a: sumY(c, '2025'), b: sumY(c, '2026') }))
-    .filter(x => x.a != null && x.b != null && x.a > 0 && x.b < x.a);
-  // v3.20.3: порядок блока — «Сумма» (по убыванию суммы прошлого года, по умолчанию) или «Процент» (по убыванию падения)
-  const attSort = localStorage.getItem('attSort') === 'pct' ? 'pct' : 'sum';
-  const attRows = att.slice().sort(attSort === 'pct' ? ((p, q) => (p.b / p.a) - (q.b / q.a)) : ((p, q) => q.a - p.a));
-  // v3.17.3: блок «Требуют внимания» показываем всегда; если снижений нет — пишем, сколько клиник
-  // вообще имеет заполненный 2025 / 2026 (иначе блок «исчезал» и выглядел как нереализованный)
-  const attD25 = clinics.filter(c => sumY(c, '2025') != null).length;
-  const attD26 = clinics.filter(c => sumY(c, '2026') != null).length;
+  const MIN_BASE = 100000, DROP = 0.8;
+  const att = [];
+  clinics.forEach(c => {
+    if (EXC.includes(Number(c.id))) return;
+    let cur, prev, label;
+    if (CTRL_MODE === 'q') { cur = sumRange(c.id, CUR_Y, 7, 9); prev = sumRange(c.id, CUR_Y - 1, 7, 9); label = 'III кв'; }
+    else { cur = sumRange(c.id, CUR_Y, 1, LAST_M); prev = sumRange(c.id, CUR_Y - 1, 1, LAST_M); label = 'янв–сен'; }
+    if (prev == null || prev < MIN_BASE || cur == null || cur >= prev * DROP) return;
+    att.push({ c, cur, prev, label, lost: prev - cur });
+  });
+  att.sort((a, b) => b.lost - a.lost);
   const pct = (cur, prev) => Math.round((cur - prev) / prev * 100);
-  const attBlock = `<div class="cns-head"><span>Требуют внимания${att.length ? ' <b>' + att.length + '</b>' : ''}</span>`
-    + `<div class="md-mgr" id="attSrtBox"><button class="md-mgr-btn" id="attSrtBtn" title="Порядок">${attSort === 'pct' ? 'Процент' : 'Сумма'}<span class="md-caret">▾</span></button>
-      <div class="md-mgr-pop hidden" id="attSrtPop"><button class="md-mgr-opt${attSort === 'sum' ? ' active' : ''}" data-s="sum">Сумма</button><button class="md-mgr-opt${attSort === 'pct' ? ' active' : ''}" data-s="pct">Процент</button></div></div></div>`
+  const ctrlBlock = `<div class="cns-head"><span>Пора вернуться${att.length ? ' <b>' + att.length + '</b>' : ''}</span>
+      <div class="md-mgr" id="ctrlModeBox"><button class="md-mgr-btn" id="ctrlModeBtn" title="Что сравниваем">${CTRL_MODE === 'q' ? 'Квартал к кварталу' : 'Год к году'}<span class="md-caret">▾</span></button>
+      <div class="md-mgr-pop hidden" id="ctrlModePop">
+        <button class="md-mgr-opt${CTRL_MODE === 'ytd' ? ' active' : ''}" data-ctrl-mode="ytd">Год к году</button>
+        <button class="md-mgr-opt${CTRL_MODE === 'q' ? ' active' : ''}" data-ctrl-mode="q">Квартал к кварталу</button>
+      </div></div></div>`
     + (att.length
-      ? `<div class="list">${attRows.slice(0, 50).map(x => `<div class="card list-row" data-id="${x.c.id}" data-kind="clinic">
-        <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(x.c.name)}</span>${ownBadge(x.c)}</span><span class="nd nd-over">${pct(x.b, x.a)}%</span></div>
-        <div class="list-row-sub">${esc([x.c.city, x.c.manager].filter(Boolean).join(' · ') || '—')}</div>
-      </div>`).join('')}</div>
-      <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">Сравнение годовых итогов 2025 и 2026 по всем продуктам (Boston + HugeMed). Помесячных данных в базе нет.</div>`
-      : `<div class="empty">Снижения год к году нет. Для сравнения нужны оба года: итоги 2025 заполнены у <b>${attD25}</b> клиник, 2026 — у <b>${attD26}</b>. Заполни в карточке — клиника появится здесь.</div>`);
+      ? `<div class="list">${att.slice(0, 50).map(x => {
+        const pr = pct(x.cur, x.prev);
+        const pl = planOf(PLANS, x.c.id, CUR_Y);
+        const planLine = pl ? `<div class="row-why">план ${fmtMoney(pl)} ₽ · факт ${fmtMoney(x.cur)} ₽ · ${Math.round(x.cur / pl * 100)}%</div>` : '';
+        return `<div class="card list-row" data-id="${x.c.id}" data-kind="clinic">
+          <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(x.c.name)}</span>${ownBadge(x.c)}</span><span class="nd nd-over">${pr}%</span></div>
+          <div class="list-row-sub">${esc([x.c.city, x.c.manager].filter(Boolean).join(' · ') || '—')}</div>
+          <div class="row-why">${esc(x.label)}: ${fmtMoney(x.cur)} против ${fmtMoney(x.prev)} ₽</div>
+          ${planLine}
+          <div class="vm-actions"><button class="btn ghost mini" data-ctrl-hide="${x.c.id}">Убрать из контроля</button></div>
+        </div>`;
+      }).join('')}</div>
+      <div class="list-row-sub" style="margin-top:6px;color:var(--muted)">${CTRL_MODE === 'q' ? 'Сравнение III квартала 2026 с III кварталом 2025.' : 'Сравнение января–сентября 2026 с тем же периодом 2025.'} Порог — падение от 20% при базе от 100 тыс. ₽. Месяц к месяцу не сравниваем.</div>`
+      : `<div class="empty">Провалов ${CTRL_MODE === 'q' ? 'квартал к кварталу' : 'год к году'} нет.</div>`);
   const chip = () => state.mydayMgr || 'Все';
   const mgrSel = isBoss ? `<div class="md-mgr" id="mdMgrBox"><button class="md-mgr-btn" id="mdMgrBtn" title="Фильтр по менеджеру">${esc(chip())}<span class="md-caret">▾</span></button>
       <div class="md-mgr-pop hidden" id="mdMgrPop">${[''].concat(mgrs).map(m => `<button class="md-mgr-opt${(state.mydayMgr || '') === m ? ' active' : ''}" data-m="${esc(m)}">${esc(m || 'Все менеджеры')}</button>`).join('')}</div>
@@ -4604,7 +4690,7 @@ async function renderMyDay() {
   view.innerHTML = (mgrSel && !chipInHead ? toolsRow : '')
     + ideasBlock + bOver + bToday + bLater
     + (!withDate.length ? `<div class="empty">${sMD ? 'Ничего не найдено' : `Запланированных контактов нет. Клиник в базе: ${clinics.length}.`}</div>` : '')
-    + (sMD ? '' : `<div class="md-gap">${attBlock}</div>`);
+    + (sMD ? '' : `<div class="md-gap">${ctrlBlock}</div>`);
   const mb = document.getElementById('mdMgrBtn');
   const mp = document.getElementById('mdMgrPop');
   const mbox = document.getElementById('mdMgrBox');
@@ -4623,6 +4709,29 @@ async function renderMyDay() {
     document.addEventListener('click', () => { mp.classList.add('hidden'); if (mbox) mbox.classList.remove('pop-open'); }, { once: true });
   }
   // v4.12.0: кнопка «Выбрать дату» у идеи визита
+  const cmb = document.getElementById('ctrlModeBtn');
+  const cmp = document.getElementById('ctrlModePop');
+  if (cmb && cmp) {
+    cmb.addEventListener('click', (e) => { e.stopPropagation(); cmp.classList.toggle('hidden'); });
+    cmp.querySelectorAll('[data-ctrl-mode]').forEach(b => b.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      localStorage.setItem('ctrlMode', b.dataset.ctrlMode === 'q' ? 'q' : 'ytd');
+      cmp.classList.add('hidden');
+      await render();
+    }));
+    document.addEventListener('click', () => cmp.classList.add('hidden'), { once: true });
+  }
+  view.querySelectorAll('[data-ctrl-hide]').forEach(btn => btn.addEventListener('click', async (e) => {
+    e.stopPropagation(); e.preventDefault();
+    const cid = Number(btn.dataset.ctrlHide);
+    try {
+      const ids = await loadControlExclusions();
+      if (!ids.includes(cid)) ids.push(cid);
+      await saveControlExclusions(ids);
+      toast('✓ Убрано из контроля');
+      await render();
+    } catch (err) { toast('⚠️ Не сохранено: ' + (err && err.message ? err.message : err)); }
+  }));
   view.querySelectorAll('[data-plan-idea]').forEach(btn => btn.addEventListener('click', async (e) => {
     e.stopPropagation();
     const nid = Number(btn.dataset.planIdea);
@@ -5808,7 +5917,8 @@ function mnySum(c, y, src) {
   return (s != null || h != null) ? Number(s || 0) + Number(h || 0) : null;
 }
 function mnyYearsWith(c, src) {
-  return MONEY_YEARS.filter(y => mnySum(c, y, src) != null).sort((a, b) => Number(b) - Number(a));
+  // v4.18.0: годы с нулевой суммой больше не показываем — «2023 · 0 ₽» только мешает
+  return MONEY_YEARS.filter(y => { const v = mnySum(c, y, src); return v != null && Number(v) > 0; }).sort((a, b) => Number(b) - Number(a));
 }
 // «последнее сравнение»: последний год с данными против предыдущего
 function mnyCompare(c, src) {
@@ -5853,7 +5963,7 @@ function mnyTableHtml(c) {
   const head = src === 'both' ? '<th>Год</th><th>Boston</th><th>HugeMed</th><th>Сумма</th>'
     : `<th>Год</th><th>${SRC_RU[src]}</th>`;
   // 3.25.1: старые годы больше не прячем под кнопку «2021–2023» — показываем все годы с данными
-  const years = MONEY_YEARS.filter(y => mnySum(c, y, src) != null).sort((a, b) => Number(b) - Number(a));
+  const years = MONEY_YEARS.filter(y => { const v = mnySum(c, y, src); return v != null && Number(v) > 0; }).sort((a, b) => Number(b) - Number(a));
   if (!years.length) return '<div class="sales-sub">данных нет</div>';
   return `<table class="money-tbl"><thead><tr>${head}</tr></thead>${years.map(block).join('')}</table>`;
 }
@@ -5868,6 +5978,7 @@ function salesPageHtml(c) {
       </div>
       <div class="sales-card">
         <div class="sales-sub">Последнее сравнение: ${mnyCompare(c, MNY_SRC) || 'данных нет'}</div>
+        ${(() => { const pl = planOf(planCache, c.id, 2026); if (!pl) return ''; const rows = MNY_ROWS[c.id] || []; let fact = 0; rows.forEach(r => { if (Number(r.year) === 2026) fact += Number(r.sale || 0); }); return `<div class="sales-sub">План 2026: ${fmtMoney(pl)} ₽ · факт ${fmtMoney(fact)} ₽ · ${Math.round(fact / pl * 100)}%</div>`; })()}
         ${mnyTableHtml(c)}
       </div>
     </div>`;
@@ -5876,6 +5987,7 @@ async function openSalesPage(id) {
   const c = await getClinic(id);
   if (!c) return;
   if (!MNY_ROWS[id]) { try { MNY_ROWS[id] = await listMonthly(id); } catch (_) { MNY_ROWS[id] = []; } }
+  try { await loadPlans(); } catch (_) {}
   const pg = document.getElementById('salesPage');
   if (!pg) return;
   pg.innerHTML = salesPageHtml(c);
