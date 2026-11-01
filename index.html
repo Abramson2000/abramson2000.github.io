@@ -260,6 +260,9 @@ body {
 .plan-bar input[type=text] { flex: 1 1 180px; min-width: 140px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; }
 .plan-bar select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; background: #fff; }
 .pl-chk { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.plan-chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+.pl-chip { padding: 5px 11px; border: 1px solid var(--line); border-radius: 14px; background: var(--card, #fff); font: inherit; font-size: 13px; cursor: pointer; color: var(--ink); }
+.pl-chip.on { background: #0f8a8a; border-color: #0f8a8a; color: #fff; }
 .plan-wrap { overflow: auto; padding: 0 16px 24px; }
 .plan-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .plan-tbl th, .plan-tbl td { padding: 7px 8px; border-bottom: 1px solid #eee; white-space: nowrap; text-align: right; }
@@ -1931,7 +1934,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.23.2';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.24.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3791,7 +3794,8 @@ async function openCtrlExcluded() {
 
 
 // ---------- v4.23.0: вкладка «План» — годовой план против факта ----------
-const PLAN_ST = { mgr: '', q: '', onlyPlan: false, onlyFail: false, sort: 'plan', dir: -1 };
+const PLAN_ST = { mgrs: [], q: '', onlyPlan: false, onlyFail: false, sort: 'plan', dir: -1 };
+const PLAN_DEPT = ['Абрамов', 'Осечкина', 'Скокова'];
 
 async function renderPlan() {
   const view = document.getElementById('view');
@@ -3842,7 +3846,7 @@ async function renderPlan() {
 
   let list = rows;
   if (PLAN_ST.q) { const q = PLAN_ST.q.toLowerCase(); list = list.filter(r => (r.name + ' ' + r.city).toLowerCase().includes(q)); }
-  if (PLAN_ST.mgr) list = list.filter(r => r.mgr === PLAN_ST.mgr);
+  if (PLAN_ST.mgrs.length) list = list.filter(r => PLAN_ST.mgrs.includes(r.mgr));
   if (PLAN_ST.onlyPlan) list = list.filter(r => r.plan > 0);
   if (PLAN_ST.onlyFail) list = list.filter(r => r.yoy != null && r.yoy < 0);
 
@@ -3854,6 +3858,7 @@ async function renderPlan() {
   };
   list.sort(cmp);
 
+  const allMgrs = [...new Set(rows.map(r => r.mgr))].sort((a, b) => a.localeCompare(b, 'ru'));
   const groups = {};
   list.forEach(r => { (groups[r.mgr] = groups[r.mgr] || []).push(r); });
   const mgrOrder = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'ru'));
@@ -3907,20 +3912,33 @@ async function renderPlan() {
     + `<td>${fmtM(Math.round(totLeft / 3))}</td>`
     + `<td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
 
-  const mgrOpts = ['', ...mgrOrder].map(m => `<option value="${esc(m)}"${PLAN_ST.mgr === m ? ' selected' : ''}>${esc(m || 'Все менеджеры')}</option>`).join('');
+  const deptOn = PLAN_DEPT.every(m => PLAN_ST.mgrs.includes(m)) && PLAN_ST.mgrs.length === PLAN_DEPT.length;
+  const chips = `<div class="plan-chips">
+      <button type="button" class="pl-chip${PLAN_ST.mgrs.length === 0 ? ' on' : ''}" data-pm="__all">Все</button>
+      <button type="button" class="pl-chip${deptOn ? ' on' : ''}" data-pm="__dept">Мой отдел</button>
+      ${allMgrs.map(m => `<button type="button" class="pl-chip${PLAN_ST.mgrs.includes(m) ? ' on' : ''}" data-pm="${esc(m)}">${esc(m)}</button>`).join('')}
+    </div>`;
 
   view.innerHTML = `<div class="plan-bar">
       <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
-      <select id="planMgr">${mgrOpts}</select>
       <label class="pl-chk"><input type="checkbox" id="planOnlyPlan"${PLAN_ST.onlyPlan ? ' checked' : ''}/> только с планом</label>
       <label class="pl-chk"><input type="checkbox" id="planOnlyFail"${PLAN_ST.onlyFail ? ' checked' : ''}/> только с провалом</label>
+      ${chips}
     </div>
     <div class="plan-wrap"><table class="money-tbl plan-tbl"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 
   const ps = document.getElementById('planSearch');
   if (ps) ps.addEventListener('input', () => { PLAN_ST.q = ps.value; renderPlan(); });
-  const pm = document.getElementById('planMgr');
-  if (pm) pm.addEventListener('change', () => { PLAN_ST.mgr = pm.value; renderPlan(); });
+  view.querySelectorAll('[data-pm]').forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.pm;
+    if (v === '__all') PLAN_ST.mgrs = [];
+    else if (v === '__dept') PLAN_ST.mgrs = PLAN_DEPT.slice();
+    else {
+      const i = PLAN_ST.mgrs.indexOf(v);
+      if (i >= 0) PLAN_ST.mgrs.splice(i, 1); else PLAN_ST.mgrs.push(v);
+    }
+    renderPlan();
+  }));
   const op = document.getElementById('planOnlyPlan');
   if (op) op.addEventListener('change', () => { PLAN_ST.onlyPlan = op.checked; renderPlan(); });
   const of = document.getElementById('planOnlyFail');
@@ -3933,7 +3951,8 @@ async function renderPlan() {
   }));
   view.querySelectorAll('[data-plan-mgr]').forEach(td => td.addEventListener('click', () => {
     const m = td.dataset.planMgr;
-    PLAN_ST.mgr = (PLAN_ST.mgr === m) ? '' : m;
+    const i = PLAN_ST.mgrs.indexOf(m);
+    if (i >= 0) PLAN_ST.mgrs.splice(i, 1); else PLAN_ST.mgrs.push(m);
     renderPlan();
   }));
   view.querySelectorAll('[data-plan-clinic]').forEach(tr => tr.addEventListener('click', async () => {
