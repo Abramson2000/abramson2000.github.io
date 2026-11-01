@@ -292,6 +292,18 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .pl-over { color: #1a73e8; font-weight: 600; }
 /* v4.39.0: название визита — бейдж цветом акцента */
 /* v4.40.0: название визита крупным заголовком в карточке */
+.month-bar { display: flex; align-items: center; gap: 10px; padding: 4px 16px 8px; }
+.month-stat { font-size: 13px; color: var(--muted); }
+.month-stat b { color: var(--ink); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 0 10px 16px; }
+.cal-dow { font-size: 11px; color: var(--muted); text-align: center; padding: 2px 0; }
+.cal-cell { min-height: 58px; border: 1px solid #e8e8e8; border-radius: 8px; padding: 3px; font-size: 11px; background: var(--card, #fff); }
+.cal-cell.empty { border: 0; background: transparent; }
+.cal-cell.has { background: #eef7f7; border-color: #cfe6e6; }
+.cal-cell.today { outline: 2px solid var(--accent); }
+.cal-day { font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+.cal-ev { background: var(--accent); color: #fff; border-radius: 5px; padding: 1px 4px; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; font-size: 10px; }
+.cal-more { color: var(--accent); font-weight: 700; }
 .visit-title-sm { display: block; font-size: 15px; font-weight: 800; color: var(--accent); line-height: 1.2; margin-bottom: 2px; }
 .visit-title { font-size: 20px; font-weight: 800; color: var(--accent); letter-spacing: -.2px; margin: 2px 0 10px; }
 .visit-kind { color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; font-size: 11.5px; font-weight: 600; margin-left: 6px; white-space: nowrap; vertical-align: 1px; }
@@ -1993,7 +2005,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.41.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.42.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2916,7 +2928,7 @@ const FILTER_CFG = {
   sasha:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   myday:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   calls:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
-  visits:       { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  // visits — свой фильтр по менеджерам внутри раздела, общая полоса фильтров не нужна
 };
 // v3.34.0: значения групп — КАНОН, а не «что нашлось на листе»
 function prodMenuVals() { return PRODUCT_VALS.slice(); }
@@ -3739,7 +3751,7 @@ async function openVisitCard(plan) {
     <div class="visit-title">${esc(visitTitleOf(plan))}</div>
     <div class="detail-block"><div class="k">Тип</div><div class="v">${esc(plan.kind || 'Встреча')}</div></div>
     <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c ? c.name : ('#' + plan.clinic_id))}${c && c.city ? ' · ' + esc(c.city) : ''}</div></div>
-    <div class="detail-block"><div class="k">Когда</div><div class="v">${esc(fmtDate(plan.date))}</div></div>
+    <div class="detail-block"><div class="k">Когда</div><div class="v">${esc(visitRange(plan))}</div></div>
     <div class="detail-block"><div class="k">Цель</div><div class="v">${esc(plan.goal || '—')}</div></div>
     <div class="detail-block"><div class="k">Участники</div><div class="v">${esc(parts)}</div></div>
     <div class="detail-block"><div class="k">Врачи</div><div class="v">${docRows}</div></div>
@@ -4263,13 +4275,37 @@ async function renderPlan() {
   }));
 }
 
+// v4.42.0: «Визиты» — диапазон дат, прошедшие, месячный обзор, фильтр по менеджерам, календарь
+const VISITS_UI = {
+  mode: (localStorage.getItem('visitsMode') === 'cal') ? 'cal' : 'list',
+  month: null
+};
+function visitRange(p) {
+  const a = String((p && p.date) || '').slice(0, 10);
+  const b = String((p && (p.dateTo || p.date)) || '').slice(0, 10);
+  if (!a) return '';
+  if (!b || b === a) return fmtDate(a);
+  return 'с ' + fmtDate(a) + ' по ' + fmtDate(b);
+}
+function visitMonthKey(iso) { return String(iso || '').slice(0, 7); }
+function visitEnd(p) { return String((p && (p.dateTo || p.date)) || '').slice(0, 10); }
+function monthLabel(key) {
+  const MN = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+  const p = String(key || '').split('-');
+  return (MN[Number(p[1]) - 1] || '') + ' ' + (p[0] || '');
+}
+function monthShift(key, delta) {
+  const p = String(key || '').split('-');
+  const d = new Date(Number(p[0]), Number(p[1]) - 1 + delta, 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
 async function renderVisits() {
-  // v4.13.0: визиты и идеи — с названиями клиник, участниками и врачами
   const view = document.getElementById('view');
   state.defaultAction = 'visit';
   let all = [], ideas = [], plans = [];
   try {
-    all = await listClinics();
+    all = await listAllClinics();
     await loadVisitMeta();
     ideas = await loadVisitIdeas();
     plans = await loadVisitPlans();
@@ -4278,12 +4314,10 @@ async function renderVisits() {
     return;
   }
 
-  const byId = {}, mgrById = {};
-  all.forEach(c => { byId[c.id] = c.name; mgrById[c.id] = c.manager || ''; });
+  const byId = {}, cityById = {}, mgrById = {};
+  (all || []).forEach(c => { byId[c.id] = c.name; cityById[c.id] = c.city || ''; mgrById[c.id] = c.manager || ''; });
   const me = window.CURRENT_MANAGER || myManagerName() || '';
   const isBossV = CURRENT_ROLE === 'admin' || String(CURRENT_EMAIL || '').toLowerCase() === 'abramson@crm.ru';
-
-  // кому что видно: участнику визита, ответственному по клинике, либо руководителю — всё
   const visible = (rec) => {
     if (isBossV) return true;
     const parts = rec.participants || [];
@@ -4291,11 +4325,109 @@ async function renderVisits() {
     return (mgrById[rec.clinic_id] || '') === me;
   };
 
+  // фильтр по менеджерам: Все / Мой отдел / Мазаева / Евсеев
+  const MGR_FILTER = localStorage.getItem('visitsMgr') || '';
+  const DEPT = ['Абрамов', 'Осечкина', 'Скокова'];
+  const passMgr = (cid) => {
+    if (!MGR_FILTER) return true;
+    const m = String(mgrById[cid] || '').trim();
+    if (MGR_FILTER === '__dept') return DEPT.includes(m);
+    return m === MGR_FILTER;
+  };
+
   const sV = state.search;
   const match = (txt) => !sV || String(txt || '').toLowerCase().includes(sV);
+  const today = todayISO();
 
-  const ideaRows = ideas.filter(i => visible(i) && match(byId[i.clinic_id] || ''));
-  const visitRows = plans.filter(p => p.date && visible(p) && match(byId[p.clinic_id] || ''));
+  const ideaRows = (ideas || []).filter(i => visible(i) && match(byId[i.clinic_id] || ''));
+  const visitRows = (plans || [])
+    .filter(p => p.date && visible(p) && passMgr(p.clinic_id) && match(byId[p.clinic_id] || ''))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+  const past = visitRows.filter(p => visitEnd(p) < today);
+  const future = visitRows.filter(p => visitEnd(p) >= today);
+
+  // ---- месячный обзор ----
+  const curMonth = VISITS_UI.month || visitMonthKey(today);
+  const inMonth = visitRows.filter(p => {
+    const a = String(p.date).slice(0, 10), b = visitEnd(p);
+    const m1 = visitMonthKey(a), m2 = visitMonthKey(b);
+    return (curMonth >= m1 && curMonth <= m2) || m1 === curMonth || m2 === curMonth;
+  });
+  const cities = new Set(inMonth.map(p => cityById[p.clinic_id] || ''));
+  let days = 0;
+  inMonth.forEach(p => {
+    const a = new Date(String(p.date).slice(0, 10) + 'T00:00:00');
+    const b = new Date(visitEnd(p) + 'T00:00:00');
+    const n = Math.round((b - a) / 86400000) + 1;
+    const from = String(p.date).slice(0, 10) < curMonth + '-01' ? curMonth + '-01' : String(p.date).slice(0, 10);
+    days += (m1ok(p, curMonth) ? n : n);
+  });
+  function m1ok() { return true; }
+  const monthHtml = `<div class="md-sec">Обзор · ${esc(monthLabel(curMonth))}</div>
+    <div class="month-bar">
+      <button class="btn ghost mini" data-month="-1">‹</button>
+      <span class="month-stat">визитов <b>${inMonth.length}</b> · городов <b>${cities.size}</b> · дней <b>${days}</b></span>
+      <button class="btn ghost mini" data-month="1">›</button>
+    </div>
+    ${inMonth.length ? `<div class="list">${inMonth.map(p => `
+      <div class="card list-row" data-visit="${p.noteId}">
+        <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(visitRange(p))}</span></div>
+        <div class="row-why"><b>${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}</b>${cityById[p.clinic_id] ? ' · ' + esc(cityById[p.clinic_id]) : ''}${p.goal ? ' · ' + esc(p.goal) : ''}</div>
+      </div>`).join('')}</div>` : '<div class="empty">В этом месяце визитов нет.</div>'}`;
+
+  // ---- календарь месяца ----
+  let calHtml = '';
+  if (VISITS_UI.mode === 'cal') {
+    const yy = Number(curMonth.slice(0, 4)), mm = Number(curMonth.slice(5, 7));
+    const first = new Date(yy, mm - 1, 1);
+    const daysInMonth = new Date(yy, mm, 0).getDate();
+    const startDow = (first.getDay() + 6) % 7; // Пн = 0
+    const cells = [];
+    for (let i = 0; i < startDow; i++) cells.push('');
+    for (let d = 1; d <= daysInMonth; d++) cells.push(curMonth + '-' + String(d).padStart(2, '0'));
+    const byDay = {};
+    visitRows.forEach(p => {
+      const a = String(p.date).slice(0, 10), b = visitEnd(p);
+      for (let d = new Date(a + 'T00:00:00'); ; d.setDate(d.getDate() + 1)) {
+        const iso = d.toISOString().slice(0, 10);
+        if (iso > b) break;
+        if (visitMonthKey(iso) === curMonth) (byDay[iso] = byDay[iso] || []).push(p);
+      }
+    });
+    calHtml = `<div class="md-sec">Календарь · ${esc(monthLabel(curMonth))}</div>
+      <div class="cal-grid">
+        ${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => `<div class="cal-dow">${d}</div>`).join('')}
+        ${cells.map(iso => {
+          if (!iso) return '<div class="cal-cell empty"></div>';
+          const list = byDay[iso] || [];
+          const dayNum = Number(iso.slice(8));
+          return `<div class="cal-cell${list.length ? ' has' : ''}${iso === today ? ' today' : ''}">
+            <div class="cal-day">${dayNum}</div>
+            ${list.slice(0, 2).map(p => `<div class="cal-ev" data-visit="${p.noteId}" title="${esc(byId[p.clinic_id] || '')}">${esc(visitTitleOf(p))}</div>`).join('')}
+            ${list.length > 2 ? `<div class="cal-more">+${list.length - 2}</div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  // ---- список: прошедшие и предстоящие ----
+  const rowHtml = (p) => `<div class="card list-row" data-visit="${p.noteId}">
+      <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(visitRange(p))}</span></div>
+      <div class="row-why"><b>${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}</b>${cityById[p.clinic_id] ? ' · ' + esc(cityById[p.clinic_id]) : ''}${p.goal ? ' · ' + esc(p.goal) : ''}</div>
+      <div class="row-why">${(p.participants || []).length ? 'Участники: ' + esc((p.participants || []).join(', ')) : 'Участники: —'}${(p.people || []).length ? ' · врачей: ' + p.people.length : ''}${mgrById[p.clinic_id] ? ' · ' + esc(mgrById[p.clinic_id]) : ''}</div>
+      <div class="vm-actions">
+        <button class="btn ghost mini" data-edit-plan="${p.noteId}">Изменить</button>
+        <button class="btn ghost mini" data-drop-plan="${p.noteId}" data-cid="${p.clinic_id}">Отменить визит</button>
+      </div>
+    </div>`;
+  const listHtml = (VISITS_UI.mode === 'cal') ? '' :
+    `<div class="md-gap">
+      <div class="md-sec">Предстоящие · <b>${future.length}</b></div>
+      ${future.length ? `<div class="list">${future.map(rowHtml).join('')}</div>` : '<div class="empty">Предстоящих визитов нет.</div>'}
+      ${past.length ? `<div class="md-sec" style="margin-top:18px">Прошедшие · <b>${past.length}</b></div>
+        <div class="list">${past.slice().reverse().map(rowHtml).join('')}</div>` : ''}
+    </div>`;
 
   // идеи
   const ideasHtml = ideaRows.length ? `<div class="md-sec">Идеи визитов · <b>${ideaRows.length}</b></div>
@@ -4303,7 +4435,7 @@ async function renderVisits() {
       const win = (i.from && i.to) ? (fmtDate(i.from) + ' — ' + fmtDate(i.to)) : (i.from ? 'с ' + fmtDate(i.from) : 'окно не задано');
       const parts = (i.participants || []).join(', ');
       return `<div class="card list-row" data-id="${i.clinic_id}" data-kind="clinic">
-        <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(byId[i.clinic_id] || ('клиника #' + i.clinic_id))}</span></span><span class="row-next">${esc(win)}</span></div>
+        <div class="list-row-top"><span class="rn-wrap"><span class="row-next" style="margin-left:0">${esc(win)}</span></span><span class="rn-wrap"><span class="list-row-name">${esc(byId[i.clinic_id] || ('клиника #' + i.clinic_id))}</span></span></div>
         <div class="row-why">${esc(i.goal || 'визит')}${parts ? ' · с ' + esc(parts) : ''}${i.remind ? ' · напомню ' + esc(fmtDate(i.remind)) : ''}</div>
         <div class="vm-actions">
           <button class="btn primary mini" data-plan-idea="${i.noteId}">Запланировать</button>
@@ -4313,43 +4445,42 @@ async function renderVisits() {
       </div>`;
     }).join('')}</div>` : '';
 
-  // календарь визитов по неделям
-  const byDate = {};
-  visitRows.forEach(p => { const d = String(p.date).slice(0, 10); (byDate[d] = byDate[d] || []).push(p); });
-  const start = todayISO();
-  const weeksMap = {};
-  Object.keys(byDate).sort().forEach(d => {
-    const diff = Math.round((new Date(d + 'T00:00:00') - new Date(start + 'T00:00:00')) / 86400000);
-    const w = diff < 0 ? -1 : Math.floor(diff / 7);
-    (weeksMap[w] = weeksMap[w] || { days: {} }).days[d] = byDate[d];
-  });
-  const weekKeys = Object.keys(weeksMap).map(Number).sort((a, b) => a - b);
-  const calHtml = weekKeys.length ? weekKeys.map(w => {
-    const days = Object.keys(weeksMap[w].days).sort();
-    const head = w < 0 ? 'Просроченные визиты' : (fmtDate(days[0]) + ' — ' + fmtDate(addDaysISO(days[0], 6)));
-    return `<div class="md-sec" style="font-size:15px">${esc(head)}</div>`
-      + days.map(d => `<div class="md-sub">${fmtDate(d)}</div><div class="list">` + weeksMap[w].days[d].map(p => {
-        const goal = p.goal || '';
-        const parts = (p.participants || []).join(', ');
-        const docs = (p.people || []).length;
-        return `<div class="card list-row" data-visit="${p.noteId}">
-          <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(fmtDate(p.date))}</span></div>
-          <div class="row-why"><b>${esc(byId[p.clinic_id] || ('клиника #' + p.clinic_id))}</b>${goal ? ' · ' + esc(goal) : ''}</div>
-          <div class="row-why">${parts ? 'Участники: ' + esc(parts) : 'Участники: —'}${docs ? ' · врачей: ' + docs : ''}${mgrById[p.clinic_id] ? ' · ' + esc(mgrById[p.clinic_id]) : ''}</div>
-          <div class="vm-actions">
-            <button class="btn ghost mini" data-edit-plan="${p.noteId}">Изменить</button>
-            <button class="btn ghost mini" data-drop-plan="${p.noteId}" data-cid="${p.clinic_id}">Отменить визит</button>
-          </div>
-        </div>`;
-      }).join('') + `</div>`).join('');
-  }).join('') : `<div class="empty">Запланированных визитов нет. Запиши идею — кнопкой «＋ Идея» или скажи мне вслух.</div>`;
-
-  view.innerHTML = `<div class="md-tools"><button class="btn primary mini" id="newIdeaBtn">＋ Идея визита</button></div>`
-    + ideasHtml
-    + `<div class="md-gap">${calHtml}</div>`;
+  const chip = (val, label) => `<button class="pl-chip${MGR_FILTER === val ? ' on' : ''}" data-visits-mgr="${val}">${label}</button>`;
+  view.innerHTML = `
+    <div class="plan-bar">
+      <input type="text" id="visitsSearch" placeholder="Поиск по клинике" value="${esc(sV || '')}" />
+      <button class="btn ghost mini" id="visitsModeBtn">${VISITS_UI.mode === 'cal' ? 'Список' : 'Календарь'}</button>
+      <button class="btn primary mini" id="newIdeaBtn">＋ Идея</button>
+    </div>
+    <div class="plan-filters" style="display:flex">
+      ${chip('', 'Все')}${chip('__dept', 'Мой отдел')}${chip('Мазаева', 'Мазаева')}${chip('Евсеев', 'Евсеев')}
+    </div>
+    ${monthHtml}
+    ${calHtml}
+    ${ideasHtml}
+    ${listHtml}`;
 
   const nb = document.getElementById('newIdeaBtn');
   if (nb) nb.addEventListener('click', () => openIdeaModal());
+
+  const vs = document.getElementById('visitsSearch');
+  if (vs) vs.addEventListener('input', () => { state.search = vs.value; renderVisits(); });
+
+  const mb = document.getElementById('visitsModeBtn');
+  if (mb) mb.addEventListener('click', () => {
+    VISITS_UI.mode = VISITS_UI.mode === 'cal' ? 'list' : 'cal';
+    localStorage.setItem('visitsMode', VISITS_UI.mode);
+    renderVisits();
+  });
+
+  view.querySelectorAll('[data-visits-mgr]').forEach(b => b.addEventListener('click', () => {
+    localStorage.setItem('visitsMgr', b.dataset.visitsMgr);
+    renderVisits();
+  }));
+  view.querySelectorAll('[data-month]').forEach(b => b.addEventListener('click', () => {
+    VISITS_UI.month = monthShift(curMonth, Number(b.dataset.month));
+    renderVisits();
+  }));
 
   view.querySelectorAll('[data-plan-idea]').forEach(btn => btn.addEventListener('click', async (e) => {
     e.stopPropagation(); e.preventDefault();
@@ -4388,14 +4519,12 @@ async function renderVisits() {
       await render();
     } catch (err) { toast('⚠️ Не удалось: ' + (err && err.message ? err.message : err)); }
   }));
-  // v4.17.0: клик по визиту открывает карточку визита, а не клиники
   view.querySelectorAll('[data-visit]').forEach(el => el.addEventListener('click', async (e) => {
     if (e.target.closest('button')) return;
     const plan = plans.find(x => Number(x.noteId) === Number(el.dataset.visit));
     if (plan) await openVisitCard(plan);
   }));
 }
-
 
 // общий список запланированных действий из того же источника данных
 async function renderActionList(type, title) {
@@ -4776,7 +4905,7 @@ const VISIT_MANAGERS = [
   { id: 'Евсеев', label: 'Евсеев' }
 ];
 const VISIT_MANAGER_ALIAS = { 'Саша': 'Абрамов', 'Настя': 'Осечкина', 'Галя': 'Скокова' };
-const VISIT_KINDS = ['Встреча', 'Апробация', 'Мастер-класс', 'Другое'];
+const VISIT_KINDS = ['Встреча', 'Апробация', 'Мастер-класс', 'Выставка', 'Конференция', 'Другое'];
 function canonManager(name) { const v = String(name || '').trim(); return VISIT_MANAGER_ALIAS[v] || v; }
 let visitPlansMap = null, visitPlansList = null, visitIdeasCache = null;
 
@@ -4917,7 +5046,10 @@ async function openVisitModal(cfg) {
       <input type="text" id="vmClinicName" list="vmClinicList" value="${esc(cur ? cur.name : '')}" placeholder="КМКБ №4" autocomplete="off" />
       <datalist id="vmClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}</option>`).join('')}</datalist>
     </div>
-    <div class="field"><label>Дата визита</label><input type="date" id="vmDate" value="${esc(date)}" /></div>
+    <div class="row2">
+      <div class="field"><label>С какого числа</label><input type="date" id="vmDate" value="${esc(date)}" /></div>
+      <div class="field"><label>По какое число</label><input type="date" id="vmDateTo" value="${esc((plan && plan.dateTo) || (idea && idea.to) || date)}" /></div>
+    </div>
     <div class="field"><label>Название визита</label>
       <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || (plan && plan.kind) || base.title || base.kind || 'Встреча')}" placeholder="например: мастер-класс по Литокласт" />
     </div>
@@ -4990,9 +5122,12 @@ async function openVisitModal(cfg) {
       const c = byName[nm.toLowerCase()] || (cur && nm.toLowerCase() === String(cur.name || '').toLowerCase() ? cur : null);
       if (!c) { toast('Клиника не найдена — выбери из подсказки'); btn.disabled = false; return; }
       const d = (document.getElementById('vmDate').value || '').slice(0, 10);
+      let dTo = (document.getElementById('vmDateTo').value || '').slice(0, 10) || d;
       if (!d) { toast('Нужна дата визита'); btn.disabled = false; return; }
+      if (dTo < d) dTo = d;
       const payload = {
         date: d,
+        dateTo: dTo,
         kind: (document.getElementById('vmKind').value || 'Встреча'),
         title: (document.getElementById('vmTitle').value || '').trim(),
         goal: (document.getElementById('vmGoal').value || '').trim(),
@@ -5180,6 +5315,7 @@ async function renderMyDay() {
         <span class="row-next">${badge}</span>
       </div>
       ${subMarks(c, esc(sub || '—'))}
+      ${(c.actionType === 'visit' && vPlan) ? `<div class="row-why">${esc(visitRange(vPlan))}</div>` : ''}
       ${why ? `<div class="row-why">${esc(why)}</div>` : ''}
     </div>`;
   };
