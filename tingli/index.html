@@ -32545,7 +32545,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.98.0';
+const APP_VER = '5.99.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -34294,7 +34294,13 @@ function openTask(unitRef, partRef, ti) {
     <div class="nav-row">
       <button class="nav-btn" onclick="prevTask()">← Назад</button>
       <button class="nav-btn" onclick="nextTask()">Дальше →</button>
-    </div>`;
+    </div>
+    ${quizFills(part).length ? `<div class="btn-row" style="margin-top:10px">
+      <button class="btn ghost" onclick="quizCopyText()">📋 Сформировать текст для учителя</button>
+    </div>` : ''}
+    ${quizFills(part).length && lastWrittenPart(u) === part ? `<div class="btn-row">
+      <button class="btn" onclick="quizSendToTeacher()">📤 Подготовить и отправить учителю</button>
+    </div>` : ''}`;
   posRestore();
 }
 
@@ -34335,7 +34341,7 @@ function taskHtml(u, part, t, ti) {
     body = `
       <div class="task-q">${esc(t.q).replace('____', '______')}</div>
       ${qru}
-      <input class="fill zh-opt" placeholder="Введи ответ иероглифами" data-ans="${esc(t.answer)}">`;
+      <input class="fill zh-opt" placeholder="Введи ответ иероглифами" data-ans="${esc(t.answer)}" data-ti="${ti}" value="${esc(fillLoad(u.unit, part.id, ti))}" oninput="fillSaveFrom(this)">`;
   } else if (t.type === 'tf') {
     body = `
       <div class="task-q">${esc(t.q)}</div>
@@ -34740,6 +34746,49 @@ function updateAppBadge() {
   const n = appBadgeCount();
   try { if (n > 0) navigator.setAppBadge(n); else navigator.clearAppBadge(); } catch (e) {}
 }
+/* v5.99.0: ответы в заданиях «впиши/перепиши» тоже сохраняются и уходят учителю */
+function fillKey(unitN, partId, ti) { return 'tingli-fill-' + unitN + '-' + partId + '-' + ti; }
+function fillLoad(unitN, partId, ti) { try { return localStorage.getItem(fillKey(unitN, partId, ti)) || ''; } catch (e) { return ''; } }
+function fillSaveFrom(el) {
+  if (!curUnit || !curPart || !el) return;
+  try { saveLocal(fillKey(curUnit.unit, curPart.id, Number(el.dataset.ti)), el.value); } catch (e) {}
+}
+function quizFills(part) { return (part && part.tasks ? part.tasks : []).filter(t => t && t.type === 'fill'); }
+function quizText(part) {
+  if (!curUnit || !part) return '';
+  return quizFills(part).map((t, i) => {
+    const ti = part.tasks.indexOf(t);
+    const a = fillLoad(curUnit.unit, part.id, ti).trim();
+    return (i + 1) + '. ' + t.q + '\n' + (a || '—');
+  }).join('\n\n');
+}
+function quizCopyText() {
+  const txt = quizText(curPart);
+  if (!txt.trim()) { alert('Сначала впиши ответы.'); return; }
+  const done = () => alert('Текст скопирован — вставь его учителю.');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, () => {
+    const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { alert('Не удалось скопировать.'); }
+    document.body.removeChild(ta);
+  });
+  else alert('Копирование недоступно: ' + txt.slice(0, 200));
+}
+function quizSendToTeacher() {
+  const txt = quizText(curPart);
+  if (!txt.trim()) { alert('Сначала впиши ответы.'); return; }
+  if (navigator.share) navigator.share({ title: 'ДЗ по китайскому · урок ' + curUnit.unit, text: txt }).catch(() => quizCopyText());
+  else quizCopyText();
+}
+// последняя письменная часть урока: hw (не голосовое) либо тесты с вводом текста
+function lastWrittenPart(u) {
+  let last = null;
+  (u.parts || []).forEach(p => {
+    if (p.kind === 'hw' && !p.voiceHomework) last = p;
+    else if (p.tasks && quizFills(p).length) last = p;
+  });
+  return last;
+}
+
 function hwText(withQ) {
   return curPart.questions.map((q, i) => {
     const qs = typeof q === 'string' ? q : q.q;
@@ -34770,6 +34819,25 @@ function hwRefresh() {
     updateAppBadge();
   } catch (e) {}
 }
+// v5.99.0: подготовка и отправка ДЗ учителю одним нажатием
+function hwSendToTeacher() {
+  if (!curUnit || !curPart || !curPart.questions) return;
+  const txt = hwText(true);
+  if (!txt || !txt.trim()) { alert('Сначала ответь на вопросы.'); return; }
+  try {
+    const n = curPart.questions.length;
+    saveLocal('tingli-hwmeta-' + curUnit.unit + '-' + curPart.id, JSON.stringify({ n: n, done: true, answered: hwAnswered(), submitted: Date.now() }));
+    crsHwSetState('u' + curUnit.unit + 'p' + curPart.id, 'done');
+    updateAppBadge();
+  } catch (e) {}
+  const asCopy = () => { try { hwCopy(true); } catch (e) {} };
+  if (navigator.share) {
+    navigator.share({ title: 'ДЗ по китайскому · урок ' + curUnit.unit, text: txt }).catch(() => asCopy());
+  } else {
+    asCopy();
+  }
+}
+
 function hwCopy(withQ) {
   const txt = hwText(withQ);
   // Сформировал текст для учителя = ДЗ закончено. Сразу синхронизируем это с 课程 → 作业.
@@ -35005,6 +35073,8 @@ function renderHw(u, part) {
   const heading = TingliWritingHeading();
   const aiCheck = part.aiCheck !== false;
   const qs = part.questions;
+  const hwPartsAll = (u.parts || []).filter(p => p && p.kind === 'hw');
+  const isLastHw = hwPartsAll.length ? hwPartsAll[hwPartsAll.length - 1].id === part.id : false;
   // Компактная сводка: диапазоны по типам заданий.
   const groups = [];
   qs.forEach((q, i) => {
@@ -35051,8 +35121,11 @@ function renderHw(u, part) {
       ${aiCheck ? `<div class="btn-row">
         <button class="btn ghost" id="hwCheckAllBtn" onclick="hwCheckAll()">🤖 Проверить все ответы</button>
       </div>` : ''}
+      ${isLastHw ? `<div class="btn-row">
+        <button class="btn" id="hwSendBtn" onclick="hwSendToTeacher()">📤 Подготовить и отправить учителю</button>
+      </div>` : ''}
       <div class="btn-row">
-        <button class="btn" id="hwCopyBtn" onclick="hwCopy(true)">📋 Сформировать текст для учителя</button>
+        <button class="btn ghost" id="hwCopyBtn" onclick="hwCopy(true)">📋 Сформировать текст для учителя</button>
       </div>
       <div class="btn-row">
         <button class="btn ghost" id="hwCopyBtnQ" onclick="hwCopy(false)">📋 Только ответы</button>
