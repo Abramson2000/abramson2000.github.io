@@ -7,7 +7,7 @@
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
 // Имя кэша привязано к видимой версии: см. APP_VER в index.html (сейчас 4.7.1).
 // При выпуске новой версии поднимать оба числа вместе — иначе старый HTML останется в кэше.
-const APP_CACHE = 'crm-app-4.67.0';
+const APP_CACHE = 'crm-app-4.68.0';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
 const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js?v=139', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
@@ -460,6 +460,15 @@ self.addEventListener('activate', (e) => {
       // Старые CRM-кэши не удаляем автоматически: они служат офлайн-резервом на iOS.
     } catch (e) {}
     try { await self.clients.claim(); } catch (e) {}
+    // 4.68.0: старый воркер отдавал страницу из кэша, поэтому люди оставались
+    // на прежнем коде после выпуска (у Скоковой пропадали визиты).
+    // Теперь новая версия воркера сама перезагружает открытые вкладки на сеть.
+    try {
+      const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      for (const c of wins) {
+        try { if (c.url && c.navigate) await c.navigate(c.url); } catch (_) {}
+      }
+    } catch (_) {}
     await flushQueue();
   })());
 });
