@@ -786,9 +786,14 @@ body.logged-out .toast { display: none !important; }
   /* v3.26.2: поиск — залипающая строка сверху, ширина = колонка списка (45%);
      нижняя плашка на десктопе не нужна (кнопка «＋» переехала в строку поиска) */
   /* v3.30.1: строка поиска больше НЕ закреплена (просил Саша — закреплённая кнопка «＋ Добавить клинику» мешала) */
-  .searchbar { position: static; background: var(--bg); margin: 0; padding: 8px 16px 2px; }
-  .search-col { width: min(calc((100vw - 260px) * .45 - 8px), 100%); flex: 0 0 auto; }
-  .search-box { width: min(calc((100vw - 260px) * .45 - 8px - 32px), 100%); }
+  /* 4.70.0: поиск и список — одной центрированной колонкой */
+  .searchbar { position: static; background: var(--bg); padding: 8px 0 2px; }
+  /* 4.70.0: базовое правило .searchbar ниже ставит margin-right:16px — перебиваем его,
+     иначе строка поиска стоит на 8 px левее колонки списка */
+  body .searchbar { margin-left: 260px; margin-right: 0; }
+  .searchbar-inner { max-width: 792px; margin: 0 auto; }
+  .search-col { width: 100%; flex: 1 1 auto; min-width: 0; }
+  .search-box { width: 100%; }
   .bottom-bar { display: none; }
   body { padding-bottom: 24px; }
   /* v3.27.0: пока карточка не выбрана — список занимает всю рабочую область (место под карточку не висит пустым);
@@ -799,8 +804,12 @@ body.logged-out .toast { display: none !important; }
   /* 4.67.0: колонка списка сужена ТОЛЬКО когда справа открыта карточка.
      Раньше ограничение висело всегда — при скрытой карточке список стоял
      в 2/3 ширины (на 1024 это было ~509 px при пустом месте справа). */
-  .work > #view { max-width: none; padding: 8px 16px 12px; }
-  body.detail-mode.card-open .work > #view { max-width: calc((100vw - 260px) * 2 / 3); }
+  /* 4.70.0: списки-карточки на компьютере идут не на всю ширину, а центрированной
+     колонкой 792 px — это ширина расписания в Тингли (720) плюс 10%.
+     Табличные разделы (План) остаются широкими, иначе цифры не влезают. */
+  .work > #view { max-width: 792px; margin-left: auto; margin-right: auto; padding: 8px 16px 12px; }
+  body.plan-mode .work > #view { max-width: none; margin-left: 0; margin-right: 0; }
+  body.detail-mode.card-open .work > #view { max-width: calc((100vw - 260px) * 2 / 3); margin-left: 0; margin-right: 0; }
   /* фильтр менеджера в «Моём дне» — в строке заголовка справа, с отступом от края */
   .cns-head .md-mgr { margin-right: 8px; }
 }
@@ -1091,7 +1100,8 @@ details.detail-block[open] > summary { margin-bottom: 6px; }
   body:not(.detail-mode) .work .hover-card { display: none; }
   /* базовая ширина: сдвиг задаём ЗДЕСЬ (правило идёт после базовых .searchbar/.view) */
   .work, .searchbar { margin-left: 260px; }
-  .work > #view { margin: 0; }
+  /* 4.70.0: список — центрированная колонка; отступы auto, иначе он липнет влево */
+  .work > #view { margin-left: auto; margin-right: auto; }
 }
 .badge a.tel { color: inherit; }
 .detail-block a.tel, .contact-row a.tel { color: var(--brand); }
@@ -2089,7 +2099,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.69.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.70.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
