@@ -2089,7 +2089,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.68.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.69.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4603,12 +4603,10 @@ async function renderVisits() {
   (all || []).forEach(c => { byId[c.id] = c.name; cityById[c.id] = c.city || ''; mgrById[c.id] = c.manager || ''; });
   const me = window.CURRENT_MANAGER || myManagerName() || '';
   const isBossV = CURRENT_ROLE === 'admin' || String(CURRENT_EMAIL || '').toLowerCase() === 'abramson@crm.ru';
-  const visible = (rec) => {
-    if (isBossV) return true;
-    const parts = rec.participants || [];
-    if (parts.length) return parts.includes(me);
-    return (mgrById[rec.clinic_id] || '') === me;
-  };
+  // 4.69.0: правило Саши — ВСЕ менеджеры видят ВСЕ визиты и идеи.
+  // Раньше не-руководителю показывались только визиты с его участием,
+  // и у Скоковой список оставался пустым.
+  const visible = () => true;
 
   // фильтр по менеджерам: Все / Мой отдел / Мазаева / Евсеев
   // v4.57.0: все видят все визиты; при входе фильтр стоит на своих, но можно выбрать «Все»
@@ -4616,7 +4614,9 @@ async function renderVisits() {
   // v4.63.0: фильтр визитов живёт только в памяти. При входе — всегда «свои»,
   // сохранённый ранее чужой фильтр больше не «съедает» предстоящие визиты
   try { localStorage.removeItem('visitsMgr'); } catch (_) {}
-  const MGR_FILTER = (VISITS_UI.mgr === undefined) ? (isBossV ? '' : (me || '')) : VISITS_UI.mgr;
+  // 4.69.0: при входе фильтр всегда «Все». Раньше он молча вставал на свою фамилию
+  // и прятал чужие визиты — это и выглядело как «нет предстоящих».
+  const MGR_FILTER = (VISITS_UI.mgr === undefined) ? '' : VISITS_UI.mgr;
   const DEPT = ['Абрамов', 'Осечкина', 'Скокова'];
   const passMgr = (rec) => {
     if (!MGR_FILTER) return true;
