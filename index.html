@@ -303,8 +303,13 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .month-stat b { color: var(--ink); }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px 2px; padding: 0 10px 16px; align-items: start; }
 .cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px 3px; grid-column: 1 / -1; margin-bottom: 12px; }
+/* 4.58.0: стрелки месяцев сверху и крупные */
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px 12px; }
+.cal-title { font-weight: 800; font-size: 16px; color: var(--ink); text-transform: capitalize; }
+.cal-nav { width: 44px; height: 44px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 12px; background: var(--card, #fff); color: var(--ink); font-size: 26px; line-height: 1; cursor: pointer; }
+.cal-nav:active { background: #eef7f7; }
 .cal-dnum { height: 24px; font-size: 12.5px; color: var(--muted); text-align: center; line-height: 20px; }
-.cal-bar { height: 40px; line-height: 40px; border-radius: 9px; padding: 0 10px; font-size: 13px; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.cal-bar { height: 40px; line-height: 40px; border-radius: 9px; padding: 0 10px; font-size: 13px; font-weight: 600; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
 .cal-bar.past { background: #e6f0fb; color: #2c6fb0; }
 .cal-bar.now { background: #e8f6ec; color: #1f7a45; }
 .cal-bar.idea { background: #fff6d9; color: #8a6d00; border: 1px dashed #e0cd7a; }
@@ -1714,7 +1719,12 @@ async function listClinics() {
   // v4.22.0: менеджер видит ТОЛЬКО свои клиники (Осечкина, Скокова). Админ и наблюдатели — все.
   if (CURRENT_ROLE === 'manager' && !window.__ALLOW_ALL_CLINICS) {
     const me = String(window.CURRENT_MANAGER || myManagerName() || '').trim();
-    if (me) list = list.filter(c => String(c.manager || '').trim() === me);
+    if (me) list = list.filter(c => {
+      const kind = c.kind || 'hospital';
+      // v4.60.0: справочник виден целиком — это база знаний, а не портфель менеджера
+      if (kind === 'ref_gos' || kind === 'ref_priv' || kind === 'ref_firm' || kind === 'distributor') return true;
+      return String(c.manager || '').trim() === me;
+    });
   }
   return list;
 }
@@ -2037,7 +2047,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.57.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.60.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4434,9 +4444,7 @@ async function renderVisits() {
   const statsHtml = `<div class="md-gap">
       <div class="md-sec">Итоги · ${esc(monthLabel(curMonth))}</div>
       <div class="month-bar">
-        <button class="btn ghost mini" data-month="-1">‹</button>
         <span class="month-stat">визитов <b>${inMonth.length}</b> · городов <b>${cities.size}</b> · дней <b>${days}</b>${cities.size ? ' · ' + esc([...cities].slice(0, 5).join(', ')) : ''}</span>
-        <button class="btn ghost mini" data-month="1">›</button>
       </div>
     </div>`;
 
@@ -4512,8 +4520,12 @@ async function renderVisits() {
       </div>`;
     }).join('');
 
-    calHtml = `<div class="md-sec">Календарь · ${esc(monthLabel(curMonth))}</div>
-      <div class="cal-grid">
+    calHtml = `<div class="cal-head">
+        <button class="cal-nav" data-month="-1" aria-label="Предыдущий месяц">‹</button>
+        <span class="cal-title">${esc(monthLabel(curMonth))}</span>
+        <button class="cal-nav" data-month="1" aria-label="Следующий месяц">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid">
         ${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => `<div class="cal-dow">${d}</div>`).join('')}
         ${weeksHtml}
       </div>`;
@@ -4593,6 +4605,20 @@ async function renderVisits() {
     VISITS_UI.month = monthShift(curMonth, Number(b.dataset.month));
     renderVisits();
   }));
+  // свайп по сетке: влево — следующий месяц, вправо — предыдущий
+  const calGrid = document.getElementById('calGrid');
+  if (calGrid) {
+    let sx = 0, sy = 0;
+    calGrid.addEventListener('touchstart', (e) => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; }, { passive: true });
+    calGrid.addEventListener('touchend', (e) => {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - sx, dy = t.clientY - sy;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        VISITS_UI.month = monthShift(curMonth, dx < 0 ? 1 : -1);
+        renderVisits();
+      }
+    }, { passive: true });
+  }
 
   view.querySelectorAll('[data-plan-idea]').forEach(btn => btn.addEventListener('click', async (e) => {
     e.stopPropagation(); e.preventDefault();
@@ -7141,7 +7167,12 @@ async function takeClinicIntoWork(cid, mgr) {
   if (!c) return null;
   const info = refWorkInfo(c);
   const target = info.workId || c.id;
-  const { error } = await sb.from('clinics').update({ manager: who }).eq('id', target);
+  // v4.59.0: взятая в работу справочная карточка становится рабочей клиникой,
+  // иначе она не появляется в «Клиниках» и не даёт поставить дату созвона
+  const srcKind = String(c.kind || '');
+  const patch = { manager: who };
+  if (Number(target) === Number(c.id) && (srcKind === 'ref_gos' || srcKind === 'ref_priv')) patch.kind = 'hospital';
+  const { error } = await sb.from('clinics').update(patch).eq('id', target);
   if (error) { toast('⚠️ ' + error.message); return null; }
   try {
     const { data: ex } = await sb.from('clinic_private').select('clinic_id,manager').eq('clinic_id', target).maybeSingle();
