@@ -7,7 +7,7 @@
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
 // Имя кэша привязано к видимой версии: см. APP_VER в index.html (сейчас 4.7.1).
 // При выпуске новой версии поднимать оба числа вместе — иначе старый HTML останется в кэше.
-const APP_CACHE = 'crm-app-4.66.0';
+const APP_CACHE = 'crm-app-4.67.0';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
 const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js?v=139', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
@@ -373,7 +373,7 @@ async function flushQueue(authorization) {
 async function fetchNavFast(req, timeoutMs) {
   return Promise.race([
     fetch(req, { cache: 'no-store' }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), timeoutMs || 1200))
+    new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), timeoutMs || 2500))
   ]);
 }
 async function handleShell(req) {
@@ -392,20 +392,25 @@ async function handleShell(req) {
         if (hit) break;
       }
     }
-    if (hit) {
-      // Отдаём рабочую оболочку сразу. Свежую копию подтягиваем в фоне.
-      fetch(req, { cache: 'no-store' }).then(async (r) => {
-        if (r && r.ok) await putClean(cur, './index.html', r.clone());
-      }).catch(() => {});
-      return hit;
-    }
+    // 4.67.0: СНАЧАЛА сеть, потом кэш. Раньше здесь отдавался кэш, а свежая копия
+    // подтягивалась «в фоне» — человек после выпуска видел СТАРЫЙ код до следующего
+    // открытия (именно поэтому «у Скоковой опять только идеи»).
     try {
-      const r = await fetchNavFast(req, 1200);
-      if (r && r.ok) await putClean(cur, './index.html', r.clone());
-      return r;
-    } catch (e) {
-      return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
+      const r = await fetchNavFast(req, 2500);
+      if (r && r.ok) {
+        await putClean(cur, './index.html', r.clone());
+        return r;
+      }
+      if (r) return r;   // 404 и прочее — отдаём как есть, кэш не подсовываем
+    } catch (e) {}
+    if (hit) return hit;
+    const keys = (await caches.keys()).filter((k) => k.startsWith('crm-app-') && k !== APP_CACHE).reverse();
+    for (const k of keys) {
+      const old = await caches.open(k);
+      const alt = (await old.match('./index.html')) || (await old.match('./'));
+      if (alt) return alt;
     }
+    return new Response('<h1>Нет сети</h1>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
   }
   let hit = await caches.match(req);
   // Previous installs cached this exact SDK without its query string.

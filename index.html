@@ -522,6 +522,40 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
 .btn:active { background: var(--brand-dark); }
 .btn.ghost { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
 .btn.danger { background: var(--danger); }
+/* 4.67.0: форма организации — группы, свёрнутая история, липкая панель действий */
+.fgroup { border: 1px solid var(--line); border-radius: 12px; padding: 12px 12px 2px; margin-bottom: 12px; background: var(--card); }
+.fgroup-h { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fhist { margin: 4px 0 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.fhist > summary { cursor: pointer; font-size: 13px; color: var(--muted); padding: 4px 0; list-style: none; }
+.fhist > summary::-webkit-details-marker { display: none; }
+.fhist > summary::before { content: '▸ '; }
+.fhist[open] > summary::before { content: '▾ '; }
+.fhist > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+.vm-doc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.vm-doc-row:last-child { border-bottom: 0; }
+.vm-doc-main { flex: 1 1 150px; min-width: 0; }
+.vm-doc-name { font-size: 13.5px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.vm-doc-pos { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.vm-doc-call { width: auto; flex: 0 0 auto; min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; position: static !important; box-shadow: none !important; }
+@media (max-width: 520px) { .vm-doc-call { flex: 1 1 100%; } }
+.vm-menu { position: relative; display: flex; flex-direction: column; align-items: flex-start; padding: 4px 0 2px; }
+.vm-menu.hidden { display: none; }
+.vm-menu-item { border: 0; background: none; color: var(--danger); font-size: 13.5px; font-weight: 600; padding: 8px 10px; border-radius: 8px; cursor: pointer; min-height: 40px; }
+.vm-menu-item:hover { background: rgba(220,38,38,.08); }
+.vm-menu-item:focus-visible { outline: 3px solid var(--brand); outline-offset: 1px; }
+.modal-actions { position: sticky; bottom: -1px; z-index: 4; display: flex; gap: 8px; padding: 10px 0 2px; margin-top: 4px; background: linear-gradient(to top, var(--bg) 72%, rgba(245,245,244,0)); flex: 0 0 auto; }
+/* 4.67.0: панель действий всегда видна — тело формы прокручивается, кнопки стоят в подвале окна */
+#modal .modal-card { display: flex; flex-direction: column; }
+#modalBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+#modal > .modal-card > .modal-actions { position: static; margin: 0; padding: 10px 0 0; background: var(--bg); border-top: 1px solid var(--line); }
+.modal-actions .btn { margin: 0; }
+.danger-zone { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+.btn.danger-ghost { background: transparent; color: var(--danger); border: 1px solid currentColor; box-shadow: none; font-weight: 600; font-size: 14px; padding: 10px; }
+.btn.danger-ghost:hover { background: rgba(220,38,38,.06); }
+.danger-note { font-size: 12px; color: var(--muted); margin-top: 6px; text-align: center; }
+/* 4.67.0: заметный индикатор фокуса для строк-карточек и элементов внутри */
+.list-row:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 12px; }
+.btn:focus-visible, .icon-btn:focus-visible, .pl-chip:focus-visible, .transfer-btn:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
 .btn-row { display: flex; gap: 10px; margin-top: 8px; }
 
 .detail-block { background: var(--card); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow); border: 1px solid var(--line); }
@@ -762,7 +796,11 @@ body.logged-out .toast { display: none !important; }
   body.detail-mode:not(.card-open) .work .hover-card { display: none; }
   .detail-back { display: none !important; }
   /* v3.27.1: колонка списка на компьютере — уже полной ширины; v3.27.3: сужена примерно на треть от полной */
-  .work > #view { max-width: calc((100vw - 260px) * 2 / 3); padding: 8px 16px 12px; }
+  /* 4.67.0: колонка списка сужена ТОЛЬКО когда справа открыта карточка.
+     Раньше ограничение висело всегда — при скрытой карточке список стоял
+     в 2/3 ширины (на 1024 это было ~509 px при пустом месте справа). */
+  .work > #view { max-width: none; padding: 8px 16px 12px; }
+  body.detail-mode.card-open .work > #view { max-width: calc((100vw - 260px) * 2 / 3); }
   /* фильтр менеджера в «Моём дне» — в строке заголовка справа, с отступом от края */
   .cns-head .md-mgr { margin-right: 8px; }
 }
@@ -1736,7 +1774,10 @@ async function listAllClinics() {
   try { return await listClinics(); } finally { window.__ALLOW_ALL_CLINICS = keep; }
 }
 async function getClinic(id) {
-  const { data, error } = await sb.from('clinics').select('*').eq('id', id).maybeSingle();
+  // 4.67.0: страховка — невалидный id не должен уходить в запрос
+  const nId = Number(id);
+  if (!Number.isFinite(nId) || nId <= 0) return null;
+  const { data, error } = await sb.from('clinics').select('*').eq('id', nId).maybeSingle();
   if (error) throw error;
   if (!data) return null;
   const list = await mergeClinicPrivate([fromClinic(data)]);
@@ -2048,7 +2089,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.66.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.67.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2380,7 +2421,9 @@ function teAdd(val) {
 function tagEditorHtml(tags, label, suggest) {
   teTags = ((tags || []).filter(t => !isHiddenTag(t))).slice();
   const opts = suggest || tagSuggestions();
-  return `<div class="field">      <div class="field"><label>${esc(label || 'Неклассифицированные метки')}</label>
+  // 4.67.0: здесь была незакрытая обёртка <div class="field"> — из-за неё весь низ формы
+  // уезжал внутрь последней группы. Теперь разметка сбалансирована.
+  return `<div class="field"><label>${esc(label || 'Неклассифицированные метки')}</label>
       <div class="tag-edit" id="teBox"></div>
       <div class="te-row"><input id="teNew" list="dl_tags" placeholder="Новая метка…" /><button type="button" class="btn ghost" id="teAdd">＋ Добавить</button></div>
       <datalist id="dl_tags">${opts.map(t => `<option value="${esc(t)}"></option>`).join('')}</datalist>
@@ -2465,7 +2508,13 @@ document.addEventListener('click', ev => {
   toggleTagFilter(el.dataset.grp || 'tags', el.dataset.tagf);
 }, true);
 
-let __modalScrollY = 0, __closingModal = false;
+let __modalScrollY = 0, __closingModal = false, __formDirty = false;
+function markFormDirty(v) { __formDirty = !!v; }
+function requestCloseModal() {
+  if (__formDirty && !confirm('Закрыть форму без сохранения?')) return;
+  __formDirty = false;
+  closeModal();
+}
 function openModal(title, bodyHtml) {
   __modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
   __modalOpener = (document.activeElement && document.activeElement !== document.body) ? document.activeElement : null;
@@ -2476,6 +2525,16 @@ function openModal(title, bodyHtml) {
   document.getElementById('modal').classList.remove('hidden');
   // v4.16.1: если в форме есть выбор ЛПУ — сразу подключаем поиск
   setTimeout(() => { try { bindClinicPicker(); } catch (_) {} }, 0);
+  // 4.67.0: панель «Сохранить/Отмена» выносим из прокручиваемой части в подвал окна,
+  // иначе на телефоне кнопки уезжают под экран
+  setTimeout(() => {
+    try {
+      const body = document.getElementById('modalBody');
+      const act = body && body.querySelector('.modal-actions');
+      const card = document.querySelector('#modal .modal-card');
+      if (act && card && act.parentElement === body) card.appendChild(act);
+    } catch (_) {}
+  }, 0);
   // 4.64.0: фокус внутрь диалога
   setTimeout(() => {
     try {
@@ -2485,6 +2544,22 @@ function openModal(title, bodyHtml) {
     } catch (_) {}
   }, 30);
 }
+
+// 4.67.0: полный цикл Tab внутри диалога — фокус не уходит на страницу под ним
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab') return;
+  const m = document.getElementById('modal');
+  if (!m || m.classList.contains('hidden')) return;
+  const card = m.querySelector('.modal-card');
+  if (!card) return;
+  const items = [...card.querySelectorAll('a[href], button:not([disabled]), input:not([type=hidden]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+    .filter(el => el.offsetParent !== null || el === document.activeElement);
+  if (!items.length) return;
+  const first = items[0], last = items[items.length - 1];
+  if (!card.contains(document.activeElement)) { e.preventDefault(); first.focus(); return; }
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}, true);
 
 // v3.16.0: при открытой клавиатуре подтягиваем кнопку «Сохранить» в видимую часть формы
 document.addEventListener('focusin', (e) => {
@@ -2496,6 +2571,7 @@ document.addEventListener('focusin', (e) => {
 
 let __modalOpener = null;
 function closeModal() {
+  __formDirty = false;
   const m = document.getElementById('modal');
   if (m) m.classList.add('hidden');
   // 4.64.0: возвращаем фокус туда, откуда открыли
@@ -3104,6 +3180,36 @@ function tagHit(f, tags) {
 function prodHit(f, c) { const sel = (f && f.prods) || []; if (!sel.length) return true; const have = cardProducts(c); return sel.some(x => have.includes(x)); }
 function srcHit(f, c) { const sel = (f && f.srcs) || []; if (!sel.length) return true; const have = cardSources(c).concat(cardService(c)); return sel.some(x => have.includes(x)); }
 function typeHit(f, c) { const sel = (f && f.type) || ''; return !sel || cardType(c) === sel; }
+// 4.67.0: нормализация географии. Записи не переписываем — сравниваем по ключу.
+const GEO_ALIAS = {
+  'башкирия': 'башкортостан',
+  'республика башкортостан': 'башкортостан',
+  'башкортостан республика': 'башкортостан',
+  'башк.': 'башкортостан'
+};
+const GEO_LABEL = { 'башкортостан': 'Башкортостан' };
+function fold(v) { return String(v == null ? '' : v).toLowerCase().replace(/ё/g, 'е'); }
+function geoKey(v) {
+  let k = fold(v).replace(/\s+/g, ' ').trim();
+  if (GEO_ALIAS[k]) k = GEO_ALIAS[k];
+  return k;
+}
+// один список без дублей «Орел»/«Орёл», с предпочтением канонического написания
+function geoUniq(list) {
+  const byKey = new Map();
+  (list || []).forEach(v => {
+    const raw = String(v == null ? '' : v).trim();
+    if (!raw) return;
+    const k = geoKey(raw);
+    const cur = byKey.get(k);
+    // предпочитаем канон, затем вариант с «ё»
+    const score = (x) => (x === (GEO_LABEL[k] || '') ? 3 : 0) + (/ё/i.test(x) ? 2 : 0) + x.length / 1000;
+    if (!cur || score(raw) > score(cur)) byKey.set(k, raw);
+  });
+  return [...byKey.values()].sort(ruCmp);
+}
+function geoEq(a, b) { return geoKey(a) === geoKey(b); }
+
 // v3.33.0: ЕДИНОЕ правило отбора раздела: ИЛИ внутри группы, И между группами.
 // Одинаково работает в «Клиниках», «Партнёрах», «Деньгах», справочниках, рабочих списках и списках продуктов.
 function matchFilters(f, c, opts) {
@@ -3111,8 +3217,8 @@ function matchFilters(f, c, opts) {
   f = f || {};
   c = c || {};
   if (!opts.noSel) {
-    if (f.region && (c.region || '') !== f.region) return false;
-    if (f.city && (c.city || '') !== f.city) return false;
+    if (f.region && !geoEq(c.region, f.region)) return false;
+    if (f.city && !geoEq(c.city, f.city)) return false;
     if (f.manager && (c.manager || '') !== f.manager) return false;
   }
   if (!opts.noType && f.type && cardType(c) !== f.type) return false;
@@ -3122,7 +3228,7 @@ function matchFilters(f, c, opts) {
   return true;
 }
 function passFilters(f, c) {
-  return (!f.region || c.region === f.region) && (!f.city || c.city === f.city) &&
+  return (!f.region || geoEq(c.region, f.region)) && (!f.city || geoEq(c.city, f.city)) &&
     (!f.manager || c.manager === f.manager) &&
     typeHit(f, c) && prodHit(f, c) && srcHit(f, c) && tagHit(f, c.tags);
 }
@@ -3332,14 +3438,15 @@ async function populateFiltersFor(view) {
   if (cfg.sel) {
     const orgView = ['clinics', 'distributors', 'money'].includes(view);
     const [managers, dictRegions, dictCities] = await Promise.all([getDict('manager'), getDict('region'), getDict('city')]);
-    const regions = orgView ? dictRegions : [...new Set(rows.map(r => r.region).filter(Boolean))].sort(ruCmp);
-    const cities = orgView ? dictCities : [...new Set(rows.map(r => r.city).filter(Boolean))].sort(ruCmp);
+    const regions = geoUniq(orgView ? dictRegions : rows.map(r => r.region));
+    const cities = geoUniq(orgView ? dictCities : rows.map(r => r.city));
     locAll.regions = regions; locAll.cities = cities;
     locMap.regionCities = {}; locMap.cityRegions = {};
     rows.forEach(r => {
       if (r.region && r.city) {
-        (locMap.regionCities[r.region] = locMap.regionCities[r.region] || new Set()).add(r.city);
-        (locMap.cityRegions[r.city] = locMap.cityRegions[r.city] || new Set()).add(r.region);
+        const rk = geoKey(r.region), ck = geoKey(r.city);
+        (locMap.regionCities[rk] = locMap.regionCities[rk] || new Set()).add(r.city);
+        (locMap.cityRegions[ck] = locMap.cityRegions[ck] || new Set()).add(r.region);
       }
     });
     if (state.filters.region && !regions.includes(state.filters.region)) state.filters.region = '';
@@ -3360,10 +3467,9 @@ async function populateRefFilters() {
     const kind = state.view === 'refpriv' ? 'ref_priv' : 'ref_gos';
     rows = (await listClinics()).filter(c => c.kind === kind);
   }
-  const regions = [...new Set(rows.map(r => r.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
-  if (state.filters.region && !regions.includes(state.filters.region)) state.filters.region = '';
-  const cities = [...new Set(rows.filter(r => !state.filters.region || r.region === state.filters.region)
-    .map(r => r.city).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
+  const regions = geoUniq(rows.map(r => r.region));
+  if (state.filters.region && !regions.some(r => geoEq(r, state.filters.region))) state.filters.region = '';
+  const cities = geoUniq(rows.filter(r => !state.filters.region || geoEq(r.region, state.filters.region)).map(r => r.city));
   if (state.filters.city && !cities.includes(state.filters.city)) state.filters.city = '';
   fillSelect('f_region', regions, 'Регионы');
   fillSelect('f_city', cities, 'Города');
@@ -3413,10 +3519,11 @@ async function populateFilters() {
 // город -> список регионов, где он есть (или полный список, если город не выбран)
 function syncRegionOptions() {
   const c = state.filters.city;
-  if (c && locMap.cityRegions[c]) {
-    const rs = [...locMap.cityRegions[c]].sort(ruCmp);
+  const ck = geoKey(c);
+  if (c && locMap.cityRegions[ck]) {
+    const rs = geoUniq([...locMap.cityRegions[ck]]);
     // выбранный регион не входит в список — сбрасываем
-    if (state.filters.region && !rs.includes(state.filters.region)) state.filters.region = '';
+    if (state.filters.region && !rs.some(r => geoEq(r, state.filters.region))) state.filters.region = '';
     fillSelect('f_region', rs, 'Регионы');
   } else {
     fillSelect('f_region', locAll.regions, 'Регионы');
@@ -3426,10 +3533,11 @@ function syncRegionOptions() {
 // регион -> список городов в нём (или полный список, если регион не выбран)
 function syncCityOptions() {
   const r = state.filters.region;
-  if (r && locMap.regionCities[r]) {
-    const cs = [...locMap.regionCities[r]].sort(ruCmp);
+  const rk = geoKey(r);
+  if (r && locMap.regionCities[rk]) {
+    const cs = geoUniq([...locMap.regionCities[rk]]);
     // выбранный город не входит в список — сбрасываем
-    if (state.filters.city && !cs.includes(state.filters.city)) state.filters.city = '';
+    if (state.filters.city && !cs.some(x => geoEq(x, state.filters.city))) state.filters.city = '';
     fillSelect('f_city', cs, 'Города');
   } else {
     fillSelect('f_city', locAll.cities, 'Города');
@@ -3532,8 +3640,30 @@ document.getElementById('modalClose').addEventListener('click', closeModal);
 })();
 document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 
+// 4.67.0: клик мимо меню «⋯» закрывает его (слушатель ставится один раз)
+// 4.67.0: когда service worker обновился — один раз перезагружаем страницу,
+// чтобы человек не оставался на старом коде после выпуска
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  var KEY = 'crm-sw-reloaded';
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+    try {
+      if (sessionStorage.getItem(KEY)) return;
+      sessionStorage.setItem(KEY, '1');
+    } catch (_) {}
+    if (navigator.onLine === false) return;
+    location.reload();
+  });
+})();
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest && e.target.closest('.vm-more, .vm-menu')) return;
+  document.querySelectorAll('.vm-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
+  document.querySelectorAll('[data-more][aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+});
+
 document.getElementById('globalSearch').addEventListener('input', e => {
-  state.search = e.target.value.trim().toLowerCase();
+  state.search = e.target.value.trim().toLowerCase().replace(/ё/g, 'е');
   searchUITick();
   render();
 });
@@ -3590,7 +3720,7 @@ function closeTopLayer() {
   if (pop) { pop.click(); return true; }
   // 2) модальное окно
   const m = document.getElementById('modal');
-  if (m && !m.classList.contains('hidden')) { closeModal(); return true; }
+  if (m && !m.classList.contains('hidden')) { requestCloseModal(); return true; }
   // 3) отдельная страница продаж
   if (document.body.classList.contains('sales-open')) { closeSalesPage(); return true; }
   // 4) карточка (полноэкранная на телефоне)
@@ -3603,7 +3733,7 @@ function closeTopLayer() {
 // тап мимо окна: клик по затемнению закрывает модалку
 (function initBackdrop() {
   const m = document.getElementById('modal');
-  if (m) m.addEventListener('click', (ev) => { if (ev.target === m) closeModal(); });
+  if (m) m.addEventListener('click', (ev) => { if (ev.target === m) requestCloseModal(); });
 })();
 
 // ---------- render ----------
@@ -3722,8 +3852,8 @@ async function renderProductList(product, title) {
   const kinds = ['hospital', 'ref_gos', 'ref_priv'];
   let clinics = (await listClinics()).filter(c => kinds.includes(c.kind || 'hospital') && cardProducts(c).includes(product));
   if (s) clinics = clinics.filter(c =>
-    (c.name || '').toLowerCase().includes(s) || (c.city || '').toLowerCase().includes(s) ||
-    (c.region || '').toLowerCase().includes(s) || (c.manager || '').toLowerCase().includes(s));
+    (c.name || '').toLowerCase().replace(/ё/g,'е').includes(s) || (c.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.region || '').toLowerCase().replace(/ё/g,'е').includes(s) || (c.manager || '').toLowerCase().replace(/ё/g,'е').includes(s));
   const f = state.filters;
   clinics = clinics.filter(c => matchFilters(f, c));   // v3.33.0: метки в списках продуктов тоже фильтруют
   clinics.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0) || (a.name || '').localeCompare(b.name || '', 'ru'));
@@ -3744,10 +3874,10 @@ async function renderCns() {
   let clinics = await listClinics();
   clinics = clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС') && matchFilters(state.filters, c));
   if (s) clinics = clinics.filter(c =>
-    (c.name || '').toLowerCase().includes(s) ||
-    (c.city || '').toLowerCase().includes(s) ||
-    (c.region || '').toLowerCase().includes(s) ||
-    (c.manager || '').toLowerCase().includes(s));
+    (c.name || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.region || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.manager || '').toLowerCase().replace(/ё/g,'е').includes(s));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const cnsHead = `<div class="cns-head"><span>Цисто · <b>${clinics.length}</b> ${clinics.length === 1 ? 'клиника' : clinics.length < 5 ? 'клиники' : 'клиник'} в отборе</span><button class="cns-add" id="cnsAddBtn">＋ Добавить</button></div>`;
   if (!clinics.length) {
@@ -3866,9 +3996,10 @@ async function openVisitCard(plan) {
   const docRows = docs.length ? docs.map(p => {
     const nm = p.fullName || p.full_name || ('#' + p.id);
     const tel = String(p.phone || '').replace(/[^\d+]/g, '');
-    return `<div class="priv-row compact"><span class="lbl">${esc(nm)}</span>`
-      + `<span style="flex:1;min-width:0;color:var(--muted);font-size:13px" title="${esc(p.position || '')}">${esc(shortPos(p.position))}</span>`
-      + (tel ? `<a class="btn ghost mini" href="tel:${esc(tel)}">Позвонить</a>` : '<span class="row-why">телефона нет</span>')
+    return `<div class="vm-doc-row">`
+      + `<div class="vm-doc-main"><div class="vm-doc-name">${esc(nm)}</div>`
+      + `<div class="vm-doc-pos" title="${esc(p.position || '')}">${esc(shortPos(p.position) || 'должность не указана')}</div></div>`
+      + (tel ? `<a class="btn ghost mini vm-doc-call" href="tel:${esc(tel)}">Позвонить</a>` : '<span class="row-why vm-doc-call">телефона нет</span>')
       + `</div>`;
   }).join('') : '<div class="row-why">Врачи не добавлены</div>';
 
@@ -3892,14 +4023,21 @@ async function openVisitCard(plan) {
     await openVisitModal({ clinicId: plan.clinic_id, plan });
   });
   document.getElementById('vcDrop').addEventListener('click', async () => {
+    // 4.67.0: проверяем id до первого запроса
+    const nId = validId(plan.noteId), cId = validId(plan.clinic_id);
+    if (!nId) { toast('⚠️ Не удалось определить визит — обнови страницу'); return; }
+    if (!confirm('Отменить этот визит? Он исчезнет из «Предстоящих».')) return;
     try {
-      await sb.from('notes').delete().eq('id', Number(plan.noteId));
-      await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', Number(plan.clinic_id));
+      await sb.from('notes').delete().eq('id', nId);
+      if (cId) await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', cId);
       invalidateVisitCache();
       closeModal();
       toast('✓ Визит отменён');
       await render();
-    } catch (e) { toast('⚠️ Не удалось: ' + (e && e.message ? e.message : e)); }
+    } catch (e) {
+      try { console.error('[визит] отмена не удалась', { message: e && e.message }); } catch (_) {}
+      toast('⚠️ ' + saveError(e));
+    }
   });
   const vc = document.getElementById('vcClinic');
   if (vc) vc.addEventListener('click', async () => {
@@ -3933,17 +4071,24 @@ function planOf(map, id, year) {
 }
 
 let monAllCache = null;
+let monProducts = new Set();
 async function loadMonthlyAll() {
   if (monAllCache) return monAllCache;
   const rows = [];
   for (let from = 0; from < 40000; from += 1000) {
-    const { data, error } = await sb.from('sales_monthly').select('clinic_id,year,month,sale').range(from, from + 999);
+    const { data, error } = await sb.from('sales_monthly').select('clinic_id,year,month,sale,product').range(from, from + 999);
     if (error || !data) break;
     rows.push(...data);
     if (data.length < 1000) break;
   }
   const map = {};
-  rows.forEach(r => { const id = Number(r.clinic_id); (map[id] = map[id] || []).push(r); });
+  monProducts = new Set();
+  rows.forEach(r => {
+    const id = Number(r.clinic_id);
+    (map[id] = map[id] || []).push(r);
+    const pn = String(r.product || '').trim();
+    if (pn) monProducts.add(pn);
+  });
   monAllCache = map;
   return map;
 }
@@ -4195,7 +4340,7 @@ async function renderPlan() {
   });
 
   let list = rows;
-  if (PLAN_ST.q) { const q = PLAN_ST.q.toLowerCase(); list = list.filter(r => (r.name + ' ' + r.city).toLowerCase().includes(q)); }
+  if (PLAN_ST.q) { const q = PLAN_ST.q.toLowerCase().replace(/ё/g, 'е'); list = list.filter(r => (r.name + ' ' + r.city).toLowerCase().replace(/ё/g,'е').includes(q)); }
   if (PLAN_ST.mgrs.length) list = list.filter(r => PLAN_ST.mgrs.includes(r.mgr));
   if (PLAN_ST.onlyPlan) list = list.filter(r => r.plan > 0);
   if (PLAN_ST.onlyFail) list = list.filter(r => r.yoy != null && r.yoy < 0);
@@ -4269,14 +4414,20 @@ async function renderPlan() {
     + `<td class="pl-opt">${fmtM(Math.round(totLeft / 3))}</td>`
     + `<td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td></td><td></td></tr>`;
 
+  // 4.67.0: подпись описывает ровно то, что считает код: месяцы 1..LAST_M и те продукты,
+  // которые реально есть в sales_monthly. Максимальный месяц не выдаём за «загружено полностью».
+  const MN_RU = ['', 'январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
   const lastFactMonth = (() => {
     let m = 0;
-    Object.keys(mon || {}).forEach(cid => (mon[cid] || []).forEach(r => { if (Number(r.year) === CUR_Y) m = Math.max(m, Number(r.month) || 0); }));
+    Object.keys(mon || {}).forEach(cid => (mon[cid] || []).forEach(r => { if (Number(r.year) === CUR_Y && Number(r.sale)) m = Math.max(m, Number(r.month) || 0); }));
     return m;
   })();
-  const MN_RU = ['', 'январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
-  const factTxt = lastFactMonth ? (MN_RU[lastFactMonth] + ' ' + CUR_Y) : 'период не определён';
-  const planNote = `<div class="plan-note">План ${CUR_Y} · продажи Boston + HugeMed · факт загружен по ${esc(factTxt)}</div>`;
+  const prodTxt = monProducts.size
+    ? [...monProducts].map(x => x.charAt(0).toUpperCase() + x.slice(1)).join(' + ')
+    : 'состав не указан';
+  const calcTxt = 'январь–' + MN_RU[LAST_M] + ' ' + CUR_Y;
+  const lastTxt = lastFactMonth ? (MN_RU[lastFactMonth] + ' ' + CUR_Y) : 'нет данных';
+  const planNote = `<div class="plan-note">План ${CUR_Y} · факт в расчёте: ${esc(calcTxt)} · в данных только ${esc(prodTxt)} · последние продажи — ${esc(lastTxt)}</div>`;
   // v4.38.1: на телефоне — карточками; все нужные значения считаем ЗДЕСЬ, до объявлений ниже
   const isNarrow = window.innerWidth < 900;
   if (isNarrow) {
@@ -4478,7 +4629,7 @@ async function renderVisits() {
   };
 
   const sV = state.search;
-  const match = (txt) => !sV || String(txt || '').toLowerCase().includes(sV);
+  const match = (txt) => !sV || String(txt || '').toLowerCase().replace(/ё/g,'е').includes(sV);
   const today = todayISO();
 
   const ideaRows = (ideas || []).filter(i => visible(i) && match(byId[i.clinic_id] || ''));
@@ -4613,12 +4764,21 @@ async function renderVisits() {
         return (uniq.length ? 'Участники: ' + esc(uniq.join(', ')) : 'Участники: —') + ((p.people || []).length ? ' · врачей: ' + p.people.length : '');
       })()}</div>
       <div class="vm-actions">
-        <button class="btn ghost mini" data-edit-plan="${p.noteId}">Изменить</button>
-        <button class="btn ghost mini" data-drop-plan="${p.noteId}" data-cid="${p.clinic_id}">Отменить визит</button>
+        <button class="btn primary mini" data-edit-plan="${p.noteId}">Изменить</button>
+        <button class="btn ghost mini vm-more" data-more="${p.noteId}" aria-haspopup="true" aria-expanded="false" aria-label="Другие действия с визитом">⋯</button>
+      </div>
+      <div class="vm-menu hidden" data-menu="${p.noteId}" role="menu">
+        <button class="vm-menu-item" role="menuitem" data-drop-plan="${p.noteId}" data-cid="${p.clinic_id}">Отменить визит</button>
       </div>
     </div>`;
+  // 4.67.0: самовосстановление — если фильтр по менеджеру спрятал все визиты,
+  // показываем это прямо и даём одну кнопку, чтобы вернуть список
+  const hiddenByFilter = (MGR_FILTER && !future.length && !past.length && (plans || []).length && !sV);
+  const hiddenHtml = hiddenByFilter
+    ? `<div class="empty" style="margin-bottom:12px">По фильтру «${esc(MGR_FILTER)}» визитов нет. <button class="btn ghost mini" id="visitsShowAll" style="width:auto;margin-left:6px">Показать все</button></div>`
+    : '';
   const listHtml = (VISITS_UI.mode === 'cal') ? '' :
-    `<div class="md-gap">
+    hiddenHtml + `<div class="md-gap">
       <div class="md-sec">Предстоящие · <b>${future.length}</b></div>
       ${future.length ? `<div class="list">${future.map(rowHtml).join('')}</div>` : '<div class="empty">Предстоящих визитов нет.</div>'}
       ${past.length ? `<div class="visits-sep"><span>сегодня · ${fmtDate(today)}</span></div>
@@ -4637,7 +4797,10 @@ async function renderVisits() {
         <div class="vm-actions">
           <button class="btn primary mini" data-plan-idea="${i.noteId}">Запланировать</button>
           <button class="btn ghost mini" data-edit-idea="${i.noteId}">Изменить</button>
-          <button class="btn ghost mini" data-drop-idea="${i.noteId}">Удалить</button>
+          <button class="btn ghost mini vm-more" data-more="i${i.noteId}" aria-haspopup="true" aria-expanded="false" aria-label="Другие действия с идеей">⋯</button>
+        </div>
+        <div class="vm-menu hidden" data-menu="i${i.noteId}" role="menu">
+          <button class="vm-menu-item" role="menuitem" data-drop-idea="${i.noteId}">Удалить идею</button>
         </div>
       </div>`;
     }).join('')}</div>` : '';
@@ -4652,13 +4815,16 @@ async function renderVisits() {
       ${chip('', 'Все')}${MGR_LIST.map(m => chip(m, m)).join('')}
     </div>
     ${calHtml}
-    ${VISITS_UI.mode === 'cal' ? '' : ideasHtml}
     ${listHtml}
+    ${VISITS_UI.mode === 'cal' ? '' : ideasHtml}
     ${VISITS_UI.mode === 'cal' ? statsHtml : ''}`;
 
   const nb = document.getElementById('newIdeaBtn');
   if (nb) nb.addEventListener('click', () => openIdeaModal());
 
+
+  const shAll = document.getElementById('visitsShowAll');
+  if (shAll) shAll.addEventListener('click', () => { VISITS_UI.mgr = ''; renderVisits(); });
 
   const mb = document.getElementById('visitsModeBtn');
   if (mb) mb.addEventListener('click', () => {
@@ -4716,9 +4882,25 @@ async function renderVisits() {
     const plan = plans.find(x => Number(x.noteId) === Number(btn.dataset.editPlan));
     if (plan) await openVisitModal({ clinicId: plan.clinic_id, plan });
   }));
+  // 4.67.0: «⋯» раскрывает дополнительные действия; работает мышью, касанием и клавиатурой
+  view.querySelectorAll('[data-more]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation(); e.preventDefault();
+    const key = btn.dataset.more;
+    const menu = view.querySelector('[data-menu="' + key + '"]');
+    const open = menu && !menu.classList.contains('hidden');
+    view.querySelectorAll('.vm-menu').forEach(m => m.classList.add('hidden'));
+    view.querySelectorAll('[data-more]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    if (menu && !open) { menu.classList.remove('hidden'); btn.setAttribute('aria-expanded', 'true'); const it = menu.querySelector('button'); if (it) it.focus(); }
+  }));
+  view.querySelectorAll('[data-menu]').forEach(menu => menu.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { menu.classList.add('hidden'); const b = view.querySelector('[data-more="' + menu.dataset.menu + '"]'); if (b) { b.setAttribute('aria-expanded', 'false'); b.focus(); } }
+  }));
+  // (закрытие меню по клику вне — глобальный обработчик ниже, один раз при запуске)
+
   view.querySelectorAll('[data-drop-plan]').forEach(btn => btn.addEventListener('click', async (e) => {
     e.stopPropagation(); e.preventDefault();
     const nid = Number(btn.dataset.dropPlan), cid = Number(btn.dataset.cid);
+    if (!confirm('Отменить этот визит? Он исчезнет из «Предстоящих».')) return;
     try {
       await sb.from('notes').delete().eq('id', nid);
       await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', cid);
@@ -4837,7 +5019,7 @@ async function renderWorklist(key) {
   // v3.33.0: в рабочих списках действуют те же метки-фильтры и поиск, что и в других разделах
   const wq = state.search || '';
   const linked = members.map(m => byId[m.linked_clinic_id]).filter(Boolean)
-    .filter(c => (!wq || (c.name || '').toLowerCase().includes(wq) || (c.city || '').toLowerCase().includes(wq)) && matchFilters(state.filters, c));
+    .filter(c => (!wq || (c.name || '').toLowerCase().replace(/ё/g,'е').includes(wq) || (c.city || '').toLowerCase().replace(/ё/g,'е').includes(wq)) && matchFilters(state.filters, c));
   const unlinked = members.filter(m => !byId[m.linked_clinic_id]);
   // роль руководителя: только ему показываем конфликты назначений и записи без связи
   const isBoss = CURRENT_ROLE === 'admin' || CURRENT_EMAIL === 'abramson@crm.ru' || CURRENT_EMAIL === 'bot@crm.ru';
@@ -5193,15 +5375,32 @@ async function loadVisitPlans() { await loadVisitNotes(); return visitPlansList;
 function visitPlanOf(id) { return (visitPlansMap && visitPlansMap[Number(id)]) || null; }
 function visitGoalOf(id) { const p = visitPlanOf(id); return p && p.goal ? p.goal : ''; }
 
+// 4.67.0: id проверяем ДО запроса. Ни NaN, ни пустая строка на сервер не уходят.
+function validId(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return (Number.isFinite(n) && n > 0) ? n : null;
+}
+function saveError(e) {
+  const m = String((e && e.message) || e || '');
+  if (/bigint|invalid input syntax/i.test(m)) return 'В записи потерялась связь с визитом или клиникой — открой визит заново из списка. Введённое не потеряно.';
+  if (/row-level security|permission|policy/i.test(m)) return 'Нет прав на изменение этой записи. Введённое не потеряно.';
+  if (/fetch|network|Failed to fetch/i.test(m)) return 'Нет связи с базой. Введённое не потеряно — попробуй ещё раз.';
+  return 'Не удалось сохранить. Введённое не потеряно.';
+}
+
 async function saveVisitPlanRow(clinicId, plan, noteId) {
   const body = VISIT_MARK + JSON.stringify(plan || {});
-  const cid = (clinicId == null) ? null : Number(clinicId);
-  if (noteId) {
-    const { error } = await sb.from('notes').update({ text: body, clinic_id: cid }).eq('id', Number(noteId));
+  const cid = (clinicId == null || clinicId === '') ? null : validId(clinicId);
+  const nId = validId(noteId);
+  if (noteId && !nId) throw new Error('Некорректный идентификатор визита');
+  if (clinicId != null && clinicId !== '' && !cid) throw new Error('Некорректный идентификатор клиники');
+  if (nId) {
+    const { error } = await sb.from('notes').update({ text: body, clinic_id: cid }).eq('id', nId);
     if (error) throw error;
   } else {
     const { error } = await sb.from('notes').insert({
-      clinic_id: Number(clinicId), text: body,
+      clinic_id: cid, text: body,
       author_email: CURRENT_EMAIL || null, author_name: myManagerName() || window.CURRENT_MANAGER || null, source: 'visit_plan'
     });
     if (error) throw error;
@@ -5210,12 +5409,16 @@ async function saveVisitPlanRow(clinicId, plan, noteId) {
 }
 async function saveVisitIdeaRow(clinicId, idea, noteId) {
   const body = IDEA_MARK + JSON.stringify(idea || {});
-  if (noteId) {
-    const { error } = await sb.from('notes').update({ text: body }).eq('id', Number(noteId));
+  const cid = (clinicId == null || clinicId === '') ? null : validId(clinicId);
+  const nId = validId(noteId);
+  if (noteId && !nId) throw new Error('Некорректный идентификатор идеи');
+  if (!nId && !cid) throw new Error('Некорректный идентификатор клиники');
+  if (nId) {
+    const { error } = await sb.from('notes').update({ text: body }).eq('id', nId);
     if (error) throw error;
   } else {
     const { error } = await sb.from('notes').insert({
-      clinic_id: Number(clinicId), text: body,
+      clinic_id: cid, text: body,
       author_email: CURRENT_EMAIL || null, author_name: myManagerName() || window.CURRENT_MANAGER || null, source: 'visit_idea'
     });
     if (error) throw error;
@@ -5417,7 +5620,12 @@ async function openVisitModal(cfg) {
       } catch (_) {}
       toast('✓ Визит на ' + fmtDate(d));
       await render();
-    } catch (e) { btn.disabled = false; toast('⚠️ Не сохранено: ' + (e && e.message ? e.message : e)); }
+    } catch (e) {
+      // 4.67.0: техническую ошибку — в журнал, человеку — понятный текст. Форма остаётся открытой.
+      btn.disabled = false;
+      try { console.error('[визит] не сохранено', { message: e && e.message, noteId: plan && plan.noteId, clinicId: c ? c.id : null }); } catch (_) {}
+      toast('⚠️ ' + saveError(e));
+    }
   });
 }
 
@@ -5481,7 +5689,11 @@ async function openIdeaModal(presetClinicId, idea) {
       closeModal();
       toast('✓ Идея сохранена');
       await render();
-    } catch (e) { btn.disabled = false; toast('⚠️ Не сохранено: ' + (e && e.message ? e.message : e)); }
+    } catch (e) {
+      btn.disabled = false;
+      try { console.error('[идея] не сохранено', { message: e && e.message }); } catch (_) {}
+      toast('⚠️ ' + saveError(e));
+    }
   });
 }
 
@@ -5838,13 +6050,13 @@ async function renderContacts() {
     const org = orgName(p);
     const l = loc(p);
     return (!s ||
-      (p.fullName || '').toLowerCase().includes(s) ||
-      (p.position || '').toLowerCase().includes(s) ||
-      (p.phone || '').toLowerCase().includes(s) ||
-      (p.email || '').toLowerCase().includes(s) ||
-      org.toLowerCase().includes(s) ||
-      (l.city || '').toLowerCase().includes(s) ||
-      (l.region || '').toLowerCase().includes(s)) &&
+      (p.fullName || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (p.position || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (p.phone || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (p.email || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      org.toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (l.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (l.region || '').toLowerCase().replace(/ё/g,'е').includes(s)) &&
       matchFilters(f, Object.assign({}, p, { region: l.region || p.region || '', city: l.city || p.city || '' }));
   });
   rows.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
@@ -5880,12 +6092,12 @@ async function renderOrgList(kind) {
   const mym = myManager();
   clinics = clinics.filter(c =>
     (!s ||
-      (c.name || '').toLowerCase().includes(s) ||
-      (c.city || '').toLowerCase().includes(s) ||
-      (c.region || '').toLowerCase().includes(s) ||
-      (c.manager || '').toLowerCase().includes(s) ||
-      (c.situation || '').toLowerCase().includes(s) ||
-      (c.tags || []).some(t => t.toLowerCase().includes(s))) &&
+      (c.name || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (c.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (c.region || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (c.manager || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (c.situation || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (c.tags || []).some(t => t.toLowerCase().replace(/ё/g,'е').includes(s))) &&
     matchFilters(f, c) &&
     (!mineOnly || (c.manager || '').trim() === mym)
   );
@@ -6011,10 +6223,10 @@ async function renderMoney() {
   clinics = clinics.filter(c =>
     (c.kind || 'hospital') === 'hospital' &&
     (!s ||
-      (c.name || '').toLowerCase().includes(s) ||
-      (c.city || '').toLowerCase().includes(s) ||
-      (c.region || '').toLowerCase().includes(s) ||
-      (c.manager || '').toLowerCase().includes(s)) &&
+      (c.name || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (c.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (c.region || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (c.manager || '').toLowerCase().replace(/ё/g,'е').includes(s)) &&
     matchFilters(f, c)
   );
   // сортировка: по сумме (вверх/вниз) или по алфавиту; 0₽-бейджи — в середине (только при выбранном годе), пустые — вниз по алфавиту
@@ -6166,13 +6378,13 @@ async function renderPeople() {
   const s = state.search;
   if (s) {
     people = people.filter(p =>
-      (p.fullName || '').toLowerCase().includes(s) ||
-      (p.position || '').toLowerCase().includes(s) ||
-      (p.city || '').toLowerCase().includes(s) ||
-      (p.region || '').toLowerCase().includes(s) ||
-      (p.phone || '').toLowerCase().includes(s) ||
-      (p.email || '').toLowerCase().includes(s) ||
-      (p.tags || []).some(t => t.toLowerCase().includes(s))
+      (p.fullName || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (p.position || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (p.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (p.region || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (p.phone || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (p.email || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+      (p.tags || []).some(t => t.toLowerCase().replace(/ё/g,'е').includes(s))
     );
   }
   if (!people.length) {
@@ -6333,11 +6545,11 @@ async function renderRefOrgs(kind) {
   // v3.37.1: скрытые карточки (marked_del) в справочниках не показываем — иначе сведённый дубль остаётся второй строкой
   let clinics = (await listClinics()).filter(c => c.kind === kind && !c.markedDel);
   if (s) clinics = clinics.filter(c =>
-    (c.name || '').toLowerCase().includes(s) ||
-    (c.city || '').toLowerCase().includes(s) ||
-    (c.region || '').toLowerCase().includes(s) ||
-    (c.situation || '').toLowerCase().includes(s) ||
-    (c.tags || []).some(t => t.toLowerCase().includes(s)));
+    (c.name || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.region || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.situation || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.tags || []).some(t => t.toLowerCase().replace(/ё/g,'е').includes(s)));
   const f = state.filters;
   clinics = clinics.filter(c => matchFilters(f, c));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
@@ -6360,14 +6572,14 @@ async function renderRefDoctors() {
   (await listClinics()).forEach(c => { clinicMap[c.id] = c; });
   let docs = (await listPeople()).filter(isRefDoc);
   if (s) docs = docs.filter(p =>
-    (p.fullName || '').toLowerCase().includes(s) ||
-    (p.position || '').toLowerCase().includes(s) ||
-    (p.city || '').toLowerCase().includes(s) ||
-    (p.region || '').toLowerCase().includes(s) ||
-    (p.phone || '').toLowerCase().includes(s) ||
-    (p.email || '').toLowerCase().includes(s) ||
-    (p.situation || '').toLowerCase().includes(s) ||
-    (p.tags || []).some(t => t.toLowerCase().includes(s)));
+    (p.fullName || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (p.position || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (p.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (p.region || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (p.phone || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (p.email || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (p.situation || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (p.tags || []).some(t => t.toLowerCase().replace(/ё/g,'е').includes(s)));
   docs.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'ru'));
   const f = state.filters;
   docs = docs.filter(p => matchFilters(f, p));
@@ -6398,11 +6610,11 @@ async function renderRefFirms() {
   const [clinics, people] = await Promise.all([listClinics(), listPeople()]);
   let firms = clinics.filter(c => c.kind === 'ref_firm' || (c.kind === 'distributor' && !isServiceFirm(c)));
   if (s) firms = firms.filter(c =>
-    (c.name || '').toLowerCase().includes(s) ||
-    (c.city || '').toLowerCase().includes(s) ||
-    (c.region || '').toLowerCase().includes(s) ||
-    (c.situation || '').toLowerCase().includes(s) ||
-    (c.tags || []).some(t => t.toLowerCase().includes(s)));
+    (c.name || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.region || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.situation || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
+    (c.tags || []).some(t => t.toLowerCase().replace(/ё/g,'е').includes(s)));
   const f = state.filters;
   firms = firms.filter(c => matchFilters(f, c));
   firms.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
@@ -6597,31 +6809,48 @@ async function openClinicForm(id, presetKind) {
   const titleMap = { distributor: 'Новый дистрибьютор', ref_gos: 'Новое учреждение', ref_priv: 'Новая частная клиника', ref_firm: 'Новая компания' };
 
   openModal(id ? 'Изменить организацию' : (titleMap[kind] || 'Новая клиника'), `
-    ${typeField}
-    <div class="field"><label>Вид *</label>
-      <select id="f_kind">
-        ${kindOptsHtml}
-      </select>
+    <div class="fgroup" data-group="main">
+      <div class="fgroup-h">Основное</div>
+      ${typeField}
+      <div class="field"><label for="f_kind">Вид *</label>
+        <select id="f_kind">
+          ${kindOptsHtml}
+        </select>
+      </div>
+      <div class="field"><label for="f_name">Название *</label><input id="f_name" value="${esc(c.name)}" /></div>
+      <div class="row2">
+        <div class="field"><label for="fm_region">Регион *</label><input id="fm_region" list="dl_region" value="${esc(c.region)}" /><datalist id="dl_region">${regions}</datalist></div>
+        <div class="field"><label for="fm_city">Город</label><input id="fm_city" list="dl_city" value="${esc(c.city)}" /><datalist id="dl_city">${cities}</datalist></div>
+      </div>
+      <div class="field"><label for="fm_manager">Менеджер</label><input id="fm_manager" list="dl_manager" value="${esc(c.manager || myManager || '')}" /><datalist id="dl_manager">${managers}</datalist></div>
     </div>
-    <div class="field"><label>Название *</label><input id="f_name" value="${esc(c.name)}" /></div>
-    <div class="row2">
-      <div class="field"><label>Регион *</label><input id="fm_region" list="dl_region" value="${esc(c.region)}" /><datalist id="dl_region">${regions}</datalist></div>
-      <div class="field"><label>Город</label><input id="fm_city" list="dl_city" value="${esc(c.city)}" /><datalist id="dl_city">${cities}</datalist></div>
+    ${isFirmKind(kind) ? '' : `<div class="fgroup" data-group="sales"><div class="fgroup-h">Продажи</div>${salesFormFields(c, isRefKind(kind))}</div>`}
+    <div class="fgroup" data-group="links">
+      <div class="fgroup-h">Связи и метки</div>
+      <div class="field"><label for="f_link">Связь (другая клиника/суб)</label>
+        <select id="f_link"><option value="">— нет —</option>${linkOptions}</select>
+      </div>
+      <div class="field"><label for="f_site">Сайт</label><input id="f_site" type="url" placeholder="https://…" value="${esc(splitSite(c.situation).site)}" /></div>
+      <div class="field"><label for="f_situation">Комментарии / ситуация</label><textarea id="f_situation">${esc(splitSite(c.situation).rest)}</textarea></div>
+      ${orgTagsHtml(c.tags)}
     </div>
-    <div class="field"><label>Менеджер</label><input id="fm_manager" list="dl_manager" value="${esc(c.manager || myManager || '')}" /><datalist id="dl_manager">${managers}</datalist></div>
-    ${isFirmKind(kind) ? '' : salesFormFields(c, isRefKind(kind))}
-    <div class="field"><label>Связь (другая клиника/суб)</label>
-      <select id="f_link"><option value="">— нет —</option>${linkOptions}</select>
+    <div class="modal-actions" role="group" aria-label="Действия с формой">
+      <button class="btn primary" id="f_save" data-id="${c.id || ''}">Сохранить</button>
+      <button class="btn" id="f_cancel" type="button">Отмена</button>
     </div>
-    <div class="field"><label>Сайт</label><input id="f_site" type="url" placeholder="https://…" value="${esc(splitSite(c.situation).site)}" /></div>
-    <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(splitSite(c.situation).rest)}</textarea></div>
-    ${orgTagsHtml(c.tags)}
-    <button class="btn" id="f_save" data-id="${c.id || ''}">Сохранить</button>
-    ${id ? `<div class="btn-row"><button class="btn ghost" id="f_delete">${CURRENT_ROLE === 'admin' ? 'Удалить' : (c.markedDel ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button></div>` : ''}
+    ${id ? `<div class="danger-zone">
+      <button class="btn danger-ghost" id="f_delete" type="button">${CURRENT_ROLE === 'admin' ? 'Удалить организацию' : (c.markedDel ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button>
+      <div class="danger-note">${CURRENT_ROLE === 'admin' ? 'Удаление необратимо и спрашивает подтверждение.' : 'Карточка скрывается из работы, данные сохраняются.'}</div>
+    </div>` : ''}
   `);
 
   teRender();
+  markFormDirty(false);
   document.getElementById('f_save').addEventListener('click', () => saveClinic(id));
+  const cancelBtn = document.getElementById('f_cancel');
+  if (cancelBtn) cancelBtn.addEventListener('click', () => requestCloseModal());
+  const formCard = document.querySelector('#modal .modal-card');
+  if (formCard) formCard.addEventListener('input', () => markFormDirty(true));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deleteClinic(id));
 }
 
@@ -6720,20 +6949,20 @@ function readMoney(id) {
 }
 
 function salesFormFields(c, isRef) {
-  if (isRef) {
-    const ur = ['2023', '2024'].map((y) =>
-      `<div class="money-cell"><label>${y}</label><input id="f_sales${y}" type="text" inputmode="numeric" value="${c['sales' + y] != null ? c['sales' + y] : ''}" placeholder="—" /></div>`
-    ).join('');
-    return `<div class="field"><label>Продажа Уро (₽)</label><div class="money-grid">${ur}</div></div>`;
-  }
-  const boston = MONEY_YEARS.map((y) =>
-    `<div class="money-cell"><label>${y}</label><input id="f_sales${y}" type="text" inputmode="numeric" value="${c['sales' + y] != null ? c['sales' + y] : ''}" placeholder="—" /></div>`
-  ).join('');
-  const hm = HUGEMED_YEARS.map((y) =>
-    `<div class="money-cell"><label>${y}</label><input id="f_hm${y}" type="text" inputmode="numeric" value="${c['hugemed' + y] != null ? c['hugemed' + y] : ''}" placeholder="—" /></div>`
-  ).join('');
-  return `<div class="field"><label>Boston (₽)</label><div class="money-grid">${boston}</div></div>`
-    + (hm ? `<div class="field"><label>HugeMed (₽)</label><div class="money-grid">${hm}</div></div>` : '');
+  // 4.67.0: текущий год — на виду, история — в свёрнутом блоке (по умолчанию закрыт)
+  const curY = String(new Date().getFullYear());
+  const cell = (y, prefix) =>
+    `<div class="money-cell"><label>${y}</label><input id="f_${prefix}${y}" type="text" inputmode="numeric" value="${c[prefix === 'hm' ? 'hugemed' + y : 'sales' + y] != null ? c[prefix === 'hm' ? 'hugemed' + y : 'sales' + y] : ''}" placeholder="—" /></div>`;
+  const block = (years, prefix, label) => {
+    const now = years.filter(y => y === curY);
+    const hist = years.filter(y => y !== curY);
+    const nowHtml = now.length ? `<div class="money-grid">${now.map(y => cell(y, prefix)).join('')}</div>` : '';
+    const histHtml = hist.length ? `<details class="fhist"><summary>Исторические продажи · ${hist.length} ${hist.length === 1 ? 'год' : 'года'}</summary><div class="money-grid">${hist.map(y => cell(y, prefix)).join('')}</div></details>` : '';
+    return `<div class="field"><label>${label}</label>${nowHtml}${histHtml}</div>`;
+  };
+  if (isRef) return block(['2023', '2024'], 'sales', 'Продажа Уро (₽)');
+  return block(MONEY_YEARS, 'sales', 'Boston (₽)')
+    + (HUGEMED_YEARS.length ? block(HUGEMED_YEARS, 'hm', 'HugeMed (₽)') : '');
 }
 
 // v3.37.0 («Авиценну объедини»): у связанных записей одной клиники классификация должна быть одна.
@@ -7333,7 +7562,7 @@ async function renderAddClinicResults(q) {
   const all = await listClinics();
   const byId = {}; all.forEach(c => { byId[c.id] = c; });
   let rows = all.filter(c => isRefClinicCard(c) && !c.markedDel);
-  if (q) rows = rows.filter(c => (c.name || '').toLowerCase().includes(q) || (c.city || '').toLowerCase().includes(q));
+  if (q) rows = rows.filter(c => (c.name || '').toLowerCase().replace(/ё/g,'е').includes(q) || (c.city || '').toLowerCase().replace(/ё/g,'е').includes(q));
   rows.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const shown = rows.slice(0, 40);
   if (!shown.length) {
@@ -7373,7 +7602,7 @@ async function openNewClinicForm(presetName) {
     const q = nm.value.trim().toLowerCase();
     if (q.length < 3) { box.innerHTML = ''; return; }
     const all = await listClinics();
-    const hits = all.filter(c => (c.name || '').toLowerCase().includes(q)).slice(0, 6);
+    const hits = all.filter(c => (c.name || '').toLowerCase().replace(/ё/g,'е').includes(q)).slice(0, 6);
     box.innerHTML = hits.length
       ? `<div class="nc-hit-t">Похожие в базе (открой, если это она — совпадения не объединяем):</div>` +
         hits.map(c => `<div class="nc-hit" data-open="${c.id}">${esc(c.name)}${c.city ? ' · ' + esc(c.city) : ''}</div>`).join('')
@@ -7915,7 +8144,13 @@ async function restorePanelSelection() {
 
 async function showHoverCard(row, immediate) {
   if (!immediate) return;   // v3.11.2: по наведению ничего не показываем
-  const id = Number(row.dataset.id);
+  // 4.67.0: карточку открываем только для настоящей клиники/человека.
+  // У строк визита нет data-id — раньше отсюда уходил запрос clinics?id=eq.NaN
+  // и база отвечала «invalid input syntax for type bigint: NaN».
+  if (!row || row.hasAttribute('data-visit')) return;
+  const idNum = Number(row.dataset.id);
+  if (!row.dataset.id || !Number.isFinite(idNum) || idNum <= 0) return;
+  const id = idNum;
   const kind = row.dataset.kind || 'clinic';
   const seq = ++hoverSeq;
   clearTimeout(hoverTimer);
@@ -8428,15 +8663,18 @@ document.getElementById('view').addEventListener('click', async e => {
   }
   const card = e.target.closest('.card');
   if (card) {
-    hideHover();
+    // 4.67.0: строки визитов и идей открывают свою карточку — сюда не пускаем
+    if (card.hasAttribute('data-visit') || card.hasAttribute('data-more')) return;
     const { id, kind } = card.dataset;
     if (kind === 'nastya') return;
+    const idNum = Number(id);
+    if (!id || !Number.isFinite(idNum) || idNum <= 0) return;
     // v3.11.2: выделяем выбранную строку спокойным цветом
     document.querySelectorAll('.list-row.selected').forEach(el => el.classList.remove('selected'));
     card.classList.add('selected');
     if (document.body.classList.contains('detail-mode')) {
       // Клиники/Партнёры: карточка справа просто меняется, окно не открываем
-      state.selId = Number(id) || null;
+      state.selId = idNum;
       markListScroll();                           // v3.17.0: запоминаем позицию списка
       document.body.classList.add('card-open');   // v3.11.4: на телефоне — отдельный экран карточки
       showHoverCard(card, true);
