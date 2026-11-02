@@ -2119,7 +2119,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.73.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.74.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4297,7 +4297,7 @@ function openPlanEditor(clinicId, curPlan, onSaved) {
 }
 
 function salesModalHtml(c, rows, pl) {
-  const CUR = 2026, PREV = 2025, LAST_M = 9;
+  const CUR = 2026, PREV = 2025, LAST_M = 10;
   const sumM = (y, m) => { let s = 0, has = false; (rows || []).forEach(r => { if (Number(r.year) === y && Number(r.month) === m) { s += Number(r.sale || 0); has = true; } }); return has ? s : null; };
   const sumR = (y, a, b) => { let s = 0, has = false; (rows || []).forEach(r => { const m = Number(r.month); if (Number(r.year) === y && m >= a && m <= b) { s += Number(r.sale || 0); has = true; } }); return has ? s : null; };
   const fact = sumR(CUR, 1, LAST_M) || 0;
@@ -4382,7 +4382,7 @@ async function renderPlan() {
     view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
     return;
   }
-  const CUR_Y = new Date().getFullYear(), PREV_Y = CUR_Y - 1, LAST_M = 9;
+  const CUR_Y = new Date().getFullYear(), PREV_Y = CUR_Y - 1, LAST_M = 10;
   const sumR = (cid, y, m1, m2) => {
     const rows = mon[Number(cid)] || [];
     let s = 0, has = false;
@@ -5929,7 +5929,7 @@ async function renderMyDay() {
   const EXC = await loadControlExclusions();
   const PLANS = await loadPlans();
   const CUR_Y = new Date().getFullYear();
-  const LAST_M = 9;
+  const LAST_M = 10;
   const CTRL_MODE = localStorage.getItem('ctrlMode') === 'q' ? 'q' : 'ytd';
   const sumRange = (cid, y, m1, m2) => {
     const rows = MON_ALL[Number(cid)] || [];
@@ -5946,7 +5946,7 @@ async function renderMyDay() {
     if (EXC.includes(Number(c.id))) return;
     let cur, prev, label;
     if (CTRL_MODE === 'q') { cur = sumRange(c.id, CUR_Y, 7, 9); prev = sumRange(c.id, CUR_Y - 1, 7, 9); label = 'III кв'; }
-    else { cur = sumRange(c.id, CUR_Y, 1, LAST_M); prev = sumRange(c.id, CUR_Y - 1, 1, LAST_M); label = 'янв–сен'; }
+    else { cur = sumRange(c.id, CUR_Y, 1, LAST_M); prev = sumRange(c.id, CUR_Y - 1, 1, LAST_M); label = 'янв–окт'; }
     if (prev == null || prev < MIN_BASE || cur == null || cur >= prev * DROP) return;
     att.push({ c, cur, prev, label, lost: prev - cur });
   });
