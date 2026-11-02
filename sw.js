@@ -7,7 +7,7 @@
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
 // Имя кэша привязано к видимой версии: см. APP_VER в index.html (сейчас 4.7.1).
 // При выпуске новой версии поднимать оба числа вместе — иначе старый HTML останется в кэше.
-const APP_CACHE = 'crm-app-4.71.0';
+const APP_CACHE = 'crm-app-4.72.0';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
 const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js?v=139', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
@@ -464,9 +464,23 @@ self.addEventListener('activate', (e) => {
     // на прежнем коде после выпуска (у Скоковой пропадали визиты).
     // Теперь новая версия воркера сама перезагружает открытые вкладки на сеть.
     try {
-      const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-      for (const c of wins) {
-        try { if (c.url && c.navigate) await c.navigate(c.url); } catch (_) {}
+      // 4.72.0: если у человека открыта форма — не перезагружаем вкладку,
+      // несохранённый ввод не теряется. Свежая страница всё равно придёт
+      // при следующем открытии (сеть — первая).
+      let busy = false;
+      try {
+        const fl = await caches.open('crm-flags');
+        const hit = await fl.match('/busy');
+        if (hit) {
+          const t = Number(await hit.text()) || 0;
+          busy = t && (Date.now() - t) < 5 * 60 * 1000;
+        }
+      } catch (_) {}
+      if (!busy) {
+        const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (const c of wins) {
+          try { if (c.url && c.navigate) await c.navigate(c.url); } catch (_) {}
+        }
       }
     } catch (_) {}
     await flushQueue();

@@ -2116,7 +2116,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.71.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.72.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2537,6 +2537,15 @@ document.addEventListener('click', ev => {
 
 let __modalScrollY = 0, __closingModal = false, __formDirty = false;
 function markFormDirty(v) { __formDirty = !!v; }
+// 4.72.0: пока открыта форма, воркер не перезагружает страницу —
+// иначе обновление версии съедало бы несохранённый ввод
+function setBusy(v) {
+  try {
+    caches.open('crm-flags').then(c => v
+      ? c.put('/busy', new Response(String(Date.now())))
+      : c.delete('/busy')).catch(() => {});
+  } catch (_) {}
+}
 function requestCloseModal() {
   if (__formDirty && !confirm('Закрыть форму без сохранения?')) return;
   __formDirty = false;
@@ -2550,6 +2559,7 @@ function openModal(title, bodyHtml) {
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalBody').innerHTML = bodyHtml;
   document.getElementById('modal').classList.remove('hidden');
+  setBusy(true);
   // v4.16.1: если в форме есть выбор ЛПУ — сразу подключаем поиск
   setTimeout(() => { try { bindClinicPicker(); } catch (_) {} }, 0);
   // 4.67.0: панель «Сохранить/Отмена» выносим из прокручиваемой части в подвал окна,
@@ -2599,6 +2609,7 @@ document.addEventListener('focusin', (e) => {
 let __modalOpener = null;
 function closeModal() {
   __formDirty = false;
+  setBusy(false);
   const m = document.getElementById('modal');
   if (m) m.classList.add('hidden');
   // 4.64.0: возвращаем фокус туда, откуда открыли
