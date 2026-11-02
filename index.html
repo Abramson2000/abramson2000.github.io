@@ -1717,15 +1717,6 @@ async function listClinics() {
   const rows = await fetchAllRows('clinics', 'name', 'id');
   let list = await mergeClinicPrivate(rows.map(fromClinic));
   // v4.22.0: менеджер видит ТОЛЬКО свои клиники (Осечкина, Скокова). Админ и наблюдатели — все.
-  if (CURRENT_ROLE === 'manager' && !window.__ALLOW_ALL_CLINICS) {
-    const me = String(window.CURRENT_MANAGER || myManagerName() || '').trim();
-    if (me) list = list.filter(c => {
-      const kind = c.kind || 'hospital';
-      // v4.60.0: справочник виден целиком — это база знаний, а не портфель менеджера
-      if (kind === 'ref_gos' || kind === 'ref_priv' || kind === 'ref_firm' || kind === 'distributor') return true;
-      return String(c.manager || '').trim() === me;
-    });
-  }
   return list;
 }
 // все клиники без ограничения по менеджеру — для листов команды, справочников и выбора ЛПУ
@@ -2047,7 +2038,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.60.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.61.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4091,7 +4082,8 @@ async function renderPlan() {
   try {
     // v4.29.0: менеджер видит весь наш отдел (Абрамов, Осечкина, Скокова) — есть к чему стремиться,
     // но чужих менеджеров (Веприков, Янус и пр.) не видит
-    all = (await listAllClinics()).filter(c => !isMgrPlan || PLAN_DEPT.includes(String(c.manager || '').trim()));
+    const mePlan = String(window.CURRENT_MANAGER || myManagerName() || '').trim();
+    all = (await listAllClinics()).filter(c => !isMgrPlan || String(c.manager || '').trim() === mePlan);
     mon = await loadMonthlyAll();
     plans = await loadPlans();
     vplans = await loadVisitPlans();
@@ -7489,15 +7481,18 @@ function relBlockHtml(c, linked, related) {
 // — обе части живут в закрытых таблицах (clinic_private, notes) с RLS:
 //   сервер отдаёт их только руководителю и ответственному менеджеру.
 function canSeePrivate(c) {
+  // v4.61.0: клинику и контакты видят все, ДЕНЬГИ — только свои
   if (CURRENT_ROLE === 'admin') return true;
   if (CURRENT_ROLE === 'guest' || CURRENT_ROLE === 'viewer') return false;
-  return !!c.hasPrivate || (!!window.CURRENT_MANAGER && c.manager === window.CURRENT_MANAGER);
+  const me = String(window.CURRENT_MANAGER || myManagerName() || '').trim();
+  if (!me) return false;
+  return String(c.manager || '').trim() === me;
 }
 function actionLabel(t) {
   return t === 'call' ? 'Звонок' : t === 'visit' ? 'Визит' : t === 'other' ? 'Другое' : 'Контакт';
 }
 function privBlock(c, canEditNow) {
-  if (!canSeePrivate(c)) return '';
+  // v4.61.0: блок контактов виден всем — ограничение только на деньги
   const d = c.nextContact ? String(c.nextContact).slice(0, 10) : '';
   // v3.16.1: остался только компактный «Связаться» (дата необязательна).
   // Поле «Текущая ситуация» убрано — теперь одна лента записей ниже (п.3 дополнения),
