@@ -222,6 +222,10 @@ body {
 .transfer-btn { font-size: 12px; color: var(--muted); cursor: pointer; flex: none; display: inline-flex; align-items: center; justify-content: center; height: 28px; padding: 0 8px; border-radius: 8px; user-select: none; box-sizing: border-box; white-space: nowrap; border: 1px solid var(--line); }
 .transfer-btn.on { color: var(--accent); border-color: var(--accent); }
 /* 4.64.0: подписи и высота фильтров в «Деньгах» */
+.mny-pills { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.mny-p { font: inherit; font-size: 12.5px; line-height: 1; padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; font-weight: 600; }
+.mny-p:hover { border-color: var(--brand); color: var(--brand-dark); }
+.mny-p.on { background: var(--brand); border-color: var(--brand); color: #fff; }
 .money-lbl { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
 .money-lbl select { height: 34px; font-size: 13px; }
 @media (max-width: 899px) {
@@ -277,6 +281,8 @@ body {
 .ctrl-x:hover { background: #f0f0f2; color: var(--ink); }
 /* v4.23.0: вкладка «План» */
 .plan-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 12px; }
+/* 5.6.0: кнопки в панели — по содержимому, «＋ Звонок» и «＋ Идея» одинаковые */
+.plan-bar .btn { width: auto; flex: 0 0 auto; min-width: 112px; justify-content: center; display: inline-flex; align-items: center; }
 @media (min-width: 900px) {
   .plan-bar { padding-top: 18px; }
   .plan-bar .btn.mini { height: 40px; padding: 0 18px; font-size: 14px; border-radius: 12px; }
@@ -364,6 +370,8 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 /* v4.35.0: на телефоне — без фильтров, без горизонтального скролла, компактно */
 body.plan-mode .search-row, body.plan-mode #searchTop { display: none; }
 body.visits-mode .search-row, body.visits-mode #searchTop { display: none; }
+/* 5.6.0: в «Звонках» над кнопкой ничего нет — ни поиска, ни фильтров */
+body.calls-mode .search-row, body.calls-mode #searchTop, body.calls-mode #filters { display: none; }
 /* v4.52.0: «Визиты» на компьютере — во всю ширину, заголовки компактнее */
 body.visits-mode .md-sec { padding-top: 7px; padding-bottom: 4px; font-size: 15px; }
 /* явная отсечка между предстоящими и прошедшими */
@@ -828,14 +836,21 @@ body.logged-out .toast { display: none !important; }
      оставались в старой колонке 720 px и выглядели «уехавшими» влево-вверх */
   /* фильтры живут в рабочей области (правее меню) и выровнены по колонке списка 792 px.
      margin-left:auto центрировал их по всему окну — отсюда был сдвиг влево на 130 px */
+  /* 5.5.0: фильтры — ОДНА строка (листается вбок, как на телефоне) и стоят ниже,
+     на уровне, где раньше была вторая строка с источниками и метками */
   .filters {
     margin-left: 260px; margin-right: 0; max-width: none;
     padding-left: calc(max(0px, (100vw - 260px - 792px) / 2));
     padding-right: calc(max(0px, (100vw - 260px - 792px) / 2));
-    padding-top: 6px; padding-bottom: 2px;
+    padding-top: 38px; padding-bottom: 2px;
   }
-  .search-col { width: 100%; flex: 1 1 auto; min-width: 0; }
+  .f-ctl { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; scrollbar-width: thin; }
+  .f-ctl > * { flex: 0 0 auto; }
+  /* 5.5.0: строка поиска вместе с кнопкой «＋» = 792 px, как плашка клиники */
+  .searchbar-inner { max-width: 792px; margin: 0 auto; gap: 8px; }
+  .search-col { flex: 1 1 auto; min-width: 0; }
   .search-box { width: 100%; }
+  .searchbar-inner .add-btn { flex: 0 0 44px; }
   .bottom-bar { display: none; }
   body { padding-bottom: 24px; }
   /* v3.27.0: пока карточка не выбрана — список занимает всю рабочую область (место под карточку не висит пустым);
@@ -2148,7 +2163,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.4.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.6.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3710,6 +3725,15 @@ document.getElementById('modalClose').addEventListener('click', closeModal);
 })();
 document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 
+// 5.6.0: переключатель производителя в «Плане»
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('[data-psrc]');
+  if (!b) return;
+  PLAN_ST.src = b.dataset.psrc;
+  try { localStorage.setItem('planSrc', PLAN_ST.src); } catch (_) {}
+  renderPlan();
+});
+
 // 4.67.0: клик мимо меню «⋯» закрывает его (слушатель ставится один раз)
 // 4.67.0: когда service worker обновился — один раз перезагружаем страницу,
 // чтобы человек не оставался на старом коде после выпуска
@@ -3852,6 +3876,7 @@ async function render() {
   document.body.classList.toggle('detail-mode', PANEL_VIEWS.includes(state.view));
   document.body.classList.toggle('plan-mode', state.view === 'plan');   // v4.28.0: «План» — на всю ширину
   document.body.classList.toggle('visits-mode', state.view === 'visits');   // v4.49.0: в «Визитах» поиск не нужен
+  document.body.classList.toggle('calls-mode', state.view === 'calls');     // 5.6.0: в «Звонках» тоже без поиска и фильтров
   // v3.15.0: до выбора — короткая подсказка в правой панели
   if (document.body.classList.contains('detail-mode') && !state.selId) showPanelHint();
   // v3.14.0: тип действия подставляется только при работе из «Звонков»/«Визитов»
@@ -4258,7 +4283,9 @@ async function openCtrlExcluded() {
 
 
 // ---------- v4.23.0: вкладка «План» — годовой план против факта ----------
-const PLAN_ST = { mgrs: [], q: '', onlyPlan: false, onlyFail: false, sort: 'plan', dir: -1 };
+const PLAN_ST = { mgrs: [], q: '', onlyPlan: false, onlyFail: false, sort: 'plan', dir: -1,
+  // 5.6.0: фильтр по производителю в «Плане»: both | boston | hugemed
+  src: (localStorage.getItem('planSrc') === 'boston' || localStorage.getItem('planSrc') === 'hugemed') ? localStorage.getItem('planSrc') : 'both' };
 const PLAN_DEPT = ['Абрамов', 'Осечкина', 'Скокова'];
 
 // v4.30.0: карточка клиники поверх — из «Плана» открываем её, не уходя во вкладку «Клиники»
@@ -4326,24 +4353,16 @@ function openPlanEditor(clinicId, curPlan, onSaved) {
 }
 
 function salesModalHtml(c, rows, pl) {
-  const CUR = 2026, PREV = 2025, LAST_M = 10;
-  const sumM = (y, m) => { let s = 0, has = false; (rows || []).forEach(r => { if (Number(r.year) === y && Number(r.month) === m) { s += Number(r.sale || 0); has = true; } }); return has ? s : null; };
+  const CUR = 2026, LAST_M = 10;
   const sumR = (y, a, b) => { let s = 0, has = false; (rows || []).forEach(r => { const m = Number(r.month); if (Number(r.year) === y && m >= a && m <= b) { s += Number(r.sale || 0); has = true; } }); return has ? s : null; };
-  const fact = sumR(CUR, 1, LAST_M) || 0;
-  const prev = sumR(PREV, 1, LAST_M) || 0;
-  const pct = (a, b) => (b ? Math.round((a - b) / b * 100) : null);
-  const MN = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-  let body = '';
-  for (let m = 1; m <= LAST_M; m++) {
-    const a = sumM(CUR, m), b = sumM(PREV, m);
-    const d = (a != null && b != null) ? pct(a, b) : null;
-    body += `<tr><td>${MN[m - 1]}</td><td>${a != null ? fmtMoney(a) : '—'}</td><td>${b != null ? fmtMoney(b) : '—'}</td>`
-      + `<td>${d == null ? '—' : `<span class="${d >= 0 ? 'pl-ok' : 'pl-bad'}">${d > 0 ? '+' : ''}${d}%</span>`}</td></tr>`;
-  }
-  const q = [1, 2, 3, 4].map(n => sumR(CUR, (n - 1) * 3 + 1, n * 3));
-  const head = `<tr><td><b>Итого янв–сен</b></td><td><b>${fmtMoney(fact)}</b></td><td><b>${fmtMoney(prev)}</b></td>`
-    + `<td>${prev ? `<span class="${fact >= prev ? 'pl-ok' : 'pl-bad'}">${pct(fact, prev) > 0 ? '+' : ''}${pct(fact, prev)}%</span>` : '—'}</td></tr>`;
-  const qRow = `<tr class="pl-total"><td>Кварталы</td><td colspan="3">I ${q[0] ? fmtMoney(q[0]) : '—'} · II ${q[1] ? fmtMoney(q[1]) : '—'} · III ${q[2] ? fmtMoney(q[2]) : '—'} · IV ${q[3] ? fmtMoney(q[3]) : '—'}</td></tr>`;
+  // 5.5.0: столбцы по годам — 2024, 2025, 2026 и разница
+  const y24 = sumR(2024, 1, LAST_M), y25 = sumR(2025, 1, LAST_M), y26 = sumR(2026, 1, LAST_M);
+  const cell = v => v == null ? '—' : fmtMoney(v);
+  const absDiff = (y26 != null && y25 != null) ? (y26 - y25) : null;
+  const pctDiff = (absDiff != null && y25) ? Math.round(absDiff / y25 * 100) : null;
+  const diffCell = absDiff == null ? '—'
+    : `<span class="${absDiff >= 0 ? 'pl-ok' : 'pl-bad'}">${absDiff > 0 ? '+' : ''}${fmtMoney(absDiff)}${pctDiff == null ? '' : ' (' + (pctDiff > 0 ? '+' : '') + pctDiff + '%)'}</span>`;
+  const fact = y26 || 0;
   const planLine = pl
     ? `<div class="detail-block"><div class="k">План 2026</div><div class="v">${fmtMoney(pl)} ₽ · факт ${fmtMoney(fact)} ₽ · ${Math.round(fact / pl * 100)}%
          ${CURRENT_ROLE === 'admin' ? '· <a href="#" id="planEditLink">изменить</a>' : ''}</div></div>`
@@ -4352,10 +4371,10 @@ function salesModalHtml(c, rows, pl) {
     <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c.name || '')}${c.city ? ' · ' + esc(c.city) : ''}</div></div>
     ${planLine}
     <table class="money-tbl plan-tbl" style="width:100%">
-      <thead><tr><th>Месяц</th><th>2026</th><th>2025</th><th>Δ</th></tr></thead>
-      <tbody>${body || '<tr><td colspan="4">данных нет</td></tr>'}${head}${qRow}</tbody>
+      <thead><tr><th>2024</th><th>2025</th><th>2026</th><th>Разница 2026 к 2025</th></tr></thead>
+      <tbody><tr><td>${cell(y24)}</td><td>${cell(y25)}</td><td>${cell(y26)}</td><td>${diffCell}</td></tr></tbody>
     </table>
-    <div class="row-why" style="margin-top:8px">Продажи Boston по месяцам, январь–сентябрь. Октябрь в базе пока не залит.</div>
+    <div class="row-why" style="margin-top:8px">Продажи Boston и HugeMed за январь–октябрь каждого года. Разница считается от 2025 к 2026.</div>
   `;
 }
 
@@ -4412,10 +4431,16 @@ async function renderPlan() {
     return;
   }
   const CUR_Y = new Date().getFullYear(), PREV_Y = CUR_Y - 1, LAST_M = 10;
+  const PLAN_SRC = PLAN_ST.src || 'both';
+  const srcOk = (r) => PLAN_SRC === 'both' || String(r.product || 'boston') === PLAN_SRC;
   const sumR = (cid, y, m1, m2) => {
     const rows = mon[Number(cid)] || [];
     let s = 0, has = false;
-    rows.forEach(r => { const m = Number(r.month); if (Number(r.year) === y && m >= m1 && m <= m2) { s += Number(r.sale || 0); has = true; } });
+    rows.forEach(r => {
+      if (!srcOk(r)) return;                    // 5.6.0: считаем только выбранный продукт
+      const m = Number(r.month);
+      if (Number(r.year) === y && m >= m1 && m <= m2) { s += Number(r.sale || 0); has = true; }
+    });
     return has ? s : null;
   };
   const today = todayISO();
@@ -4565,6 +4590,7 @@ async function renderPlan() {
     const totF = rows.reduce((a, r) => a + Number(r.fact || 0), 0);
     view.innerHTML = planNote + `<div class="plan-bar">
         <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
+        <span class="mny-pills" id="planSrc">${[['both','Все'],['boston','Boston'],['hugemed','HugeMed']].map(([v,l]) => `<button type="button" class="mny-p${(PLAN_ST.src || 'both') === v ? ' on' : ''}" data-psrc="${v}">${l}</button>`).join('')}</span>
         <button type="button" class="btn ghost mini" id="planFiltersBtn">Фильтры${PLAN_ST.mgrs.length || PLAN_ST.onlyPlan || PLAN_ST.onlyFail ? ' ·' : ''}</button>
       </div>
       <div class="plan-filters${filtersOpenM ? '' : ' hidden'}" id="planFilters">
@@ -4613,6 +4639,7 @@ async function renderPlan() {
 
   view.innerHTML = planNote + `<div class="plan-bar">
       <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
+      <span class="mny-pills" id="planSrc">${[['both','Все'],['boston','Boston'],['hugemed','HugeMed']].map(([v,l]) => `<button type="button" class="mny-p${(PLAN_ST.src || 'both') === v ? ' on' : ''}" data-psrc="${v}">${l}</button>`).join('')}</span>
       <button type="button" class="btn ghost mini" id="planFiltersBtn">Фильтры${PLAN_ST.mgrs.length || PLAN_ST.onlyPlan || PLAN_ST.onlyFail ? ' ·' : ''}</button>
     </div>
     <div class="plan-filters${FILTERS_OPEN ? '' : ' hidden'}" id="planFilters">
@@ -5056,7 +5083,8 @@ async function renderActionList(type, title) {
       ${subMarks(c, esc([c.city].filter(Boolean).join(', ') || '—') + (c.manager ? ' · ' + esc(c.manager) : ''))}
     </div>`;
   }).join('');
-  view.innerHTML = `<div class="md-tools"><button class="btn primary mini" id="newActionBtn">＋ ${type === 'visit' ? 'Визит' : 'Звонок'}</button></div>` +
+  // 5.6.0: та же панель и тот же размер кнопки, что «＋ Идея» в «Визитах»
+  view.innerHTML = `<div class="plan-bar"><button class="btn primary mini" id="newActionBtn">＋ ${type === 'visit' ? 'Визит' : 'Звонок'}</button></div>` +
     `<div class="cns-head"><span>${esc(title)} \u00b7 <b>${rows.length}</b></span></div>` +
     (rows.length ? '<div class="list">' + cards + '</div>'
       : `<div class="empty">${type === 'visit' ? 'Запланированных визитов нет' : 'Запланированных звонков нет'} \u2014 нажми «＋» сверху</div>`);
@@ -6237,7 +6265,7 @@ async function renderOrgList(kind) {
       (myEmail === 'osechkina@crm.ru' && m === 'Осечкина') ||
       (myEmail === 'skokova@crm.ru' && m === 'Скокова'));
     const inWl = myWlIds.has(c.id);
-    const tr = showTr ? `<span class="transfer-btn${inWl ? ' on' : ''}" data-transfer="${c.id}" role="button" tabindex="0" aria-label="${inWl ? 'Уже в моём списке' : 'В мой список'}" title="${inWl ? 'Уже в моём списке' : 'В мой список'}">${inWl ? 'В моём списке' : 'В мой список'}</span>` : '';
+    const tr = showTr ? `<span class="transfer-btn${inWl ? ' on' : ''}" data-transfer="${c.id}" role="button" tabindex="0" aria-label="${inWl ? 'Моя' : 'В мои'}" title="${inWl ? 'Уже в моём списке' : 'Добавить в мой список'}">${inWl ? 'Моя' : 'В мои'}</span>` : '';
     // v3.30.7: логотип мочевого пузыря (cns.png) с плашек больниц убран — метка ЦНС ставится продуктом в карточке
     const nc = (mineOnly && c.nextContact) ? `<span class="row-next">След. контакт: ${esc(String(c.nextContact).slice(0, 10))}</span>` : '';
     return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
@@ -6386,19 +6414,16 @@ async function renderMoney() {
   const sortTitle = mode === 'name' ? 'Сортировка по алфавиту (нажми для смены)' : `Сортировка по сумме: ${mode === 'asc' ? 'по возрастанию' : 'по убыванию'} (нажми для смены)`;
   view.innerHTML = `<div class="money-total-line">Итого ${year}: <b>${fmtMoney(total)} ₽</b>
       <span class="money-split">${splitLabel}</span>
-      <label class="money-lbl">Производитель
-      <select id="money-src" class="sort-toggle" title="Какие продажи считать">
-        <option value="both"${src === 'both' ? ' selected' : ''}>Все</option>
-        <option value="boston"${src === 'boston' ? ' selected' : ''}>Boston</option>
-        <option value="hugemed"${src === 'hugemed' ? ' selected' : ''}>HugeMed</option>
-      </select></label>
-      <label class="money-lbl">Динамика
-      <select id="money-filter" class="sort-toggle" title="Фильтр по динамике">
-        <option value="all"${mf === 'all' ? ' selected' : ''}>Все</option>
-        <option value="up"${mf === 'up' ? ' selected' : ''}>Рост</option>
-        <option value="down"${mf === 'down' ? ' selected' : ''}>Падение</option>
-        <option value="new"${mf === 'new' ? ' selected' : ''}>Новый</option>
-      </select></label>
+      <span class="money-lbl">Производитель
+        <span class="mny-pills" id="money-src">
+          ${[['both','Все'],['boston','Boston'],['hugemed','HugeMed']].map(([v,l]) => `<button type="button" class="mny-p${src === v ? ' on' : ''}" data-s="${v}">${l}</button>`).join('')}
+        </span>
+      </span>
+      <span class="money-lbl">Динамика
+        <span class="mny-pills" id="money-filter">
+          ${[['all','Все'],['up','Рост'],['down','Падение'],['new','Новый']].map(([v,l]) => `<button type="button" class="mny-p${mf === v ? ' on' : ''}" data-f="${v}">${l}</button>`).join('')}
+        </span>
+      </span>
       <button class="sort-toggle" id="money-sort" title="${sortTitle}">${sortLabel}</button>
       <span class="money-cnt">${clinics.length}</span>
     </div>`
@@ -6434,13 +6459,14 @@ async function renderMoney() {
     state.moneySort = mode === 'desc' ? 'asc' : (mode === 'asc' ? 'name' : 'desc');
     renderMoney();
   });
-  document.getElementById('money-src').addEventListener('change', e => {
-    state.moneySource = e.target.value;
-    renderMoney();
+  // 5.5.0: мини-фильтры — кнопки, как в 4.30–4.40
+  document.getElementById('money-src').addEventListener('click', e => {
+    const b = e.target.closest('.mny-p'); if (!b) return;
+    state.moneySource = b.dataset.s; renderMoney();
   });
-  document.getElementById('money-filter').addEventListener('change', e => {
-    state.moneyFilter = e.target.value;
-    renderMoney();
+  document.getElementById('money-filter').addEventListener('click', e => {
+    const b = e.target.closest('.mny-p'); if (!b) return;
+    state.moneyFilter = b.dataset.f; renderMoney();
   });
 }
 
