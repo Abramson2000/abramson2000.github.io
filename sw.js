@@ -7,10 +7,10 @@
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
 // Имя кэша привязано к видимой версии: см. APP_VER в index.html (сейчас 4.7.1).
 // При выпуске новой версии поднимать оба числа вместе — иначе старый HTML останется в кэше.
-const APP_CACHE = 'crm-app-4.74.0';
+const APP_CACHE = 'crm-app-5.0.0';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
-const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js?v=139', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg'];
+const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js?v=139', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg', './bg-wide.jpg', './bg-narrow.jpg'];
 
 // Под-приложения на том же домене (/tingli, /spin, /cidian) — у каждого свой
 // сервис-воркер. CRM не должна подменять их своим «shell»: раньше проверка была
