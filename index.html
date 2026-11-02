@@ -2038,7 +2038,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.61.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.62.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4386,7 +4386,11 @@ async function renderVisits() {
   // фильтр по менеджерам: Все / Мой отдел / Мазаева / Евсеев
   // v4.57.0: все видят все визиты; при входе фильтр стоит на своих, но можно выбрать «Все»
   const MGR_LIST = ['Абрамов', 'Осечкина', 'Скокова', 'Мазаева', 'Евсеев'];
-  const savedMgr = localStorage.getItem('visitsMgr');
+  // v4.62.0: мусор в фильтре (старое «__dept», чужая фамилия) сбрасываем — иначе визиты «пропадают»
+  const rawMgr = localStorage.getItem('visitsMgr');
+  const mgrValid = (rawMgr === null) || (rawMgr === '') || MGR_LIST.includes(rawMgr);
+  if (!mgrValid) { try { localStorage.removeItem('visitsMgr'); } catch (_) {} }
+  const savedMgr = mgrValid ? rawMgr : null;
   const MGR_FILTER = (savedMgr === null) ? (isBossV ? '' : (me || '')) : savedMgr;
   const DEPT = ['Абрамов', 'Осечкина', 'Скокова'];
   const passMgr = (rec) => {
