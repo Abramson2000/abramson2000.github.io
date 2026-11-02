@@ -272,6 +272,8 @@ body {
 .vm-chks { display: flex; flex-wrap: wrap; gap: 10px 16px; }
 .vm-chk { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .vm-docs { max-height: 220px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
+.remind-com { display: none; }
+@media (min-width: 900px) { .remind-com { display: inline; margin-left: 10px; color: var(--muted); } }
 .vm-actions { display: flex; gap: 8px; padding-top: 8px; flex-wrap: wrap; }
 .vm-actions .btn.ghost { border-color: var(--accent); color: var(--accent); background: transparent; }
 .vm-chip { display: inline-flex; align-items: center; gap: 6px; background: #f0f0f2; border-radius: 14px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
@@ -2164,7 +2166,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.8.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.9.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4731,7 +4733,7 @@ function visitRange(p) {
   const b = String((p && (p.dateTo || p.date)) || '').slice(0, 10);
   if (!a) return '';
   if (!b || b === a) return fmtDate(a);
-  return 'с ' + fmtDate(a) + ' по ' + fmtDate(b);
+  return fmtDate(a) + ' - ' + fmtDate(b);
 }
 function visitMonthKey(iso) { return String(iso || '').slice(0, 7); }
 function visitEnd(p) { return String((p && (p.dateTo || p.date)) || '').slice(0, 10); }
@@ -4917,7 +4919,8 @@ async function renderVisits() {
   // ---- список: прошедшие и предстоящие ----
   const rowHtml = (p) => `<div class="card list-row" data-visit="${p.noteId}">
       <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(visitRange(p))}</span></div>
-      <div class="row-why"><b>${esc(String(p.city || '').trim() || byId[p.clinic_id] || 'без клиники')}</b>${(!String(p.city || '').trim() && cityById[p.clinic_id]) ? ' · ' + esc(cityById[p.clinic_id]) : ''}</div>
+      <div class="row-why"><b>${esc(String(p.city || '').trim() || 'без города')}</b></div>
+      <div class="row-why">${esc(byId[p.clinic_id] || 'клиника не указана')}</div>
       <div class="row-why">${(() => {
         const parts = (p.participants || []).map(canonManager).filter(Boolean);
         const mgr = String(mgrById[p.clinic_id] || '').trim();
@@ -4942,13 +4945,22 @@ async function renderVisits() {
     </div>`;
 
   // идеи
+  // 5.9.0: идеи визитов — той же формы, что и визиты
   const ideasHtml = ideaRows.length ? `<div class="md-sec">Идеи визитов · <b>${ideaRows.length}</b></div>
     <div class="list visits-list">${ideaRows.map(i => {
-      const win = (i.from && i.to) ? (fmtDate(i.from) + ' — ' + fmtDate(i.to)) : (i.from ? 'с ' + fmtDate(i.from) : 'окно не задано');
-      const parts = (i.participants || []).join(', ');
+      const a = String(i.from || '').slice(0, 10);
+      const b = String(i.to || i.from || '').slice(0, 10);
+      const win = !a ? 'окно не задано' : ((!b || b === a) ? fmtDate(a) : fmtDate(a) + ' - ' + fmtDate(b));
+      const title = String(i.title || i.goal || i.kind || 'визит').trim() || 'визит';
+      const city = String(i.city || '').trim();
+      const clinic = byId[i.clinic_id] || '';
+      const who = [...new Set((i.participants || []).map(canonManager).filter(Boolean))];
+      const remind = i.remind ? `<span class="remind-com">Напоминание ${esc(fmtDate(i.remind))}</span>` : '';
       return `<div class="card list-row" data-id="${i.clinic_id}" data-kind="clinic" data-idea="${i.noteId}">
-        <div class="list-row-top"><span class="rn-wrap"><span class="row-next" style="margin-left:0">${esc(win)}</span></span><span class="rn-wrap"><span class="list-row-name">${esc(byId[i.clinic_id] || ('клиника #' + i.clinic_id))}</span></span></div>
-        <div class="row-why">${esc(i.goal || 'визит')}${parts ? ' · с ' + esc(parts) : ''}${i.remind ? ' · напомню ' + esc(fmtDate(i.remind)) : ''}</div>
+        <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(title)}</span></span><span class="row-next">${esc(win)}</span></div>
+        <div class="row-why"><b>${esc(city || 'без города')}</b></div>
+        <div class="row-why">${esc(clinic || 'клиника не указана')}</div>
+        <div class="row-why">${who.length ? 'Участники: ' + esc(who.join(', ')) : 'Участники: —'}${remind}</div>
       </div>`;
     }).join('')}</div>` : '';
 
