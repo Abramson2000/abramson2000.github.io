@@ -2037,7 +2037,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.54.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.55.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5441,8 +5441,26 @@ async function renderMyDay() {
     (c.city || '').toLowerCase().includes(sMD) ||
     (c.region || '').toLowerCase().includes(sMD) ||
     (c.manager || '').toLowerCase().includes(sMD));
-  const days = c => Math.round((new Date(String(c.nextContact).slice(0, 10) + 'T00:00:00') - base) / 86400000);
-  const withDate = clinics.filter(c => c.nextContact);
+  // v4.55.0: визит, который идёт сегодня, остаётся в «Сегодня»; уходит только когда закончился
+  const todayIso = todayISO();
+  const effDate = (c) => {
+    if (c.actionType === 'visit') {
+      const p = visitPlanOf(c.id);
+      if (p) {
+        const a = String(p.date || '').slice(0, 10), b = visitEnd(p);
+        if (a && b && todayIso >= a && todayIso <= b) return todayIso;   // идёт прямо сейчас
+      }
+    }
+    return String(c.nextContact || '').slice(0, 10);
+  };
+  const days = c => { const d = effDate(c); return d ? Math.round((new Date(d + 'T00:00:00') - base) / 86400000) : null; };
+  const visitAlreadyDone = (c) => {
+    if (c.actionType !== 'visit') return false;
+    const p = visitPlanOf(c.id);
+    const end = p ? visitEnd(p) : String(c.nextContact || '').slice(0, 10);
+    return !!end && end < todayIso;   // закончился раньше сегодня — убираем из «Моего дня»
+  };
+  const withDate = clinics.filter(c => effDate(c) && !visitAlreadyDone(c));
   const over = withDate.filter(c => days(c) < 0).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
   const tod  = withDate.filter(c => days(c) === 0);
   const week = withDate.filter(c => days(c) > 0 && days(c) <= 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
@@ -5535,9 +5553,17 @@ async function renderMyDay() {
   // и без кнопок выполнения; заголовки — только над группами, пустые группы не выводятся
   // v3.17.2: на телефоне кнопка фильтра встроена в строку первого непустого заголовка;
   // v3.27.0: на компьютере — всегда своя строка сверху (как на телефоне, но не спрятана)
-  const bOver = block('Просрочено', over, c => fmtDate(c.nextContact), true);
-  const bToday = block('Сегодня', tod, c => fmtDate(c.nextContact), !over.length);
-  const bLater = block('Позже', [...week, ...later].slice(0, 20), c => fmtDate(c.nextContact), !over.length && !tod.length);
+  // у визита в строке показываем диапазон дат, у звонка — дату
+  const badgeOf = (c) => {
+    if (c.actionType === 'visit') {
+      const p = visitPlanOf(c.id);
+      if (p && p.date) return visitRange(p);
+    }
+    return fmtDate(c.nextContact);
+  };
+  const bOver = block('Просрочено', over, badgeOf, true);
+  const bToday = block('Сегодня', tod, badgeOf, !over.length);
+  const bLater = block('Позже', [...week, ...later].slice(0, 20), badgeOf, !over.length && !tod.length);
   const ideasBlock = ideasDue.length ? `<div class="md-sec">Пора выбрать дату визита · <b>${ideasDue.length}</b></div>
     <div class="list">${ideasDue.map(i => {
       const nm = nameById[i.clinic_id] || ('клиника #' + i.clinic_id);
