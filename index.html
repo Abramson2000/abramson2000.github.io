@@ -2048,7 +2048,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.65.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.66.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4269,6 +4269,14 @@ async function renderPlan() {
     + `<td class="pl-opt">${fmtM(Math.round(totLeft / 3))}</td>`
     + `<td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td></td><td></td></tr>`;
 
+  const lastFactMonth = (() => {
+    let m = 0;
+    Object.keys(mon || {}).forEach(cid => (mon[cid] || []).forEach(r => { if (Number(r.year) === CUR_Y) m = Math.max(m, Number(r.month) || 0); }));
+    return m;
+  })();
+  const MN_RU = ['', 'январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+  const factTxt = lastFactMonth ? (MN_RU[lastFactMonth] + ' ' + CUR_Y) : 'период не определён';
+  const planNote = `<div class="plan-note">План ${CUR_Y} · продажи Boston + HugeMed · факт загружен по ${esc(factTxt)}</div>`;
   // v4.38.1: на телефоне — карточками; все нужные значения считаем ЗДЕСЬ, до объявлений ниже
   const isNarrow = window.innerWidth < 900;
   if (isNarrow) {
@@ -4345,14 +4353,6 @@ async function renderPlan() {
       ${allMgrs.map(m => `<button type="button" class="pl-chip${PLAN_ST.mgrs.includes(m) ? ' on' : ''}" data-pm="${esc(m)}">${esc(m)}</button>`).join('')}
     </div>`;
 
-  const lastFactMonth = (() => {
-    let m = 0;
-    Object.keys(mon || {}).forEach(cid => (mon[cid] || []).forEach(r => { if (Number(r.year) === CUR_Y) m = Math.max(m, Number(r.month) || 0); }));
-    return m;
-  })();
-  const MN_RU = ['', 'январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
-  const factTxt = lastFactMonth ? (MN_RU[lastFactMonth] + ' ' + CUR_Y) : 'период не определён';
-  const planNote = `<div class="plan-note">План ${CUR_Y} · продажи Boston + HugeMed · факт загружен по ${esc(factTxt)}</div>`;
   view.innerHTML = planNote + `<div class="plan-bar">
       <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
       <button type="button" class="btn ghost mini" id="planFiltersBtn">Фильтры${PLAN_ST.mgrs.length || PLAN_ST.onlyPlan || PLAN_ST.onlyFail ? ' ·' : ''}</button>
