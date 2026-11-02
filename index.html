@@ -285,6 +285,8 @@ body {
 .plan-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 12px; }
 /* 5.6.0: кнопки в панели — по содержимому, «＋ Звонок» и «＋ Идея» одинаковые */
 .plan-bar .btn { width: auto; flex: 0 0 auto; min-width: 112px; justify-content: center; display: inline-flex; align-items: center; }
+/* 5.10.0: панель «Календарь / + Идея» (и «Список» в календаре) во всю ширину колонки */
+.visits-bar .btn { flex: 1 1 0; width: auto; min-width: 0; }
 @media (min-width: 900px) {
   .plan-bar { padding-top: 18px; }
   .plan-bar .btn.mini { height: 40px; padding: 0 18px; font-size: 14px; border-radius: 12px; }
@@ -2166,7 +2168,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.9.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.10.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4920,7 +4922,7 @@ async function renderVisits() {
   const rowHtml = (p) => `<div class="card list-row" data-visit="${p.noteId}">
       <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(visitRange(p))}</span></div>
       <div class="row-why"><b>${esc(String(p.city || '').trim() || 'без города')}</b></div>
-      <div class="row-why">${esc(byId[p.clinic_id] || 'клиника не указана')}</div>
+      <div class="row-why">${byId[p.clinic_id] ? esc(byId[p.clinic_id]) : '&nbsp;'}</div>
       <div class="row-why">${(() => {
         const parts = (p.participants || []).map(canonManager).filter(Boolean);
         const mgr = String(mgrById[p.clinic_id] || '').trim();
@@ -4959,14 +4961,14 @@ async function renderVisits() {
       return `<div class="card list-row" data-id="${i.clinic_id}" data-kind="clinic" data-idea="${i.noteId}">
         <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(title)}</span></span><span class="row-next">${esc(win)}</span></div>
         <div class="row-why"><b>${esc(city || 'без города')}</b></div>
-        <div class="row-why">${esc(clinic || 'клиника не указана')}</div>
+        <div class="row-why">${clinic ? esc(clinic) : '&nbsp;'}</div>
         <div class="row-why">${who.length ? 'Участники: ' + esc(who.join(', ')) : 'Участники: —'}${remind}</div>
       </div>`;
     }).join('')}</div>` : '';
 
   const chip = (val, label) => `<button class="pl-chip${MGR_FILTER === val ? ' on' : ''}" data-visits-mgr="${val}">${label}</button>`;
   view.innerHTML = `
-    <div class="plan-bar">
+    <div class="plan-bar visits-bar">
       <button class="btn ghost mini" id="visitsModeBtn">${VISITS_UI.mode === 'cal' ? 'Список' : 'Календарь'}</button>
       <button class="btn primary mini" id="newIdeaBtn">＋ Идея</button>
     </div>
