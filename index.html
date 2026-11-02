@@ -2048,7 +2048,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.64.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.65.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3639,8 +3639,15 @@ function decorateGoneRows() {
     setTimeout(decorateGoneRows, 3000);
   } catch (_) {}
 })();
+let __lastRenderedView = null;
 async function render() {
   if (isRefEdit() && REFEDIT_DENIED.includes(state.view)) { state.view = 'clinics'; }
+  // 4.65.0: перешли в другой раздел — скрытая карточка не должна занимать место
+  if (__lastRenderedView && __lastRenderedView !== state.view) {
+    state.selId = null; state.selKind = null;
+    try { document.body.classList.remove('card-open', 'card-sliding', 'swipe-drag'); } catch (_) {}
+  }
+  __lastRenderedView = state.view;
   const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'money', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
   document.body.classList.toggle('detail-mode', PANEL_VIEWS.includes(state.view));
   document.body.classList.toggle('plan-mode', state.view === 'plan');   // v4.28.0: «План» — на всю ширину
@@ -4290,7 +4297,7 @@ async function renderPlan() {
     };
     const totP = rows.reduce((a, r) => a + Number(r.plan || 0), 0);
     const totF = rows.reduce((a, r) => a + Number(r.fact || 0), 0);
-    view.innerHTML = `<div class="plan-bar">
+    view.innerHTML = planNote + `<div class="plan-bar">
         <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
         <button type="button" class="btn ghost mini" id="planFiltersBtn">Фильтры${PLAN_ST.mgrs.length || PLAN_ST.onlyPlan || PLAN_ST.onlyFail ? ' ·' : ''}</button>
       </div>
