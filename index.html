@@ -248,11 +248,14 @@ body {
 .cns-head b { color: var(--ink); }
 /* v4.12.0: «Мой день» — крупные заголовки секций, подзаголовки «Звонки/Визиты»,
    разрыв перед «Требуют внимания» и строка с целью визита */
-.md-sec { padding: 12px 16px 6px; font-size: 17px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+/* 4.71.0: разделы «Моего дня» — крупный отступ и разделитель между блоками,
+   внутри блока карточки идут плотнее; заголовок ближе к своему содержимому */
+.md-sec { padding: 0 16px 8px; font-size: 17px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 10px; margin-top: 28px; }
+.md-sec:first-child { margin-top: 4px; }
 .md-sec b { font-weight: 700; }
 .md-sub { padding: 8px 16px 2px; font-size: 13px; letter-spacing: .02em; color: var(--muted); }
-.md-gap { margin-top: 36px; border-top: 1px solid #e8e8e8; padding-top: 6px; }
-.md-gap .md-sec { font-size: 15px; color: var(--muted); font-weight: 600; }
+.md-gap { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 20px; }
+.md-gap .md-sec { font-size: 16px; color: var(--ink); font-weight: 700; margin-top: 0; }
 .row-why { padding: 4px 0 0; font-size: 13px; line-height: 1.35; color: var(--muted); }
 .md-idea-row { display: flex; align-items: center; gap: 10px; }
 .md-idea-row .grow { flex: 1; min-width: 0; }
@@ -498,6 +501,9 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
   font-size: 15px; background: var(--card); color: var(--ink);
 }
 .field textarea { min-height: 70px; resize: vertical; }
+/* 4.71.0: короткие значения не растягиваются на всю форму */
+#modal .field input[type=date], #modal .field input[type=number] { max-width: 190px; }
+#modal .field select { max-width: 100%; }
 .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--brand); border-color: transparent; }
 
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -531,7 +537,14 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
 .fhist > summary::before { content: '▸ '; }
 .fhist[open] > summary::before { content: '▾ '; }
 .fhist > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
-.vm-doc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+/* 4.71.0: карточки визитов отделяются друг от друга интервалом 14 px,
+   границей и внутренним отступом — без теней и заливок */
+.visits-list { gap: 14px; }
+.visits-list .card.list-row { border-color: #e2e2e2; padding: 12px 14px; }
+.visits-list .list-row + .list-row { margin-top: 0; }
+.vm-doc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.vm-doc-clinics { font-size: 12.5px; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; display: flex; flex-direction: column; gap: 2px; }
+.vm-doc-clinics.vm-doc-missing { font-style: italic; opacity: .75; }
 .vm-doc-row:last-child { border-bottom: 0; }
 .vm-doc-main { flex: 1 1 150px; min-width: 0; }
 .vm-doc-name { font-size: 13.5px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
@@ -809,7 +822,11 @@ body.logged-out .toast { display: none !important; }
      Табличные разделы (План) остаются широкими, иначе цифры не влезают. */
   .work > #view { max-width: 792px; margin-left: auto; margin-right: auto; padding: 8px 16px 12px; }
   body.plan-mode .work > #view { max-width: none; margin-left: 0; margin-right: 0; }
-  body.detail-mode.card-open .work > #view { max-width: calc((100vw - 260px) * 2 / 3); margin-left: 0; margin-right: 0; }
+  /* 4.71.0: с открытой карточкой список и подробности делят место по-честному:
+     список до 660 px, карточка занимает остальное, обе центрированы */
+  body.detail-mode.card-open .work { justify-content: center; }
+  body.detail-mode.card-open .work > #view { max-width: 660px; flex: 1 1 420px; margin-left: 0; margin-right: 0; }
+  body.detail-mode.card-open .work .hover-card { flex: 1 1 420px; max-width: 560px; }
   /* фильтр менеджера в «Моём дне» — в строке заголовка справа, с отступом от края */
   .cns-head .md-mgr { margin-right: 8px; }
 }
@@ -2099,7 +2116,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.70.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.71.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4003,12 +4020,51 @@ async function openVisitCard(plan) {
   (people || []).forEach(p => { byIdP[Number(p.id)] = p; });
   const docs = (plan.people || []).map(id => byIdP[Number(id)]).filter(Boolean);
   const parts = (plan.participants || []).join(', ') || '—';
+  // 4.71.0: клиника врача — его собственная, а не клиника проведения визита.
+  // Приглашённый врач может работать в другой организации и другом городе.
+  const docClinicMap = {};
+  if (docs.length) {
+    try {
+      const ids = docs.map(p => Number(p.id)).filter(Boolean);
+      const { data: links } = await sb.from('clinic_people')
+        .select('person_id,clinic_id').in('person_id', ids);
+      const cids = [...new Set((links || []).map(l => Number(l.clinic_id)).filter(Boolean))];
+      if (cids.length) {
+        const { data: cs } = await sb.from('clinics').select('id,name,city').in('id', cids);
+        const byC = {}; (cs || []).forEach(c => { byC[Number(c.id)] = c; });
+        (links || []).forEach(l => {
+          const c = byC[Number(l.clinic_id)];
+          if (!c) return;
+          const k = Number(l.person_id);
+          (docClinicMap[k] = docClinicMap[k] || []).push(c);
+        });
+        // убираем дубли одной и той же клиники
+        Object.keys(docClinicMap).forEach(k => {
+          const seen = new Set();
+          docClinicMap[k] = docClinicMap[k].filter(c => {
+            const key = c.id + '|' + (c.name || '');
+            if (seen.has(key)) return false;
+            seen.add(key); return true;
+          });
+        });
+      }
+    } catch (_) {}
+  }
   const docRows = docs.length ? docs.map(p => {
     const nm = p.fullName || p.full_name || ('#' + p.id);
     const tel = String(p.phone || '').replace(/[^\d+]/g, '');
+    const places = (docClinicMap[Number(p.id)] || [])
+      .map(c => esc(c.name) + (c.city ? ' · ' + esc(c.city) : ''))
+      .filter(Boolean);
+    const placesHtml = places.length
+      ? `<div class="vm-doc-clinics">${places.map(x => `<span>${x}</span>`).join('')}</div>`
+      : '<div class="vm-doc-clinics vm-doc-missing">клиника не привязана</div>';
+    const pos = String(p.position || '').trim();
     return `<div class="vm-doc-row">`
       + `<div class="vm-doc-main"><div class="vm-doc-name">${esc(nm)}</div>`
-      + `<div class="vm-doc-pos" title="${esc(p.position || '')}">${esc(shortPos(p.position) || 'должность не указана')}</div></div>`
+      + placesHtml
+      + (pos ? `<div class="vm-doc-pos" title="${esc(pos)}">${esc(shortPos(pos))}</div>` : '')
+      + `</div>`
       + (tel ? `<a class="btn ghost mini vm-doc-call" href="tel:${esc(tel)}">Позвонить</a>` : '<span class="row-why vm-doc-call">телефона нет</span>')
       + `</div>`;
   }).join('') : '<div class="row-why">Врачи не добавлены</div>';
@@ -4642,7 +4698,8 @@ async function renderVisits() {
   const match = (txt) => !sV || String(txt || '').toLowerCase().replace(/ё/g,'е').includes(sV);
   const today = todayISO();
 
-  const ideaRows = (ideas || []).filter(i => visible(i) && match(byId[i.clinic_id] || ''));
+  // 4.71.0: фильтр по менеджеру действует и на идеи — иначе чипы «не работали»
+  const ideaRows = (ideas || []).filter(i => visible(i) && passMgr(i) && match(byId[i.clinic_id] || ''));
   const visitRows = (plans || [])
     .filter(p => p.date && passMgr(p) && match(byId[p.clinic_id] || p.city || ''))
     .sort((a, b) => String(a.date).localeCompare(String(b.date)));
@@ -4790,15 +4847,15 @@ async function renderVisits() {
   const listHtml = (VISITS_UI.mode === 'cal') ? '' :
     hiddenHtml + `<div class="md-gap">
       <div class="md-sec">Предстоящие · <b>${future.length}</b></div>
-      ${future.length ? `<div class="list">${future.map(rowHtml).join('')}</div>` : '<div class="empty">Предстоящих визитов нет.</div>'}
+      ${future.length ? `<div class="list visits-list">${future.map(rowHtml).join('')}</div>` : '<div class="empty">Предстоящих визитов нет.</div>'}
       ${past.length ? `<div class="visits-sep"><span>сегодня · ${fmtDate(today)}</span></div>
         <div class="md-sec" style="margin-top:6px">Прошедшие · <b>${past.length}</b></div>
-        <div class="list">${past.slice().reverse().map(rowHtml).join('')}</div>` : ''}
+        <div class="list visits-list">${past.slice().reverse().map(rowHtml).join('')}</div>` : ''}
     </div>`;
 
   // идеи
   const ideasHtml = ideaRows.length ? `<div class="md-sec">Идеи визитов · <b>${ideaRows.length}</b></div>
-    <div class="list">${ideaRows.map(i => {
+    <div class="list visits-list">${ideaRows.map(i => {
       const win = (i.from && i.to) ? (fmtDate(i.from) + ' — ' + fmtDate(i.to)) : (i.from ? 'с ' + fmtDate(i.from) : 'окно не задано');
       const parts = (i.participants || []).join(', ');
       return `<div class="card list-row" data-id="${i.clinic_id}" data-kind="clinic">
@@ -4825,8 +4882,8 @@ async function renderVisits() {
       ${chip('', 'Все')}${MGR_LIST.map(m => chip(m, m)).join('')}
     </div>
     ${calHtml}
-    ${listHtml}
     ${VISITS_UI.mode === 'cal' ? '' : ideasHtml}
+    ${listHtml}
     ${VISITS_UI.mode === 'cal' ? statsHtml : ''}`;
 
   const nb = document.getElementById('newIdeaBtn');
