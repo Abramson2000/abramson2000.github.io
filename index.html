@@ -2164,7 +2164,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.7.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.8.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4354,28 +4354,54 @@ function openPlanEditor(clinicId, curPlan, onSaved) {
 }
 
 function salesModalHtml(c, rows, pl) {
-  const CUR = 2026, LAST_M = 10;
+  const CUR = 2026, PREV = 2025, LAST_M = 10;
+  const sumM = (y, m) => { let s = 0, has = false; (rows || []).forEach(r => { if (Number(r.year) === y && Number(r.month) === m) { s += Number(r.sale || 0); has = true; } }); return has ? s : null; };
   const sumR = (y, a, b) => { let s = 0, has = false; (rows || []).forEach(r => { const m = Number(r.month); if (Number(r.year) === y && m >= a && m <= b) { s += Number(r.sale || 0); has = true; } }); return has ? s : null; };
-  // 5.5.0: столбцы по годам — 2024, 2025, 2026 и разница
-  const y24 = sumR(2024, 1, LAST_M), y25 = sumR(2025, 1, LAST_M), y26 = sumR(2026, 1, LAST_M);
   const cell = v => v == null ? '—' : fmtMoney(v);
+  const pct = (a, b) => (b ? Math.round((a - b) / b * 100) : null);
+
+  // 5.8.0: сверху — годы 2024 · 2025 · 2026 · разница
+  const y24 = sumR(2024, 1, LAST_M), y25 = sumR(2025, 1, LAST_M), y26 = sumR(2026, 1, LAST_M);
   const absDiff = (y26 != null && y25 != null) ? (y26 - y25) : null;
   const pctDiff = (absDiff != null && y25) ? Math.round(absDiff / y25 * 100) : null;
   const diffCell = absDiff == null ? '—'
     : `<span class="${absDiff >= 0 ? 'pl-ok' : 'pl-bad'}">${absDiff > 0 ? '+' : ''}${fmtMoney(absDiff)}${pctDiff == null ? '' : ' (' + (pctDiff > 0 ? '+' : '') + pctDiff + '%)'}</span>`;
-  const fact = y26 || 0;
+
+  // ниже — помесячная разбивка (как было)
+  const MN = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+  let body = '';
+  for (let m = 1; m <= LAST_M; m++) {
+    const a = sumM(CUR, m), b = sumM(PREV, m);
+    const d = (a != null && b != null) ? pct(a, b) : null;
+    body += `<tr><td>${MN[m - 1]}</td><td>${a != null ? fmtMoney(a) : '—'}</td><td>${b != null ? fmtMoney(b) : '—'}</td>`
+      + `<td>${d == null ? '—' : `<span class="${d >= 0 ? 'pl-ok' : 'pl-bad'}">${d > 0 ? '+' : ''}${d}%</span>`}</td></tr>`;
+  }
+  const fact = sumR(CUR, 1, LAST_M) || 0;
+  const prev = sumR(PREV, 1, LAST_M) || 0;
+  const q = [1, 2, 3, 4].map(n => sumR(CUR, (n - 1) * 3 + 1, n * 3));
+  const head = `<tr><td><b>Итого янв–окт</b></td><td><b>${fmtMoney(fact)}</b></td><td><b>${fmtMoney(prev)}</b></td>`
+    + `<td>${prev ? `<span class="${fact >= prev ? 'pl-ok' : 'pl-bad'}">${pct(fact, prev) > 0 ? '+' : ''}${pct(fact, prev)}%</span>` : '—'}</td></tr>`;
+  const qRow = `<tr class="pl-total"><td>Кварталы</td><td colspan="3">I ${q[0] ? fmtMoney(q[0]) : '—'} · II ${q[1] ? fmtMoney(q[1]) : '—'} · III ${q[2] ? fmtMoney(q[2]) : '—'} · IV ${q[3] ? fmtMoney(q[3]) : '—'}</td></tr>`;
+
   const planLine = pl
     ? `<div class="detail-block"><div class="k">План 2026</div><div class="v">${fmtMoney(pl)} ₽ · факт ${fmtMoney(fact)} ₽ · ${Math.round(fact / pl * 100)}%
          ${CURRENT_ROLE === 'admin' ? '· <a href="#" id="planEditLink">изменить</a>' : ''}</div></div>`
     : (CURRENT_ROLE === 'admin' ? `<div class="detail-block"><div class="k">План 2026</div><div class="v">не задан · <a href="#" id="planEditLink">задать</a></div></div>` : '');
+
   return `
     <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c.name || '')}${c.city ? ' · ' + esc(c.city) : ''}</div></div>
     ${planLine}
+    <div class="md-sub" style="padding-left:0">По годам, январь–октябрь</div>
     <table class="money-tbl plan-tbl" style="width:100%">
       <thead><tr><th>2024</th><th>2025</th><th>2026</th><th>Разница 2026 к 2025</th></tr></thead>
       <tbody><tr><td>${cell(y24)}</td><td>${cell(y25)}</td><td>${cell(y26)}</td><td>${diffCell}</td></tr></tbody>
     </table>
-    <div class="row-why" style="margin-top:8px">Продажи Boston и HugeMed за январь–октябрь каждого года. Разница считается от 2025 к 2026.</div>
+    <div class="md-sub" style="padding-left:0;margin-top:12px">По месяцам</div>
+    <table class="money-tbl plan-tbl" style="width:100%">
+      <thead><tr><th>Месяц</th><th>2026</th><th>2025</th><th>Δ</th></tr></thead>
+      <tbody>${body || '<tr><td colspan="4">данных нет</td></tr>'}${head}${qRow}</tbody>
+    </table>
+    <div class="row-why" style="margin-top:8px">Продажи Boston и HugeMed. Январь–октябрь каждого года.</div>
   `;
 }
 
