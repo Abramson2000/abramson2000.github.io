@@ -164,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.6.0';
+const APP_VER = '4.6.1';
 
 // 4.3.0: видимые номера версии берём из APP_VER, чтобы больше не расходились
 (function () {
@@ -1532,7 +1532,18 @@ function renderExtras() {
 }
 
 // ============ ТЕОРИЯ (уроки) ============
+// 4.6.1: если сохранён номер урока, которого в курсе уже нет — откатываем на первый непройденный
+function clampLessonIndex() {
+  if (typeof L === 'undefined' || !L.length) return;
+  const n = Number(S.lesson);
+  if (!Number.isFinite(n) || n < 0 || n >= L.length) {
+    let first = L.findIndex((x, k) => !(S.done || []).includes(k));
+    S.lesson = first === -1 ? 0 : first;
+  }
+}
+
 function renderTheory() {
+  clampLessonIndex();
   const lessonRoot = $(S.tab === 'extras' ? 'extrasBody' : 'theoryBody');
   const previousRailScroll = lessonRoot.querySelector('.lesson-rail')?.scrollTop || 0;
   refreshExtra();
@@ -1548,7 +1559,13 @@ function renderTheory() {
   const mode = S.tab === 'extras' ? 'extra' : curSpiced !== null ? 'spiced' : curMed !== null ? 'med' : curPro !== null ? 'pro' : 'main';
   npRememberTheoryLocation();
   const i = mode === 'spiced' ? curSpiced : mode === 'med' ? curMed : mode === 'extra' ? curExtra : mode === 'pro' ? curPro : S.lesson;
-  const l = mode === 'spiced' ? SPICED[i] : mode === 'med' ? MED[i] : mode === 'extra' ? EXTRA[i] : mode === 'pro' ? PRO[i] : L[i];
+  let l = mode === 'spiced' ? SPICED[i] : mode === 'med' ? MED[i] : mode === 'extra' ? EXTRA[i] : mode === 'pro' ? PRO[i] : L[i];
+  if (!l) {
+    // 4.6.1: урок не найден (курс менялся) — возвращаемся к первому доступному и перерисовываем
+    clampLessonIndex();
+    l = L[S.lesson] || L[0];
+    if (!l) return;
+  }
   const xMode = mode === 'extra' && !!l.course && l.blocks && l.blocks.length > 1; // поуроковый режим доп-курса
   if (xMode && curXb >= l.blocks.length) curXb = 0;
   const xb = xMode ? curXb : 0;
