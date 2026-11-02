@@ -272,6 +272,8 @@ body {
 .vm-chks { display: flex; flex-wrap: wrap; gap: 10px 16px; }
 .vm-chk { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .vm-docs { max-height: 220px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
+.form-err { margin: 4px 0 10px; padding: 8px 10px; border-radius: 10px; background: #fdecea; color: #b91c1c; font-size: 13px; font-weight: 600; }
+.form-err.hidden { display: none; }
 .remind-com { display: none; }
 @media (min-width: 900px) { .remind-com { display: inline; margin-left: 10px; color: var(--muted); } }
 .vm-actions { display: flex; gap: 8px; padding-top: 8px; flex-wrap: wrap; }
@@ -2168,7 +2170,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.10.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.11.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4860,7 +4862,8 @@ async function renderVisits() {
       if (a > b) return;
       evs.push({ a, b, noteId: p.noteId, title: labelOf(p), cls: (b0 < today) ? 'past' : 'now' });
     });
-    (ideas || []).forEach(i => {
+    // 5.11.0: в календаре идеи тоже подчиняются фильтру по менеджеру
+    (ideas || []).filter(i => visible(i) && passMgr(i)).forEach(i => {
       if (!i.from) return;
       const a0 = String(i.from).slice(0, 10), b0 = String(i.to || i.from).slice(0, 10);
       const a = a0 < monthStart ? monthStart : a0;
@@ -5581,7 +5584,6 @@ async function saveVisitIdeaRow(clinicId, idea, noteId) {
   const cid = (clinicId == null || clinicId === '') ? null : validId(clinicId);
   const nId = validId(noteId);
   if (noteId && !nId) throw new Error('Некорректный идентификатор идеи');
-  if (!nId && !cid) throw new Error('Некорректный идентификатор клиники');
   if (nId) {
     const { error } = await sb.from('notes').update({ text: body }).eq('id', nId);
     if (error) throw error;
@@ -5840,6 +5842,7 @@ async function openIdeaModal(presetClinicId, idea) {
     <div class="field"><label>Город</label>
       <input type="text" id="viCity" value="${esc((idea && idea.city) || '')}" placeholder="например: Красноярск" />
     </div>
+    <div class="form-err hidden" id="viErr"></div>
     <div class="field"><label>Клиника (если есть — начни печатать)</label>
       <input type="text" id="viClinicName" list="viClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно не заполнять" autocomplete="off" />
       <datalist id="viClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}${isRefKind(c.kind) ? ' · справочник' : ''}</option>`).join('')}</datalist>
@@ -5883,9 +5886,15 @@ async function openIdeaModal(presetClinicId, idea) {
     const btn = document.getElementById('viSave');
     btn.disabled = true;
     try {
+      const errBox = document.getElementById('viErr');
+      const showErr = (msg) => { if (errBox) { errBox.textContent = msg; errBox.classList.remove('hidden'); } };
+      if (errBox) errBox.classList.add('hidden');
       const nm = String((document.getElementById('viClinicName').value || '')).trim();
-      const c = byName[nm.toLowerCase()];
-      if (!c) { toast('Клиника не найдена — выбери из подсказки'); btn.disabled = false; return; }
+      let c = nm ? byName[nm.toLowerCase()] : null;
+      const cityNow = (document.getElementById('viCity').value || '').trim();
+      const fromNow = document.getElementById('viFrom').value || '';
+      if (!c && !cityNow) { showErr('Укажи город или выбери клинику из подсказки'); btn.disabled = false; return; }
+      if (!fromNow) { showErr('Нужна дата «с какого числа»'); btn.disabled = false; return; }
       const days = Math.max(1, Math.min(90, Number(document.getElementById('viRemind').value) || 4));
       const payload = {
         title: (document.getElementById('viTitle').value || '').trim(),
@@ -5898,7 +5907,7 @@ async function openIdeaModal(presetClinicId, idea) {
         remind: (idea && idea.remind) ? idea.remind : addDaysISO(todayISO(), days),
         status: 'idea'
       };
-      await saveVisitIdeaRow(c.id, payload, idea && idea.noteId);
+      await saveVisitIdeaRow(c ? c.id : null, payload, idea && idea.noteId);
       closeModal();
       toast('✓ Идея сохранена');
       await render();
