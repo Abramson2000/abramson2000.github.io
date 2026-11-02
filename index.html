@@ -193,27 +193,37 @@ body {
 .money-cnt { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .list-row-money { font-size: 13.5px; font-weight: 700; color: var(--brand); white-space: nowrap; flex: none; }
 .list-row-money.money-up {
-  background: linear-gradient(135deg, #16a34a, #4ade80);
-  color: #fff; padding: 2px 9px; border-radius: 999px; font-size: 12px;
+  background: #15803d;
+  color: #fff; padding: 3px 10px; border-radius: 999px; font-size: 13.5px;
 }
 .list-row-money.money-down {
-  background: linear-gradient(135deg, #dc2626, #f97316);
-  color: #fff; padding: 2px 9px; border-radius: 999px; font-size: 12px;
+  background: #b91c1c;
+  color: #fff; padding: 3px 10px; border-radius: 999px; font-size: 13.5px;
 }
 .list-row-money.money-flat {
-  background: linear-gradient(135deg, #2563eb, #60a5fa);
-  color: #fff; padding: 2px 9px; border-radius: 999px; font-size: 12px;
+  background: #1d4ed8;
+  color: #fff; padding: 3px 10px; border-radius: 999px; font-size: 13.5px;
 }
 .list-row-money.money-zero {
-  background: linear-gradient(135deg, #ff5252, #ffb300);
-  color: #fff; padding: 2px 9px; border-radius: 999px; font-size: 12px;
+  background: #b45309;
+  color: #fff; padding: 3px 10px; border-radius: 999px; font-size: 13.5px;
 }
 .list-row.marked-del {
   border: 1px solid #dc2626 !important;
   background: linear-gradient(135deg, #fef2f2, #fee2e2) !important;
 }
 .row-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: none; }
-.transfer-btn { font-size: 14px; color: var(--muted); cursor: pointer; flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 28px; padding: 0; border-radius: 8px; user-select: none; box-sizing: border-box; }
+.transfer-btn { font-size: 12px; color: var(--muted); cursor: pointer; flex: none; display: inline-flex; align-items: center; justify-content: center; height: 28px; padding: 0 8px; border-radius: 8px; user-select: none; box-sizing: border-box; white-space: nowrap; border: 1px solid var(--line); }
+.transfer-btn.on { color: var(--accent); border-color: var(--accent); }
+/* 4.64.0: подписи и высота фильтров в «Деньгах» */
+.money-lbl { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.money-lbl select { height: 34px; font-size: 13px; }
+@media (max-width: 899px) {
+  .money-lbl select { height: 44px; font-size: 14px; }
+  .money-lbl { font-size: 12px; }
+}
+/* 4.64.0: контекст таблицы «План» */
+.plan-note { padding: 8px 16px 0; font-size: 12.5px; color: var(--muted); }
 .transfer-btn:hover { background: #e9e9e8; color: var(--brand-dark); }
 .transfer-btn.on { color: var(--brand); background: rgba(127,127,127,.16); font-weight: 700; }
 .transfer-btn.on::after { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #22c55e; margin-left: 2px; vertical-align: 1px; }
@@ -1111,8 +1121,8 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
       <p class="login-sub">Это частная территория</p>
       <div id="loginForm">
         <p class="login-form-title">Вход для своих:</p>
-        <div class="field"><label>Логин</label><input id="loginEmail" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="напр. Abramson" /></div>
-        <div class="field"><label>Пароль</label><input id="loginPass" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" /></div>
+        <div class="field"><label for="loginEmail">Логин</label><input id="loginEmail" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="напр. Abramson" /></div>
+        <div class="field"><label for="loginPass">Пароль</label><input id="loginPass" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" /></div>
         <div id="loginErr" class="login-err"></div>
         <button class="btn" id="loginBtn">Войти</button>
       </div>
@@ -2038,7 +2048,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.63.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.64.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2458,11 +2468,22 @@ document.addEventListener('click', ev => {
 let __modalScrollY = 0, __closingModal = false;
 function openModal(title, bodyHtml) {
   __modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  __modalOpener = (document.activeElement && document.activeElement !== document.body) ? document.activeElement : null;
+  const card = document.querySelector('#modal .modal-card');
+  if (card) { card.setAttribute('role', 'dialog'); card.setAttribute('aria-modal', 'true'); card.setAttribute('aria-labelledby', 'modalTitle'); }
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalBody').innerHTML = bodyHtml;
   document.getElementById('modal').classList.remove('hidden');
   // v4.16.1: если в форме есть выбор ЛПУ — сразу подключаем поиск
   setTimeout(() => { try { bindClinicPicker(); } catch (_) {} }, 0);
+  // 4.64.0: фокус внутрь диалога
+  setTimeout(() => {
+    try {
+      const m = document.getElementById('modal');
+      const first = m.querySelector('input:not([type=hidden]), textarea, select, button');
+      if (first) first.focus({ preventScroll: true });
+    } catch (_) {}
+  }, 30);
 }
 
 // v3.16.0: при открытой клавиатуре подтягиваем кнопку «Сохранить» в видимую часть формы
@@ -2473,9 +2494,13 @@ document.addEventListener('focusin', (e) => {
   setTimeout(() => { try { btn.scrollIntoView({ block: 'nearest' }); } catch (_) {} }, 300);
 });
 
+let __modalOpener = null;
 function closeModal() {
   const m = document.getElementById('modal');
   if (m) m.classList.add('hidden');
+  // 4.64.0: возвращаем фокус туда, откуда открыли
+  try { if (__modalOpener && __modalOpener.focus) __modalOpener.focus({ preventScroll: true }); } catch (_) {}
+  __modalOpener = null;
   // v4.46.0: на iOS после высокой формы страница оставалась прокрученной ниже контента — «белый экран»
   if (__closingModal) return;
   __closingModal = true;
@@ -3052,6 +3077,9 @@ function loadViewState(v) {
 function setView(v) {
   if (v === state.view) return;
   saveViewState(state.view);
+  // 4.64.0: карточка не должна занимать место в другом разделе
+  try { document.body.classList.remove('card-open', 'card-sliding', 'swipe-drag'); } catch (_) {}
+  state.selId = null; state.selKind = null;
   state.view = v;
   // v4.28.0: запоминаем раздел — при возврате в приложение не сбрасываемся на «Мой день»
   try { localStorage.setItem('crm-last-view', v); } catch (_) {}
@@ -3469,6 +3497,39 @@ document.getElementById('fab').addEventListener('click', async () => {
 });
 
 document.getElementById('modalClose').addEventListener('click', closeModal);
+
+// 4.64.0: строки списков — доступны с клавиатуры (role=button, tabindex, Enter/Space)
+(function () {
+  function enhanceRows() {
+    document.querySelectorAll('#view .list-row').forEach(function (r) {
+      if (r.dataset.a11y === '1') return;
+      r.dataset.a11y = '1';
+      if (!r.hasAttribute('role')) r.setAttribute('role', 'button');
+      if (!r.hasAttribute('tabindex')) r.setAttribute('tabindex', '0');
+      if (!r.hasAttribute('aria-label')) {
+        var n = r.querySelector('.list-row-name');
+        if (n && n.textContent.trim()) r.setAttribute('aria-label', n.textContent.trim());
+      }
+    });
+  }
+  function boot() {
+    var v = document.getElementById('view');
+    if (v) new MutationObserver(enhanceRows).observe(v, { childList: true, subtree: true });
+    enhanceRows();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('button, a, input, select, textarea')) return;
+    var row = t.closest('#view .list-row');
+    if (!row) return;
+    e.preventDefault();
+    row.click();
+  });
+})();
 document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 
 document.getElementById('globalSearch').addEventListener('input', e => {
@@ -4277,7 +4338,15 @@ async function renderPlan() {
       ${allMgrs.map(m => `<button type="button" class="pl-chip${PLAN_ST.mgrs.includes(m) ? ' on' : ''}" data-pm="${esc(m)}">${esc(m)}</button>`).join('')}
     </div>`;
 
-  view.innerHTML = `<div class="plan-bar">
+  const lastFactMonth = (() => {
+    let m = 0;
+    Object.keys(mon || {}).forEach(cid => (mon[cid] || []).forEach(r => { if (Number(r.year) === CUR_Y) m = Math.max(m, Number(r.month) || 0); }));
+    return m;
+  })();
+  const MN_RU = ['', 'январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+  const factTxt = lastFactMonth ? (MN_RU[lastFactMonth] + ' ' + CUR_Y) : 'период не определён';
+  const planNote = `<div class="plan-note">План ${CUR_Y} · продажи Boston + HugeMed · факт загружен по ${esc(factTxt)}</div>`;
+  view.innerHTML = planNote + `<div class="plan-bar">
       <input type="text" id="planSearch" placeholder="Поиск клиники" value="${esc(PLAN_ST.q)}" />
       <button type="button" class="btn ghost mini" id="planFiltersBtn">Фильтры${PLAN_ST.mgrs.length || PLAN_ST.onlyPlan || PLAN_ST.onlyFail ? ' ·' : ''}</button>
     </div>
@@ -5841,7 +5910,7 @@ async function renderOrgList(kind) {
       (myEmail === 'osechkina@crm.ru' && m === 'Осечкина') ||
       (myEmail === 'skokova@crm.ru' && m === 'Скокова'));
     const inWl = myWlIds.has(c.id);
-    const tr = showTr ? `<span class="transfer-btn${inWl ? ' on' : ''}" data-transfer="${c.id}" title="${inWl ? 'Уже в вашем листе' : 'Перенести в мой лист'}">⇄</span>` : '';
+    const tr = showTr ? `<span class="transfer-btn${inWl ? ' on' : ''}" data-transfer="${c.id}" role="button" tabindex="0" aria-label="${inWl ? 'Уже в моём списке' : 'В мой список'}" title="${inWl ? 'Уже в моём списке' : 'В мой список'}">${inWl ? 'В моём списке' : 'В мой список'}</span>` : '';
     // v3.30.7: логотип мочевого пузыря (cns.png) с плашек больниц убран — метка ЦНС ставится продуктом в карточке
     const nc = (mineOnly && c.nextContact) ? `<span class="row-next">След. контакт: ${esc(String(c.nextContact).slice(0, 10))}</span>` : '';
     return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
@@ -5990,17 +6059,19 @@ async function renderMoney() {
   const sortTitle = mode === 'name' ? 'Сортировка по алфавиту (нажми для смены)' : `Сортировка по сумме: ${mode === 'asc' ? 'по возрастанию' : 'по убыванию'} (нажми для смены)`;
   view.innerHTML = `<div class="money-total-line">Итого ${year}: <b>${fmtMoney(total)} ₽</b>
       <span class="money-split">${splitLabel}</span>
+      <label class="money-lbl">Производитель
       <select id="money-src" class="sort-toggle" title="Какие продажи считать">
         <option value="both"${src === 'both' ? ' selected' : ''}>Все</option>
         <option value="boston"${src === 'boston' ? ' selected' : ''}>Boston</option>
         <option value="hugemed"${src === 'hugemed' ? ' selected' : ''}>HugeMed</option>
-      </select>
+      </select></label>
+      <label class="money-lbl">Динамика
       <select id="money-filter" class="sort-toggle" title="Фильтр по динамике">
         <option value="all"${mf === 'all' ? ' selected' : ''}>Все</option>
         <option value="up"${mf === 'up' ? ' selected' : ''}>Рост</option>
         <option value="down"${mf === 'down' ? ' selected' : ''}>Падение</option>
         <option value="new"${mf === 'new' ? ' selected' : ''}>Новый</option>
-      </select>
+      </select></label>
       <button class="sort-toggle" id="money-sort" title="${sortTitle}">${sortLabel}</button>
       <span class="money-cnt">${clinics.length}</span>
     </div>`
@@ -7505,7 +7576,7 @@ function privBlock(c, canEditNow) {
         <span class="date-wrap">
           <input type="text" id="cpNext" class="date-inp" readonly inputmode="none" placeholder="не назначено"
                  value="${esc(d ? ruDateShort(d) : '')}" data-date="${esc(d)}" ${canEditNow ? '' : 'disabled'} />
-          ${canEditNow ? `<button type="button" class="date-cal" id="cpCal" data-cid="${c.id}" title="Календарь">📅</button>
+          ${canEditNow ? `<button type="button" class="date-cal" id="cpCal" data-cid="${c.id}" title="Календарь" aria-label="Открыть календарь"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg></button>
           <button type="button" class="date-clear${d ? '' : ' hidden'}" id="cpClear" data-cid="${c.id}" title="Очистить дату">✕</button>` : ''}
         </span>
       </div>
