@@ -2037,7 +2037,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.55.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.57.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3777,6 +3777,13 @@ async function renderCalls() {
 // v4.41.0: у визита есть своё название (свободный текст), иначе — тип
 function visitTitleOf(p) { return String((p && (p.title || p.kind)) || 'Встреча').trim(); }
 
+// v4.56.0: единый пул для визитов и звонков — Клиники и Справочник, любые клиники
+async function clinicPool() {
+  const all = await listAllClinics();
+  return (all || []).filter(c => !c.markedDel && c.kind !== 'distributor')
+    .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+}
+
 // карточка самого визита — план, участники, врачи с телефонами
 async function openVisitCard(plan) {
   if (!plan) return;
@@ -4375,7 +4382,10 @@ async function renderVisits() {
   };
 
   // фильтр по менеджерам: Все / Мой отдел / Мазаева / Евсеев
-  const MGR_FILTER = localStorage.getItem('visitsMgr') || '';
+  // v4.57.0: все видят все визиты; при входе фильтр стоит на своих, но можно выбрать «Все»
+  const MGR_LIST = ['Абрамов', 'Осечкина', 'Скокова', 'Мазаева', 'Евсеев'];
+  const savedMgr = localStorage.getItem('visitsMgr');
+  const MGR_FILTER = (savedMgr === null) ? (isBossV ? '' : (me || '')) : savedMgr;
   const DEPT = ['Абрамов', 'Осечкина', 'Скокова'];
   const passMgr = (rec) => {
     if (!MGR_FILTER) return true;
@@ -4393,7 +4403,7 @@ async function renderVisits() {
 
   const ideaRows = (ideas || []).filter(i => visible(i) && match(byId[i.clinic_id] || ''));
   const visitRows = (plans || [])
-    .filter(p => p.date && visible(p) && passMgr(p) && match(byId[p.clinic_id] || p.city || ''))
+    .filter(p => p.date && passMgr(p) && match(byId[p.clinic_id] || p.city || ''))
     .sort((a, b) => String(a.date).localeCompare(String(b.date)));
 
   const past = visitRows.filter(p => visitEnd(p) < today);
@@ -4557,7 +4567,7 @@ async function renderVisits() {
       <button class="btn primary mini" id="newIdeaBtn">＋ Идея</button>
     </div>
     <div class="plan-filters" style="display:flex">
-      ${chip('', 'Все')}${chip('Абрамов', 'Абрамов')}${chip('Осечкина', 'Осечкина')}${chip('Скокова', 'Скокова')}
+      ${chip('', 'Все')}${MGR_LIST.map(m => chip(m, m)).join('')}
     </div>
     ${calHtml}
     ${VISITS_UI.mode === 'cal' ? '' : ideasHtml}
@@ -4634,7 +4644,7 @@ async function renderActionList(type, title) {
   state.defaultAction = type;
   let rows = [];
   try {
-    rows = (await listClinics()).filter(c => !c.markedDel && c.nextContact && (c.kind || 'hospital') === 'hospital' && c.actionType === type);
+    rows = (await listAllClinics()).filter(c => !c.markedDel && c.nextContact && c.kind !== 'distributor' && c.actionType === type);
     // v3.26.2: поиск работает и в «Звонках»/«Визитах»
     const sAL = state.search;
     if (sAL) rows = rows.filter(c =>
@@ -4660,9 +4670,45 @@ async function renderActionList(type, title) {
       ${subMarks(c, esc([c.city].filter(Boolean).join(', ') || '—') + (c.manager ? ' · ' + esc(c.manager) : ''))}
     </div>`;
   }).join('');
-  view.innerHTML = `<div class="cns-head"><span>${esc(title)} \u00b7 <b>${rows.length}</b></span></div>` +
+  view.innerHTML = `<div class="md-tools"><button class="btn primary mini" id="newActionBtn">＋ ${type === 'visit' ? 'Визит' : 'Звонок'}</button></div>` +
+    `<div class="cns-head"><span>${esc(title)} \u00b7 <b>${rows.length}</b></span></div>` +
     (rows.length ? '<div class="list">' + cards + '</div>'
-      : `<div class="empty">${type === 'visit' ? 'Запланированных визитов нет' : 'Запланированных звонков нет'} \u2014 поставь тип «${type === 'visit' ? 'Визит' : 'Звонок'}» в карточке клиники</div>`);
+      : `<div class="empty">${type === 'visit' ? 'Запланированных визитов нет' : 'Запланированных звонков нет'} \u2014 нажми «＋» сверху</div>`);
+  const nba = document.getElementById('newActionBtn');
+  if (nba) nba.addEventListener('click', () => { if (type === 'visit') openVisitModal({}); else openCallModal(); });
+}
+
+// v4.56.0: новый звонок — клиника любая (Клиники или Справочник)
+async function openCallModal() {
+  const all = await clinicPool();
+  const byName = {};
+  all.forEach(c => { byName[String(c.name || '').toLowerCase()] = c; });
+  openModal('Новый звонок', `
+    <div class="field"><label>Клиника (любая — из Клиник или Справочника)</label>
+      <input type="text" id="clClinic" list="clList" placeholder="начни печатать название" autocomplete="off" />
+      <datalist id="clList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}${isRefKind(c.kind) ? ' · справочник' : ''}</option>`).join('')}</datalist>
+    </div>
+    <div class="field"><label>Дата звонка</label><input type="date" id="clDate" value="${todayISO()}" /></div>
+    <div class="field"><label>Комментарий</label><input type="text" id="clNote" placeholder="о чём договориться" /></div>
+    <div class="btn-row"><button class="btn" id="clSave">Поставить</button><button class="btn ghost" id="clCancel">Отмена</button></div>
+  `);
+  document.getElementById('clCancel').addEventListener('click', closeModal);
+  document.getElementById('clSave').addEventListener('click', async () => {
+    const btn = document.getElementById('clSave');
+    btn.disabled = true;
+    try {
+      const nm = String(document.getElementById('clClinic').value || '').trim();
+      const c = byName[nm.toLowerCase()];
+      if (!c) { toast('Клиника не найдена — выбери из подсказки'); btn.disabled = false; return; }
+      const d = (document.getElementById('clDate').value || '').slice(0, 10);
+      if (!d) { toast('Нужна дата'); btn.disabled = false; return; }
+      const note = (document.getElementById('clNote').value || '').trim();
+      await saveClinicPrivate(c.id, c.manager || null, { next_contact: d, action_type: 'call', note: note || null });
+      closeModal();
+      toast('✓ Звонок поставлен на ' + fmtDate(d));
+      await render();
+    } catch (e) { btn.disabled = false; toast('⚠️ Не сохранено: ' + (e && e.message ? e.message : e)); }
+  });
 }
 
 // ---------- Настя: изолированные карточки ----------
@@ -5138,7 +5184,7 @@ async function openVisitModal(cfg) {
   cfg = cfg || {};
   let all = [], people = [];
   try {
-    all = (await listAllClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital');
+    all = await clinicPool();
     people = await allPeopleList();
   } catch (_) {}
   all.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
@@ -5168,7 +5214,7 @@ async function openVisitModal(cfg) {
     </div>
     <div class="field"><label>Клиника (не обязательно для конференции)</label>
       <input type="text" id="vmClinicName" list="vmClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно оставить пустым, если это конференция" autocomplete="off" />
-      <datalist id="vmClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}</option>`).join('')}</datalist>
+      <datalist id="vmClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}${isRefKind(c.kind) ? ' · справочник' : ''}</option>`).join('')}</datalist>
     </div>
     <div class="row2">
       <div class="field"><label>С какого числа</label><input type="date" id="vmDate" value="${esc(date)}" /></div>
@@ -5282,7 +5328,7 @@ async function openVisitModal(cfg) {
 // Модалка идеи: тот же поиск клиники + участники + срок напоминания
 async function openIdeaModal(presetClinicId, idea) {
   let all = [];
-  try { all = (await listClinics()).filter(c => !c.markedDel && (c.kind || 'hospital') === 'hospital'); } catch (_) {}
+  try { all = await clinicPool(); } catch (_) {}
   all.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
   const byName = {};
   all.forEach(c => { byName[String(c.name || '').toLowerCase()] = c; });
@@ -5300,7 +5346,7 @@ async function openIdeaModal(presetClinicId, idea) {
     </div>
     <div class="field"><label>Клиника (если есть — начни печатать)</label>
       <input type="text" id="viClinicName" list="viClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно не заполнять" autocomplete="off" />
-      <datalist id="viClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}</option>`).join('')}</datalist>
+      <datalist id="viClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}${isRefKind(c.kind) ? ' · справочник' : ''}</option>`).join('')}</datalist>
     </div>
     <div class="field"><label>Комментарий</label><input type="text" id="viGoal" value="${esc((idea && idea.goal) || '')}" placeholder="апробация Литокласт" /></div>
     <div class="field"><label>Ориентир: с какого числа</label><input type="date" id="viFrom" value="${esc((idea && idea.from) || '')}" /></div>
