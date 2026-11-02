@@ -250,6 +250,7 @@ body {
 .vm-chk { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .vm-docs { max-height: 220px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
 .vm-actions { display: flex; gap: 8px; padding-top: 8px; flex-wrap: wrap; }
+.vm-actions .btn.ghost { border-color: var(--accent); color: var(--accent); background: transparent; }
 .vm-chip { display: inline-flex; align-items: center; gap: 6px; background: #f0f0f2; border-radius: 14px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
 .vm-chip:hover { background: #e4e4e8; }
 /* v4.21.0: убрать из контроля — маленький крестик в углу плитки */
@@ -257,6 +258,10 @@ body {
 .ctrl-x:hover { background: #f0f0f2; color: var(--ink); }
 /* v4.23.0: вкладка «План» */
 .plan-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 12px; }
+@media (min-width: 900px) {
+  .plan-bar { padding-top: 18px; }
+  .plan-bar .btn.mini { height: 40px; padding: 0 18px; font-size: 14px; border-radius: 12px; }
+}
 .plan-bar input[type=text] { flex: 1 1 180px; min-width: 140px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; }
 .plan-bar select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; background: #fff; }
 .pl-chk { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
@@ -264,7 +269,7 @@ body {
 .plan-filters.hidden { display: none; }
 .plan-chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
 .pl-chip { padding: 5px 11px; border: 1px solid var(--line); border-radius: 14px; background: var(--card, #fff); font: inherit; font-size: 13px; cursor: pointer; color: var(--ink); }
-.pl-chip.on { background: #0f8a8a; border-color: #0f8a8a; color: #fff; }
+.pl-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 /* v4.28.0: «План» на компьютере — во всю ширину, с воздухом в ячейках */
 body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-left: 10px; padding-right: 10px; }
 .plan-wrap { overflow: auto; padding: 0 10px 24px; max-height: calc(100vh - 190px); }
@@ -2032,7 +2037,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.53.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.54.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5152,6 +5157,9 @@ async function openVisitModal(cfg) {
   const title = plan ? 'Изменить визит' : 'Спланировать визит';
 
   openModal(title, `
+    <div class="field"><label>Название визита</label>
+      <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || '')}" placeholder="например: мастер-класс по Литокласт" />
+    </div>
     <div class="field"><label>Тип визита</label>
       <select id="vmKind">${VISIT_KINDS.map(k => `<option value="${esc(k)}"${(((plan && plan.kind) || (idea && idea.kind) || base.kind || 'Встреча') === k) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>
     </div>
@@ -5166,10 +5174,7 @@ async function openVisitModal(cfg) {
       <div class="field"><label>С какого числа</label><input type="date" id="vmDate" value="${esc(date)}" /></div>
       <div class="field"><label>По какое число</label><input type="date" id="vmDateTo" value="${esc((plan && plan.dateTo) || (idea && idea.to) || date)}" /></div>
     </div>
-    <div class="field"><label>Название визита</label>
-      <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || '')}" placeholder="например: мастер-класс по Литокласт" />
-    </div>
-    <div class="field"><label>Комментарии</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
+    <div class="field"><label>Комментарий</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
     <div class="field"><label>Участники (визит виден каждому из них)</label><div class="vm-chks">${participantsHtml(partSel)}</div></div>
     <div class="field"><label>Врачи в визите — из любой клиники</label>
       <input type="text" id="vmDocSearch" list="vmDocList" placeholder="начни печатать фамилию врача" autocomplete="off" />
@@ -5215,6 +5220,9 @@ async function openVisitModal(cfg) {
   const nameInp = document.getElementById('vmClinicName');
   if (nameInp) nameInp.addEventListener('change', async () => {
     const c = byName[String(nameInp.value || '').trim().toLowerCase()];
+    // город подтягивается из клиники, если ещё не заполнен
+    const cityInp = document.getElementById('vmCity');
+    if (c && cityInp && !cityInp.value.trim() && c.city) cityInp.value = c.city;
     await renderClinicHint(c ? c.id : null);
   });
 
@@ -5281,10 +5289,6 @@ async function openIdeaModal(presetClinicId, idea) {
   const cur = (idea && idea.clinic_id) ? all.find(c => Number(c.id) === Number(idea.clinic_id))
     : (presetClinicId ? all.find(c => Number(c.id) === Number(presetClinicId)) : null);
   openModal(idea ? 'Изменить идею визита' : 'Идея визита', `
-    <div class="field"><label>Клиника (начни печатать — найдётся)</label>
-      <input type="text" id="viClinicName" list="viClinicList" value="${esc(cur ? cur.name : '')}" placeholder="КМКБ №4" autocomplete="off" />
-      <datalist id="viClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}</option>`).join('')}</datalist>
-    </div>
     <div class="field"><label>Название визита</label>
       <input type="text" id="viTitle" value="${esc((idea && idea.title) || '')}" placeholder="например: мастер-класс по Литокласт" />
     </div>
@@ -5294,13 +5298,23 @@ async function openIdeaModal(presetClinicId, idea) {
     <div class="field"><label>Город</label>
       <input type="text" id="viCity" value="${esc((idea && idea.city) || '')}" placeholder="например: Красноярск" />
     </div>
-    <div class="field"><label>Зачем ехать</label><input type="text" id="viGoal" value="${esc((idea && idea.goal) || '')}" placeholder="апробация Литокласт" /></div>
+    <div class="field"><label>Клиника (если есть — начни печатать)</label>
+      <input type="text" id="viClinicName" list="viClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно не заполнять" autocomplete="off" />
+      <datalist id="viClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}</option>`).join('')}</datalist>
+    </div>
+    <div class="field"><label>Комментарий</label><input type="text" id="viGoal" value="${esc((idea && idea.goal) || '')}" placeholder="апробация Литокласт" /></div>
     <div class="field"><label>Ориентир: с какого числа</label><input type="date" id="viFrom" value="${esc((idea && idea.from) || '')}" /></div>
     <div class="field"><label>Ориентир: по какое</label><input type="date" id="viTo" value="${esc((idea && idea.to) || '')}" /></div>
     <div class="field"><label>Участники</label><div class="vm-chks">${participantsHtml((idea && idea.participants) || [])}</div></div>
     <div class="field"><label>Напомнить через (дней)</label><input type="number" id="viRemind" value="4" min="1" max="90" /></div>
     <div class="btn-row"><button class="btn" id="viSave">${idea ? 'Сохранить' : 'Записать идею'}</button><button class="btn ghost" id="viCancel">Отмена</button></div>
   `);
+  const viClinicInp = document.getElementById('viClinicName');
+  if (viClinicInp) viClinicInp.addEventListener('change', () => {
+    const c = byName[String(viClinicInp.value || '').trim().toLowerCase()];
+    const cityInp = document.getElementById('viCity');
+    if (c && cityInp && !cityInp.value.trim() && c.city) cityInp.value = c.city;
+  });
   document.getElementById('viCancel').addEventListener('click', closeModal);
   document.getElementById('viSave').addEventListener('click', async () => {
     const btn = document.getElementById('viSave');
