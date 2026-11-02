@@ -540,7 +540,10 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
 /* 4.71.0: карточки визитов отделяются друг от друга интервалом 14 px,
    границей и внутренним отступом — без теней и заливок */
 .visits-list { gap: 14px; }
-.visits-list .card.list-row { border-color: #e2e2e2; padding: 12px 14px; }
+.visits-list .card.list-row { border-color: #e2e2e2; padding: 12px 14px; box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 3px 8px rgba(16,24,40,.05); }
+/* 4.73.0: мягкая тень и у карточек остальных списков — «Мой день», клиники, деньги */
+#view .list .card.list-row { box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 2px 5px rgba(16,24,40,.035); }
+#view .list .card.list-row:hover { box-shadow: 0 2px 4px rgba(16,24,40,.07), 0 6px 14px rgba(16,24,40,.05); }
 .visits-list .list-row + .list-row { margin-top: 0; }
 .vm-doc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
 .vm-doc-clinics { font-size: 12.5px; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; display: flex; flex-direction: column; gap: 2px; }
@@ -2116,7 +2119,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '4.72.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '4.73.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4070,11 +4073,9 @@ async function openVisitCard(plan) {
     const placesHtml = places.length
       ? `<div class="vm-doc-clinics">${places.map(x => `<span>${x}</span>`).join('')}</div>`
       : '<div class="vm-doc-clinics vm-doc-missing">клиника не привязана</div>';
-    const pos = String(p.position || '').trim();
     return `<div class="vm-doc-row">`
       + `<div class="vm-doc-main"><div class="vm-doc-name">${esc(nm)}</div>`
       + placesHtml
-      + (pos ? `<div class="vm-doc-pos" title="${esc(pos)}">${esc(shortPos(pos))}</div>` : '')
       + `</div>`
       + (tel ? `<a class="btn ghost mini vm-doc-call" href="tel:${esc(tel)}">Позвонить</a>` : '<span class="row-why vm-doc-call">телефона нет</span>')
       + `</div>`;
