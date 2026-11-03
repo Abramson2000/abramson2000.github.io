@@ -1,0 +1,23 @@
+/* Same Tingli fonts; opaque paper only while writing. */
+body.tl-writing-open { overflow:hidden; }
+.tl-writing { position:fixed; z-index:20000; inset:0; height:100dvh; background:var(--paper); color:var(--ink); display:flex; flex-direction:column; padding-top:env(safe-area-inset-top); }
+.tl-writing-head { width:100%; max-width:720px; margin:0 auto; padding:14px 20px 12px; display:flex; align-items:center; gap:14px; border-bottom:1px solid var(--line); flex-shrink:0; }
+.tl-writing-back { border:0; background:none; font:inherit; color:var(--ink); cursor:pointer; min-width:42px; min-height:42px; font-size:23px; border-radius:14px; }
+.tl-writing-brand { display:flex; align-items:center; gap:12px; min-width:0; }
+.tl-writing-brand img { width:38px; height:38px; object-fit:contain; }
+.tl-writing-brand .top-title { font-size:36px; letter-spacing:4px; }
+.tl-writing-body { width:100%; max-width:720px; margin:0 auto; padding:22px 20px calc(24px + env(safe-area-inset-bottom)); overflow:auto; overscroll-behavior:contain; min-height:0; flex:1; }
+.tl-writing .task-card, .tl-writing .hw-item { margin:0; padding:0; background:none; border-radius:0; box-shadow:none; animation:none; }
+.tl-writing .task-q { font-size:21px; line-height:1.65; font-weight:600; margin-bottom:20px; white-space:pre-wrap; }
+.tl-writing .hw-q { font-size:20px; line-height:1.65; margin-bottom:20px; }
+.tl-writing .task-qru { font-size:14px; color:var(--ink-2); }
+.tl-writing .fill, .tl-writing .hw-ans { font-size:20px; line-height:1.6; background:var(--surface); border:1px solid var(--line); padding:14px 15px; border-radius:16px; width:100%; }
+.tl-writing .hw-ans { min-height:112px; resize:vertical; }
+.tl-writing .fill:focus, .tl-writing .hw-ans:focus { border-color:var(--jade); box-shadow:none; outline:none; }
+.tl-writing .btn:not(.ghost), .tl-writing .hw-chk { background:var(--jade); color:var(--surface); border:0; }
+.tl-writing .hw-chk { padding:10px 18px; font:inherit; font-size:14px; }
+.tl-writing .script { background:var(--surface); border:1px solid var(--line); color:var(--ink); font-size:18px; }
+.tl-writing-context { margin-bottom:20px; }
+.tl-writing-context summary { color:var(--ink-2); font-size:14px; cursor:pointer; padding:4px 0 10px; }
+.tl-writing-context .script { margin:0; }
+@media(max-width:480px) { .tl-writing-head { padding:10px 14px; gap:8px; } .tl-writing-body { padding:20px 18px; } .tl-writing-brand .top-title { font-size:30px; } .tl-writing .btn-row { flex-wrap:wrap; } .tl-writing .hw-tools { flex-wrap:wrap; } }
