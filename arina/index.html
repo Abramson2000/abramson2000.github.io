@@ -4,14 +4,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>阿丽娜 · 中文</title>
+<title>My wave</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/arina/tingli-favicon-32-v3.png?v=5.95.2">
 <link rel="shortcut icon" href="/arina/favicon-20261010.ico?v=5.95.2">
 <link rel="apple-touch-icon" sizes="180x180" href="/arina/apple-touch-icon-20261010.png">
 <link rel="manifest" href="/arina/manifest.icons-20261010.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="阿丽娜 · 中文">
-<meta name="description" content="小山听力 — тренажёр китайского на слух: уроки, фразы, слова, диктанты и повторение по расписанию.">
+<meta name="apple-mobile-web-app-title" content="My wave">
+<meta name="description" content="My wave — тренажёр китайского на слух: уроки, фразы, слова, диктанты и повторение по расписанию.">
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
@@ -967,7 +967,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 <body>
 <div id="splash"><div class="splash-in">
   <div class="splash-logo"><img src="logo.png?v=5.35.0" alt=""></div>
-  <div class="splash-title-text">小山听力</div>
+  <div class="splash-title-text">My wave</div>
 </div></div>
 <div class="app" id="app"></div>
 <button class="menu-btn" id="menuBtn" onclick="sbToggle()" aria-label="Меню">☰</button>
@@ -1005,7 +1005,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   </div>
 </div>
 <div class="tabbar" id="tabbar">
-  <div class="sb-brand"><img src="logo.png?v=5.35.0" alt="听"><div><div class="sb-name">小山听力</div><div class="sb-sub" id="sbVer"></div></div></div>
+  <div class="sb-brand"><img src="logo.png?v=5.35.0" alt="听"><div><div class="sb-name">My wave</div><div class="sb-sub" id="sbVer"></div></div></div>
   <button class="tab" id="tab-sched" onclick="goTab('sched')" title="课程"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.59.0" alt=""></span><span class="tab-label">课程<span class="tab-ru">Расписание и ДЗ</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.59.0" alt=""></span><span class="tab-label">听力<span class="tab-ru">Самоучеба</span></span></button>
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.59.0" alt=""></span><span class="tab-label">语法<span class="tab-ru">Ли лаоши</span></span></button>
@@ -1719,7 +1719,7 @@ function renderUnits() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
-      <div class="top-title">小山听力</div><div class="sub">发展汉语<br>初级听力 II</div>
+      <div class="top-title">My wave</div><div class="sub">发展汉语<br>初级听力 II</div>
     </div>
     ${UNITS.map(unitCard).join('')}
 `;
@@ -4624,7 +4624,7 @@ function crsPayNotify(program) {
   try {
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then(function (reg) {
-        return reg.showNotification('小山听力 · Оплата', { body: crsProgTitle(program) + ': ' + msg, tag: 'arina-pay-' + program + '-' + l.left,
+        return reg.showNotification('My wave · Оплата', { body: crsProgTitle(program) + ': ' + msg, tag: 'arina-pay-' + program + '-' + l.left,
           icon: 'arina-icon-192-v3.png', data: { url: location.pathname + '?tab=sched&view=pay' } });
       }).catch(function () {});
     }
@@ -5227,9 +5227,9 @@ function crsPushSyncReminders() {
       const txt = (r.kind === 'lesson' ? 'Занятие' : 'ДЗ') + ' ' + crsRemWord(r.when) + ': ' + r.title;
       const options = { body: txt, tag: 'arina-local-' + k, icon: 'arina-icon-192-v3.png', data: { url: r.url || crsPushDeepLink() } };
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(function (reg) { return reg.showNotification('小山听力 · ' + APP_VER, options); }).catch(function () {});
+        navigator.serviceWorker.ready.then(function (reg) { return reg.showNotification('My wave · ' + APP_VER, options); }).catch(function () {});
       } else {
-        try { new Notification('小山听力 · ' + APP_VER, options); } catch (e) {}
+        try { new Notification('My wave · ' + APP_VER, options); } catch (e) {}
       }
     });
   } catch (e) {} finally { crsBusy = false; }
