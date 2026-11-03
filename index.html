@@ -318,6 +318,9 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .plan-tbl thead th.on { color: var(--ink); }
 .pl-row:hover { background: #f7fbfb; cursor: pointer; }
 .pl-name { white-space: nowrap; overflow: visible; }
+/* 5.13.0: клиника — по левому краю, город — узкая первая колонка */
+.plan-tbl td:nth-child(2), .plan-tbl th:nth-child(2) { text-align: left; white-space: normal; }
+.plan-tbl th:first-child, .plan-tbl td:first-child { min-width: 120px; }
 .pl-name b { font-weight: 600; }
 .pl-city { color: var(--muted); margin-left: 6px; font-size: 12px; }
 .pl-mgr td { background: #eef7f7; font-size: 13px; color: #0f8a8a; cursor: pointer; }
@@ -2170,7 +2173,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.12.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.13.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4534,7 +4537,7 @@ async function renderPlan() {
       ${th('city', 'Город')}${th('name', 'Клиника')}
       ${th('plan', 'План')}${th('fact', 'Факт')}${th('pct', '%')}
       ${th('left', 'Осталось', 'pl-opt')}
-      <th class="pl-th pl-q" title="Кварталы 2026">Кварталы</th>
+      ${th('q1', 'I', 'pl-q', 'I квартал 2026')}${th('q2', 'II', 'pl-q', 'II квартал 2026')}${th('q3', 'III', 'pl-q', 'III квартал 2026')}${th('q4', 'IV', 'pl-q', 'IV квартал 2026')}
       ${th('yoy', 'Г/Г', '', 'Год к году: факт января–октября 2026 против того же периода 2025')}
       <th class="pl-th">Встреча/Звонок</th>
     </tr>`;
@@ -4547,7 +4550,10 @@ async function renderPlan() {
       <td data-sale-cell="${r.id}">${fmtM(r.fact)}</td>
       <td data-sale-cell="${r.id}">${cellPct(r.pct)}</td>
       <td class="pl-opt">${fmtM(r.left)}</td>
-      <td class="pl-q" data-sale-cell="${r.id}">${['I', 'II', 'III', 'IV'].map((q, i) => r.q[i] ? q + ' ' + fmtM(r.q[i]) : q + ' —').join(' · ')}</td>
+      <td class="pl-q" data-sale-cell="${r.id}">${r.q[0] ? fmtM(r.q[0]) : '—'}</td>
+      <td class="pl-q" data-sale-cell="${r.id}">${r.q[1] ? fmtM(r.q[1]) : '—'}</td>
+      <td class="pl-q" data-sale-cell="${r.id}">${r.q[2] ? fmtM(r.q[2]) : '—'}</td>
+      <td class="pl-q" data-sale-cell="${r.id}">${r.q[3] ? fmtM(r.q[3]) : '—'}</td>
       <td data-sale-cell="${r.id}">${r.yoy == null ? '—' : `<span class="${r.yoy >= 0 ? 'pl-ok' : 'pl-bad'}">${r.yoy > 0 ? '+' : ''}${r.yoy}%</span>`}</td>
       <td class="pl-visit">${esc(r.visit || '')}</td>
     </tr>`;
@@ -4561,22 +4567,23 @@ async function renderPlan() {
     const g = groups[m];
     const gp = g.reduce((s, r) => s + Number(r.plan || 0), 0);
     const gf = g.reduce((s, r) => s + Number(r.fact || 0), 0);
-    body += `<tr class="pl-mgr" data-plan-mgr="${esc(m)}"><td colspan="9">
+    body += `<tr class="pl-mgr" data-plan-mgr="${esc(m)}"><td colspan="12">
         <b>${esc(m)}</b> · клиник ${g.length} · план ${fmtM(gp)} · факт ${fmtM(gf)} · ${gp ? Math.round(gf / gp * 100) : 0}%
       </td></tr>` + g.map(rowHtml).join('');
   });
 
-  const totP = rows.reduce((s, r) => s + Number(r.plan || 0), 0);
-  const totF = rows.reduce((s, r) => s + Number(r.fact || 0), 0);
+  // 5.13.0: итог считаем по строкам, которые сейчас на экране (после фильтров и поиска)
+  const totP = list.reduce((s, r) => s + Number(r.plan || 0), 0);
+  const totF = list.reduce((s, r) => s + Number(r.fact || 0), 0);
   const totLeft = Math.max(0, totP - totF);
   body += `<tr class="pl-total">`
-    + `<td>Итого</td>`
+    + `<td>Итого</td><td></td>`
     + `<td>${fmtM(Math.round(totP))}</td>`
     + `<td>${fmtM(Math.round(totF))}</td>`
     + `<td>${totP ? Math.round(totF / totP * 100) + '%' : '—'}</td>`
     + `<td class="pl-opt">${fmtM(Math.round(totLeft))}</td>`
-    + `<td class="pl-opt">${fmtM(Math.round(totLeft / 3))}</td>`
-    + `<td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td></td><td></td></tr>`;
+    + `<td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td><td class="pl-q"></td>`
+    + `<td></td><td></td></tr>`;
 
   // 4.67.0: подпись описывает ровно то, что считает код: месяцы 1..LAST_M и те продукты,
   // которые реально есть в sales_monthly. Максимальный месяц не выдаём за «загружено полностью».
