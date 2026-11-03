@@ -2173,7 +2173,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.13.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.14.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5689,7 +5689,7 @@ async function openVisitModal(cfg) {
     <div class="field"><label>Город</label>
       <input type="text" id="vmCity" value="${esc((plan && plan.city) || (idea && idea.city) || '')}" placeholder="например: Красноярск" autocomplete="off" />
     </div>
-    <div class="field"><label>Клиника (не обязательно для конференции)</label>
+    <div class="field"><label>Клиника (не обязательно)</label>
       <input type="text" id="vmClinicName" list="vmClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно оставить пустым, если это конференция" autocomplete="off" />
       <datalist id="vmClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}${isRefKind(c.kind) ? ' · справочник' : ''}</option>`).join('')}</datalist>
     </div>
@@ -5786,10 +5786,10 @@ async function openVisitModal(cfg) {
     try {
       const nm = String((document.getElementById('vmClinicName').value || '')).trim();
       const c = byName[nm.toLowerCase()] || (cur && nm.toLowerCase() === String(cur.name || '').toLowerCase() ? cur : null);
-      const kindNow = (document.getElementById('vmKind').value || 'Встреча');
       const cityNow = (document.getElementById('vmCity').value || '').trim();
-      if (!c && !(kindNow === 'Конференция' && cityNow)) {
-        toast(c ? '' : 'Для конференции достаточно указать город'); btn.disabled = false; return;
+      // 5.14.0: клиника необязательна — достаточно города и даты
+      if (!c && !cityNow) {
+        toast('Укажи город — клинику можно не заполнять'); btn.disabled = false; return;
       }
       const d = (document.getElementById('vmDate').value || '').slice(0, 10);
       let dTo = (document.getElementById('vmDateTo').value || '').slice(0, 10) || d;
@@ -5806,7 +5806,9 @@ async function openVisitModal(cfg) {
         people: chosen.slice()
       };
       if (c) await saveClinicPrivate(c.id, c.manager || null, { next_contact: d, action_type: 'visit' });
-      await saveVisitPlanRow(c ? c.id : null, payload, plan && plan.noteId);
+      // если клинику не указали при правке — не теряем прежнюю привязку
+      const keepCid = c ? c.id : (plan && plan.clinic_id ? plan.clinic_id : null);
+      await saveVisitPlanRow(keepCid, payload, plan && plan.noteId);
       if (idea && idea.noteId) {
         const rest = Object.assign({}, idea); delete rest.noteId;
         await saveVisitIdeaRow(idea.clinic_id, Object.assign(rest, { status: 'planned', planned: d }), idea.noteId);
