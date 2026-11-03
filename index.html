@@ -2170,7 +2170,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.11.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.12.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4529,26 +4529,25 @@ async function renderPlan() {
   const cellPct = v => v == null ? '—' : `<span class="${v >= 130 ? 'pl-over' : (v >= 100 ? 'pl-ok' : (v >= 70 ? 'pl-mid' : 'pl-bad'))}">${v}%</span>`;
   const th = (k, t, extra, title) => `<th data-plan-sort="${k}"${title ? ` title="${esc(title)}"` : ''} class="pl-th${PLAN_ST.sort === k ? ' on' : ''}${extra ? ' ' + extra : ''}">${t}${PLAN_ST.sort === k ? (PLAN_ST.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`;
 
+  // 5.12.0: формат — Город · Клиника · План · Факт · % · Осталось · Кварталы · Г/Г · Встреча/Звонок
   const head = `<tr>
-      ${th('name', 'Клиника')}
+      ${th('city', 'Город')}${th('name', 'Клиника')}
       ${th('plan', 'План')}${th('fact', 'Факт')}${th('pct', '%')}
-      ${th('left', 'Осталось', 'pl-opt')}${th('perMonth', 'В месяц', 'pl-opt')}
-      ${th('q1', 'I', 'pl-q', 'I квартал 2026')}${th('q2', 'II', 'pl-q', 'II квартал 2026')}${th('q3', 'III', 'pl-q', 'III квартал 2026')}${th('q4', 'IV', 'pl-q', 'IV квартал 2026')}
-      ${th('yoy', 'Г/Г', '', 'Год к году: факт января–сентября 2026 против того же периода 2025')}<th class="pl-th">Визит</th>
+      ${th('left', 'Осталось', 'pl-opt')}
+      <th class="pl-th pl-q" title="Кварталы 2026">Кварталы</th>
+      ${th('yoy', 'Г/Г', '', 'Год к году: факт января–октября 2026 против того же периода 2025')}
+      <th class="pl-th">Встреча/Звонок</th>
     </tr>`;
 
   // v4.35.0: красим саму строку — красноватая при невыполненном плане, зеленоватая при выполненном
   const rowHtml = (r) => `<tr class="pl-row${r.pct == null ? '' : (r.pct >= 100 ? ' pl-done' : ' pl-fail')}" data-plan-clinic="${r.id}">
-      <td class="pl-name"><b>${esc(r.name)}</b><span class="pl-city">${esc(r.city)}</span></td>
+      <td class="pl-city-cell">${esc(r.city || '—')}</td>
+      <td class="pl-name"><b>${esc(r.name)}</b></td>
       <td data-sale-cell="${r.id}">${fmtM(r.plan)}</td>
       <td data-sale-cell="${r.id}">${fmtM(r.fact)}</td>
       <td data-sale-cell="${r.id}">${cellPct(r.pct)}</td>
       <td class="pl-opt">${fmtM(r.left)}</td>
-      <td class="pl-opt">${r.perMonth ? fmtM(Math.round(r.perMonth)) : '—'}</td>
-      <td class="pl-q" data-sale-cell="${r.id}">${r.q[0] ? fmtM(r.q[0]) : '—'}</td>
-      <td class="pl-q" data-sale-cell="${r.id}">${r.q[1] ? fmtM(r.q[1]) : '—'}</td>
-      <td class="pl-q" data-sale-cell="${r.id}">${r.q[2] ? fmtM(r.q[2]) : '—'}</td>
-      <td class="pl-q" data-sale-cell="${r.id}">${r.q[3] ? fmtM(r.q[3]) : '—'}</td>
+      <td class="pl-q" data-sale-cell="${r.id}">${['I', 'II', 'III', 'IV'].map((q, i) => r.q[i] ? q + ' ' + fmtM(r.q[i]) : q + ' —').join(' · ')}</td>
       <td data-sale-cell="${r.id}">${r.yoy == null ? '—' : `<span class="${r.yoy >= 0 ? 'pl-ok' : 'pl-bad'}">${r.yoy > 0 ? '+' : ''}${r.yoy}%</span>`}</td>
       <td class="pl-visit">${esc(r.visit || '')}</td>
     </tr>`;
@@ -4562,7 +4561,7 @@ async function renderPlan() {
     const g = groups[m];
     const gp = g.reduce((s, r) => s + Number(r.plan || 0), 0);
     const gf = g.reduce((s, r) => s + Number(r.fact || 0), 0);
-    body += `<tr class="pl-mgr" data-plan-mgr="${esc(m)}"><td colspan="12">
+    body += `<tr class="pl-mgr" data-plan-mgr="${esc(m)}"><td colspan="9">
         <b>${esc(m)}</b> · клиник ${g.length} · план ${fmtM(gp)} · факт ${fmtM(gf)} · ${gp ? Math.round(gf / gp * 100) : 0}%
       </td></tr>` + g.map(rowHtml).join('');
   });
