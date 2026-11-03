@@ -2173,7 +2173,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.14.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.15.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5861,7 +5861,8 @@ async function openIdeaModal(presetClinicId, idea) {
     <div class="field"><label>Участники</label><div class="vm-chks">${participantsHtml((idea && idea.participants) || [])}</div></div>
     <div class="field"><label>Напомнить через (дней)</label><input type="number" id="viRemind" value="4" min="1" max="90" /></div>
     <div class="btn-row">
-      <button class="btn" id="viSave">${idea ? 'Сохранить' : 'Записать идею'}</button>
+      ${idea ? '<button class="btn" id="viPlan">Запланировать визит</button>' : `<button class="btn" id="viSave">Записать идею</button>`}
+      ${idea ? '<button class="btn ghost" id="viSave">Сохранить</button>' : ''}
       <button class="btn ghost" id="viCancel">Отмена</button>
       ${idea ? '<button class="btn ghost" id="viDrop" style="color:#b91c1c;border-color:#e5b8b8">Удалить идею</button>' : ''}
     </div>
@@ -5873,6 +5874,12 @@ async function openIdeaModal(presetClinicId, idea) {
     if (c && cityInp && !cityInp.value.trim() && c.city) cityInp.value = c.city;
   });
   document.getElementById('viCancel').addEventListener('click', closeModal);
+  // 5.15.0: перевод идеи в реальный визит — из окна идеи, доступно всем менеджерам
+  const viPlanBtn = document.getElementById('viPlan');
+  if (viPlanBtn) viPlanBtn.addEventListener('click', async () => {
+    closeModal();
+    await openVisitModal({ clinicId: idea.clinic_id, idea });
+  });
   // 5.7.0: удаление идеи — в окне
   const viDropBtn = document.getElementById('viDrop');
   if (viDropBtn) viDropBtn.addEventListener('click', async () => {
