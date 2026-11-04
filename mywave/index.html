@@ -37,6 +37,11 @@ h1{font-size:28px;margin-bottom:6px}
 .chip{display:inline-block;margin-top:12px;font-size:12.5px;background:var(--active);color:#0A5E7A;padding:4px 10px;border-radius:999px}
 .list{display:flex;flex-direction:column;gap:12px}
 .row{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 18px;height:76px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;max-width:720px}
+.player{display:flex;align-items:center;gap:12px;margin:6px 0 14px;padding:10px 12px;background:#F2FAFF;border:1px solid var(--line);border-radius:12px}
+.pbtn{width:40px;height:40px;border-radius:50%;border:0;background:var(--btn);color:#fff;font-size:15px;cursor:pointer;flex:none}
+.ptime{font-size:12.5px;color:var(--muted);min-width:86px;text-align:right}
+#seek{flex:1;accent-color:#087DA0}
+#prate{border:1px solid var(--line);border-radius:8px;padding:4px 6px;background:#fff;color:var(--ink);font:inherit;font-size:12.5px}
 .playw{width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--btn);font-size:14px;cursor:pointer;flex:none;margin-right:2px}
 .addw{margin-left:auto;width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--btn);font-size:18px;line-height:1;cursor:pointer;flex:none}
 .addw.on{background:var(--active);border-color:var(--btn);color:#0A5E7A}
@@ -78,7 +83,7 @@ h1{font-size:28px;margin-bottom:6px}
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.4.0';
+const APP_VER='0.4.1';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'中文 · 口语',who:'Люба · 60 мин',lang:'中文'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'},
@@ -134,8 +139,14 @@ function words(){return `<button class="back" onclick="go('lessons')">← наз
  <h1>Урок 1 · 我们来中国学习了</h1><div class="sub">Слова, текст, грамматика, вопросы</div>
 
  <div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:10px">Слова урока · 19</h3>
- <audio id="wa" preload="none"></audio>
-${W.map((w,idx)=>{const has=dictHas('zh',w[0]); return `<div class="w"><button class="playw" onclick="playWord(${idx+1})" aria-label="Прослушать">▶</button><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span>
+ <div class="player" id="pl">
+   <button class="pbtn" id="pp" aria-label="Играть">▶</button>
+   <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Позиция">
+   <span class="ptime" id="ptm">0:00 / 0:00</span>
+   <select id="prate" aria-label="Скорость"><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option></select>
+ </div>
+ <audio id="pa" src="audio/words1.mp3" preload="metadata"></audio>
+ ${W.map((w,idx)=>{const has=dictHas('zh',w[0]); return `<div class="w"><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span>
       <button class="addw${has?' on':''}" onclick="dictToggle('zh','${w[0]}','${w[1]}','${w[2]}');go('w1')" title="${has?'Убрать из словаря':'Добавить в словарь'}">${has?'✓':'+'}</button></div>`}).join('')}</div>
 
  <div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:10px">Текст · 课文</h3>
@@ -166,8 +177,16 @@ function dict(t,lang){const arr=dictList(lang||'zh');
     <button class="addw on" onclick="dictToggle('${lang||'zh'}','${esc(w.zh)}','${esc(w.py||'')}','${esc(w.ru||'')}');go('${lang===undefined?'dict':(lang==='en'?'dicten':'dictes')}')">✓</button></div>`).join('')
     : 'Словарь пуст — добавляй слова кнопкой «+» в уроке.'}</div>
   <div class="foot">© Abramson v. ${APP_VER}</div>`}
-function playWord(n){const a=document.getElementById('wa'); if(!a) return;
-  a.src='audio/w'+String(n).padStart(2,'0')+'.mp3'; a.play().catch(()=>{});}
+(function(){
+  const a=document.getElementById('pa'); if(!a) return;
+  const pp=document.getElementById('pp'), sk=document.getElementById('seek'), tm=document.getElementById('ptm'), rt=document.getElementById('prate');
+  const fmt=t=>{t=Math.max(0,t|0); return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
+  const upd=()=>{tm.textContent=fmt(a.currentTime)+' / '+fmt(a.duration||0); if(a.duration) sk.value=Math.round(a.currentTime/a.duration*1000)};
+  pp.addEventListener('click',()=>{ if(a.paused){a.play();pp.textContent='❚❚'} else {a.pause();pp.textContent='▶'} });
+  a.addEventListener('timeupdate',upd); a.addEventListener('loadedmetadata',upd); a.addEventListener('ended',()=>pp.textContent='▶');
+  sk.addEventListener('input',()=>{ if(a.duration) a.currentTime=sk.value/1000*a.duration });
+  rt.addEventListener('change',()=>{a.playbackRate=parseFloat(rt.value)});
+})();
 function go(s){
   document.querySelectorAll('.mi').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
   const v=document.getElementById('view');
