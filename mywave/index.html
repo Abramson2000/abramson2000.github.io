@@ -288,7 +288,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.29.0';
+const APP_VER='0.30.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Сайра',mat:'Разговорная практика',lang:'Español'},
@@ -604,15 +604,17 @@ function sched(){
 }
 function lessons(){
   return `<h1>Китайский</h1><div class="sub">HSK 4上</div><div class="list">
-  ${LESSON_DATA.map(l=>`<div class="row" onclick="CUR=${l.n};go('u')"><div><b>Урок ${l.n} · ${esc(l.title)}</b>
-    <div class="c-meta">Слова урока · ${l.words.length}</div></div><span class="chip">открыть</span></div>`).join('')}
+  ${LESSON_DATA.map(l=>{const d=hwCount(l.n), t=hwTotal(l.n), done=t>0&&d>=t;
+    return `<div class="row" onclick="CUR=${l.n};go('u')"><div><b>Урок ${l.n} · ${esc(l.title)}</b>
+    <div class="c-meta">Слова ${l.words.length} · задания ${d}/${t}${done?' · готово ✓':''}</div></div>
+    <span class="chip${done?' ok':''}">${done?'готово':'открыть'}</span></div>`}).join('')}
   </div>`;
 }
 function L(){return LESSON_DATA.find(x=>x.n===CUR)||LESSON_DATA[0]}
 function lessonHome(){
   const l=L();
   const parts=[{id:'wp',t:'Слова',sub:l.words.length+' слов · аудио',badge:'▶'},
-   {id:'tx',t:'Текст',sub:'课文',badge:'阅'},
+   {id:'tx',t:'Текст',sub:'课文 · задания '+(hwCount(l.n))+'/'+hwTotal(l.n),badge:'阅'},
    {id:'gr',t:'Грамматика',sub:'правило урока',badge:'语'},
    {id:'ex',t:'Упражнения',sub:'вопросы по уроку',badge:'练'}];
   return `<button class="back" onclick="go('lessons')">← назад</button>
