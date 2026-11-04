@@ -237,6 +237,8 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   .crs-col{background:transparent;border:0;box-shadow:none;padding:0}
   .crs-card{margin-bottom:8px}
 }
+.crs-done{flex:0 0 32px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#9DB6C6;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.crs-done.on{background:#DDF3E6;border-color:#BFE3C9;color:#15803D}
 </style>
 </head>
 <body>
@@ -256,7 +258,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.23.0';
+const APP_VER='0.24.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'},
@@ -318,7 +320,9 @@ function weekInstances(weekStart){
       const k=l.weekly===false ? (l.date===key?key:null) : nominalKey(l, weekStart);
       if(k!==key) return;
       const ov=ovOf(l.id);
-      out.push(Object.assign({},l,{_key:key,cancelled:(ov.cancelled||[]).includes(key)}));
+      out.push(Object.assign({},l,{_key:key,
+        cancelled:(ov.cancelled||[]).includes(key),
+        done:(ov.done||[]).includes(key)}));
     });
   }
   return out;
@@ -434,6 +438,27 @@ function lessonCancelToggle(){
 }
 function lessonDelete(){const st=ovAll(); if(!st.del.includes(LESSEDIT.id)) st.del=st.del.concat([LESSEDIT.id]);
   if(st.ov[LESSEDIT.id]) delete st.ov[LESSEDIT.id]; ovSet(st); closeLesson()}
+function payDeduct(course,delta){
+  const merged=pays().filter(p=>p.course===course).sort((a,b)=>a.date.localeCompare(b.date));
+  let target=null;
+  if(delta>0) target=merged.find(p=>(+p.count||0)-(+p.used||0)>0);
+  else { const rev=merged.slice().reverse(); target=rev.find(p=>(+p.used||0)>0); }
+  if(!target) return false;
+  target.used=Math.max(0,Math.min(+target.count||0,(+target.used||0)+delta));
+  const st=paysStored(); const i=st.findIndex(x=>x.id===target.id);
+  if(i>=0) st[i]=target; else st.push(target);
+  paysSet(st);
+  return true;
+}
+function lessonDone(id,key){
+  const l=allLessons().find(x=>x.id===id); if(!l) return;
+  const st=ovAll(); const cur=st.ov[id]||{};
+  const arr=Array.isArray(cur.done)?cur.done.slice():[];
+  const at=arr.indexOf(key);
+  if(at>=0){ arr.splice(at,1); payDeduct(l.course,-1); }
+  else { arr.push(key); payDeduct(l.course,+1); }
+  cur.done=arr; st.ov[id]=cur; ovSet(st); go('sched');
+}
 function lessonSheet(){
   const l=allLessons().find(x=>x.id===LESSEDIT.id); if(!l) return '';
   const key=LESSEDIT.key;
@@ -534,8 +559,8 @@ function sched(){
   ${days.map(({d,k,items})=>`<div class="crs-day${k===tk?' today':''}"><div class="crs-day-h">${WD[d.getDay()]} · ${d.getDate()} ${MONTHS[d.getMonth()]}</div>
     ${items.map(l=>`<div class="crs-card${l.cancelled?' off':''}" onclick="openLesson('${l.id}','${l._key}')">
       <div class="crs-card-top"><div class="crs-c-time">${esc(l.time)}</div>
-        <div class="crs-c-tag">${esc(l.course)}${l.teacher?`<span>${esc(l.teacher)}</span>`:''}</div></div>
-      ${l.mat?`<div class="crs-mat">${esc(l.mat)}</div>`:''}
+        <div class="crs-c-tag">${esc(l.course)}${l.teacher?`<span>${esc(l.teacher)}</span>`:''}</div>
+        <button class="crs-done${l.done?' on':''}" onclick="event.stopPropagation();lessonDone('${l.id}','${l._key}')" aria-label="Урок проведён" title="Урок проведён">✓</button></div>
       ${l.cancelled?'<div class="crs-chips"><span class="crs-chip off">отменено</span></div>':''}
     </div>`).join('')}</div>`).join('')}
     ${LESSEDIT?lessonSheet():''}
