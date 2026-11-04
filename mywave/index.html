@@ -108,7 +108,7 @@ h1{font-size:28px;margin-bottom:6px}
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.5.0';
+const APP_VER='0.5.1';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'中文 · 口语',who:'Люба · 60 мин',lang:'中文'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'},
@@ -206,10 +206,21 @@ function partEx(){
     <div class="w"><span class="ru">3. 安妮以后想做什么？</span></div>
   </div><div class="foot">© Abramson v. ${APP_VER}</div>`;
 }
-function listen(){return `<h1>Аудирование</h1><div class="sub">听力 · шэдоуинг</div><div class="list">
- <div class="row"><div><b>Шэдоуинг 1</b><div class="c-meta">Короткие фразы, повтор за диктором</div></div><span class="chip">скоро</span></div>
- <div class="row"><div><b>Шэдоуинг 2</b><div class="c-meta">Короткие фразы, повтор за диктором</div></div><span class="chip">скоро</span></div>
-</div><div class="foot">© Abramson v. ${APP_VER}</div>`}
+const SH1=['你平时喜欢看什么？','我很喜欢看动画片。','这部动画片很有意思。','我已经看了三集。','我一边吃饭，一边看。','每个周末我看四五集。','有时候看到很晚才睡。','我的朋友也觉得好看。','他推荐给我另一部。','我们打算一起看。'];
+function listen(){
+  return `<h1>Аудирование</h1><div class="sub">听力 · шэдоуинг</div>
+  <div class="list">
+    <div class="row" onclick="go('s1')"><div><b>Шэдоуинг 1</b><div class="c-meta">10 фраз · повторяй вслух</div></div><span class="chip">▶</span></div>
+    <div class="row"><div><b>Шэдоуинг 2</b><div class="c-meta">скоро</div></div><span class="chip">скоро</span></div>
+  </div><div class="foot">© Abramson v. ${APP_VER}</div>`;
+}
+function shadow1(){
+  if(typeof mwPlayerShow==='function') mwPlayerShow('audio/shadow1.mp3');
+  return `<button class="back" onclick="go('listen')">← назад</button>
+  <h1>Шэдоуинг 1</h1><div class="sub">слушай фразу, повторяй в паузу</div>
+  <div class="card">${SH1.map((p,i)=>`<div class="w"><span class="zh" style="min-width:26px;color:var(--muted)">${i+1}</span><span class="ru" style="font-size:17px">${p}</span></div>`).join('')}</div>
+  <div class="foot">© Abramson v. ${APP_VER}</div>`;
+}
 function soon(t,n){return `<h1>${esc(t)}</h1><div class="sub">${esc(n)}</div><div class="card">Раздел готовится.</div><div class="foot">© Abramson v. ${APP_VER}</div>`}
 function dict(t,lang){const arr=dictList(lang||'zh');
   return `<h1>${esc(t)}</h1><div class="sub">Словарь · слов: ${arr.length}</div>
@@ -228,10 +239,10 @@ function dict(t,lang){const arr=dictList(lang||'zh');
   rt.addEventListener('change',()=>{a.playbackRate=parseFloat(rt.value)});
 })();
 function go(s){
-  if(s!=='p1' && typeof mwPlayerHide==='function') mwPlayerHide();
+  if(s!=='p1' && s!=='s1' && typeof mwPlayerHide==='function') mwPlayerHide();
   document.querySelectorAll('.mi').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
   const v=document.getElementById('view');
-  v.innerHTML = s==='sched'?sched(): s==='lessons'?lessons(): s==='w1'?lessonHome(): s==='p1'?partWords(): s==='p2'?partText(): s==='p3'?partGram(): s==='p4'?partEx(): s==='listen'?listen():
+  v.innerHTML = s==='sched'?sched(): s==='lessons'?lessons(): s==='w1'?lessonHome(): s==='p1'?partWords(): s==='p2'?partText(): s==='p3'?partGram(): s==='p4'?partEx(): s==='s1'?shadow1(): s==='listen'?listen():
     s==='dict'?dict('词典','zh'): s==='dicten'?dict('Dictionary','en'): s==='dictes'?dict('Diccionario','es'):
     s==='en'?soon('Английский','уроки'):soon('Испанский','уроки');
   document.querySelector('.side').classList.remove('open');
