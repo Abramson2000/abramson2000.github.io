@@ -927,9 +927,10 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 .mpair .zh { font-size: 20px; }
 .fill { font-size: 18.5px; }
 .zh, .zh-opt, .script { font-size: 1.03em; }
-#audioStart{position:fixed;left:14px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:80;width:52px;height:52px;border-radius:50%;border:0;
-  background:linear-gradient(135deg,#B03A2E,#8E2C22);color:#fff;font-size:19px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 8px 22px rgba(120,40,30,.35)}
+#audioStart{position:fixed;left:14px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:80;
+  min-width:132px;height:46px;padding:0 18px;border-radius:23px;border:0;
+  background:linear-gradient(135deg,#B03A2E,#8E2C22);color:#fff;font:inherit;font-size:14.5px;font-weight:800;letter-spacing:.2px;
+  cursor:pointer;display:none;align-items:center;justify-content:center;gap:6px;box-shadow:0 8px 22px rgba(120,40,30,.35)}
 
 /* 5.99.3: текст задания переносится внутри плитки — ничего не сползает */
 .hw-item{max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
@@ -1046,7 +1047,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 </div></div>
 <div class="app" id="app"></div>
 <button class="menu-btn" id="menuBtn" onclick="sbToggle()" aria-label="Меню">☰</button>
-<button id="audioStart" onclick="audioStartTap()" aria-label="Слушать" style="display:none">▶</button>
+<button id="audioStart" onclick="audioStartTap()" aria-label="Слушать">▶ Слушать</button>
 <div class="player" id="player">
   <div class="p-seek">
     <span class="p-time" id="pCur">0:00</span>
@@ -32662,7 +32663,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.103.0';
+const APP_VER = '5.104.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32773,11 +32774,30 @@ function playerTriggerSync(){
   btn.style.display=(hasSrc && !shown)?'flex':'none';
 }
 function audioStartTap(){
-  if(!audio || !audio.getAttribute('src')) return;
+  if(!audio) return;
   showPlayer(true);
-  const pr=audio.play(); if(pr&&pr.catch) pr.catch(()=>{});
+  const go=()=>{ const pr=audio.play(); if(pr&&pr.catch) pr.catch(()=>retryAudio()); };
+  if(audio.getAttribute('src')) go(); else retryAudio();
   try{ updatePlayerUI(); }catch(e){}
   playerTriggerSync();
+}
+/* 5.104.0: если файл не открылся (протухший кэш) — забираем заново и запускаем */
+let audioRetrying=false;
+function retryAudio(){
+  if(audioRetrying) return; audioRetrying=true;
+  try{
+    const key=String(partAudioKey||'');
+    const name=key.split(':').pop();
+    if(!name){ audioRetrying=false; return; }
+    try{ Object.keys(audioBlobCache||{}).forEach(k=>{ try{ URL.revokeObjectURL(audioBlobCache[k]); }catch(e){} delete audioBlobCache[k]; }); }catch(e){}
+    getAudioUrl(name).then(url=>{
+      audio.src=url; audio.load();
+      const pr=audio.play();
+      if(pr&&pr.catch) pr.catch(()=>{});
+      try{ updatePlayerUI(); }catch(e){}
+      showPlayer(true);
+    }).catch(()=>{ alert('Аудио не загрузилось. Проверь связь и попробуй ещё раз.'); });
+  } finally { setTimeout(()=>{ audioRetrying=false; }, 1500); }
 }
 function showPlayer(show) {
   document.getElementById('player').classList.toggle('show', show);
@@ -32803,6 +32823,7 @@ function ensureLessonAudio(u, part) {
   }
   showPlayer(!audio.paused);
 }
+try { if (audio) audio.addEventListener('error', function(){ retryAudio(); }); } catch(e) {}
 const ICON_PLAY = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
 const ICON_PAUSE = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>';
 let seekDrag = false;
