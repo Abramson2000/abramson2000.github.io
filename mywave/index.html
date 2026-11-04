@@ -261,7 +261,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.25.0';
+const APP_VER='0.25.1';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Сайра',mat:'Разговорная практика',lang:'Español'},
@@ -277,13 +277,12 @@ function dictToggle(lang,zh,py,ru){const d=dictAll(); const arr=Array.isArray(d[
   const i=arr.findIndex(w=>w.zh===zh); if(i>=0) arr.splice(i,1); else arr.unshift({zh,py,ru});
   d[lang]=arr; try{localStorage.setItem(DICT_KEY,JSON.stringify(d))}catch(e){}}
 
-const W=[['食堂','shítáng','столовая'],['要是','yàoshi','если (бы)'],['座','zuò','счётное слово для зданий'],
- ['减轻','jiǎnqīng','облегчать, снижать'],['申请','shēnqǐng','подавать заявление'],['经济','jīngjì','экономика'],
- ['奖学金','jiǎngxuéjīn','стипендия'],['压力','yālì','давление, нагрузка'],['表现','biǎoxiàn','проявлять себя'],
- ['加油','jiāyóu','держись, давай'],['获得','huòdé','получать, добиваться'],['校园','xiàoyuán','кампус'],
- ['图书馆','tūshūguǎn','библиотека'],['体育馆','tǐyùguǎn','спортзал'],['超市','chāoshì','супермаркет'],
- ['留学','liúxué','учиться за границей'],['预科','yùkē','подготовительное отделение'],
- ['硕士','shuòshì','магистр'],['考试','kǎoshì','экзамен']];
+const LESSON_DATA=[
+ {n:1,title:"我们来中国学习了",audio:"audio/words1.mp3",words:[{zh:"签证",py:"qiān zhèng",ru:"виза"},{zh:"入学",py:"rù xué",ru:"поступить в учебное заведение"},{zh:"通知",py:"tōng zhī",ru:"уведомлять; уведомление"},{zh:"证件",py:"zhèng jiàn",ru:"документы, удостоверение"},{zh:"材料",py:"cái liào",ru:"материалы, документы"},{zh:"证",py:"zhèng",ru:"удостоверение, свидетельство"},{zh:"任何",py:"rèn hé",ru:"любой, всякий"},{zh:"食堂",py:"shí táng",ru:"столовая"},{zh:"座",py:"zuò",ru:"счётное слово для зданий"},{zh:"要是",py:"yào shì",ru:"если (бы)"},{zh:"减轻",py:"jiǎn qīng",ru:"облегчать, снижать"},{zh:"申请",py:"shēn qǐng",ru:"подавать заявление"},{zh:"经济",py:"jīng jì",ru:"экономика"},{zh:"奖学金",py:"jiǎng xué jīn",ru:"стипендия"},{zh:"随着",py:"suí zhe",ru:"вместе с, по мере"},{zh:"课程",py:"kè chéng",ru:"курс, учебная программа"},{zh:"专业",py:"zhuān yè",ru:"специальность"},{zh:"本科",py:"běn kē",ru:"бакалавриат"},{zh:"硕士",py:"shuò shì",ru:"магистратура"},{zh:"研究生",py:"yán jiū shēng",ru:"аспирант"}]},
+ {n:2,title:"租到了合适的房子",audio:"audio/words2.mp3",words:[{zh:"房东",py:"fáng dōng",ru:"хозяин, хозяйка квартиры"},{zh:"租",py:"zū",ru:"снимать, арендовать"},{zh:"出租",py:"chū zū",ru:"сдавать в аренду"},{zh:"房租",py:"fáng zū",ru:"квартплата, арендная плата"},{zh:"嗯",py:"ń",ru:"мгм, да"},{zh:"亮",py:"liàng",ru:"светлый; светить"},{zh:"收拾",py:"shōu shí",ru:"убирать, приводить в порядок"},{zh:"就是",py:"jiù shì",ru:"именно; просто"},{zh:"种",py:"zhǒng",ru:"вид, сорт"},{zh:"周围",py:"zhōu wéi",ru:"вокруг, окрестности"},{zh:"恐怕",py:"kǒng pà",ru:"боюсь, что; вероятно"},{zh:"热闹",py:"rè nào",ru:"оживлённый, шумный"},{zh:"入住",py:"rù zhù",ru:"заселяться"},{zh:"不过",py:"bù guò",ru:"однако, но"},{zh:"毕业",py:"bì yè",ru:"окончить учёбу"},{zh:"顺利",py:"shùn lì",ru:"успешный, гладкий"},{zh:"并",py:"bìng",ru:"и к тому же"},{zh:"客厅",py:"kè tīng",ru:"гостиная"},{zh:"台",py:"tái",ru:"счётное слово для приборов"},{zh:"厨房",py:"chú fáng",ru:"кухня"},{zh:"建议",py:"jiàn yì",ru:"советовать; предложение"},{zh:"信息",py:"xìn xī",ru:"информация"}]},
+ {n:3,title:"手机扫一下",audio:"audio/words3.mp3",words:[{zh:"十字路口",py:"shí zì lù kǒu",ru:"перекрёсток"},{zh:"直接",py:"zhí jiē",ru:"прямо, напрямую"},{zh:"转",py:"zhuǎn",ru:"поворачивать"},{zh:"正好",py:"zhèng hǎo",ru:"как раз, вовремя"},{zh:"熟悉",py:"shú xī",ru:"хорошо знать"},{zh:"正",py:"zhèng",ru:"прямой"},{zh:"目的地",py:"mù dì dì",ru:"место назначения"},{zh:"下载",py:"xià zài",ru:"скачивать"},{zh:"进行",py:"jìn xíng",ru:"проводить, осуществлять"},{zh:"支付",py:"zhī fù",ru:"оплачивать"},{zh:"软件",py:"ruǎn jiàn",ru:"программа, приложение"},{zh:"不仅",py:"bù jǐn",ru:"не только"},{zh:"扫码",py:"sǎo mǎ",ru:"сканировать QR-код"},{zh:"结账",py:"jié zhàng",ru:"оплатить счёт"},{zh:"购物",py:"gòu wù",ru:"делать покупки"},{zh:"订",py:"dìng",ru:"заказывать; бронировать"},{zh:"现金",py:"xiàn jīn",ru:"наличные"},{zh:"网购",py:"wǎng gòu",ru:"покупки онлайн"},{zh:"寄",py:"jì",ru:"отправлять"},{zh:"等",py:"děng",ru:"ждать; и так далее"},{zh:"货",py:"huò",ru:"товар"},{zh:"甚至",py:"shèn zhì",ru:"даже"},{zh:"改变",py:"gǎi biàn",ru:"менять(ся)"},{zh:"手指",py:"shǒu zhǐ",ru:"палец"},{zh:"乱",py:"luàn",ru:"беспорядочно"},{zh:"管",py:"guǎn",ru:"управлять; ведать"},{zh:"提供",py:"tí gōng",ru:"предоставлять"}]}
+];
+let CUR=1;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 let SUB='lessons';
@@ -571,54 +570,55 @@ function sched(){
     <button class="crs-add-big" onclick="lessOpen()">+ Добавить занятие</button>
   </div>`;
 }
-function lessons(){return `<h1>Китайский</h1><div class="sub">HSK 4上</div><div class="list">
- <div class="row" onclick="go('w1')"><div><b>Урок 1 · 我们来中国学习了</b><div class="c-meta">Слова урока · 19</div></div><span class="chip">открыть</span></div>
-</div>`}
-const PARTS=[
-  {id:'p1',t:'Слова',sub:'19 слов · аудио',badge:'▶'},
-  {id:'p2',t:'Текст',sub:'课文 · два абзаца',badge:'阅'},
-  {id:'p3',t:'Грамматика',sub:'3 правила',badge:'语'},
-  {id:'p4',t:'Упражнения',sub:'вопросы по тексту',badge:'练'}
-];
+function lessons(){
+  return `<h1>Китайский</h1><div class="sub">HSK 4上</div><div class="list">
+  ${LESSON_DATA.map(l=>`<div class="row" onclick="CUR=${l.n};go('u')"><div><b>Урок ${l.n} · ${esc(l.title)}</b>
+    <div class="c-meta">Слова урока · ${l.words.length}</div></div><span class="chip">открыть</span></div>`).join('')}
+  </div>`;
+}
+function L(){return LESSON_DATA.find(x=>x.n===CUR)||LESSON_DATA[0]}
 function lessonHome(){
+  const l=L();
+  const parts=[{id:'wp',t:'Слова',sub:l.words.length+' слов · аудио',badge:'▶'},
+   {id:'tx',t:'Текст',sub:'课文',badge:'阅'},
+   {id:'gr',t:'Грамматика',sub:'правило урока',badge:'语'},
+   {id:'ex',t:'Упражнения',sub:'вопросы по уроку',badge:'练'}];
   return `<button class="back" onclick="go('lessons')">← назад</button>
-  <h1>Урок 1 · 我们来中国学习了</h1><div class="sub">HSK 4上</div>
-  <div class="list">${PARTS.map(p=>`<div class="row" onclick="go('${p.id}')">
-    <div><b>${p.t}</b><div class="c-meta">${p.sub}</div></div><span class="chip">${p.badge}</span></div>`).join('')}</div>
-  `;
+  <h1>Урок ${l.n} · ${esc(l.title)}</h1><div class="sub">HSK 4上</div>
+  <div class="list">${parts.map(p=>`<div class="row" onclick="go('${p.id}')"><div><b>${p.t}</b><div class="c-meta">${p.sub}</div></div><span class="chip">${p.badge}</span></div>`).join('')}</div>`;
 }
 function partWords(){
-  if(typeof mwPlayerShow==='function') mwPlayerShow('audio/words1.mp3');
-  return `<button class="back" onclick="go('w1')">← урок 1</button>
-  <h1>Слова</h1><div class="sub">19 слов · слушай и добавляй в словарь</div>
-  <div class="card">${W.map(w=>{const has=dictHas('zh',w[0]); return `<div class="w"><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span>
-    <button class="w-add${has?' indict':''}" onclick="event.stopPropagation();dictToggle('zh','${w[0]}','${w[1]}','${w[2]}');go('p1')" title="${has?'Уже в словаре':'Добавить в словарь'}">${has?'✓':'＋'}</button></div>`}).join('')}</div>
-  `;
+  const l=L();
+  if(typeof mwPlayerShow==='function') mwPlayerShow(l.audio);
+  return `<button class="back" onclick="go('u')">← урок ${l.n}</button>
+  <h1>Слова</h1><div class="sub">${l.words.length} слов · слушай и добавляй в словарь</div>
+  <div class="card">${l.words.map(w=>{const has=dictHas('zh',w.zh); return `<div class="w"><span class="zh">${w.zh}</span><span class="py">${w.py}</span><span class="ru">${w.ru}</span>
+    <button class="w-add${has?' indict':''}" onclick="event.stopPropagation();dictToggle('zh','${w.zh}','${w.py}','${w.ru}');go('wp')" title="${has?'Уже в словаре':'Добавить в словарь'}">${has?'✓':'＋'}</button></div>`}).join('')}</div>`;
 }
+const GRAM={1:{t:'随着',b:'Предлог 随着 стоит перед словом или фразой об изменении: одно происходит по мере другого.'},
+ 2:{t:'……就是了',b:'Разговорная конструкция в конце предложения: «просто… и всё», выражает уверенное утверждение.'},
+ 3:{t:'×是×，就是 / 不过……',b:'Уступительная конструкция: сначала соглашаемся, затем через 就是 или 不过 вводим возражение.'}};
+const EXQ={1:['他们要给老师什么证件和材料？','他们在哪儿选课？'],
+ 2:['房东要出租哪个房间？那个房间怎么样？','房东为什么说住在那个小区生活很方便？','白家月觉得小区的环境怎么样？'],
+ 3:['陈天中为什么找不到花园小区了？','陈天中为什么没用手机地图？']};
 function partText(){
-  return `<button class="back" onclick="go('w1')">← урок 1</button>
-  <h1>Текст</h1><div class="sub">课文</div>
-  <div class="card"><p class="cn" style="font-size:17px;line-height:1.95">很多外国学生来中国学习以前，就已经想好了自己的发展方向。有人对经济感兴趣，希望将来在国际公司工作；有人喜欢学医，打算回国后当一名医生；还有人对教育有热情，想要成为一名教师。</p>
-  <p class="cn" style="font-size:17px;line-height:1.95;margin-top:10px">陈天中想选择跟经济有关的专业，希望了解更多的国际贸易方面的知识。安妮以后想做一名中文老师，所以要选择国际中文教育专业。对他们来说，留学不只是学语言，也是为将来的工作和生活做准备。</p></div>
-  `;
+  const l=L();
+  return `<button class="back" onclick="go('u')">← урок ${l.n}</button>
+  <h1>Текст</h1><div class="sub">课文 · урок ${l.n}</div>
+  <div class="card"><div class="c-meta">Текст этого урока добавлю вместе с озвучкой от Любы — тогда же появится и плеер.</div></div>`;
 }
 function partGram(){
-  return `<button class="back" onclick="go('w1')">← урок 1</button>
-  <h1>Грамматика</h1><div class="sub">三个 правила урока</div>
-  <div class="card">
-    <div class="w"><span class="zh">一方面……，另一方面……</span><span class="ru">с одной стороны…, с другой стороны…</span></div>
-    <div class="w"><span class="zh">要是……，就……</span><span class="ru">если…, то…</span></div>
-    <div class="w"><span class="zh">任何</span><span class="ru">любой, всякий — перед существительным без 的</span></div>
-  </div>`;
+  const l=L(); const g=GRAM[l.n]||{t:'',b:''};
+  return `<button class="back" onclick="go('u')">← урок ${l.n}</button>
+  <h1>Грамматика</h1><div class="sub">урок ${l.n}</div>
+  <div class="card"><div class="w"><span class="zh">${g.t}</span></div>
+  <div class="c-meta" style="margin-top:8px;line-height:1.55">${g.b}</div></div>`;
 }
 function partEx(){
-  return `<button class="back" onclick="go('w1')">← урок 1</button>
-  <h1>Упражнения</h1><div class="sub">ответь вслух, потом сверься с текстом</div>
-  <div class="card">
-    <div class="w"><span class="ru">1. 外国学生来中国以前想好了什么？</span></div>
-    <div class="w"><span class="ru">2. 陈天中为什么选择跟经济有关的专业？</span></div>
-    <div class="w"><span class="ru">3. 安妮以后想做什么？</span></div>
-  </div>`;
+  const l=L(); const q=EXQ[l.n]||[];
+  return `<button class="back" onclick="go('u')">← урок ${l.n}</button>
+  <h1>Упражнения</h1><div class="sub">ответь вслух по-китайски</div>
+  <div class="card">${q.map((x,i)=>`<div class="w"><span class="zh" style="min-width:22px;color:var(--muted)">${i+1}</span><span class="ru" style="font-size:15px">${x}</span></div>`).join('')}</div>`;
 }
 const SH1=['你平时喜欢看什么？','我很喜欢看动画片。','这部动画片很有意思。','我已经看了三集。','我一边吃饭，一边看。','每个周末我看四五集。','有时候看到很晚才睡。','我的朋友也觉得好看。','他推荐给我另一部。','我们打算一起看。'];
 function listen(){
@@ -663,10 +663,10 @@ function dict(t,lang){const arr=dictList(lang||'zh');
   rt.addEventListener('change',()=>{a.playbackRate=parseFloat(rt.value)});
 })();
 function go(s){
-  if(!['p1','s1a','s1b'].includes(s) && typeof mwPlayerHide==='function') mwPlayerHide();
+  if(!['wp','s1a','s1b'].includes(s) && typeof mwPlayerHide==='function') mwPlayerHide();
   document.querySelectorAll('.mi').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
   const v=document.getElementById('view');
-  v.innerHTML = s==='sched'?sched(): s==='lessons'?lessons(): s==='w1'?lessonHome(): s==='p1'?partWords(): s==='p2'?partText(): s==='p3'?partGram(): s==='p4'?partEx(): s==='s1'?shadow1(): s==='s1a'?shadowPlay(false): s==='s1b'?shadowPlay(true): s==='listen'?listen():
+  v.innerHTML = s==='sched'?sched(): s==='lessons'?lessons(): s==='u'?lessonHome(): s==='wp'?partWords(): s==='tx'?partText(): s==='gr'?partGram(): s==='ex'?partEx(): s==='s1'?shadow1(): s==='s1a'?shadowPlay(false): s==='s1b'?shadowPlay(true): s==='listen'?listen():
     s==='dict'?dict('词典','zh'): s==='dicten'?dict('Dictionary','en'): s==='dictes'?dict('Diccionario','es'):
     s==='en'?soon('Английский','уроки'):soon('Испанский','уроки');
   document.querySelector('.side').classList.remove('open');
