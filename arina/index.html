@@ -1146,7 +1146,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '1.5.0';
+const APP_VER = '1.5.2';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -3470,11 +3470,11 @@ const CRS_DOW_FULL = ['', 'понедельник', 'вторник', 'сред�
 const CRS_MON = ['', 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const CRS_MON_NOM = ['', 'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 const CRS_PROGS = [
-  { id: 'lessons', zh: '听力', ru: 'Самоучёба', tab: 'lessons' },
-  { id: 'biz', zh: '商务', ru: 'Самоучёба', tab: 'biz' },
-  { id: 'mine', zh: '语法', ru: 'Ли Лаоши', tab: 'mine' },
-  { id: 'idv', zh: '口语', ru: 'Люба', tab: 'idv' },
-  { id: 'team', zh: '团队', ru: 'Группа', tab: 'team' }
+  { id: 'lessons', zh: '中文',       ru: 'Китайский',   tab: 'lessons' },
+  { id: 'idv',     zh: '口语',       ru: 'с Любой',     tab: 'lessons' },
+  { id: 'yin',     zh: '听力',       ru: 'Шэдоуинг',    tab: 'yin' },
+  { id: 'en',      zh: 'English',    ru: 'Английский',  tab: 'en' },
+  { id: 'es',      zh: 'Español',    ru: 'Испанский',   tab: 'es' }
 ];
 const CRS_OFFSETS = [ { m: 1440, t: 'за день' }, { m: 180, t: 'за 3 часа' }, { m: 60, t: 'за час' }, { m: 30, t: 'за 30 минут' } ];
 const CRS_HW_STATES = [
@@ -3532,6 +3532,29 @@ function crsBlank() {
            subs: {}, push: { asked: false }, filters: { prog: '' }, hiddenCanceled: false };
 }
 let crsCache = null;
+
+/* My wave: занятия Арины по умолчанию — один раз на устройстве */
+function crsSeedDefaults(o){
+  if (!o || o.__seed) return o;
+  o.series = o.series || {};
+  const hasAny = Object.keys(o.series).length || Object.keys(o.lessons || {}).length;
+  if (hasAny) { o.__seed = 1; return o; }
+  const mk = (program, teacher, days, time) => ({
+    id: 's_' + program + '_' + days.join(''), program: program, teacher: teacher,
+    dur: 60, tz: CRS_TZ_DEF, link: '', place: '', pass: '', note: '',
+    material: null, rem: [], upd: Date.now(), days: days.slice(), every: 1,
+    from: '2026-11-02', to: '', time: time, except: {}
+  });
+  [ mk('lessons', 'Ли Лаоши', [5], '19:30'),
+    mk('idv',     'Люба',     [1], '17:00'),
+    mk('es',      '',         [2], '18:00'),
+    mk('es',      '',         [6], '12:00'),
+    mk('en',      '',         [3], '17:00')
+  ].forEach(function(x){ o.series[x.id] = x; });
+  o.__seed = 1;
+  try { localStorage.setItem(CRS_LS, JSON.stringify(o)); } catch (e) {}
+  return o;
+}
 function crsStore() {
   if (crsCache) return crsCache;
   let o = null;
@@ -3541,6 +3564,7 @@ function crsStore() {
   for (const k in b) if (o[k] === undefined) o[k] = b[k];
   o.rem.lessons = Object.assign({}, b.rem.lessons, o.rem.lessons || {});
   o.rem.hw = Object.assign({}, b.rem.hw, o.rem.hw || {});
+  crsSeedDefaults(o);
   crsCache = o;
   return o;
 }
@@ -5504,7 +5528,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('arina-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-1.5.0';
+  const SW_BUILD = 'offline-1.5.2';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
