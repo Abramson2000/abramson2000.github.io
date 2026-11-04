@@ -934,10 +934,10 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   --mw-btn:#087DA0; --mw-done:#DDF3E6; --mw-card:#FBFDFF; --mw-line:#BFE3F5;
 }
 body{ color:var(--mw-ink); }
-body::before{ background-image:url('assets/backgrounds/wave-original.jpg') !important; opacity:.38 !important;
+body::before{ background-image:url('assets/backgrounds/wave-original.jpg') !important; opacity:.55 !important;
   background-position:center center !important; }
 body::after{ content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:linear-gradient(rgba(255,255,255,.45), rgba(255,255,255,.55)); }
+  background:linear-gradient(rgba(255,255,255,.18), rgba(255,255,255,.26)); }
 .app{ position:relative; z-index:1; }
 #tabbar, .tabbar, nav.sidebar, .sidebar{ background:var(--mw-menu) !important; }
 #tabbar::before, .tabbar::before{
@@ -1146,7 +1146,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '1.5.2';
+const APP_VER = '1.5.3';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -1736,7 +1736,7 @@ function renderUnits() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
-      <div class="top-title">My wave</div><div class="sub">发展汉语<br>初级听力 II</div>
+      <div class="top-title">My wave</div><div class="sub">китайский<br>английский · испанский</div>
     </div>
     ${UNITS.map(unitCard).join('')}
 `;
@@ -4132,7 +4132,7 @@ let crsBusy = false;
 function crsShell() {
   return '<div class="topbar">' +
     '<div class="logo"><img src="sched-logo.png?v=' + APP_VER + '" alt=""></div>' +
-    '<div class="top-title">课程</div><div class="sub">Расписание<br>и домашние задания</div>' +
+    '<div class="top-title">Расписание</div><div class="sub">занятия<br>и оплаты</div>' +
     '</div>' +
     '<div class="crs-top">' +
       '<div class="crs-seg" id="crsSeg">' +
@@ -5528,7 +5528,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('arina-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-1.5.2';
+  const SW_BUILD = 'offline-1.5.3';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
