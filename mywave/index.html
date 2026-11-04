@@ -141,32 +141,42 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
 .crs-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
 .crs-chip{font-size:11.5px;background:linear-gradient(135deg,#EAF8FE,#D5EFFB);color:#0A5E7A;padding:4px 10px;border-radius:999px}
 .crs-add-big{width:100%;margin-top:8px;padding:13px;border-radius:14px;border:1px dashed #9FD6EA;background:rgba(255,255,255,.65);color:var(--btn);font:inherit;font-weight:700;cursor:pointer}
-.crs-courses{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:12px}
-.crs-course{flex:0 0 auto;min-width:182px;background:linear-gradient(180deg,#FFFFFF,#F1FAFF);border:1px solid var(--line);border-radius:16px;padding:12px 13px;box-shadow:0 6px 16px rgba(18,63,102,.06)}
-.crs-course b{display:block;font-size:13.5px;color:var(--ink)}
-.crs-course span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
-.crs-course strong{display:block;font-size:15px;color:#0A5E7A;margin-top:6px}
-.crs-pay-filter{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.86);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px;flex-wrap:wrap}
-.crs-pay-filter select{flex:1;min-width:130px;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff;color:var(--ink);font:inherit;font-size:13px}
+.crs-pay-course-list{display:grid;gap:6px;margin-bottom:10px}
+.crs-pay-course{display:flex;align-items:stretch;background:linear-gradient(180deg,#FFFFFF,#F5FBFF);border:1px solid var(--line);border-radius:13px;overflow:hidden;box-shadow:0 1px 2px rgba(18,63,102,.05)}
+.crs-pay-course-main{flex:1;min-width:0;border:0;background:transparent;display:flex;align-items:center;gap:8px;padding:9px 10px;text-align:left;color:var(--ink);font:inherit;cursor:pointer}
+.crs-pay-course-main>i{font-style:normal;font-size:20px;color:#8FB3C7;line-height:1;flex:0 0 auto}
+.crs-pay-course-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.crs-pay-course-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.crs-pay-course-name{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crs-pay-course-sum{font-size:13px;font-weight:800;white-space:nowrap;color:#0A5E7A}
+.crs-pay-course-sub{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crs-pay-course-add{flex:0 0 38px;border:0;border-left:1px solid var(--line);background:transparent;color:var(--btn);font:700 21px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;cursor:pointer}
+.crs-pay-filter{display:flex;gap:8px;align-items:flex-end;background:#fff;border:1px solid var(--line);border-radius:16px;padding:9px 10px 10px;margin:4px 0 14px;box-shadow:0 6px 18px rgba(18,63,102,.05)}
+.crs-f-col{flex:1;min-width:0}
+.crs-lbl{font-size:11px;font-weight:800;letter-spacing:.035em;color:var(--ink);margin:0 0 6px;text-transform:uppercase}
+.crs-pay-filter select{width:100%;box-sizing:border-box;border:1px solid rgba(18,63,102,.14);border-radius:12px;padding:7px 9px;background:#fff;color:var(--ink);font:inherit;font-size:13px}
+.crs-pay-period{display:flex;align-items:center;gap:6px}
+.crs-pay-period b{flex:1;min-width:0;text-align:center;font-size:12.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crs-pay-period .crs-b.s{padding:5px 8px;font-size:12px}
 .crs-pay-card{background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:0 8px 24px rgba(18,63,102,.06)}
 .crs-pay-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.crs-pay-head b{font-size:15px}
+.crs-pay-head b{font-size:11px;font-weight:800;letter-spacing:.035em;text-transform:uppercase}
 .crs-b{border:0;border-radius:12px;padding:9px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#087DA0,#12A6C6);color:#fff;box-shadow:0 6px 16px rgba(8,125,160,.25)}
 .crs-b.s{padding:7px 11px;font-size:12.5px;background:#fff;color:var(--btn);border:1px solid var(--line);box-shadow:none}
-.crs-pay-total{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0 10px}
-.crs-pay-total>div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #EAF4FB}
-.crs-pay-total>div:last-child{border-bottom:0}
-.crs-pay-total span{font-size:13px;color:var(--muted)}
-.crs-pay-total b{font-size:13.5px;color:var(--ink)}
-.crs-pay-row{border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:9px;background:linear-gradient(180deg,#FFFFFF,#F7FCFF)}
+.crs-pay-total{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line);margin:0 0 8px;padding:0}
+.crs-pay-total>div{display:block;padding:8px 7px;border-right:1px solid var(--line)}
+.crs-pay-total>div:last-child{border-right:0}
+.crs-pay-total span{display:block;font-size:10.5px;color:var(--muted)}
+.crs-pay-total b{display:block;margin-top:3px;text-align:left;font-size:13px;color:var(--ink)}
+.crs-pay-row{border:1px solid var(--line);border-radius:14px;padding:9px 10px;margin-bottom:6px;background:linear-gradient(180deg,#FFFFFF,#F7FCFF)}
 .crs-pay-row-top{display:flex;align-items:flex-start;gap:10px}
 .crs-pay-row-info{flex:1;min-width:0}
 .crs-pay-row-info b{display:block;font-size:13.5px}
 .crs-pay-row-info span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
 .crs-pay-row-top strong{font-size:14px;color:#0A5E7A;white-space:nowrap}
-.crs-used{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.crs-used{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;padding-top:7px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted)}
 .crs-step{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:2px}
-.crs-step button{width:26px;height:26px;border:0;background:none;color:var(--btn);font-size:15px;font-weight:700;cursor:pointer;line-height:1}
+.crs-step button{width:28px;height:27px;border:0;background:none;color:var(--btn);font-size:15px;font-weight:700;cursor:pointer;line-height:1}
 .crs-step input{width:40px;border:0;background:none;text-align:center;font:inherit;font-size:13px;color:var(--ink)}
 .crs-left{margin-left:auto}
 .crs-form{background:linear-gradient(180deg,#FFFFFF,#EFF9FF);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:12px}
@@ -194,7 +204,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.13.0';
+const APP_VER='0.14.0';
 const LESSONS=[
  {date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',place:'Zoom',lang:'中文'},
  {date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',place:'Zoom',lang:'Español'},
@@ -301,16 +311,23 @@ function payView(){
   const sumLess=inMonth.reduce((s,p)=>s+(+p.count||0),0);
   return `<h1>Оплаты</h1><div class="sub">Арина · занятия и суммы</div>
   <div class="crs-seg"><button onclick="SUB='lessons';go('sched')">Занятия</button><button class="on" onclick="SUB='pay';go('sched')">Оплаты</button></div>
-  <div class="crs-courses">${courses.map(c=>`<div class="crs-course"><b>${esc(c)}</b>
-     <span>проведено ${payUsed(c)} · осталось ${Math.max(0,payTotalCount(c)-payUsed(c))}</span>
-     <strong>${money(paySum(c))}</strong>
-     <button class="crs-b s" style="margin-top:9px" onclick="PAYCUR='${q(c)}';payOpenForm(null)">+ Оплата</button></div>`).join('')}</div>
-  <div class="crs-pay-filter"><select onchange="paySelCourse(this.value)" aria-label="Курс">
-     ${['Все курсы'].concat(courses).map(c=>`<option${c===PAYCUR?' selected':''}>${esc(c)}</option>`).join('')}</select>
-   <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
-     <button class="crs-b s" onclick="payMonShift(-1)" aria-label="Предыдущий месяц">‹</button>
-     <b style="font-size:13px;min-width:112px;text-align:center">${MONTHS_N[m.getMonth()]} ${m.getFullYear()}</b>
-     <button class="crs-b s" onclick="payMonShift(1)" aria-label="Следующий месяц">›</button></div></div>
+  <div class="crs-pay-course-list">${courses.map(c=>`<div class="crs-pay-course">
+     <button class="crs-pay-course-main" onclick="paySelCourse('${q(c)}')">
+       <div class="crs-pay-course-body">
+         <div class="crs-pay-course-top"><span class="crs-pay-course-name">${esc(c)}</span><span class="crs-pay-course-sum">${money(paySum(c))}</span></div>
+         <div class="crs-pay-course-sub">проведено ${payUsed(c)} · осталось ${Math.max(0,payTotalCount(c)-payUsed(c))}</div>
+       </div><i>›</i></button>
+     <button class="crs-pay-course-add" onclick="PAYCUR='${q(c)}';payOpenForm(null)" aria-label="Добавить оплату по курсу">+</button>
+   </div>`).join('')}</div>
+  <div class="crs-pay-filter">
+    <div class="crs-f-col"><div class="crs-lbl">Курс</div>
+      <select onchange="paySelCourse(this.value)" aria-label="Курс">
+        ${['Все курсы'].concat(courses).map(c=>`<option${c===PAYCUR?' selected':''}>${esc(c)}</option>`).join('')}</select></div>
+    <div class="crs-f-col"><div class="crs-lbl">Месяц</div>
+      <div class="crs-pay-period"><button class="crs-b s" onclick="payMonShift(-1)" aria-label="Предыдущий месяц">‹</button>
+        <b>${MONTHS_N[m.getMonth()]} ${m.getFullYear()}</b>
+        <button class="crs-b s" onclick="payMonShift(1)" aria-label="Следующий месяц">›</button></div></div>
+  </div>
   ${PAYF!==null?payForm():''}
   <div class="crs-pay-card"><div class="crs-pay-head"><b>Все оплаты</b><button class="crs-b" onclick="payOpenForm(null)">+ Оплата</button></div>
    <div class="crs-pay-total"><div><span>${MONTHS_N[m.getMonth()]} ${m.getFullYear()}</span><b>${money(sumAmt)}</b></div>
