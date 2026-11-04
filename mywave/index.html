@@ -127,7 +127,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
 .crs-range b{display:block;font-size:14.5px;color:var(--ink)}
 .crs-range span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
 .crs-today{border:1px solid var(--line);background:linear-gradient(135deg,#EAF8FE,#D5EFFB);color:#0A5E7A;font:inherit;font-size:12.5px;font-weight:650;padding:9px 12px;border-radius:12px;cursor:pointer;flex:none}
-.crs-col{background:rgba(255,255,255,.78);border:1px solid var(--line);border-radius:22px;padding:16px 14px 14px;box-shadow:0 8px 24px rgba(18,63,102,.06)}
+.crs-col{background:transparent;border:0;box-shadow:none;padding:0}
 .crs-col-h{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px}
 .crs-day-h{font-size:12px;font-weight:800;letter-spacing:.07em;color:var(--btn);margin:14px 2px 8px;text-transform:uppercase}
 .crs-day.today .crs-day-h{color:#0A5E7A}
@@ -234,11 +234,14 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   .w .py{grid-column:2;grid-row:1;text-align:left}
   .w .ru{grid-column:1 / span 2;grid-row:2}
   .w .w-add{grid-column:3;grid-row:1 / span 2;justify-self:end;align-self:center;margin-left:0}
-  .crs-col{background:transparent;border:0;box-shadow:none;padding:0}
   .crs-card{margin-bottom:8px}
 }
 .crs-done{flex:0 0 32px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#9DB6C6;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .crs-done.on{background:#DDF3E6;border-color:#BFE3C9;color:#15803D}
+
+/* 0.25.0 — расписание без общей плашки; плеер по центру рабочей колонки */
+.crs-col{background:transparent;border:0;box-shadow:none;padding:0}
+@media (min-width:900px){ .player{left:280px} }
 </style>
 </head>
 <body>
@@ -258,13 +261,13 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.24.0';
+const APP_VER='0.25.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
- {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'},
+ {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Сайра',mat:'Разговорная практика',lang:'Español'},
  {id:'L3',daily:false,date:'2026-11-05',time:'17:00',course:'English',teacher:'Ольга',mat:'Speaking',lang:'English'},
  {id:'L4',daily:false,date:'2026-11-07',time:'19:30',course:'中文 · HSK 4上',teacher:'Ли лаоши',mat:'HSK 4上 · Урок 1',lang:'中文'},
- {id:'L5',daily:false,date:'2026-11-08',time:'12:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'}
+ {id:'L5',daily:false,date:'2026-11-08',time:'12:00',course:'Español',teacher:'Сайра',mat:'Разговорная практика',lang:'Español'}
 ];
 const DICT_KEY='mywave-dict-v1';
 function dictAll(){try{return JSON.parse(localStorage.getItem(DICT_KEY)||'{}')}catch(e){return {}}}
@@ -503,7 +506,7 @@ function payView(){
   const courses=[...new Set(allLessons().map(l=>l.course))];
   const inMonth=P.filter(p=>{const d=new Date(p.date+'T00:00:00'); return d.getFullYear()===m.getFullYear()&&d.getMonth()===m.getMonth()});
   const scope=ALLTIME?P:inMonth;
-  const list=scope.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const list=P.slice().sort((a,b)=>b.date.localeCompare(a.date));
   const sumAmt=scope.reduce((s,p)=>s+(+p.amount||0),0);
   const sumLess=scope.reduce((s,p)=>s+(+p.count||0),0);
   const label=ALLTIME?'за всё время':`${MONTHS_N[m.getMonth()]} ${m.getFullYear()}`;
