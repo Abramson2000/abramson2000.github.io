@@ -926,6 +926,19 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 .mpair .zh { font-size: 20px; }
 .fill { font-size: 18.5px; }
 .zh, .zh-opt, .script { font-size: 1.03em; }
+#audioStart{position:fixed;left:14px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:80;width:52px;height:52px;border-radius:50%;border:0;
+  background:linear-gradient(135deg,#B03A2E,#8E2C22);color:#fff;font-size:19px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 22px rgba(120,40,30,.35)}
+
+/* 5.99.3: текст задания переносится внутри плитки — ничего не сползает */
+.hw-item{max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+.hw-q{display:flex;gap:7px;align-items:flex-start;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.hw-num{flex:0 0 auto;font-variant-numeric:tabular-nums}
+.hw-q-text{flex:1;min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.hw-row{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.hw-ans-btn{white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.45;min-width:0}
+.hw-ex{overflow-wrap:anywhere;word-break:break-word}
+.hw-out{overflow-wrap:anywhere}
 </style>
 <style id="hw-centering-5953">
 /* ДЗ: вертикальная центровка текста и иконок внутри плашек и кнопок.
@@ -970,6 +983,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 </div></div>
 <div class="app" id="app"></div>
 <button class="menu-btn" id="menuBtn" onclick="sbToggle()" aria-label="Меню">☰</button>
+<button id="audioStart" onclick="audioStartTap()" aria-label="Слушать" style="display:none">▶</button>
 <div class="player" id="player">
   <div class="p-seek">
     <span class="p-time" id="pCur">0:00</span>
@@ -32489,7 +32503,7 @@ function manToggleUnit(n, ev) {
   if (man[k].u) delete man[k].u; else man[k].u = 1;
   if (!man[k].u && !(man[k].p && Object.keys(man[k].p).length)) delete man[k];
   manSave();
-  if (!wasDone && man[k] && man[k].u) crsAutoDoneForUnit(n);
+  if (!wasDone && man[k] && man[k].u) { crsAutoDoneForUnit(n); crsMarkUnitHwDone(n); }
   refreshAfterMan();
 }
 // «Отметил урок пройденным» → помечаем связанное занятие в расписании «проведённым»,
@@ -32511,6 +32525,26 @@ function crsAutoDoneForUnit(n) {
     st.done[evId] = Date.now();
     if (evId.indexOf('l:') === 0 && st.lessons[evId.slice(2)]) st.lessons[evId.slice(2)].done = true;
     crsSave(st);
+  } catch (e) {}
+}
+/* 5.100.0: урок отмечен пройденным — его ДЗ тоже считаются выполненными */
+function crsMarkUnitHwDone(n) {
+  try {
+    const u = (typeof ALL_UNITS !== 'undefined' ? ALL_UNITS : []).find(x => +x.unit === +n);
+    if (!u) return;
+    (u.parts || []).forEach(function (pt) {
+      if (pt && (pt.kind === 'hw' || pt.kind === 'record_hw')) {
+        if (crsHwState('u' + u.unit + 'p' + pt.id) !== 'done') crsHwSetState('u' + u.unit + 'p' + pt.id, 'done');
+      }
+    });
+    updateAppBadge();
+  } catch (e) {}
+}
+function crsReconcileManHw() {
+  try {
+    Object.keys(man || {}).forEach(function (k) {
+      if (man[k] && man[k].u) crsMarkUnitHwDone(k);
+    });
   } catch (e) {}
 }
 function manTogglePart(n, pid, ev) {
@@ -32545,7 +32579,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.99.0';
+const APP_VER = '5.100.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32643,22 +32677,40 @@ function setPartAudio(u, part) {
     audio.src = url;
     audio.load();
     updatePlayerUI();
+    try { playerTriggerSync(); } catch (e) {}
   });
+}
+
+/* 5.99.2: плеер не висит с самого начала — включается кнопкой ▶ */
+function playerTriggerSync(){
+  const btn=document.getElementById('audioStart');
+  if(!btn) return;
+  const hasSrc=!!partAudioKey || !!(audio && (audio.getAttribute('src')||audio.currentSrc));
+  const shown=document.getElementById('player').classList.contains('show');
+  btn.style.display=(hasSrc && !shown)?'flex':'none';
+}
+function audioStartTap(){
+  if(!audio || !audio.getAttribute('src')) return;
+  showPlayer(true);
+  const pr=audio.play(); if(pr&&pr.catch) pr.catch(()=>{});
+  try{ updatePlayerUI(); }catch(e){}
+  playerTriggerSync();
 }
 function showPlayer(show) {
   document.getElementById('player').classList.toggle('show', show);
   document.body.classList.toggle('has-player', show);
   if (!show && audio && !audio.paused) audio.pause();
+  try { playerTriggerSync(); } catch (e) {}
 }
 // idv-уроки: аудио урока висит на всех страницах/заданиях, не сбрасывается.
 // Если у части своё аудио — играет оно; иначе — уже установленный трек не трогаем.
 function ensureLessonAudio(u, part) {
   const ap = (part && part.audio) ? part : null;
-  if (ap) { setPartAudio(u, ap); showPlayer(true); return; }
+  if (ap) { setPartAudio(u, ap); showPlayer(!audio.paused); return; }
   const prefix = audioUnitKey(u) + ':';
   if (!partAudioKey || !partAudioKey.startsWith(prefix)) {
     const first = u && u.parts && u.parts.find(p => p.audio);
-    if (first) { setPartAudio(u, first); showPlayer(true); return; }
+    if (first) { setPartAudio(u, first); showPlayer(!audio.paused); return; }
     partAudioKey = null;
     audio.pause();
     audio.removeAttribute('src');
@@ -32666,7 +32718,7 @@ function ensureLessonAudio(u, part) {
     showPlayer(false);
     return;
   }
-  showPlayer(true);
+  showPlayer(!audio.paused);
 }
 const ICON_PLAY = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
 const ICON_PAUSE = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>';
@@ -33954,7 +34006,7 @@ function openPart(unitN, partId) {
   const u = ALL_UNITS.find(x => x.unit === unitN); if (!u) return;
   const part = u.parts.find(p => p.id === partId); if (!part) return;
   curUnit = u; curPart = part;
-  if (part.audio) { setPartAudio(u, part); showPlayer(true); }
+  if (part.audio) { setPartAudio(u, part); showPlayer(false); }
   else if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u);
   else { partAudioKey = null; showPlayer(false); }
   if (part.kind === 'words') renderWords(u, part);
@@ -33969,7 +34021,7 @@ function openPart(unitN, partId) {
 
 function renderListen(u, part) {
   showTabbar(false);
-  if (part.audio) { setPartAudio(u, part); showPlayer(true); }
+  if (part.audio) { setPartAudio(u, part); showPlayer(false); }
   else { partAudioKey = null; showPlayer(false); }
   const hint = part.hint || 'Слушай много раз, не глядя в текст.';
   const pimg = part.image ? `<img class="lesson-img" src="${esc(part.image)}" alt="">` : '';
@@ -33986,7 +34038,7 @@ function renderText(u, part) {
   if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u, part);
   else if (part && part.audio) {
     if (partAudioKey !== u.unit + '-' + part.id) setPartAudio(u, part);
-    showPlayer(true);
+    showPlayer(false);
   }
   else { partAudioKey = null; showPlayer(false); }
   const paras = String(part.text || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
@@ -34169,7 +34221,7 @@ function renderWords(u, part) {
 }
 function renderShadow(u, part) {
   showTabbar(false);
-  if (part.audio) { setPartAudio(u, part); showPlayer(true); } else { partAudioKey = null; showPlayer(false); }
+  if (part.audio) { setPartAudio(u, part); showPlayer(false); } else { partAudioKey = null; showPlayer(false); }
   const items = part.items || [];
   const lines = part.lines || [];
   app.innerHTML = `
@@ -35088,7 +35140,7 @@ function renderHw(u, part) {
     <div class="topbar hw-course-head"><button class="back" onclick="goBack()">←</button>
       <div class="logo"><img src="logo.png?v=5.35.0" alt=""></div>
       <div style="flex:1;min-width:0"><div class="top-title">${esc(heading.title)}</div><div class="sub">${esc(heading.subtitle)}</div></div>
-      <button class="back" onclick="hwNextPart()" title="Следующая часть урока">Дальше →</button></div>
+    </div>
     <div class="hw-compact-head">
       <div class="hw-lesson">${esc(u.zh || '')}</div>
       <div class="hw-part-line">${esc(part.title)} · ${qs.length} заданий</div>
@@ -35204,13 +35256,26 @@ async function hwCheckAll() {
   const n = curPart.questions.length;
   const btn = document.getElementById('hwCheckAllBtn');
   if (btn) btn.disabled = true;
-  for (let i = 0; i < n; i++) {
-    if (!hwLoad(curUnit.unit, curPart.id, i).trim()) continue;
-    await hwCheck(i);
-    await new Promise(r => setTimeout(r, 350));
+  try {
+    for (let i = 0; i < n; i++) {
+      if (!hwLoad(curUnit.unit, curPart.id, i).trim()) continue;
+      try { await hwCheck(i); } catch (e) {}
+      await new Promise(r => setTimeout(r, 350));
+    }
+  } finally {
+    /* 5.99.4: ответил на все задания и проверил — ДЗ считается выполненным */
+    try {
+      if (hwAnswered() >= n) {
+        crsHwSetState('u' + curUnit.unit + 'p' + curPart.id, 'done');
+        crsHwRefreshButtons();
+        const due = document.querySelector('.hw-due-state');
+        if (due) due.outerHTML = dueState(curUnit.unit, curPart.id);
+        updateAppBadge();
+      }
+    } catch (e) {}
+    if (btn) { btn.disabled = false; btn.textContent = '🤖 Проверить все ответы'; }
+    window.scrollTo(0, document.body.scrollHeight);
   }
-  if (btn) { btn.disabled = false; btn.textContent = '🤖 Проверить все ответы'; }
-  window.scrollTo(0, document.body.scrollHeight);
 }
 
 /* ===== Навигация внутри урока =====
@@ -37057,7 +37122,7 @@ function crsPushSyncReminders() {
       crsSeenSet(k);
       const txt = (r.kind === 'lesson' ? 'Занятие' : 'ДЗ') + ' ' + crsRemWord(r.when) + ': ' + r.title;
       const options = { body: txt, tag: 'tingli-local-' + k, icon: 'tingli-icon-192-v3.png', data: { url: r.url || crsPushDeepLink() } };
-      if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(function (reg) { return reg.showNotification('小山听力 · ' + APP_VER, options); }).catch(function () {});
       } else {
         try { new Notification('小山听力 · ' + APP_VER, options); } catch (e) {}
@@ -37319,6 +37384,7 @@ try {
 try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
   const SW_BUILD = 'offline-5.95.2';
+try { crsReconcileManHw(); } catch (e) {}
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
