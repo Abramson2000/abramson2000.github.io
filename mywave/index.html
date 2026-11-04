@@ -209,6 +209,10 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
 .mwbtn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
 .mwbtn.danger-ghost{background:transparent;color:#B03A2E;border:1px solid currentColor;font-weight:600;font-size:14px;padding:10px}
 .mwbtn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.crs-period{display:flex;gap:6px;align-items:center;margin:0 0 12px;flex-wrap:wrap}
+.crs-period-b{font:inherit;font-size:12.5px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer}
+.crs-period-b.on{background:linear-gradient(135deg,#087DA0,#12A6C6);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(8,125,160,.22)}
+.crs-period-nav{margin-left:auto;display:flex;gap:6px}
 </style>
 </head>
 <body>
@@ -229,7 +233,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.18.0';
+const APP_VER='0.19.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'},
@@ -310,10 +314,11 @@ const q=s=>String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 const PAYV='mywave-pay-v2';
 function pays(){try{const o=JSON.parse(localStorage.getItem(PAYV)||'[]'); return Array.isArray(o)?o:[]}catch(e){return []}}
 function paysSet(a){try{localStorage.setItem(PAYV,JSON.stringify(a))}catch(e){}}
-let PAYF=null, PAYCUR='Все курсы', PAYMON=null;
+let PAYF=null, PAYCUR='Все курсы', PAYMON=null, ALLTIME=false;
 function payMonth(){if(!PAYMON){const n=new Date(); PAYMON=new Date(n.getFullYear(),n.getMonth(),1)} return PAYMON}
-function payMonShift(k){const m=payMonth(); PAYMON=new Date(m.getFullYear(),m.getMonth()+k,1); go('sched')}
+function payMonShift(k){const m=payMonth(); PAYMON=new Date(m.getFullYear(),m.getMonth()+k,1); ALLTIME=false; go('sched')}
 function paySelCourse(v){PAYCUR=v; go('sched')}
+function setAllTime(v){ALLTIME=!!v; go('sched')}
 function payCourseTap(c){PAYCUR=c; payOpenForm(null)}
 function paySum(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.amount||0),0)}
 function payTotalCount(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.count||0),0)}
@@ -407,11 +412,14 @@ function payView(){
   const P=pays(), m=payMonth();
   const courses=[...new Set(allLessons().map(l=>l.course))];
   const inMonth=P.filter(p=>{const d=new Date(p.date+'T00:00:00'); return d.getFullYear()===m.getFullYear()&&d.getMonth()===m.getMonth()});
-  const list=P.slice().sort((a,b)=>b.date.localeCompare(a.date));
-  const sumAmt=inMonth.reduce((s,p)=>s+(+p.amount||0),0);
-  const sumLess=inMonth.reduce((s,p)=>s+(+p.count||0),0);
+  const scope=ALLTIME?P:inMonth;
+  const list=scope.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const sumAmt=scope.reduce((s,p)=>s+(+p.amount||0),0);
+  const sumLess=scope.reduce((s,p)=>s+(+p.count||0),0);
+  const label=ALLTIME?'за всё время':`${MONTHS_N[m.getMonth()]} ${m.getFullYear()}`;
   return `<h1>Оплаты</h1><div class="sub">Арина · занятия и суммы</div>
   <div class="crs-seg"><button onclick="SUB='lessons';go('sched')">Занятия</button><button class="on" onclick="SUB='pay';go('sched')">Оплаты</button></div>
+  <div class="crs-lbl" style="margin:2px 2px 8px">Все курсы</div>
   <div class="crs-pay-course-list">${courses.map(c=>`<div class="crs-pay-course">
      <button class="crs-pay-course-main" onclick="payCourseTap('${q(c)}')">
        <div class="crs-pay-course-body">
@@ -420,17 +428,17 @@ function payView(){
        </div><i>›</i></button>
      <button class="crs-pay-course-add" onclick="PAYCUR='${q(c)}';payOpenForm(null)" aria-label="Добавить оплату по курсу">+</button>
    </div>`).join('')}</div>
-  <div class="crs-pay-filter">
-    <div class="crs-f-col"><div class="crs-lbl">Итоги за месяц</div>
-      <div class="crs-pay-period"><button class="crs-b s" onclick="payMonShift(-1)" aria-label="Предыдущий месяц">‹</button>
-        <b>${MONTHS_N[m.getMonth()]} ${m.getFullYear()}</b>
-        <button class="crs-b s" onclick="payMonShift(1)" aria-label="Следующий месяц">›</button></div></div>
+  <div class="crs-period">
+    <button class="crs-period-b${ALLTIME?' on':''}" onclick="setAllTime(true)">Всё время</button>
+    <button class="crs-period-b${ALLTIME?'':' on'}" onclick="setAllTime(false)">${MONTHS_N[m.getMonth()]} ${m.getFullYear()}</button>
+    <span class="crs-period-nav"><button class="crs-b s" onclick="payMonShift(-1)" aria-label="Предыдущий месяц">‹</button>
+      <button class="crs-b s" onclick="payMonShift(1)" aria-label="Следующий месяц">›</button></span>
   </div>
   ${PAYF!==null?payForm():''}
   <div class="crs-pay-card"><div class="crs-pay-head"><b>Все оплаты</b><button class="crs-b" onclick="payOpenForm(null)">+ Оплата</button></div>
-   <div class="crs-pay-total"><div><span>${MONTHS_N[m.getMonth()]} ${m.getFullYear()}</span><b>${money(sumAmt)}</b></div>
+   <div class="crs-pay-total"><div><span>${label}</span><b>${money(sumAmt)}</b></div>
      <div><span>Оплачено уроков</span><b>${sumLess}</b></div>
-     <div><span>Платежей</span><b>${inMonth.length}</b></div></div>
+     <div><span>Платежей</span><b>${list.length}</b></div></div>
    ${list.length?list.map(p=>{const left=Math.max(0,(+p.count||0)-(+p.used||0));
      return `<div class="crs-pay-row${left?'':' done'}"><div class="crs-pay-row-top"><div class="crs-pay-row-info"><b>${esc(p.course)}</b>
        <span>${fmtDate(p.date)} · ${p.count} уроков${left?'':' · закрыт'}</span></div><strong>${money(p.amount)}</strong>
@@ -440,7 +448,7 @@ function payView(){
           <input type="number" min="0" max="${p.count}" value="${p.used||0}" onchange="paySetUsed('${p.id}',this.value)" aria-label="Проведено уроков"><b>/${p.count}</b>
           <button onclick="payAdjustUsed('${p.id}',1)" aria-label="Плюс урок">+</button></div>
         <span class="crs-left">по курсу осталось <b>${left}</b></span></div></div>`}).join('')
-    :`<div class="crs-used" style="margin:10px 0 2px">Платежей пока нет.</div>`}
+    :`<div class="crs-used" style="margin:10px 0 2px">Оплат пока нет.</div>`}
   </div>`;
 }
 function sched(){
