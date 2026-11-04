@@ -103,7 +103,7 @@ h1{font-size:28px;margin-bottom:6px}
 </style>
 </head>
 <body>
-<div class="mob"><button onclick="document.querySelector('.side').classList.toggle('open')">☰</button><b>My wave</b></div>
+<div class="mob"><button id="mobMenu" aria-label="Меню">☰</button></div>
 <div class="wrap">
   <aside class="side">
     <img class="logo" src="assets/wave-mark.png" alt="My wave">
@@ -120,7 +120,7 @@ h1{font-size:28px;margin-bottom:6px}
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.8.0';
+const APP_VER='0.8.1';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'中文 · 口语',who:'Люба · 60 мин',lang:'中文'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'},
@@ -298,6 +298,44 @@ function mwPlayerInit(){
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mwPlayerInit);
 else mwPlayerInit();
+
+
+/* Свайп колонки как в Тингли */
+(function(){
+  let t0=null;
+  const sb=()=>document.querySelector('.side');
+  const narrow=()=>window.innerWidth<900;
+  const isOpen=()=>sb()&&sb().classList.contains('open');
+  document.addEventListener('touchstart',e=>{
+    if(!narrow()) return;
+    const el=sb(); if(!el) return;
+    const t=e.touches[0];
+    const onSb=e.target.closest && e.target.closest('.side');
+    if(isOpen()&&onSb) t0={x:t.clientX,y:t.clientY,mode:'close',armed:true};
+    else if(!isOpen()&&t.clientX<24) t0={x:t.clientX,y:t.clientY,mode:'open',armed:false};
+    else t0=null;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!t0) return;
+    const el=sb(); const t=e.touches[0];
+    const dx=t.clientX-t0.x, dy=Math.abs(t.clientY-t0.y), w=el.offsetWidth;
+    if(!t0.armed){ if(Math.abs(dx)<10||Math.abs(dx)<dy) return; t0.armed=true; el.style.transition='none'; }
+    if(Math.abs(dx)<dy) return;
+    el.style.transform = t0.mode==='close'
+      ? 'translateX('+Math.min(0,dx)+'px)'
+      : 'translateX('+Math.max(-w, dx-w)+'px)';
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!t0) return;
+    const el=sb(); const dx=e.changedTouches[0].clientX-t0.x;
+    el.style.transition=''; el.style.transform='';
+    if(t0.mode==='close' && dx<-60) el.classList.remove('open');
+    if(t0.mode==='open' && dx>60) el.classList.add('open');
+    t0=null;
+  },{passive:true});
+  const b=document.getElementById('mobMenu');
+  if(b) b.addEventListener('click',()=>{ const el=sb(); if(el) el.classList.toggle('open'); });
+})();
 
 go('sched');
 </script>
