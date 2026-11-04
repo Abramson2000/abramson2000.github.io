@@ -1025,12 +1025,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 <script src="writing.5.95.2.js?v=5.98.0"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
-const UNITS = [
-  { "unit": 1, "course": "hsk4",   "zh": "HSK 4上",  "ru": "Китайский · HSK 4上",    "parts": [] },
-  { "unit": 2, "course": "listen", "zh": "听力",     "ru": "Китайский · аудирование", "parts": [] },
-  { "unit": 3, "course": "en",     "zh": "English",  "ru": "Английский",              "parts": [] },
-  { "unit": 4, "course": "es",     "zh": "Español",  "ru": "Испанский",               "parts": [] }
-];
+const UNITS = [{"unit": 1, "course": "hsk4", "zh": "HSK 4上", "ru": "Китайский · HSK 4上", "parts": [{"id": 1, "kind": "words", "title": "Урок 1 · слова", "titleZh": "第一课 · 生词", "audio": "", "words": [{"zh": "食堂", "py": "shítáng", "ru": "столовая"}, {"zh": "要是", "py": "yàoshi", "ru": "если (бы)"}, {"zh": "座", "py": "zuò", "ru": "счётное слово для зданий"}, {"zh": "减轻", "py": "jiǎnqīng", "ru": "облегчать, снижать"}, {"zh": "申请", "py": "shēnqǐng", "ru": "подавать заявление"}, {"zh": "经济", "py": "jīngjì", "ru": "экономика"}, {"zh": "奖学金", "py": "jiǎngxuéjīn", "ru": "стипендия"}, {"zh": "压力", "py": "yālì", "ru": "давление, нагрузка"}, {"zh": "表现", "py": "biǎoxiàn", "ru": "проявлять себя"}, {"zh": "加油", "py": "jiāyóu", "ru": "держись, давай"}, {"zh": "获得", "py": "huòdé", "ru": "получать, добиваться"}, {"zh": "校园", "py": "xiàoyuán", "ru": "кампус"}, {"zh": "图书馆", "py": "túshūguǎn", "ru": "библиотека"}, {"zh": "体育馆", "py": "tǐyùguǎn", "ru": "спортзал"}, {"zh": "超市", "py": "chāoshì", "ru": "супермаркет"}, {"zh": "留学", "py": "liúxué", "ru": "учиться за границей"}, {"zh": "预科", "py": "yùkē", "ru": "подготовительное отделение"}, {"zh": "硕士", "py": "shuòshì", "ru": "магистр"}, {"zh": "考试", "py": "kǎoshì", "ru": "экзамен"}]}]}, {"unit": 2, "course": "listen", "zh": "听力", "ru": "Китайский · аудирование", "parts": []}, {"unit": 3, "course": "en", "zh": "English", "ru": "Английский", "parts": []}, {"unit": 4, "course": "es", "zh": "Español", "ru": "Испанский", "parts": []}];
 
 const EXTRA_UNITS = [];
 
@@ -1128,7 +1123,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '1.3.1';
+const APP_VER = '1.4.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -5486,7 +5481,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('arina-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-1.3.1';
+  const SW_BUILD = 'offline-1.4.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
