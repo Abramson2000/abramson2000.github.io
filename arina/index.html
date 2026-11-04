@@ -968,6 +968,33 @@ h1,h2,h3,h4,button,input,select,textarea{
   .tab { padding: 10px 14px; }
   .tab .tab-label .tab-ru { font-size: clamp(11px, .8vw, 13px) !important; }
 }
+
+/* My wave 1.6.0 — настоящая компьютерная раскладка: меню слева, широкая область */
+@media (min-width: 1024px) {
+  body { padding-left: 280px !important; }
+  .app { max-width: 1180px !important; margin: 0 auto !important; padding: 28px 36px 64px !important; }
+  #tabbar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 280px;
+    display: flex !important; flex-direction: column; align-items: stretch; gap: 4px;
+    padding: 18px 14px 24px; overflow-y: auto; z-index: 50;
+    background: var(--mw-menu) !important; border-right: 1px solid var(--mw-line);
+  }
+  #tabbar .tab {
+    display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+    width: 100%; padding: 12px 14px; border-radius: 12px; text-align: left;
+  }
+  #tabbar .tab .tab-label { font-size: 16px !important; line-height: 1.25; }
+  #tabbar .tab .tab-label .tab-ru { font-size: 12.5px !important; color: var(--mw-ink); opacity: .65; }
+  #tabbar .tab .ic, #tabbar .tab .ic-img { width: 26px !important; height: 26px !important; }
+  #tabbar::before { height: 56px; margin: 4px 6px 16px; }
+  .crs-grid, .crs-days, .crs-list { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .topbar { max-width: none; }
+  body { font-size: 16px; }
+}
+@media (min-width: 1500px) {
+  .app { max-width: 1320px !important; }
+  #tabbar .tab .tab-label { font-size: 17px !important; }
+}
 </style>
 <style id="hw-centering-5953">
 /* ДЗ: вертикальная центровка текста и иконок внутри плашек и кнопок.
@@ -1164,7 +1191,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '1.5.5';
+const APP_VER = '1.6.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -5546,7 +5573,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('arina-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-1.5.5';
+  const SW_BUILD = 'offline-1.6.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
