@@ -36,7 +36,9 @@ h1{font-size:28px;margin-bottom:6px}
 .c-meta{font-size:14px;opacity:.85}
 .chip{display:inline-block;margin-top:12px;font-size:12.5px;background:var(--active);color:#0A5E7A;padding:4px 10px;border-radius:999px}
 .list{display:flex;flex-direction:column;gap:12px}
-.row{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer}
+.row{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 18px;height:76px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;max-width:720px}
+.addw{margin-left:auto;width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--btn);font-size:18px;line-height:1;cursor:pointer;flex:none}
+.addw.on{background:var(--active);border-color:var(--btn);color:#0A5E7A}
 .row:hover{background:#f6fcff}
 .w{display:flex;gap:14px;align-items:baseline;padding:8px 0;border-bottom:1px solid #eaf4fb;font-size:16px}
 .w:last-child{border-bottom:0}
@@ -75,7 +77,7 @@ h1{font-size:28px;margin-bottom:6px}
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.3.2';
+const APP_VER='0.3.3';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'中文 · 口语',who:'Люба · 60 мин',lang:'中文'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'},
@@ -83,6 +85,14 @@ const LESSONS=[
  {day:'Пт · 7 ноября',time:'19:30',title:'中文 · HSK 4上',who:'Ли лаоши · 60 мин',lang:'中文'},
  {day:'Сб · 8 ноября',time:'12:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'}
 ];
+const DICT_KEY='mywave-dict-v1';
+function dictAll(){try{return JSON.parse(localStorage.getItem(DICT_KEY)||'{}')}catch(e){return {}}}
+function dictList(lang){const d=dictAll(); return Array.isArray(d[lang])?d[lang]:[]}
+function dictHas(lang,zh){return dictList(lang).some(w=>w.zh===zh)}
+function dictToggle(lang,zh,py,ru){const d=dictAll(); const arr=Array.isArray(d[lang])?d[lang]:[];
+  const i=arr.findIndex(w=>w.zh===zh); if(i>=0) arr.splice(i,1); else arr.unshift({zh,py,ru});
+  d[lang]=arr; try{localStorage.setItem(DICT_KEY,JSON.stringify(d))}catch(e){}}
+
 const W=[['食堂','shítáng','столовая'],['要是','yàoshi','если (бы)'],['座','zuò','счётное слово для зданий'],
  ['减轻','jiǎnqīng','облегчать, снижать'],['申请','shēnqǐng','подавать заявление'],['经济','jīngjì','экономика'],
  ['奖学金','jiǎngxuéjīn','стипендия'],['压力','yālì','давление, нагрузка'],['表现','biǎoxiàn','проявлять себя'],
@@ -123,7 +133,8 @@ function words(){return `<button class="back" onclick="go('lessons')">← наз
  <h1>Урок 1 · 我们来中国学习了</h1><div class="sub">Слова, текст, грамматика, вопросы</div>
 
  <div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:10px">Слова урока · 19</h3>
- ${W.map(w=>`<div class="w"><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span></div>`).join('')}</div>
+ ${W.map(w=>{const has=dictHas('zh',w[0]); return `<div class="w"><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span>
+      <button class="addw${has?' on':''}" onclick="dictToggle('zh','${w[0]}','${w[1]}','${w[2]}');go('w1')" title="${has?'Убрать из словаря':'Добавить в словарь'}">${has?'✓':'+'}</button></div>`}).join('')}</div>
 
  <div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:10px">Текст · 课文</h3>
  <p style="font-size:16px;line-height:1.9">很多外国学生来中国学习以前，就已经想好了自己的发展方向。有人对经济感兴趣，希望将来在国际公司工作；有人喜欢学医，打算回国后当一名医生；还有人对教育有热情，想要成为一名教师。</p>
@@ -147,12 +158,17 @@ function listen(){return `<h1>Аудирование</h1><div class="sub">听力
  <div class="row"><div><b>Шэдоуинг 2</b><div class="c-meta">Короткие фразы, повтор за диктором</div></div><span class="chip">скоро</span></div>
 </div><div class="foot">© Abramson v. ${APP_VER}</div>`}
 function soon(t,n){return `<h1>${esc(t)}</h1><div class="sub">${esc(n)}</div><div class="card">Раздел готовится.</div><div class="foot">© Abramson v. ${APP_VER}</div>`}
-function dict(t){return `<h1>${esc(t)}</h1><div class="sub">Словарь</div><div class="card">Словарь пуст — слова добавляются из уроков.</div><div class="foot">© Abramson v. ${APP_VER}</div>`}
+function dict(t,lang){const arr=dictList(lang||'zh');
+  return `<h1>${esc(t)}</h1><div class="sub">Словарь · слов: ${arr.length}</div>
+  <div class="card">${arr.length?arr.map(w=>`<div class="w"><span class="zh">${esc(w.zh)}</span><span class="py">${esc(w.py||'')}</span><span class="ru">${esc(w.ru||'')}</span>
+    <button class="addw on" onclick="dictToggle('${lang||'zh'}','${esc(w.zh)}','${esc(w.py||'')}','${esc(w.ru||'')}');go('${lang===undefined?'dict':(lang==='en'?'dicten':'dictes')}')">✓</button></div>`).join('')
+    : 'Словарь пуст — добавляй слова кнопкой «+» в уроке.'}</div>
+  <div class="foot">© Abramson v. ${APP_VER}</div>`}
 function go(s){
   document.querySelectorAll('.mi').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
   const v=document.getElementById('view');
   v.innerHTML = s==='sched'?sched(): s==='lessons'?lessons(): s==='w1'?words(): s==='listen'?listen():
-    s==='dict'?dict('词典'): s==='dicten'?dict('Dictionary'): s==='dictes'?dict('Diccionario'):
+    s==='dict'?dict('词典','zh'): s==='dicten'?dict('Dictionary','en'): s==='dictes'?dict('Diccionario','es'):
     s==='en'?soon('Английский','уроки'):soon('Испанский','уроки');
   document.querySelector('.side').classList.remove('open');
   window.scrollTo(0,0);
