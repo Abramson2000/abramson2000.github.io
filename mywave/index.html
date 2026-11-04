@@ -221,6 +221,22 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   .w{grid-template-columns:1fr 1fr 1.1fr 34px}
 }
 @media (max-width:899px){ .mob{display:none} }
+
+/* 0.23.0 — шрифт как в Тингли, «+» справа, плеер без полосы, дата в оплате, расписание без общей плашки */
+.w .zh{font-size:19.5px}
+.w .py{font-size:14px}
+.w .ru{font-size:14px;overflow-wrap:anywhere}
+.player{background:transparent;border:0;box-shadow:none;padding:0}
+.crs-form input[type=date],.crs-form input[type=time]{max-width:100%;min-width:0;-webkit-appearance:none;appearance:none}
+@media (max-width:899px){
+  .w{grid-template-columns:auto 1fr 34px;column-gap:10px;row-gap:2px;align-items:center}
+  .w .zh{grid-column:1;grid-row:1}
+  .w .py{grid-column:2;grid-row:1;text-align:left}
+  .w .ru{grid-column:1 / span 2;grid-row:2}
+  .w .w-add{grid-column:3;grid-row:1 / span 2;justify-self:end;align-self:center;margin-left:0}
+  .crs-col{background:transparent;border:0;box-shadow:none;padding:0}
+  .crs-card{margin-bottom:8px}
+}
 </style>
 </head>
 <body>
@@ -240,7 +256,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.22.0';
+const APP_VER='0.23.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'},
