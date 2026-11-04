@@ -950,6 +950,15 @@ body::after{ content:''; position:fixed; inset:0; z-index:0; pointer-events:none
 button.btn, .btn-primary, .crs-btn{ background:var(--mw-btn) !important; color:#fff !important; }
 .done, .task-card.done, .is-done{ background:var(--mw-done) !important; }
 @media (max-width:899px){ .tab .ic, .tab .ic-img{ width:24px; height:24px; } }
+
+/* My wave 1.5.4 — системный шрифт, голубые акценты, без служебных надписей */
+:root{ --red:#087DA0; --red-deep:#0A5E7A; --seal:#087DA0; --jade:#087DA0; }
+body, .unit-zh, .zh, .zh-opt, .fill, .script, .word .zh, .top-title, .team-title, .splash-title-text,
+h1,h2,h3,h4,button,input,select,textarea{
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif !important;
+}
+.top-title{ font-weight:800 !important; letter-spacing:0 !important; color:var(--mw-ink) !important; }
+.sb-offline-btn{ display:none !important; }
 </style>
 <style id="hw-centering-5953">
 /* ДЗ: вертикальная центровка текста и иконок внутри плашек и кнопок.
@@ -1038,7 +1047,7 @@ button.btn, .btn-primary, .crs-btn{ background:var(--mw-btn) !important; color:#
   <button class="tab" id="tab-dicten" onclick="goTab('dicten')" title="Dictionary"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/07-dictionary-en.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/07-dictionary-en.png" alt=""></span><span class="tab-label">Dictionary<span class="tab-ru">английский</span></span></button>
   <button class="tab" id="tab-dictes" onclick="goTab('dictes')" title="Diccionario"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/08-dictionary-es.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/08-dictionary-es.png" alt=""></span><span class="tab-label">Diccionario<span class="tab-ru">испанский</span></span></button>
   <div class="sb-offline" id="sbOffline">
-    <button class="sb-offline-btn" id="sbOfflineBtn" onclick="offlineDownload()">⬇️ Скачать для полёта</button>
+    
     <button class="sb-offline-btn" onclick="offlineVerify()" style="margin-top:6px">Проверить перед полётом</button>
     <div class="sb-offline-st" id="sbOfflineSt" role="status" aria-live="polite"></div>
   </div>
@@ -1146,7 +1155,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '1.5.3';
+const APP_VER = '1.5.4';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -3642,7 +3651,7 @@ function crsSaveStatus(s, detail) {
   const n = document.getElementById('crsSave');
   if (!n) return;
   n.textContent = s === 'saved' ? 'сохранено'
-    : (s === 'offline' ? ('сохранено на устройстве' + (detail ? ' — ' + detail : ''))
+    : (s === 'offline' ? ''
     : 'сохраняю…');
   n.className = 'crs-save ' + (s || '');
 }
@@ -5528,7 +5537,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('arina-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-1.5.3';
+  const SW_BUILD = 'offline-1.5.4';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
