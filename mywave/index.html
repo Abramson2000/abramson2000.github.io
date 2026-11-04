@@ -214,10 +214,16 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
 .crs-period-b.on{background:linear-gradient(135deg,#087DA0,#12A6C6);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(8,125,160,.22)}
 .crs-period-nav{margin-left:auto;display:flex;gap:6px}
 .crs-err{background:#FDE8E8;color:#B03A2E;border:1px solid #F3C9C9;border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.45;margin:0 0 12px}
+
+/* 0.22.0 — «+» в словах по правому краю; верхняя полоска на телефоне убрана */
+.w .w-add{justify-self:end;margin-left:auto}
+@media (min-width:1024px){
+  .w{grid-template-columns:1fr 1fr 1.1fr 34px}
+}
+@media (max-width:899px){ .mob{display:none} }
 </style>
 </head>
 <body>
-<div class="mob"><button id="mobMenu" aria-label="Меню">☰</button></div>
 <div class="wrap">
   <aside class="side">
     <img class="logo" src="assets/wave-mark.png" alt="My wave">
@@ -234,7 +240,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.21.1';
+const APP_VER='0.22.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'},
