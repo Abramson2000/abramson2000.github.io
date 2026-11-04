@@ -927,10 +927,6 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 .mpair .zh { font-size: 20px; }
 .fill { font-size: 18.5px; }
 .zh, .zh-opt, .script { font-size: 1.03em; }
-#audioStart{position:fixed;left:14px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:80;
-  min-width:132px;height:46px;padding:0 18px;border-radius:23px;border:0;
-  background:linear-gradient(135deg,#B03A2E,#8E2C22);color:#fff;font:inherit;font-size:14.5px;font-weight:800;letter-spacing:.2px;
-  cursor:pointer;display:none;align-items:center;justify-content:center;gap:6px;box-shadow:0 8px 22px rgba(120,40,30,.35)}
 
 /* 5.99.3: текст задания переносится внутри плитки — ничего не сползает */
 .hw-item{max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
@@ -1047,7 +1043,6 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 </div></div>
 <div class="app" id="app"></div>
 <button class="menu-btn" id="menuBtn" onclick="sbToggle()" aria-label="Меню">☰</button>
-<button id="audioStart" onclick="audioStartTap()" aria-label="Слушать">▶ Слушать</button>
 <div class="player" id="player">
   <div class="p-seek">
     <span class="p-time" id="pCur">0:00</span>
@@ -32663,7 +32658,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '5.104.0';
+const APP_VER = '5.105.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32766,21 +32761,6 @@ function setPartAudio(u, part) {
 }
 
 /* 5.99.2: плеер не висит с самого начала — включается кнопкой ▶ */
-function playerTriggerSync(){
-  const btn=document.getElementById('audioStart');
-  if(!btn) return;
-  const hasSrc=!!partAudioKey || !!(audio && (audio.getAttribute('src')||audio.currentSrc));
-  const shown=document.getElementById('player').classList.contains('show');
-  btn.style.display=(hasSrc && !shown)?'flex':'none';
-}
-function audioStartTap(){
-  if(!audio) return;
-  showPlayer(true);
-  const go=()=>{ const pr=audio.play(); if(pr&&pr.catch) pr.catch(()=>retryAudio()); };
-  if(audio.getAttribute('src')) go(); else retryAudio();
-  try{ updatePlayerUI(); }catch(e){}
-  playerTriggerSync();
-}
 /* 5.104.0: если файл не открылся (протухший кэш) — забираем заново и запускаем */
 let audioRetrying=false;
 function retryAudio(){
@@ -32799,21 +32779,28 @@ function retryAudio(){
     }).catch(()=>{ alert('Аудио не загрузилось. Проверь связь и попробуй ещё раз.'); });
   } finally { setTimeout(()=>{ audioRetrying=false; }, 1500); }
 }
+/* 5.105.0: начал слушать — плеер остаётся и играет при переходах; глохнет только на главной */
+let audioSticky = false;
+try { audio.addEventListener('play', function(){ audioSticky = true; }); } catch (e) {}
 function showPlayer(show) {
-  document.getElementById('player').classList.toggle('show', show);
+  const pl = document.getElementById('player');
+  if (!show && audioSticky && audio && !audio.paused) {
+    pl.classList.add('show'); document.body.classList.add('has-player'); return;
+  }
+  pl.classList.toggle('show', show);
   document.body.classList.toggle('has-player', show);
   if (!show && audio && !audio.paused) audio.pause();
-  try { playerTriggerSync(); } catch (e) {}
 }
+function stopAudioHome() { audioSticky = false; showPlayer(false); }
 // idv-уроки: аудио урока висит на всех страницах/заданиях, не сбрасывается.
 // Если у части своё аудио — играет оно; иначе — уже установленный трек не трогаем.
 function ensureLessonAudio(u, part) {
   const ap = (part && part.audio) ? part : null;
-  if (ap) { setPartAudio(u, ap); showPlayer(!audio.paused); return; }
+  if (ap) { setPartAudio(u, ap); showPlayer(true); return; }
   const prefix = audioUnitKey(u) + ':';
   if (!partAudioKey || !partAudioKey.startsWith(prefix)) {
     const first = u && u.parts && u.parts.find(p => p.audio);
-    if (first) { setPartAudio(u, first); showPlayer(!audio.paused); return; }
+    if (first) { setPartAudio(u, first); showPlayer(true); return; }
     partAudioKey = null;
     audio.pause();
     audio.removeAttribute('src');
@@ -34110,7 +34097,7 @@ function openPart(unitN, partId) {
   const u = ALL_UNITS.find(x => x.unit === unitN); if (!u) return;
   const part = u.parts.find(p => p.id === partId); if (!part) return;
   curUnit = u; curPart = part;
-  if (part.audio) { setPartAudio(u, part); showPlayer(false); }
+  if (part.audio) { setPartAudio(u, part); showPlayer(true); }
   else if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u);
   else { partAudioKey = null; showPlayer(false); }
   if (part.kind === 'words') renderWords(u, part);
@@ -34125,7 +34112,7 @@ function openPart(unitN, partId) {
 
 function renderListen(u, part) {
   showTabbar(false);
-  if (part.audio) { setPartAudio(u, part); showPlayer(false); }
+  if (part.audio) { setPartAudio(u, part); showPlayer(true); }
   else { partAudioKey = null; showPlayer(false); }
   const hint = part.hint || 'Слушай много раз, не глядя в текст.';
   const pimg = part.image ? `<img class="lesson-img" src="${esc(part.image)}" alt="">` : '';
@@ -34142,7 +34129,7 @@ function renderText(u, part) {
   if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u, part);
   else if (part && part.audio) {
     if (partAudioKey !== u.unit + '-' + part.id) setPartAudio(u, part);
-    showPlayer(false);
+    showPlayer(true);
   }
   else { partAudioKey = null; showPlayer(false); }
   const paras = String(part.text || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
@@ -34325,7 +34312,7 @@ function renderWords(u, part) {
 }
 function renderShadow(u, part) {
   showTabbar(false);
-  if (part.audio) { setPartAudio(u, part); showPlayer(false); } else { partAudioKey = null; showPlayer(false); }
+  if (part.audio) { setPartAudio(u, part); showPlayer(true); } else { partAudioKey = null; showPlayer(false); }
   const items = part.items || [];
   const lines = part.lines || [];
   app.innerHTML = `
@@ -36110,7 +36097,7 @@ function crsShell() {
     '<div class="crs-foot"><button class="crs-sync" onclick="crsRetry()" title="Синхронизировать сейчас">↻</button><span id="crsSave" class="crs-save"></span><span class="crs-ver">Abramson © ' + APP_VER + '</span></div>';
 }
 function renderCourses() {
-  showTabbar(true); partAudioKey = null; showPlayer(false);
+  showTabbar(true); partAudioKey = null; stopAudioHome();
   curUnit = null; curPart = null;
   app.innerHTML = crsShell();
   const seg = document.getElementById('crsSeg');
@@ -36125,6 +36112,7 @@ function renderCourses() {
   setTimeout(function () { crsCloudPull().then(function(){ crsRepairHistory515(); }); }, 0);
 }
 function crsPaint(recent) {
+  try { if (tab === 'sched' && !curUnit) stopAudioHome(); } catch (e) {}
   const bar = document.getElementById('crsBar'), body = document.getElementById('crsBody');
   if (!body) return;
   if (crsMode === 'pay') { bar.innerHTML = crsPayBar(); body.innerHTML = crsPayHtml(); }
