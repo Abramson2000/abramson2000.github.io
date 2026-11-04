@@ -75,7 +75,7 @@ h1{font-size:28px;margin-bottom:6px}
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.2.0';
+const APP_VER='0.3.0';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'口语 · с Любой',who:'Люба · 60 мин',lang:'Китайский'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español · урок 3',who:'Мария · 60 мин',lang:'Испанский'},
@@ -102,8 +102,27 @@ function lessons(){return `<h1>Китайский</h1><div class="sub">HSK 4上<
  <div class="row" onclick="go('w1')"><div><b>Урок 1 · 我们来中国学习了</b><div class="c-meta">Слова урока · 19</div></div><span class="chip">открыть</span></div>
 </div><div class="foot">Версия ${APP_VER}</div>`}
 function words(){return `<button class="back" onclick="go('lessons')">← назад</button>
- <h1>Урок 1 · 我们来中国学习了</h1><div class="sub">Слова урока · 19</div>
- <div class="card">${W.map(w=>`<div class="w"><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span></div>`).join('')}</div>
+ <h1>Урок 1 · 我们来中国学习了</h1><div class="sub">Слова, текст, грамматика, вопросы</div>
+
+ <div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:10px">Слова урока · 19</h3>
+ ${W.map(w=>`<div class="w"><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span></div>`).join('')}</div>
+
+ <div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:10px">Текст · 课文</h3>
+ <p style="font-size:16px;line-height:1.9">很多外国学生来中国学习以前，就已经想好了自己的发展方向。有人对经济感兴趣，希望将来在国际公司工作；有人喜欢学医，打算回国后当一名医生；还有人对教育有热情，想要成为一名教师。</p>
+ <p style="font-size:16px;line-height:1.9;margin-top:10px">陈天中想选择跟经济有关的专业，希望了解更多的国际贸易方面的知识。安妮以后想做一名中文老师，所以要选择国际中文教育专业。对他们来说，留学不只是学语言，也是为将来的工作和生活做准备。</p>
+ </div>
+
+ <div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:10px">Грамматика</h3>
+ <div class="w"><span class="zh">一方面……，另一方面……</span><span class="ru">с одной стороны…, с другой стороны…</span></div>
+ <div class="w"><span class="zh">要是……，就……</span><span class="ru">если…, то…</span></div>
+ <div class="w"><span class="zh">任何</span><span class="ru">любой, всякий (перед существительным без 的)</span></div>
+ </div>
+
+ <div class="card"><h3 style="margin-bottom:10px">Вопросы по тексту</h3>
+ <div class="w"><span class="ru">1. 外国学生来中国以前想好了什么？</span></div>
+ <div class="w"><span class="ru">2. 陈天中为什么选择跟经济有关的专业？</span></div>
+ <div class="w"><span class="ru">3. 安妮以后想做什么？</span></div>
+ </div>
  <div class="foot">Версия ${APP_VER}</div>`}
 function listen(){return `<h1>Аудирование</h1><div class="sub">听力 · шэдоуинг</div><div class="list">
  <div class="row"><div><b>Шэдоуинг 1</b><div class="c-meta">Короткие фразы, повтор за диктором</div></div><span class="chip">скоро</span></div>
