@@ -1,0 +1,12 @@
+{
+ "name": "My wave",
+ "short_name": "My wave",
+ "start_url": "./",
+ "display": "standalone",
+ "background_color": "#E4F5FE",
+ "theme_color": "#087DA0",
+ "icons": [
+  {"src": "assets/i2.png", "sizes": "96x96", "type": "image/png"},
+  {"src": "assets/logo.png", "sizes": "851x126", "type": "image/png", "purpose": "any"}
+ ]
+}

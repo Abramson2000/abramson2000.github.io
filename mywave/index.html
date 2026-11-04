@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My wave</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/i2.png">
+<link rel="apple-touch-icon" href="assets/i2.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--menu:#E4F5FE;--active:#D5EFFB;--ink:#123F66;--muted:#5B7E97;--btn:#087DA0;--line:#BFE3F5;--card:#FBFDFF}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;
+  color:var(--ink);background:#EAF7FD url('assets/bg.jpg') center/cover fixed no-repeat;min-height:100vh}
+body::after{content:'';position:fixed;inset:0;background:rgba(255,255,255,.22);z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1;display:flex;min-height:100vh}
+.side{width:280px;flex:none;background:var(--menu);padding:18px 14px;display:flex;flex-direction:column;gap:4px;
+  border-right:1px solid var(--line);box-shadow:0 0 40px rgba(18,63,102,.06)}
+.logo{display:block;width:100%;max-width:232px;height:auto;margin:2px auto 18px}
+.mi{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;cursor:pointer;border:0;background:none;width:100%;text-align:left;font:inherit;color:inherit}
+.mi:hover{background:#eef9ff}
+.mi.on{background:var(--active)}
+.mi .ic{width:28px;height:28px;flex:none;display:inline-flex;align-items:center;justify-content:center}
+.mi .ic img{width:28px;height:28px;object-fit:contain;display:block}
+.mi b{display:block;font-size:16px;line-height:1.25;font-weight:700}
+.mi small{font-size:12.5px;color:var(--muted);display:block;margin-top:1px}
+main{flex:1;min-width:0;padding:32px 36px 56px;max-width:1320px;margin:0 auto}
+h1{font-size:28px;margin-bottom:6px}
+.sub{color:var(--muted);font-size:15px;margin-bottom:20px}
+.week{display:inline-flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 6px 18px rgba(18,63,102,.06)}
+.c-top{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:10px}
+.c-time{font-weight:700;color:var(--btn);font-size:15px}
+.card h3{font-size:17px;margin-bottom:8px;font-weight:700}
+.c-meta{font-size:14px;opacity:.85}
+.chip{display:inline-block;margin-top:12px;font-size:12.5px;background:var(--active);color:#0A5E7A;padding:4px 10px;border-radius:999px}
+.list{display:flex;flex-direction:column;gap:12px}
+.row{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer}
+.row:hover{background:#f6fcff}
+.w{display:flex;gap:14px;align-items:baseline;padding:8px 0;border-bottom:1px solid #eaf4fb;font-size:16px}
+.w:last-child{border-bottom:0}
+.w .zh{font-size:19px;font-weight:600;min-width:96px}
+.w .py{color:var(--btn);min-width:110px}
+.w .ru{color:var(--ink);opacity:.85}
+.back{background:none;border:0;color:var(--btn);font:inherit;cursor:pointer;margin-bottom:12px}
+.foot{margin-top:28px;font-size:12.5px;color:var(--muted)}
+.mob{display:none}
+@media (max-width:899px){
+  .wrap{display:block}
+  .side{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);transition:.2s;z-index:30;overflow-y:auto}
+  .side.open{transform:none}
+  .mob{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--menu);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .mob button{background:none;border:0;font-size:22px;color:var(--ink);cursor:pointer}
+  main{padding:18px 16px 40px}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="mob"><button onclick="document.querySelector('.side').classList.toggle('open')">☰</button><b>My wave</b></div>
+<div class="wrap">
+  <aside class="side">
+    <img class="logo" src="assets/logo.png" alt="My wave">
+    <button class="mi on" data-s="sched"><span class="ic"><img src="assets/i1.png"></span><span><b>Расписание</b><small>занятия и оплаты</small></span></button>
+    <button class="mi" data-s="lessons"><span class="ic"><img src="assets/i2.png"></span><span><b>Китайский</b><small>HSK 4上</small></span></button>
+    <button class="mi" data-s="listen"><span class="ic"><img src="assets/i3.png"></span><span><b>Аудирование</b><small>听力</small></span></button>
+    <button class="mi" data-s="en"><span class="ic"><img src="assets/i4.png"></span><span><b>Английский</b><small>уроки</small></span></button>
+    <button class="mi" data-s="es"><span class="ic"><img src="assets/i5.png"></span><span><b>Испанский</b><small>уроки</small></span></button>
+    <button class="mi" data-s="dict"><span class="ic"><img src="assets/i6.png"></span><span><b>词典</b><small>китайский</small></span></button>
+    <button class="mi" data-s="dicten"><span class="ic"><img src="assets/i7.png"></span><span><b>Dictionary</b><small>английский</small></span></button>
+    <button class="mi" data-s="dictes"><span class="ic"><img src="assets/i8.png"></span><span><b>Diccionario</b><small>испанский</small></span></button>
+    <div class="foot" id="ver"></div>
+  </aside>
+  <main id="view"></main>
+</div>
+<script>
+const APP_VER='0.2.0';
+const LESSONS=[
+ {day:'Пн · 3 ноября',time:'17:00',title:'口语 · с Любой',who:'Люба · 60 мин',lang:'Китайский'},
+ {day:'Вт · 4 ноября',time:'18:00',title:'Español · урок 3',who:'Мария · 60 мин',lang:'Испанский'},
+ {day:'Ср · 5 ноября',time:'17:00',title:'English · Lesson 2',who:'Анна · 60 мин',lang:'Английский'},
+ {day:'Пт · 7 ноября',time:'19:30',title:'中文 · HSK 4上',who:'Ли Лаоши · 60 мин',lang:'Китайский'},
+ {day:'Сб · 8 ноября',time:'12:00',title:'Español · урок 4',who:'Мария · 60 мин',lang:'Испанский'}
+];
+const W=[['食堂','shítáng','столовая'],['要是','yàoshi','если (бы)'],['座','zuò','счётное слово для зданий'],
+ ['减轻','jiǎnqīng','облегчать, снижать'],['申请','shēnqǐng','подавать заявление'],['经济','jīngjì','экономика'],
+ ['奖学金','jiǎngxuéjīn','стипендия'],['压力','yālì','давление, нагрузка'],['表现','biǎoxiàn','проявлять себя'],
+ ['加油','jiāyóu','держись, давай'],['获得','huòdé','получать, добиваться'],['校园','xiàoyuán','кампус'],
+ ['图书馆','tūshūguǎn','библиотека'],['体育馆','tǐyùguǎn','спортзал'],['超市','chāoshì','супермаркет'],
+ ['留学','liúxué','учиться за границей'],['预科','yùkē','подготовительное отделение'],
+ ['硕士','shuòshì','магистр'],['考试','kǎoshì','экзамен']];
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function sched(){
+  return `<h1>Расписание</h1><div class="sub">Арина · 2 — 8 ноября</div>
+  <div class="week">‹ &nbsp;2 — 8 ноября · Москва&nbsp; ›</div>
+  <div class="grid">${LESSONS.map(l=>`<article class="card"><div class="c-top"><span>${esc(l.day)}</span><span class="c-time">${esc(l.time)}</span></div>
+  <h3>${esc(l.title)}</h3><div class="c-meta">${esc(l.who)}</div><span class="chip">${esc(l.lang)}</span></article>`).join('')}</div>
+  <div class="foot">Версия ${APP_VER}</div>`;
+}
+function lessons(){return `<h1>Китайский</h1><div class="sub">HSK 4上</div><div class="list">
+ <div class="row" onclick="go('w1')"><div><b>Урок 1 · 我们来中国学习了</b><div class="c-meta">Слова урока · 19</div></div><span class="chip">открыть</span></div>
+</div><div class="foot">Версия ${APP_VER}</div>`}
+function words(){return `<button class="back" onclick="go('lessons')">← назад</button>
+ <h1>Урок 1 · 我们来中国学习了</h1><div class="sub">Слова урока · 19</div>
+ <div class="card">${W.map(w=>`<div class="w"><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span></div>`).join('')}</div>
+ <div class="foot">Версия ${APP_VER}</div>`}
+function listen(){return `<h1>Аудирование</h1><div class="sub">听力 · шэдоуинг</div><div class="list">
+ <div class="row"><div><b>Шэдоуинг 1</b><div class="c-meta">Короткие фразы, повтор за диктором</div></div><span class="chip">скоро</span></div>
+ <div class="row"><div><b>Шэдоуинг 2</b><div class="c-meta">Короткие фразы, повтор за диктором</div></div><span class="chip">скоро</span></div>
+</div><div class="foot">Версия ${APP_VER}</div>`}
+function soon(t,n){return `<h1>${esc(t)}</h1><div class="sub">${esc(n)}</div><div class="card">Раздел готовится.</div><div class="foot">Версия ${APP_VER}</div>`}
+function dict(t){return `<h1>${esc(t)}</h1><div class="sub">Словарь</div><div class="card">Словарь пуст — слова добавляются из уроков.</div><div class="foot">Версия ${APP_VER}</div>`}
+function go(s){
+  document.querySelectorAll('.mi').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+  const v=document.getElementById('view');
+  v.innerHTML = s==='sched'?sched(): s==='lessons'?lessons(): s==='w1'?words(): s==='listen'?listen():
+    s==='dict'?dict('词典'): s==='dicten'?dict('Dictionary'): s==='dictes'?dict('Diccionario'):
+    s==='en'?soon('Английский','уроки'):soon('Испанский','уроки');
+  document.querySelector('.side').classList.remove('open');
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.mi').forEach(b=>b.addEventListener('click',()=>go(b.dataset.s)));
+document.getElementById('ver').textContent='My wave '+APP_VER;
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+go('sched');
+</script>
+</body>
+</html>
