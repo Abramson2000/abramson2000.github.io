@@ -959,6 +959,15 @@ h1,h2,h3,h4,button,input,select,textarea{
 }
 .top-title{ font-weight:800 !important; letter-spacing:0 !important; color:var(--mw-ink) !important; }
 .sb-offline-btn{ display:none !important; }
+
+/* My wave 1.5.5 — новый логотип и крупные значки на больших экранах */
+.tab .ic, .tab .ic-img { width: clamp(24px, 1.8vw, 34px) !important; height: clamp(24px, 1.8vw, 34px) !important; }
+.tab .tab-label { font-size: clamp(13px, 1.05vw, 16px) !important; }
+.sb-brand img, .brand img { width: clamp(36px, 3vw, 48px); height: auto; }
+@media (min-width: 1400px) {
+  .tab { padding: 10px 14px; }
+  .tab .tab-label .tab-ru { font-size: clamp(11px, .8vw, 13px) !important; }
+}
 </style>
 <style id="hw-centering-5953">
 /* ДЗ: вертикальная центровка текста и иконок внутри плашек и кнопок.
@@ -998,7 +1007,7 @@ h1,h2,h3,h4,button,input,select,textarea{
 </head>
 <body>
 <div id="splash"><div class="splash-in">
-  <div class="splash-logo"><img src="logo.png?v=5.35.0" alt=""></div>
+  <div class="splash-logo"><img src="assets/brand/my-wave-logo.png" alt=""></div>
   <div class="splash-title-text">My wave</div>
 </div></div>
 <div class="app" id="app"></div>
@@ -1037,7 +1046,7 @@ h1,h2,h3,h4,button,input,select,textarea{
   </div>
 </div>
 <div class="tabbar" id="tabbar">
-  <div class="sb-brand"><img src="logo.png?v=5.35.0" alt="听"><div><div class="sb-name">My wave</div><div class="sb-sub" id="sbVer"></div></div></div>
+  <div class="sb-brand"><img src="assets/brand/my-wave-logo.png" alt="听"><div><div class="sb-name">My wave</div><div class="sb-sub" id="sbVer"></div></div></div>
   <button class="tab active" id="tab-sched" onclick="goTab('sched')" title="Расписание"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/01-schedule.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/01-schedule.png" alt=""></span><span class="tab-label">Расписание<span class="tab-ru">занятия и оплаты</span></span></button>
   <button class="tab" id="tab-lessons" onclick="goTab('lessons')" title="Китайский"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/02-chinese.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/02-chinese.png" alt=""></span><span class="tab-label">Китайский<span class="tab-ru">HSK 4上</span></span></button>
   <button class="tab" id="tab-yin" onclick="goTab('yin')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/03-listening.png" alt=""><span class="ic-img ic-img-off" src="assets/menu/03-listening.png" alt=""></span></span><span class="tab-label">听力<span class="tab-ru">шэдоуинг</span></span></button>
@@ -1155,7 +1164,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '1.5.4';
+const APP_VER = '1.5.5';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -1744,7 +1753,7 @@ function renderUnits() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
+      <div class="logo"><img src="assets/brand/my-wave-logo.png" alt="听"></div>
       <div class="top-title">My wave</div><div class="sub">китайский<br>английский · испанский</div>
     </div>
     ${UNITS.map(unitCard).join('')}
@@ -1763,7 +1772,7 @@ function renderIdv() {
   const list = IDV.filter(u => (u.src || 'idv') === 'idv');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
+      <div class="logo"><img src="assets/brand/my-wave-logo.png" alt="听"></div>
       <div class="top-title">口语</div><div class="sub">口语课</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -1776,7 +1785,7 @@ function renderBiz() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
+      <div class="logo"><img src="assets/brand/my-wave-logo.png" alt="听"></div>
       <div class="top-title">小山商务</div><div class="sub">经贸初级汉语口语</div>
     </div>
     ${BIZ.length ? BIZ.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -1790,7 +1799,7 @@ function renderYin() {
   const list = YIN.filter(u => (u.src || 'yin') === 'yin');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
+      <div class="logo"><img src="assets/brand/my-wave-logo.png" alt="听"></div>
       <div class="top-title">声音</div><div class="sub">Звуки · аудирование</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.</div>'}
@@ -1804,7 +1813,7 @@ function renderTeam() {
   const list = IDV.filter(u => u.src === 'team');
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
+      <div class="logo"><img src="assets/brand/my-wave-logo.png" alt="听"></div>
       <div class="top-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
@@ -1817,7 +1826,7 @@ function renderMine() {
   curUnit = null; curPart = null;
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
+      <div class="logo"><img src="assets/brand/my-wave-logo.png" alt="听"></div>
       <div class="top-title">语法</div><div class="sub">李老师课</div>
     </div>
     ${EXTRA.length ? EXTRA.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришли конспект урока — соберу его сюда.</div>'}
@@ -1851,7 +1860,7 @@ function renderDict() {
   const d = dictLoad();
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
+      <div class="logo"><img src="assets/brand/my-wave-logo.png" alt="听"></div>
       <div class="top-title">词典</div><div class="sub">我的词典 · ${d.length}</div>
       ${d.length ? '<button class="dict-clear" onclick="dictClear()">清空</button>' : ''}
     </div>
@@ -2645,7 +2654,7 @@ function renderFavs() {
   const typeName = t => t.type === 'choice' ? 'Выбор' : t.type === 'fill' ? 'Ввод' : 'Верно/Неверно';
   app.innerHTML = `
     <div class="topbar">
-      <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
+      <div class="logo"><img src="assets/brand/my-wave-logo.png" alt="听"></div>
       <div class="top-title">句子</div><div class="sub">口语短语${items.length ? ' · ' + items.length : ''}</div>
     </div>
     ${items.length ? items.map(it => {
@@ -3281,7 +3290,7 @@ function renderHw(u, part) {
   const ranges = groups.map(g => (g.from === g.to ? g.from : g.from + '–' + g.to) + ' ' + g.t.label).join(' · ');
   app.innerHTML = `
     <div class="topbar hw-course-head"><button class="back" onclick="goBack()">←</button>
-      <div class="logo"><img src="logo.png?v=5.35.0" alt=""></div>
+      <div class="logo"><img src="assets/brand/my-wave-logo.png" alt=""></div>
       <div style="flex:1;min-width:0"><div class="top-title">${esc(heading.title)}</div><div class="sub">${esc(heading.subtitle)}</div></div>
       <button class="back" onclick="hwNextPart()" title="Следующая часть урока">Дальше →</button></div>
     <div class="hw-compact-head">
@@ -5537,7 +5546,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('arina-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-1.5.4';
+  const SW_BUILD = 'offline-1.5.5';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
