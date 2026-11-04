@@ -136,7 +136,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
 .crs-c-time{font-weight:800;color:var(--btn);font-size:15.5px;min-width:50px}
 .crs-c-tag{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:var(--ink)}
 .crs-c-tag span{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}
-.crs-mat{margin-top:10px;font-size:12.5px;color:#0A5E7A;background:var(--active);border-radius:10px;padding:7px 10px}
+.crs-mat{margin-top:8px;font-size:12.5px;color:var(--muted)}
 .crs-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
 .crs-chip{font-size:11.5px;background:linear-gradient(135deg,#EAF8FE,#D5EFFB);color:#0A5E7A;padding:4px 10px;border-radius:999px}
 .crs-add-big{width:100%;margin-top:8px;padding:13px;border-radius:14px;border:1px dashed #9FD6EA;background:rgba(255,255,255,.65);color:var(--btn);font:inherit;font-weight:700;cursor:pointer}
@@ -196,6 +196,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
  .mwbtn-row{position:sticky;bottom:0;z-index:3;background:#fff;padding-bottom:6px}}
 .mwmodal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .mwmodal-head h2{margin:0;font-size:18px;color:var(--ink);font-weight:800}
+.crs-note{font-size:12px;color:var(--muted);margin:-6px 0 12px}
 .mwsub{font-size:13.5px;color:var(--muted);margin:-6px 0 14px}
 .mwicon{border:none;background:transparent;font-size:20px;color:var(--muted);cursor:pointer;padding:4px 8px;line-height:1}
 .mwfield{margin-bottom:12px}
@@ -228,13 +229,13 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.17.0';
+const APP_VER='0.18.0';
 const LESSONS=[
- {id:'L1',date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
- {id:'L2',date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'},
- {id:'L3',date:'2026-11-05',time:'17:00',course:'English',teacher:'Ольга',mat:'Speaking',lang:'English'},
- {id:'L4',date:'2026-11-07',time:'19:30',course:'中文 · HSK 4上',teacher:'Ли лаоши',mat:'HSK 4上 · Урок 1',lang:'中文'},
- {id:'L5',date:'2026-11-08',time:'12:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'}
+ {id:'L1',daily:false,date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
+ {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'},
+ {id:'L3',daily:false,date:'2026-11-05',time:'17:00',course:'English',teacher:'Ольга',mat:'Speaking',lang:'English'},
+ {id:'L4',daily:false,date:'2026-11-07',time:'19:30',course:'中文 · HSK 4上',teacher:'Ли лаоши',mat:'HSK 4上 · Урок 1',lang:'中文'},
+ {id:'L5',daily:false,date:'2026-11-08',time:'12:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'}
 ];
 const DICT_KEY='mywave-dict-v1';
 function dictAll(){try{return JSON.parse(localStorage.getItem(DICT_KEY)||'{}')}catch(e){return {}}}
@@ -266,12 +267,34 @@ function extraLessons(){try{const o=JSON.parse(localStorage.getItem(LESS_KEY)||'
 const OVK='mywave-less-ov-v1';
 function ovAll(){try{const o=JSON.parse(localStorage.getItem(OVK)||'{}'); return {ov:o.ov||{},del:Array.isArray(o.del)?o.del:[]}}catch(e){return {ov:{},del:[]}}}
 function ovSet(o){try{localStorage.setItem(OVK,JSON.stringify(o))}catch(e){}}
+function ovOf(id){return ovAll().ov[id]||{}}
 function allLessons(){
   const st=ovAll();
-  const base=LESSONS.concat(extraLessons().map((l,i)=>Object.assign({id:l.id||('x'+i)},l)));
-  return base.filter(l=>!st.del.includes(l.id))
+  return LESSONS.concat(extraLessons().map((l,i)=>Object.assign({weekly:true,id:l.id||('x'+i)},l)))
+    .filter(l=>!st.del.includes(l.id))
     .map(l=>Object.assign({},l,st.ov[l.id]||{}))
     .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+}
+/* ключ занятия в конкретной неделе: тот же день недели, не раньше начала серии */
+function nominalKey(l, weekStart){
+  const wd=(new Date(l.date+'T00:00:00').getDay()+6)%7;
+  const d=new Date(weekStart); d.setDate(d.getDate()+wd); const k=iso(d);
+  return k>=l.date ? k : null;
+}
+/* все занятия недели с учётом повторений и отмен */
+function weekInstances(weekStart){
+  const out=[];
+  const ls=allLessons();
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart); d.setDate(d.getDate()+i); const key=iso(d);
+    ls.forEach(l=>{
+      const k=l.weekly===false ? (l.date===key?key:null) : nominalKey(l, weekStart);
+      if(k!==key) return;
+      const ov=ovOf(l.id);
+      out.push(Object.assign({},l,{_key:key,cancelled:(ov.cancelled||[]).includes(key)}));
+    });
+  }
+  return out;
 }
 function weekRange(mon){const a=new Date(mon), b=new Date(mon); b.setDate(b.getDate()+6);
   return a.getMonth()===b.getMonth()
@@ -312,26 +335,45 @@ function lessClose(){LESSF=false; go('sched')}
 function lessSave(){const $=x=>document.getElementById(x);
   const arr=extraLessons(); const te=$('lf-teacher').value.trim();
   arr.push({date:$('lf-date').value,time:$('lf-time').value||'17:00',course:$('lf-course').value.trim()||'Занятие',
-    teacher:te,mat:'',lang:$('lf-course').value.trim()||'Занятие'});
+    teacher:te,mat:'',lang:$('lf-course').value.trim()||'Занятие',
+    weekly:(document.getElementById('lf-weekly')||{}).checked!==false});
   try{localStorage.setItem(LESS_KEY,JSON.stringify(arr))}catch(e){} LESSF=false; go('sched')}
 
 let LESSEDIT=null;
-function openLesson(id){LESSEDIT=id; go('sched')}
+function openLesson(id,key){LESSEDIT={id,key}; go('sched')}
 function closeLesson(){LESSEDIT=null; go('sched')}
-function lessonSave(){const $=x=>document.getElementById(x); const st=ovAll();
-  st.ov[LESSEDIT]=Object.assign({},st.ov[LESSEDIT]||{},{date:$('le-date').value,time:$('le-time').value||'17:00'});
-  ovSet(st); closeLesson()}
-function lessonCancelToggle(){const st=ovAll(); const cur=!!(st.ov[LESSEDIT]&&st.ov[LESSEDIT].cancelled);
-  st.ov[LESSEDIT]=Object.assign({},st.ov[LESSEDIT]||{},{cancelled:!cur}); ovSet(st); closeLesson()}
-function lessonDelete(){const st=ovAll(); st.del=st.del.concat([LESSEDIT]); if(st.ov[LESSEDIT]) delete st.ov[LESSEDIT];
-  ovSet(st); closeLesson()}
+function lessonSave(){
+  const $=x=>document.getElementById(x);
+  const l=allLessons().find(x=>x.id===LESSEDIT.id); if(!l) return closeLesson();
+  const st=ovAll(); const id=l.id; const cur=st.ov[id]||{};
+  const nd=$('le-date').value, nt=$('le-time').value;
+  if(nt && nt!==l.time) cur.time=nt;
+  if(nd && nd!==LESSEDIT.key){
+    const delta=Math.round((new Date(nd+'T00:00:00')-new Date(LESSEDIT.key+'T00:00:00'))/86400000);
+    const nb=new Date(l.date+'T00:00:00'); nb.setDate(nb.getDate()+delta);
+    cur.date=iso(nb);
+  }
+  st.ov[id]=cur; ovSet(st); closeLesson();
+}
+function lessonCancelToggle(){
+  const st=ovAll(); const id=LESSEDIT.id; const cur=st.ov[id]||{};
+  const arr=Array.isArray(cur.cancelled)?cur.cancelled.slice():[];
+  const k=LESSEDIT.key; const at=arr.indexOf(k);
+  if(at>=0) arr.splice(at,1); else arr.push(k);
+  cur.cancelled=arr; st.ov[id]=cur; ovSet(st); closeLesson();
+}
+function lessonDelete(){const st=ovAll(); if(!st.del.includes(LESSEDIT.id)) st.del=st.del.concat([LESSEDIT.id]);
+  if(st.ov[LESSEDIT.id]) delete st.ov[LESSEDIT.id]; ovSet(st); closeLesson()}
 function lessonSheet(){
-  const l=allLessons().find(x=>x.id===LESSEDIT); if(!l) return '';
-  const cancelTxt=l.cancelled?'Вернуть в расписание':'Отменить занятие';
+  const l=allLessons().find(x=>x.id===LESSEDIT.id); if(!l) return '';
+  const key=LESSEDIT.key;
+  const cancelled=(ovOf(l.id).cancelled||[]).includes(key);
+  const cancelTxt=cancelled?'Вернуть в расписание':'Отменить занятие';
   return `<div class="mwmodal" onclick="closeLesson()"><div class="mwmodal-card" role="dialog" aria-modal="true" aria-labelledby="leTitle" onclick="event.stopPropagation()">
     <div class="mwmodal-head"><h2 id="leTitle">Занятие</h2><button class="mwicon" onclick="closeLesson()" aria-label="Закрыть">✕</button></div>
     <div class="mwsub">${esc(l.course)}${l.teacher?' · '+esc(l.teacher):''}</div>
-    <div class="mwfield"><label for="le-date">Дата</label><input id="le-date" type="date" value="${l.date}"></div>
+    ${l.weekly===false?'':'<div class="crs-note">Повторяется каждую неделю</div>'}
+    <div class="mwfield"><label for="le-date">Дата</label><input id="le-date" type="date" value="${key}"></div>
     <div class="mwfield"><label for="le-time">Время</label><input id="le-time" type="time" value="${l.time}"></div>
     <div class="mwrow2"><button class="mwbtn ghost" onclick="lessonCancelToggle()">${cancelTxt}</button>
       <button class="mwbtn danger-ghost" onclick="lessonDelete()">Удалить</button></div>
@@ -356,6 +398,8 @@ function lessForm(){const t=iso(new Date());
   <div class="row2"><div><label for="lf-time">Время</label><input id="lf-time" type="time" value="17:00"></div>
    <div><label for="lf-course">Предмет</label><input id="lf-course" placeholder="中文 · HSK 4上"></div></div>
   <label for="lf-teacher">Преподаватель</label><input id="lf-teacher" placeholder="Люба">
+  <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--ink)">
+    <input id="lf-weekly" type="checkbox" checked style="width:auto;margin:0"> Повторять каждую неделю</label>
   <div class="row2" style="margin-top:12px"><button class="crs-b" onclick="lessSave()">Сохранить</button>
    <button class="crs-b s" style="margin-top:0" onclick="lessClose()">Отмена</button></div></div>`;
 }
@@ -401,10 +445,11 @@ function payView(){
 }
 function sched(){
   if(SUB==='pay') return payView();
+  const inst=weekInstances(WEEK);
+  const tk=iso(new Date());
   const days=[];
   for(let i=0;i<7;i++){const d=new Date(WEEK); d.setDate(d.getDate()+i); const k=iso(d);
-    days.push({d,k,items:allLessons().filter(l=>l.date===k)});}
-  const tk=iso(new Date());
+    days.push({d,k,items:inst.filter(o=>o._key===k).sort((x,y)=>x.time.localeCompare(y.time))});}
   return `<h1>Расписание</h1><div class="sub">Арина · ${weekRange(WEEK)}</div>
   <div class="crs-seg"><button class="on" onclick="SUB='lessons';go('sched')">Занятия</button><button onclick="SUB='pay';go('sched')">Оплаты</button></div>
   <div class="crs-bar"><button class="crs-nb" onclick="shiftWeek(-1)" aria-label="Предыдущая неделя">‹</button>
@@ -413,11 +458,11 @@ function sched(){
     <button class="crs-today" onclick="goToday()">Сегодня</button></div>
   <div class="crs-col"><div class="crs-col-h">Расписание занятий</div>
   ${days.map(({d,k,items})=>`<div class="crs-day${k===tk?' today':''}"><div class="crs-day-h">${WD[d.getDay()]} · ${d.getDate()} ${MONTHS[d.getMonth()]}</div>
-    ${items.map(l=>`<div class="crs-card${l.cancelled?' off':''}" onclick="openLesson('${l.id}')">
+    ${items.map(l=>`<div class="crs-card${l.cancelled?' off':''}" onclick="openLesson('${l.id}','${l._key}')">
       <div class="crs-card-top"><div class="crs-c-time">${esc(l.time)}</div>
         <div class="crs-c-tag">${esc(l.course)}${l.teacher?`<span>${esc(l.teacher)}</span>`:''}</div></div>
       ${l.mat?`<div class="crs-mat">${esc(l.mat)}</div>`:''}
-      <div class="crs-chips"><span class="crs-chip">60 мин</span><span class="crs-chip">${esc(l.lang||l.course)}</span>${l.cancelled?'<span class="crs-chip off">отменено</span>':''}</div>
+      ${l.cancelled?'<div class="crs-chips"><span class="crs-chip off">отменено</span></div>':''}
     </div>`).join('')}</div>`).join('')}
     ${LESSEDIT?lessonSheet():''}
     ${LESSF?lessForm():''}
