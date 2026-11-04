@@ -100,6 +100,12 @@ h1{font-size:28px;margin-bottom:6px}
 @media (min-width: 1500px){
   main{ max-width:720px; }
 }
+
+/* 0.8.2 — китайский текст печатным шрифтом (SimSun и близкие) */
+.zh, .w .zh, .zh-phrase, .cn, .zh-text {
+  font-family: "SimSun", "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "PingFang SC", serif !important;
+}
+.zh-phrase { font-size:17px; }
 </style>
 </head>
 <body>
@@ -120,7 +126,7 @@ h1{font-size:28px;margin-bottom:6px}
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.8.1';
+const APP_VER='0.8.2';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'中文 · 口语',who:'Люба · 60 мин',lang:'中文'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'},
@@ -196,8 +202,8 @@ function partWords(){
 function partText(){
   return `<button class="back" onclick="go('w1')">← урок 1</button>
   <h1>Текст</h1><div class="sub">课文</div>
-  <div class="card"><p style="font-size:16px;line-height:1.9">很多外国学生来中国学习以前，就已经想好了自己的发展方向。有人对经济感兴趣，希望将来在国际公司工作；有人喜欢学医，打算回国后当一名医生；还有人对教育有热情，想要成为一名教师。</p>
-  <p style="font-size:16px;line-height:1.9;margin-top:10px">陈天中想选择跟经济有关的专业，希望了解更多的国际贸易方面的知识。安妮以后想做一名中文老师，所以要选择国际中文教育专业。对他们来说，留学不只是学语言，也是为将来的工作和生活做准备。</p></div>
+  <div class="card"><p class="cn" style="font-size:17px;line-height:1.95">很多外国学生来中国学习以前，就已经想好了自己的发展方向。有人对经济感兴趣，希望将来在国际公司工作；有人喜欢学医，打算回国后当一名医生；还有人对教育有热情，想要成为一名教师。</p>
+  <p class="cn" style="font-size:17px;line-height:1.95;margin-top:10px">陈天中想选择跟经济有关的专业，希望了解更多的国际贸易方面的知识。安妮以后想做一名中文老师，所以要选择国际中文教育专业。对他们来说，留学不只是学语言，也是为将来的工作和生活做准备。</p></div>
   <div class="foot">© Abramson v. ${APP_VER}</div>`;
 }
 function partGram(){
@@ -239,7 +245,7 @@ function shadowPlay(withText){
   return `<button class="back" onclick="go('s1')">← Шэдоуинг 1</button>
   <h1>${withText?'Аудио с текстом':'Аудио без текста'}</h1>
   <div class="sub">${withText?'слушай и следи по фразам':'слушай и повторяй в паузу'}</div>
-  ${withText?`<div class="card">${SH1.map((p,i)=>`<div class="w"><span class="zh" style="min-width:26px;color:var(--muted)">${i+1}</span><span class="ru" style="font-size:17px">${p}</span></div>`).join('')}</div>`
+  ${withText?`<div class="card">${SH1.map((p,i)=>`<div class="w"><span class="zh" style="min-width:26px;color:var(--muted)">${i+1}</span><span class="zh-phrase">${p}</span></div>`).join('')}</div>`
             :`<div class="card" style="text-align:center;padding:34px 16px"><div style="font-size:22px;font-weight:700">▶ Слушай</div><div class="c-meta" style="margin-top:8px">10 фраз · 61 с · паузы 3 с</div></div>`}
   <div class="foot">© Abramson v. ${APP_VER}</div>`;
 }
