@@ -213,6 +213,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
 .crs-period-b{font:inherit;font-size:12.5px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer}
 .crs-period-b.on{background:linear-gradient(135deg,#087DA0,#12A6C6);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(8,125,160,.22)}
 .crs-period-nav{margin-left:auto;display:flex;gap:6px}
+.crs-err{background:#FDE8E8;color:#B03A2E;border:1px solid #F3C9C9;border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.45;margin:0 0 12px}
 </style>
 </head>
 <body>
@@ -233,7 +234,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.19.0';
+const APP_VER='0.21.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'},
@@ -313,12 +314,16 @@ const q=s=>String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 /* Оплаты: хранение */
 const PAYV='mywave-pay-v2';
 function pays(){try{const o=JSON.parse(localStorage.getItem(PAYV)||'[]'); return Array.isArray(o)?o:[]}catch(e){return []}}
-function paysSet(a){try{localStorage.setItem(PAYV,JSON.stringify(a))}catch(e){}}
+function paysSet(a){try{localStorage.setItem(PAYV,JSON.stringify(a)); return true}catch(e){return false}}
 let PAYF=null, PAYCUR='Все курсы', PAYMON=null, ALLTIME=false;
+const SCOPE_KEY='mywave-pay-scope-v1';
+function scopeSave(){try{localStorage.setItem(SCOPE_KEY,JSON.stringify({all:ALLTIME,month:payMonth().getTime()}))}catch(e){}}
+function scopeLoad(){try{const o=JSON.parse(localStorage.getItem(SCOPE_KEY)||'{}');
+  if(o.all) ALLTIME=true; if(o.month) PAYMON=new Date(o.month);}catch(e){}}
 function payMonth(){if(!PAYMON){const n=new Date(); PAYMON=new Date(n.getFullYear(),n.getMonth(),1)} return PAYMON}
-function payMonShift(k){const m=payMonth(); PAYMON=new Date(m.getFullYear(),m.getMonth()+k,1); ALLTIME=false; go('sched')}
+function payMonShift(k){const m=payMonth(); PAYMON=new Date(m.getFullYear(),m.getMonth()+k,1); ALLTIME=false; scopeSave(); go('sched')}
 function paySelCourse(v){PAYCUR=v; go('sched')}
-function setAllTime(v){ALLTIME=!!v; go('sched')}
+function setAllTime(v){ALLTIME=!!v; scopeSave(); go('sched')}
 function payCourseTap(c){PAYCUR=c; payOpenForm(null)}
 function paySum(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.amount||0),0)}
 function payTotalCount(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.count||0),0)}
@@ -328,12 +333,34 @@ function payClose(){PAYF=null; go('sched')}
 function paySetUsed(id,v){const a=pays(); const p=a.find(x=>x.id===id); if(!p) return;
   const max=+p.count||0; p.used=Math.max(0,Math.min(max,Math.round(+v||0))); paysSet(a); go('sched')}
 function payAdjustUsed(id,d){const p=pays().find(x=>x.id===id); if(!p) return; paySetUsed(id,(+p.used||0)+d)}
-function paySave(){const a=pays(); const $=x=>document.getElementById(x);
-  if(PAYF==='new'){a.push({id:'p'+Date.now(),course:$('pf-course').value,date:$('pf-date').value,
-      count:+$('pf-count').value||0,amount:+$('pf-sum').value||0,used:0});}
-  else{const p=a.find(x=>x.id===PAYF); if(p){p.course=$('pf-course').value; p.date=$('pf-date').value;
-      p.count=+$('pf-count').value||0; p.amount=+$('pf-sum').value||0; if((+p.used||0)>p.count) p.used=p.count;}}
-  paysSet(a); PAYF=null; go('sched');}
+let SAVEERR='';
+function paySave(){
+  const a=pays(); const $=x=>document.getElementById(x);
+  let p=null;
+  if(PAYF==='new'){
+    p={id:'p'+Date.now(),course:$('pf-course').value,date:$('pf-date').value,
+       count:+$('pf-count').value||0,amount:+$('pf-sum').value||0,used:0};
+    a.push(p);
+  } else {
+    p=a.find(x=>x.id===PAYF);
+    if(p){p.course=$('pf-course').value; p.date=$('pf-date').value;
+      p.count=+$('pf-count').value||0; p.amount=+$('pf-sum').value||0;
+      if((+p.used||0)>p.count) p.used=p.count;}
+  }
+  const ok=paysSet(a);
+  if(!ok){
+    SAVEERR='Браузер не разрешает сохранять данные (приватное окно или запрет хранения). Открой сайт в обычном окне Safari или Chrome — тогда оплаты сохранятся.';
+    go('sched'); return;
+  }
+  SAVEERR='';
+  if(p){
+    const d=new Date(p.date+'T00:00:00');
+    if(!isNaN(d)){PAYMON=new Date(d.getFullYear(),d.getMonth(),1);}
+    ALLTIME=false;
+  }
+  scopeSave();
+  PAYF=null; go('sched');
+}
 function payDelete(){if(!PAYF||PAYF==='new') return; paysSet(pays().filter(p=>p.id!==PAYF)); PAYF=null; go('sched')}
 function lessOpen(){LESSF=true; go('sched')}
 function lessClose(){LESSF=false; go('sched')}
@@ -434,6 +461,7 @@ function payView(){
     <span class="crs-period-nav"><button class="crs-b s" onclick="payMonShift(-1)" aria-label="Предыдущий месяц">‹</button>
       <button class="crs-b s" onclick="payMonShift(1)" aria-label="Следующий месяц">›</button></span>
   </div>
+  ${SAVEERR?`<div class="crs-err">${esc(SAVEERR)}</div>`:''}
   ${PAYF!==null?payForm():''}
   <div class="crs-pay-card"><div class="crs-pay-head"><b>Все оплаты</b><button class="crs-b" onclick="payOpenForm(null)">+ Оплата</button></div>
    <div class="crs-pay-total"><div><span>${label}</span><b>${money(sumAmt)}</b></div>
@@ -645,6 +673,7 @@ else mwPlayerInit();
   if(b) b.addEventListener('click',()=>{ const el=sb(); if(el) el.classList.toggle('open'); });
 })();
 
+scopeLoad();
 go('sched');
 </script>
 
