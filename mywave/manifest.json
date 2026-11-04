@@ -6,7 +6,21 @@
  "background_color": "#E4F5FE",
  "theme_color": "#087DA0",
  "icons": [
-  {"src": "assets/i2.png", "sizes": "96x96", "type": "image/png"},
-  {"src": "assets/logo.png", "sizes": "851x126", "type": "image/png", "purpose": "any"}
+  {
+   "src": "assets/pwa/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "assets/pwa/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "assets/pwa/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
  ]
 }

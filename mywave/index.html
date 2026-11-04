@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>My wave</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="assets/i2.png">
-<link rel="apple-touch-icon" href="assets/i2.png">
+<link rel="icon" href="assets/pwa/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="assets/pwa/favicon-32.png"><link rel="icon" type="image/png" sizes="16x16" href="assets/pwa/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/pwa/apple-touch-icon.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--menu:#E4F5FE;--active:#D5EFFB;--ink:#123F66;--muted:#5B7E97;--btn:#087DA0;--line:#BFE3F5;--card:#FBFDFF}
@@ -94,7 +94,7 @@ h1{font-size:28px;margin-bottom:6px}
 <div class="mob"><button onclick="document.querySelector('.side').classList.toggle('open')">☰</button><b>My wave</b></div>
 <div class="wrap">
   <aside class="side">
-    <img class="logo" src="assets/logo.png" alt="My wave">
+    <img class="logo" src="assets/wave-mark.png" alt="My wave">
     <button class="mi on" data-s="sched"><span class="ic"><img src="assets/i1.png"></span><span><b>Расписание</b><small>занятия и оплаты</small></span></button>
     <button class="mi" data-s="lessons"><span class="ic"><img src="assets/i2.png"></span><span><b>Китайский</b><small>HSK 4上</small></span></button>
     <button class="mi" data-s="listen"><span class="ic"><img src="assets/i3.png"></span><span><b>Аудирование</b><small>听力</small></span></button>
@@ -108,7 +108,7 @@ h1{font-size:28px;margin-bottom:6px}
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.6.0';
+const APP_VER='0.7.0';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'中文 · 口语',who:'Люба · 60 мин',lang:'中文'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'},
