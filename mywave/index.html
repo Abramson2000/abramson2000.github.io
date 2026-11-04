@@ -37,6 +37,7 @@ h1{font-size:28px;margin-bottom:6px}
 .chip{display:inline-block;margin-top:12px;font-size:12.5px;background:var(--active);color:#0A5E7A;padding:4px 10px;border-radius:999px}
 .list{display:flex;flex-direction:column;gap:12px}
 .row{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 18px;height:76px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;max-width:720px}
+.playw{width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--btn);font-size:14px;cursor:pointer;flex:none;margin-right:2px}
 .addw{margin-left:auto;width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--btn);font-size:18px;line-height:1;cursor:pointer;flex:none}
 .addw.on{background:var(--active);border-color:var(--btn);color:#0A5E7A}
 .row:hover{background:#f6fcff}
@@ -77,7 +78,7 @@ h1{font-size:28px;margin-bottom:6px}
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.3.3';
+const APP_VER='0.4.0';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'中文 · 口语',who:'Люба · 60 мин',lang:'中文'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'},
@@ -133,7 +134,8 @@ function words(){return `<button class="back" onclick="go('lessons')">← наз
  <h1>Урок 1 · 我们来中国学习了</h1><div class="sub">Слова, текст, грамматика, вопросы</div>
 
  <div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:10px">Слова урока · 19</h3>
- ${W.map(w=>{const has=dictHas('zh',w[0]); return `<div class="w"><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span>
+ <audio id="wa" preload="none"></audio>
+${W.map((w,idx)=>{const has=dictHas('zh',w[0]); return `<div class="w"><button class="playw" onclick="playWord(${idx+1})" aria-label="Прослушать">▶</button><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span>
       <button class="addw${has?' on':''}" onclick="dictToggle('zh','${w[0]}','${w[1]}','${w[2]}');go('w1')" title="${has?'Убрать из словаря':'Добавить в словарь'}">${has?'✓':'+'}</button></div>`}).join('')}</div>
 
  <div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:10px">Текст · 课文</h3>
@@ -164,6 +166,8 @@ function dict(t,lang){const arr=dictList(lang||'zh');
     <button class="addw on" onclick="dictToggle('${lang||'zh'}','${esc(w.zh)}','${esc(w.py||'')}','${esc(w.ru||'')}');go('${lang===undefined?'dict':(lang==='en'?'dicten':'dictes')}')">✓</button></div>`).join('')
     : 'Словарь пуст — добавляй слова кнопкой «+» в уроке.'}</div>
   <div class="foot">© Abramson v. ${APP_VER}</div>`}
+function playWord(n){const a=document.getElementById('wa'); if(!a) return;
+  a.src='audio/w'+String(n).padStart(2,'0')+'.mp3'; a.play().catch(()=>{});}
 function go(s){
   document.querySelectorAll('.mi').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
   const v=document.getElementById('view');
