@@ -136,7 +136,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.11.0';
+const APP_VER='0.12.0';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'中文 · 口语',who:'Люба · 60 мин',lang:'中文'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'},
@@ -178,16 +178,16 @@ function sched(){
       <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
         <button class="mi${paid?' on':''}" style="width:auto;padding:8px 14px" onclick="paySet('${k}',${paid?'false':'true'});go('sched')">${paid?'Оплачено':'Отметить оплату'}</button>
         <span class="chip">${paid?'оплачено':'ожидает'}</span></div></article>`}).join('')}</div>
-    <div class="foot">© Abramson v. ${APP_VER}</div>`;
+    `;
   }
   return `<h1>Расписание</h1><div class="sub">Арина · 2 — 8 ноября</div>${sub}
   <div class="grid">${LESSONS.map(l=>`<article class="card"><div class="c-top"><span>${esc(l.day)}</span><span class="c-time">${esc(l.time)}</span></div>
   <h3>${esc(l.title)}</h3><div class="c-meta">${esc(l.who)}</div><span class="chip">${esc(l.lang)}</span></article>`).join('')}</div>
-  <div class="foot">© Abramson v. ${APP_VER}</div>`;
+  `;
 }
 function lessons(){return `<h1>Китайский</h1><div class="sub">HSK 4上</div><div class="list">
  <div class="row" onclick="go('w1')"><div><b>Урок 1 · 我们来中国学习了</b><div class="c-meta">Слова урока · 19</div></div><span class="chip">открыть</span></div>
-</div><div class="foot">© Abramson v. ${APP_VER}</div>`}
+</div>`}
 const PARTS=[
   {id:'p1',t:'Слова',sub:'19 слов · аудио',badge:'▶'},
   {id:'p2',t:'Текст',sub:'课文 · два абзаца',badge:'阅'},
@@ -199,7 +199,7 @@ function lessonHome(){
   <h1>Урок 1 · 我们来中国学习了</h1><div class="sub">HSK 4上</div>
   <div class="list">${PARTS.map(p=>`<div class="row" onclick="go('${p.id}')">
     <div><b>${p.t}</b><div class="c-meta">${p.sub}</div></div><span class="chip">${p.badge}</span></div>`).join('')}</div>
-  <div class="foot">© Abramson v. ${APP_VER}</div>`;
+  `;
 }
 function partWords(){
   if(typeof mwPlayerShow==='function') mwPlayerShow('audio/words1.mp3');
@@ -207,14 +207,14 @@ function partWords(){
   <h1>Слова</h1><div class="sub">19 слов · слушай и добавляй в словарь</div>
   <div class="card">${W.map(w=>{const has=dictHas('zh',w[0]); return `<div class="w"><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span>
     <button class="w-add${has?' indict':''}" onclick="event.stopPropagation();dictToggle('zh','${w[0]}','${w[1]}','${w[2]}');go('p1')" title="${has?'Уже в словаре':'Добавить в словарь'}">${has?'✓':'＋'}</button></div>`}).join('')}</div>
-  <div class="foot">© Abramson v. ${APP_VER}</div>`;
+  `;
 }
 function partText(){
   return `<button class="back" onclick="go('w1')">← урок 1</button>
   <h1>Текст</h1><div class="sub">课文</div>
   <div class="card"><p class="cn" style="font-size:17px;line-height:1.95">很多外国学生来中国学习以前，就已经想好了自己的发展方向。有人对经济感兴趣，希望将来在国际公司工作；有人喜欢学医，打算回国后当一名医生；还有人对教育有热情，想要成为一名教师。</p>
   <p class="cn" style="font-size:17px;line-height:1.95;margin-top:10px">陈天中想选择跟经济有关的专业，希望了解更多的国际贸易方面的知识。安妮以后想做一名中文老师，所以要选择国际中文教育专业。对他们来说，留学不只是学语言，也是为将来的工作和生活做准备。</p></div>
-  <div class="foot">© Abramson v. ${APP_VER}</div>`;
+  `;
 }
 function partGram(){
   return `<button class="back" onclick="go('w1')">← урок 1</button>
@@ -223,7 +223,7 @@ function partGram(){
     <div class="w"><span class="zh">一方面……，另一方面……</span><span class="ru">с одной стороны…, с другой стороны…</span></div>
     <div class="w"><span class="zh">要是……，就……</span><span class="ru">если…, то…</span></div>
     <div class="w"><span class="zh">任何</span><span class="ru">любой, всякий — перед существительным без 的</span></div>
-  </div><div class="foot">© Abramson v. ${APP_VER}</div>`;
+  </div>`;
 }
 function partEx(){
   return `<button class="back" onclick="go('w1')">← урок 1</button>
@@ -232,7 +232,7 @@ function partEx(){
     <div class="w"><span class="ru">1. 外国学生来中国以前想好了什么？</span></div>
     <div class="w"><span class="ru">2. 陈天中为什么选择跟经济有关的专业？</span></div>
     <div class="w"><span class="ru">3. 安妮以后想做什么？</span></div>
-  </div><div class="foot">© Abramson v. ${APP_VER}</div>`;
+  </div>`;
 }
 const SH1=['你平时喜欢看什么？','我很喜欢看动画片。','这部动画片很有意思。','我已经看了三集。','我一边吃饭，一边看。','每个周末我看四五集。','有时候看到很晚才睡。','我的朋友也觉得好看。','他推荐给我另一部。','我们打算一起看。'];
 function listen(){
@@ -240,7 +240,7 @@ function listen(){
   <div class="list">
     <div class="row" onclick="go('s1')"><div><b>Шэдоуинг 1</b><div class="c-meta">10 фраз · повторяй вслух</div></div><span class="chip">▶</span></div>
     <div class="row"><div><b>Шэдоуинг 2</b><div class="c-meta">скоро</div></div><span class="chip">скоро</span></div>
-  </div><div class="foot">© Abramson v. ${APP_VER}</div>`;
+  </div>`;
 }
 function shadow1(){
   return `<button class="back" onclick="go('listen')">← Аудирование</button>
@@ -248,7 +248,7 @@ function shadow1(){
   <div class="list">
     <div class="row" onclick="go('s1a')"><div><b>Аудио без текста</b><div class="c-meta">слушай и повторяй на слух</div></div><span class="chip">▶</span></div>
     <div class="row" onclick="go('s1b')"><div><b>Аудио с текстом</b><div class="c-meta">фразы перед глазами</div></div><span class="chip">阅</span></div>
-  </div><div class="foot">© Abramson v. ${APP_VER}</div>`;
+  </div>`;
 }
 function shadowPlay(withText){
   if(typeof mwPlayerShow==='function') mwPlayerShow('audio/shadow1.mp3');
@@ -257,15 +257,15 @@ function shadowPlay(withText){
   <div class="sub">${withText?'слушай и следи по фразам':'слушай и повторяй в паузу'}</div>
   ${withText?`<div class="card">${SH1.map((p,i)=>`<div class="w"><span class="zh" style="min-width:26px;color:var(--muted)">${i+1}</span><span class="zh-phrase">${p}</span></div>`).join('')}</div>`
             :`<div class="card" style="text-align:center;padding:34px 16px"><div style="font-size:22px;font-weight:700">▶ Слушай</div><div class="c-meta" style="margin-top:8px">10 фраз · 61 с · паузы 3 с</div></div>`}
-  <div class="foot">© Abramson v. ${APP_VER}</div>`;
+  `;
 }
-function soon(t,n){return `<h1>${esc(t)}</h1><div class="sub">${esc(n)}</div><div class="card">Раздел готовится.</div><div class="foot">© Abramson v. ${APP_VER}</div>`}
+function soon(t,n){return `<h1>${esc(t)}</h1><div class="sub">${esc(n)}</div><div class="card">Раздел готовится.</div>`}
 function dict(t,lang){const arr=dictList(lang||'zh');
   return `<h1>${esc(t)}</h1><div class="sub">Словарь · слов: ${arr.length}</div>
   <div class="card">${arr.length?arr.map(w=>`<div class="w"><span class="zh">${esc(w.zh)}</span><span class="py">${esc(w.py||'')}</span><span class="ru">${esc(w.ru||'')}</span>
     <button class="w-add indict" onclick="event.stopPropagation();dictToggle('${lang||'zh'}','${esc(w.zh)}','${esc(w.py||'')}','${esc(w.ru||'')}');go('${lang===undefined?'dict':(lang==='en'?'dicten':'dictes')}')" title="Уже в словаре">✓</button></div>`).join('')
     : 'Словарь пуст — добавляй слова кнопкой «+» в уроке.'}</div>
-  <div class="foot">© Abramson v. ${APP_VER}</div>`}
+  `}
 (function(){
   const a=document.getElementById('pa'); if(!a) return;
   const pp=document.getElementById('pp'), sk=document.getElementById('seek'), tm=document.getElementById('ptm'), rt=document.getElementById('prate');
@@ -287,7 +287,7 @@ function go(s){
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.mi').forEach(b=>b.addEventListener('click',()=>go(b.dataset.s)));
-document.getElementById('ver').textContent='© Abramson v. '+APP_VER;
+document.getElementById('ver').textContent='© Abramson '+APP_VER;
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 
 /* плеер (логика как в Тингли) */
