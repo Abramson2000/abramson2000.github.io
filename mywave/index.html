@@ -167,6 +167,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
 .crs-pay-total>div:last-child{border-right:0}
 .crs-pay-total span{display:block;font-size:10.5px;color:var(--muted)}
 .crs-pay-total b{display:block;margin-top:3px;text-align:left;font-size:13px;color:var(--ink)}
+.crs-pay-row.done{opacity:.62}
 .crs-pay-row{border:1px solid var(--line);border-radius:14px;padding:9px 10px;margin-bottom:6px;background:linear-gradient(180deg,#FFFFFF,#F7FCFF)}
 .crs-pay-row-top{display:flex;align-items:flex-start;gap:10px}
 .crs-pay-row-info{flex:1;min-width:0}
@@ -227,7 +228,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.16.0';
+const APP_VER='0.17.0';
 const LESSONS=[
  {id:'L1',date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'},
@@ -290,6 +291,7 @@ let PAYF=null, PAYCUR='Все курсы', PAYMON=null;
 function payMonth(){if(!PAYMON){const n=new Date(); PAYMON=new Date(n.getFullYear(),n.getMonth(),1)} return PAYMON}
 function payMonShift(k){const m=payMonth(); PAYMON=new Date(m.getFullYear(),m.getMonth()+k,1); go('sched')}
 function paySelCourse(v){PAYCUR=v; go('sched')}
+function payCourseTap(c){PAYCUR=c; payOpenForm(null)}
 function paySum(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.amount||0),0)}
 function payTotalCount(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.count||0),0)}
 function payUsed(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.used||0),0)}
@@ -361,13 +363,13 @@ function payView(){
   const P=pays(), m=payMonth();
   const courses=[...new Set(allLessons().map(l=>l.course))];
   const inMonth=P.filter(p=>{const d=new Date(p.date+'T00:00:00'); return d.getFullYear()===m.getFullYear()&&d.getMonth()===m.getMonth()});
-  const list=inMonth.filter(p=>PAYCUR==='Все курсы'||p.course===PAYCUR).sort((a,b)=>b.date.localeCompare(a.date));
+  const list=P.slice().sort((a,b)=>b.date.localeCompare(a.date));
   const sumAmt=inMonth.reduce((s,p)=>s+(+p.amount||0),0);
   const sumLess=inMonth.reduce((s,p)=>s+(+p.count||0),0);
   return `<h1>Оплаты</h1><div class="sub">Арина · занятия и суммы</div>
   <div class="crs-seg"><button onclick="SUB='lessons';go('sched')">Занятия</button><button class="on" onclick="SUB='pay';go('sched')">Оплаты</button></div>
   <div class="crs-pay-course-list">${courses.map(c=>`<div class="crs-pay-course">
-     <button class="crs-pay-course-main" onclick="paySelCourse('${q(c)}')">
+     <button class="crs-pay-course-main" onclick="payCourseTap('${q(c)}')">
        <div class="crs-pay-course-body">
          <div class="crs-pay-course-top"><span class="crs-pay-course-name">${esc(c)}</span><span class="crs-pay-course-sum">${money(paySum(c))}</span></div>
          <div class="crs-pay-course-sub">проведено ${payUsed(c)} · осталось ${Math.max(0,payTotalCount(c)-payUsed(c))}</div>
@@ -375,10 +377,7 @@ function payView(){
      <button class="crs-pay-course-add" onclick="PAYCUR='${q(c)}';payOpenForm(null)" aria-label="Добавить оплату по курсу">+</button>
    </div>`).join('')}</div>
   <div class="crs-pay-filter">
-    <div class="crs-f-col"><div class="crs-lbl">Курс</div>
-      <select onchange="paySelCourse(this.value)" aria-label="Курс">
-        ${['Все курсы'].concat(courses).map(c=>`<option${c===PAYCUR?' selected':''}>${esc(c)}</option>`).join('')}</select></div>
-    <div class="crs-f-col"><div class="crs-lbl">Месяц</div>
+    <div class="crs-f-col"><div class="crs-lbl">Итоги за месяц</div>
       <div class="crs-pay-period"><button class="crs-b s" onclick="payMonShift(-1)" aria-label="Предыдущий месяц">‹</button>
         <b>${MONTHS_N[m.getMonth()]} ${m.getFullYear()}</b>
         <button class="crs-b s" onclick="payMonShift(1)" aria-label="Следующий месяц">›</button></div></div>
@@ -387,17 +386,17 @@ function payView(){
   <div class="crs-pay-card"><div class="crs-pay-head"><b>Все оплаты</b><button class="crs-b" onclick="payOpenForm(null)">+ Оплата</button></div>
    <div class="crs-pay-total"><div><span>${MONTHS_N[m.getMonth()]} ${m.getFullYear()}</span><b>${money(sumAmt)}</b></div>
      <div><span>Оплачено уроков</span><b>${sumLess}</b></div>
-     <div><span>Платежей</span><b>${list.length}</b></div></div>
+     <div><span>Платежей</span><b>${inMonth.length}</b></div></div>
    ${list.length?list.map(p=>{const left=Math.max(0,(+p.count||0)-(+p.used||0));
-     return `<div class="crs-pay-row"><div class="crs-pay-row-top"><div class="crs-pay-row-info"><b>${esc(p.course)}</b>
-       <span>${fmtDate(p.date)} · ${p.count} уроков</span></div><strong>${money(p.amount)}</strong>
+     return `<div class="crs-pay-row${left?'':' done'}"><div class="crs-pay-row-top"><div class="crs-pay-row-info"><b>${esc(p.course)}</b>
+       <span>${fmtDate(p.date)} · ${p.count} уроков${left?'':' · закрыт'}</span></div><strong>${money(p.amount)}</strong>
        <button class="crs-b s" onclick="payOpenForm('${p.id}')">Изменить</button></div>
        <div class="crs-used"><span>Проведено</span>
         <div class="crs-step"><button onclick="payAdjustUsed('${p.id}',-1)" aria-label="Минус урок">−</button>
           <input type="number" min="0" max="${p.count}" value="${p.used||0}" onchange="paySetUsed('${p.id}',this.value)" aria-label="Проведено уроков"><b>/${p.count}</b>
           <button onclick="payAdjustUsed('${p.id}',1)" aria-label="Плюс урок">+</button></div>
         <span class="crs-left">по курсу осталось <b>${left}</b></span></div></div>`}).join('')
-    :`<div class="crs-used" style="margin:10px 0 2px">Платежей за этот месяц нет.</div>`}
+    :`<div class="crs-used" style="margin:10px 0 2px">Платежей пока нет.</div>`}
   </div>`;
 }
 function sched(){
