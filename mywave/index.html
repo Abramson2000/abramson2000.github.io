@@ -234,7 +234,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.21.0';
+const APP_VER='0.21.1';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',lang:'Español'},
@@ -313,7 +313,19 @@ const q=s=>String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 
 /* Оплаты: хранение */
 const PAYV='mywave-pay-v2';
-function pays(){try{const o=JSON.parse(localStorage.getItem(PAYV)||'[]'); return Array.isArray(o)?o:[]}catch(e){return []}}
+const PAYDEF=[
+ {id:'d1',course:'中文 · 口语',   date:'2026-11-04',count:4,  amount:10200,used:0},
+ {id:'d2',course:'Español',      date:'2026-11-04',count:10, amount:6000, used:0},
+ {id:'d3',course:'English',      date:'2026-11-03',count:4,  amount:8000, used:0},
+ {id:'d4',course:'中文 · HSK 4上',date:'2026-10-24',count:4,  amount:14000,used:1}
+];
+const PAYDEL='mywave-pay-del-v1';
+function paysStored(){try{const o=JSON.parse(localStorage.getItem(PAYV)||'[]'); return Array.isArray(o)?o:[]}catch(e){return []}}
+function paysHidden(){try{const o=JSON.parse(localStorage.getItem(PAYDEL)||'[]'); return Array.isArray(o)?o:[]}catch(e){return []}}
+function pays(){
+  const st=paysStored(), hid=paysHidden(), ids=new Set(st.map(p=>p.id));
+  return PAYDEF.filter(d=>!hid.includes(d.id) && !ids.has(d.id)).concat(st);
+}
 function paysSet(a){try{localStorage.setItem(PAYV,JSON.stringify(a)); return true}catch(e){return false}}
 let PAYF=null, PAYCUR='Все курсы', PAYMON=null, ALLTIME=false;
 const SCOPE_KEY='mywave-pay-scope-v1';
@@ -330,8 +342,8 @@ function payTotalCount(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+
 function payUsed(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.used||0),0)}
 function payOpenForm(id){PAYF=id||'new'; go('sched')}
 function payClose(){PAYF=null; go('sched')}
-function paySetUsed(id,v){const a=pays(); const p=a.find(x=>x.id===id); if(!p) return;
-  const max=+p.count||0; p.used=Math.max(0,Math.min(max,Math.round(+v||0))); paysSet(a); go('sched')}
+function paySetUsed(id,v){const a=pays(); const p=a.find(x=>x.id===id); if(!p) return; const st=paysStored(); const i=st.findIndex(x=>x.id===id); if(i>=0) st[i]=p; else st.push(p);
+  const max=+p.count||0; p.used=Math.max(0,Math.min(max,Math.round(+v||0))); const j=st.findIndex(x=>x.id===id); if(j>=0) st[j]=p; paysSet(st); go('sched')}
 function payAdjustUsed(id,d){const p=pays().find(x=>x.id===id); if(!p) return; paySetUsed(id,(+p.used||0)+d)}
 let SAVEERR='';
 function paySave(){
@@ -361,7 +373,11 @@ function paySave(){
   scopeSave();
   PAYF=null; go('sched');
 }
-function payDelete(){if(!PAYF||PAYF==='new') return; paysSet(pays().filter(p=>p.id!==PAYF)); PAYF=null; go('sched')}
+function payDelete(){if(!PAYF||PAYF==='new') return;
+  const id=PAYF;
+  paysSet(paysStored().filter(p=>p.id!==id));
+  try{const hid=paysHidden(); if(!hid.includes(id)){hid.push(id); localStorage.setItem(PAYDEL,JSON.stringify(hid));}}catch(e){}
+  PAYF=null; go('sched')}
 function lessOpen(){LESSF=true; go('sched')}
 function lessClose(){LESSF=false; go('sched')}
 function lessSave(){const $=x=>document.getElementById(x);
