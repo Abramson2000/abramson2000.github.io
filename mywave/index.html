@@ -116,6 +116,64 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   font-family: "SimSun", "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "PingFang SC", serif !important;
 }
 .zh-phrase { font-size:17px; }
+
+/* 0.13.0 — расписание и оплаты по образцу Тингли, в цветах Волны */
+.crs-seg{display:inline-flex;gap:4px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:16px}
+.crs-seg button{border:0;background:none;font:inherit;font-size:13.5px;padding:8px 18px;border-radius:999px;color:var(--muted);cursor:pointer}
+.crs-seg button.on{background:linear-gradient(135deg,#087DA0,#12A6C6);color:#fff;box-shadow:0 6px 16px rgba(8,125,160,.28)}
+.crs-bar{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.86);border:1px solid var(--line);border-radius:18px;padding:10px 12px;margin-bottom:14px;box-shadow:0 6px 18px rgba(18,63,102,.06)}
+.crs-nb{width:36px;height:36px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--btn);font-size:17px;line-height:1;cursor:pointer;flex:none}
+.crs-range{flex:1;min-width:0;text-align:center}
+.crs-range b{display:block;font-size:14.5px;color:var(--ink)}
+.crs-range span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.crs-today{border:1px solid var(--line);background:linear-gradient(135deg,#EAF8FE,#D5EFFB);color:#0A5E7A;font:inherit;font-size:12.5px;font-weight:650;padding:9px 12px;border-radius:12px;cursor:pointer;flex:none}
+.crs-col{background:rgba(255,255,255,.78);border:1px solid var(--line);border-radius:22px;padding:16px 14px 14px;box-shadow:0 8px 24px rgba(18,63,102,.06)}
+.crs-col-h{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px}
+.crs-day-h{font-size:12px;font-weight:800;letter-spacing:.07em;color:var(--btn);margin:14px 2px 8px;text-transform:uppercase}
+.crs-day.today .crs-day-h{color:#0A5E7A}
+.crs-card{background:linear-gradient(180deg,#FFFFFF 0%,#F3FBFF 100%);border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:10px;box-shadow:0 6px 16px rgba(18,63,102,.07)}
+.crs-card-top{display:flex;align-items:flex-start;gap:12px}
+.crs-c-time{font-weight:800;color:var(--btn);font-size:15.5px;min-width:50px}
+.crs-c-tag{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:var(--ink)}
+.crs-c-tag span{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}
+.crs-mat{margin-top:10px;font-size:12.5px;color:#0A5E7A;background:var(--active);border-radius:10px;padding:7px 10px}
+.crs-place{margin-top:8px;font-size:12.5px;color:var(--muted)}
+.crs-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.crs-chip{font-size:11.5px;background:linear-gradient(135deg,#EAF8FE,#D5EFFB);color:#0A5E7A;padding:4px 10px;border-radius:999px}
+.crs-add-big{width:100%;margin-top:8px;padding:13px;border-radius:14px;border:1px dashed #9FD6EA;background:rgba(255,255,255,.65);color:var(--btn);font:inherit;font-weight:700;cursor:pointer}
+.crs-courses{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:12px}
+.crs-course{flex:0 0 auto;min-width:182px;background:linear-gradient(180deg,#FFFFFF,#F1FAFF);border:1px solid var(--line);border-radius:16px;padding:12px 13px;box-shadow:0 6px 16px rgba(18,63,102,.06)}
+.crs-course b{display:block;font-size:13.5px;color:var(--ink)}
+.crs-course span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.crs-course strong{display:block;font-size:15px;color:#0A5E7A;margin-top:6px}
+.crs-pay-filter{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.86);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px;flex-wrap:wrap}
+.crs-pay-filter select{flex:1;min-width:130px;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff;color:var(--ink);font:inherit;font-size:13px}
+.crs-pay-card{background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:0 8px 24px rgba(18,63,102,.06)}
+.crs-pay-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.crs-pay-head b{font-size:15px}
+.crs-b{border:0;border-radius:12px;padding:9px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#087DA0,#12A6C6);color:#fff;box-shadow:0 6px 16px rgba(8,125,160,.25)}
+.crs-b.s{padding:7px 11px;font-size:12.5px;background:#fff;color:var(--btn);border:1px solid var(--line);box-shadow:none}
+.crs-pay-total{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0 10px}
+.crs-pay-total>div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #EAF4FB}
+.crs-pay-total>div:last-child{border-bottom:0}
+.crs-pay-total span{font-size:13px;color:var(--muted)}
+.crs-pay-total b{font-size:13.5px;color:var(--ink)}
+.crs-pay-row{border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:9px;background:linear-gradient(180deg,#FFFFFF,#F7FCFF)}
+.crs-pay-row-top{display:flex;align-items:flex-start;gap:10px}
+.crs-pay-row-info{flex:1;min-width:0}
+.crs-pay-row-info b{display:block;font-size:13.5px}
+.crs-pay-row-info span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.crs-pay-row-top strong{font-size:14px;color:#0A5E7A;white-space:nowrap}
+.crs-used{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.crs-step{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:2px}
+.crs-step button{width:26px;height:26px;border:0;background:none;color:var(--btn);font-size:15px;font-weight:700;cursor:pointer;line-height:1}
+.crs-step input{width:40px;border:0;background:none;text-align:center;font:inherit;font-size:13px;color:var(--ink)}
+.crs-left{margin-left:auto}
+.crs-form{background:linear-gradient(180deg,#FFFFFF,#EFF9FF);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:12px}
+.crs-form label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}
+.crs-form input,.crs-form select{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff;color:var(--ink);font:inherit;font-size:13.5px}
+.crs-form .row2{display:flex;gap:8px}
+.crs-form .row2>div{flex:1;min-width:0}
 </style>
 </head>
 <body>
@@ -136,13 +194,13 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.12.0';
+const APP_VER='0.13.0';
 const LESSONS=[
- {day:'Пн · 3 ноября',time:'17:00',title:'中文 · 口语',who:'Люба · 60 мин',lang:'中文'},
- {day:'Вт · 4 ноября',time:'18:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'},
- {day:'Ср · 5 ноября',time:'17:00',title:'English ·',who:'Ольга · 60 мин',lang:'English'},
- {day:'Пт · 7 ноября',time:'19:30',title:'中文 · HSK 4上',who:'Ли лаоши · 60 мин',lang:'中文'},
- {day:'Сб · 8 ноября',time:'12:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'}
+ {date:'2026-11-03',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',place:'Zoom',lang:'中文'},
+ {date:'2026-11-04',time:'18:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',place:'Zoom',lang:'Español'},
+ {date:'2026-11-05',time:'17:00',course:'English',teacher:'Ольга',mat:'Speaking',place:'Zoom',lang:'English'},
+ {date:'2026-11-07',time:'19:30',course:'中文 · HSK 4上',teacher:'Ли лаоши',mat:'HSK 4上 · Урок 1',place:'Zoom',lang:'中文'},
+ {date:'2026-11-08',time:'12:00',course:'Español',teacher:'Мария',mat:'Разговорная практика',place:'Zoom',lang:'Español'}
 ];
 const DICT_KEY='mywave-dict-v1';
 function dictAll(){try{return JSON.parse(localStorage.getItem(DICT_KEY)||'{}')}catch(e){return {}}}
@@ -160,30 +218,140 @@ const W=[['食堂','shítáng','столовая'],['要是','yàoshi','если
  ['留学','liúxué','учиться за границей'],['预科','yùkē','подготовительное отделение'],
  ['硕士','shuòshì','магистр'],['考试','kǎoshì','экзамен']];
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
 let SUB='lessons';
-const PRICE_KEY='mywave-pay-v1';
-function payState(){try{return JSON.parse(localStorage.getItem(PRICE_KEY)||'{}')}catch(e){return {}}}
-function paySet(k,v){const st=payState(); st[k]=v; try{localStorage.setItem(PRICE_KEY,JSON.stringify(st))}catch(e){}}
-function sched(){
-  const sub=`<div class="week" style="gap:6px">
-    <button class="mi${SUB==='lessons'?' on':''}" style="width:auto;padding:8px 16px" onclick="SUB='lessons';go('sched')">Занятия</button>
-    <button class="mi${SUB==='pay'?' on':''}" style="width:auto;padding:8px 16px" onclick="SUB='pay';go('sched')">Оплаты</button>
+const LESS_KEY='mywave-less-v1';
+const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const MONTHS_N=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const WD=['ВОСКРЕСЕНЬЕ','ПОНЕДЕЛЬНИК','ВТОРНИК','СРЕДА','ЧЕТВЕРГ','ПЯТНИЦА','СУББОТА'];
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function monOf(d){const x=new Date(d); x.setHours(0,0,0,0); const w=(x.getDay()+6)%7; x.setDate(x.getDate()-w); return x;}
+let WEEK=monOf(new Date());
+let LESSF=false;
+function extraLessons(){try{const o=JSON.parse(localStorage.getItem(LESS_KEY)||'[]'); return Array.isArray(o)?o:[]}catch(e){return []}}
+function allLessons(){return LESSONS.concat(extraLessons()).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))}
+function weekRange(mon){const a=new Date(mon), b=new Date(mon); b.setDate(b.getDate()+6);
+  return a.getMonth()===b.getMonth()
+    ? a.getDate()+' — '+b.getDate()+' '+MONTHS[a.getMonth()]
+    : a.getDate()+' '+MONTHS[a.getMonth()]+' — '+b.getDate()+' '+MONTHS[b.getMonth()];}
+function shiftWeek(n){const w=new Date(WEEK); w.setDate(w.getDate()+7*n); WEEK=w; go('sched')}
+function goToday(){WEEK=monOf(new Date()); go('sched')}
+function fmtDate(x){const d=new Date(x+'T00:00:00'); return d.getDate()+' '+MONTHS[d.getMonth()]}
+function money(n){return String(Math.round(+n||0)).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00A0')+'\u00A0₽'}
+const q=s=>String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+/* Оплаты: хранение */
+const PAYV='mywave-pay-v2';
+function pays(){try{const o=JSON.parse(localStorage.getItem(PAYV)||'[]'); return Array.isArray(o)?o:[]}catch(e){return []}}
+function paysSet(a){try{localStorage.setItem(PAYV,JSON.stringify(a))}catch(e){}}
+let PAYF=null, PAYCUR='Все курсы', PAYMON=null;
+function payMonth(){if(!PAYMON){const n=new Date(); PAYMON=new Date(n.getFullYear(),n.getMonth(),1)} return PAYMON}
+function payMonShift(k){const m=payMonth(); PAYMON=new Date(m.getFullYear(),m.getMonth()+k,1); go('sched')}
+function paySelCourse(v){PAYCUR=v; go('sched')}
+function paySum(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.amount||0),0)}
+function payTotalCount(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.count||0),0)}
+function payUsed(c){return pays().filter(p=>p.course===c).reduce((s,p)=>s+(+p.used||0),0)}
+function payOpenForm(id){PAYF=id||'new'; go('sched')}
+function payClose(){PAYF=null; go('sched')}
+function paySetUsed(id,v){const a=pays(); const p=a.find(x=>x.id===id); if(!p) return;
+  const max=+p.count||0; p.used=Math.max(0,Math.min(max,Math.round(+v||0))); paysSet(a); go('sched')}
+function payAdjustUsed(id,d){const p=pays().find(x=>x.id===id); if(!p) return; paySetUsed(id,(+p.used||0)+d)}
+function paySave(){const a=pays(); const $=x=>document.getElementById(x);
+  if(PAYF==='new'){a.push({id:'p'+Date.now(),course:$('pf-course').value,date:$('pf-date').value,
+      count:+$('pf-count').value||0,amount:+$('pf-sum').value||0,used:0});}
+  else{const p=a.find(x=>x.id===PAYF); if(p){p.course=$('pf-course').value; p.date=$('pf-date').value;
+      p.count=+$('pf-count').value||0; p.amount=+$('pf-sum').value||0; if((+p.used||0)>p.count) p.used=p.count;}}
+  paysSet(a); PAYF=null; go('sched');}
+function payDelete(){if(!PAYF||PAYF==='new') return; paysSet(pays().filter(p=>p.id!==PAYF)); PAYF=null; go('sched')}
+function lessOpen(){LESSF=true; go('sched')}
+function lessClose(){LESSF=false; go('sched')}
+function lessSave(){const $=x=>document.getElementById(x);
+  const arr=extraLessons(); const te=$('lf-teacher').value.trim();
+  arr.push({date:$('lf-date').value,time:$('lf-time').value||'17:00',course:$('lf-course').value.trim()||'Занятие',
+    teacher:te,mat:'',place:'Zoom',lang:$('lf-course').value.trim()||'Занятие'});
+  try{localStorage.setItem(LESS_KEY,JSON.stringify(arr))}catch(e){} LESSF=false; go('sched')}
+
+function payForm(){
+  const ed=PAYF&&PAYF!=='new'; const p=ed?pays().find(x=>x.id===PAYF):null;
+  const courses=[...new Set(allLessons().map(l=>l.course))]; const t=iso(new Date());
+  return `<div class="crs-form"><b style="font-size:13.5px">${ed?'Изменить оплату':'Новая оплата'}</b>
+  <label for="pf-course">Курс</label><select id="pf-course">${courses.map(c=>`<option${(p&&p.course===c)||(!p&&PAYCUR===c)?' selected':''}>${esc(c)}</option>`).join('')}</select>
+  <label for="pf-date">Дата</label><input id="pf-date" type="date" value="${p?p.date:t}">
+  <div class="row2"><div><label for="pf-count">Уроков</label><input id="pf-count" type="number" min="0" value="${p?p.count:1}"></div>
+   <div><label for="pf-sum">Сумма, ₽</label><input id="pf-sum" type="number" min="0" value="${p?p.amount:''}"></div></div>
+  <div class="row2" style="margin-top:12px"><button class="crs-b" onclick="paySave()">Сохранить</button>
+   <button class="crs-b s" style="margin-top:0" onclick="payClose()">Отмена</button>
+   ${ed?`<button class="crs-b s" style="margin-top:0;color:#B91C1C;border-color:#F3C9C9" onclick="payDelete()">Удалить</button>`:''}</div></div>`;
+}
+function lessForm(){const t=iso(new Date());
+  return `<div class="crs-form"><b style="font-size:13.5px">Новое занятие</b>
+  <label for="lf-date">Дата</label><input id="lf-date" type="date" value="${t}">
+  <div class="row2"><div><label for="lf-time">Время</label><input id="lf-time" type="time" value="17:00"></div>
+   <div><label for="lf-course">Предмет</label><input id="lf-course" placeholder="中文 · HSK 4上"></div></div>
+  <label for="lf-teacher">Преподаватель</label><input id="lf-teacher" placeholder="Люба">
+  <div class="row2" style="margin-top:12px"><button class="crs-b" onclick="lessSave()">Сохранить</button>
+   <button class="crs-b s" style="margin-top:0" onclick="lessClose()">Отмена</button></div></div>`;
+}
+function payView(){
+  const P=pays(), m=payMonth();
+  const courses=[...new Set(allLessons().map(l=>l.course))];
+  const inMonth=P.filter(p=>{const d=new Date(p.date+'T00:00:00'); return d.getFullYear()===m.getFullYear()&&d.getMonth()===m.getMonth()});
+  const list=inMonth.filter(p=>PAYCUR==='Все курсы'||p.course===PAYCUR).sort((a,b)=>b.date.localeCompare(a.date));
+  const sumAmt=inMonth.reduce((s,p)=>s+(+p.amount||0),0);
+  const sumLess=inMonth.reduce((s,p)=>s+(+p.count||0),0);
+  return `<h1>Оплаты</h1><div class="sub">Арина · занятия и суммы</div>
+  <div class="crs-seg"><button onclick="SUB='lessons';go('sched')">Занятия</button><button class="on" onclick="SUB='pay';go('sched')">Оплаты</button></div>
+  <div class="crs-courses">${courses.map(c=>`<div class="crs-course"><b>${esc(c)}</b>
+     <span>проведено ${payUsed(c)} · осталось ${Math.max(0,payTotalCount(c)-payUsed(c))}</span>
+     <strong>${money(paySum(c))}</strong>
+     <button class="crs-b s" style="margin-top:9px" onclick="PAYCUR='${q(c)}';payOpenForm(null)">+ Оплата</button></div>`).join('')}</div>
+  <div class="crs-pay-filter"><select onchange="paySelCourse(this.value)" aria-label="Курс">
+     ${['Все курсы'].concat(courses).map(c=>`<option${c===PAYCUR?' selected':''}>${esc(c)}</option>`).join('')}</select>
+   <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
+     <button class="crs-b s" onclick="payMonShift(-1)" aria-label="Предыдущий месяц">‹</button>
+     <b style="font-size:13px;min-width:112px;text-align:center">${MONTHS_N[m.getMonth()]} ${m.getFullYear()}</b>
+     <button class="crs-b s" onclick="payMonShift(1)" aria-label="Следующий месяц">›</button></div></div>
+  ${PAYF!==null?payForm():''}
+  <div class="crs-pay-card"><div class="crs-pay-head"><b>Все оплаты</b><button class="crs-b" onclick="payOpenForm(null)">+ Оплата</button></div>
+   <div class="crs-pay-total"><div><span>${MONTHS_N[m.getMonth()]} ${m.getFullYear()}</span><b>${money(sumAmt)}</b></div>
+     <div><span>Оплачено уроков</span><b>${sumLess}</b></div>
+     <div><span>Платежей</span><b>${list.length}</b></div></div>
+   ${list.length?list.map(p=>{const left=Math.max(0,(+p.count||0)-(+p.used||0));
+     return `<div class="crs-pay-row"><div class="crs-pay-row-top"><div class="crs-pay-row-info"><b>${esc(p.course)}</b>
+       <span>${fmtDate(p.date)} · ${p.count} уроков</span></div><strong>${money(p.amount)}</strong>
+       <button class="crs-b s" onclick="payOpenForm('${p.id}')">Изменить</button></div>
+       <div class="crs-used"><span>Проведено</span>
+        <div class="crs-step"><button onclick="payAdjustUsed('${p.id}',-1)" aria-label="Минус урок">−</button>
+          <input type="number" min="0" max="${p.count}" value="${p.used||0}" onchange="paySetUsed('${p.id}',this.value)" aria-label="Проведено уроков"><b>/${p.count}</b>
+          <button onclick="payAdjustUsed('${p.id}',1)" aria-label="Плюс урок">+</button></div>
+        <span class="crs-left">по курсу осталось <b>${left}</b></span></div></div>`}).join('')
+    :`<div class="crs-used" style="margin:10px 0 2px">Платежей за этот месяц нет.</div>`}
   </div>`;
-  if(SUB==='pay'){
-    const st=payState();
-    return `<h1>Оплаты</h1><div class="sub">Арина · занятия и суммы</div>${sub}
-    <div class="grid">${LESSONS.map((l,i)=>{const k='l'+i; const paid=!!st[k];
-      return `<article class="card"><div class="c-top"><span>${esc(l.day)}</span><span class="c-time">${esc(l.time)}</span></div>
-      <h3>${esc(l.title)}</h3><div class="c-meta">${esc(l.who)}</div>
-      <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
-        <button class="mi${paid?' on':''}" style="width:auto;padding:8px 14px" onclick="paySet('${k}',${paid?'false':'true'});go('sched')">${paid?'Оплачено':'Отметить оплату'}</button>
-        <span class="chip">${paid?'оплачено':'ожидает'}</span></div></article>`}).join('')}</div>
-    `;
-  }
-  return `<h1>Расписание</h1><div class="sub">Арина · 2 — 8 ноября</div>${sub}
-  <div class="grid">${LESSONS.map(l=>`<article class="card"><div class="c-top"><span>${esc(l.day)}</span><span class="c-time">${esc(l.time)}</span></div>
-  <h3>${esc(l.title)}</h3><div class="c-meta">${esc(l.who)}</div><span class="chip">${esc(l.lang)}</span></article>`).join('')}</div>
-  `;
+}
+function sched(){
+  if(SUB==='pay') return payView();
+  const days=[];
+  for(let i=0;i<7;i++){const d=new Date(WEEK); d.setDate(d.getDate()+i); const k=iso(d);
+    days.push({d,k,items:allLessons().filter(l=>l.date===k)});}
+  const tk=iso(new Date());
+  return `<h1>Расписание</h1><div class="sub">Арина · ${weekRange(WEEK)}</div>
+  <div class="crs-seg"><button class="on" onclick="SUB='lessons';go('sched')">Занятия</button><button onclick="SUB='pay';go('sched')">Оплаты</button></div>
+  <div class="crs-bar"><button class="crs-nb" onclick="shiftWeek(-1)" aria-label="Предыдущая неделя">‹</button>
+    <div class="crs-range"><b>${weekRange(WEEK)}</b><span>Москва · UTC+3</span></div>
+    <button class="crs-nb" onclick="shiftWeek(1)" aria-label="Следующая неделя">›</button>
+    <button class="crs-today" onclick="goToday()">Сегодня</button></div>
+  <div class="crs-col"><div class="crs-col-h">Расписание занятий</div>
+  ${days.map(({d,k,items})=>`<div class="crs-day${k===tk?' today':''}"><div class="crs-day-h">${WD[d.getDay()]} · ${d.getDate()} ${MONTHS[d.getMonth()]}</div>
+    ${items.map(l=>`<div class="crs-card">
+      <div class="crs-card-top"><div class="crs-c-time">${esc(l.time)}</div>
+        <div class="crs-c-tag">${esc(l.course)}${l.teacher?`<span>${esc(l.teacher)}</span>`:''}</div></div>
+      ${l.mat?`<div class="crs-mat">${esc(l.mat)}</div>`:''}
+      <div class="crs-place">📍 ${esc(l.place||'Zoom')}</div>
+      <div class="crs-chips"><span class="crs-chip">60 мин</span><span class="crs-chip">${esc(l.lang||l.course)}</span></div>
+    </div>`).join('')}</div>`).join('')}
+    ${LESSF?lessForm():''}
+    <button class="crs-add-big" onclick="lessOpen()">+ Добавить занятие</button>
+  </div>`;
 }
 function lessons(){return `<h1>Китайский</h1><div class="sub">HSK 4上</div><div class="list">
  <div class="row" onclick="go('w1')"><div><b>Урок 1 · 我们来中国学习了</b><div class="c-meta">Слова урока · 19</div></div><span class="chip">открыть</span></div>
