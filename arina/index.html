@@ -927,6 +927,29 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 .mpair .zh { font-size: 20px; }
 .fill { font-size: 18.5px; }
 .zh, .zh-opt, .script { font-size: 1.03em; }
+
+/* My wave — фирменное оформление (промпт) */
+:root{
+  --mw-menu:#E4F5FE; --mw-active:#D5EFFB; --mw-ink:#123F66;
+  --mw-btn:#087DA0; --mw-done:#DDF3E6; --mw-card:#FBFDFF; --mw-line:#BFE3F5;
+}
+body{ color:var(--mw-ink); }
+body::before{ background-image:url('assets/backgrounds/wave-original.jpg') !important; opacity:.38 !important;
+  background-position:center center !important; }
+body::after{ content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:linear-gradient(rgba(255,255,255,.45), rgba(255,255,255,.55)); }
+.app{ position:relative; z-index:1; }
+#tabbar, .tabbar, nav.sidebar, .sidebar{ background:var(--mw-menu) !important; }
+#tabbar::before, .tabbar::before{
+  content:''; display:block; height:44px; margin:10px 12px 6px;
+  background:url('assets/brand/my-wave-logo.png') center/contain no-repeat; }
+.tab.active{ background:var(--mw-active) !important; border-radius:12px; }
+.tab .ic{ width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+.tab .ic-img{ width:24px; height:24px; object-fit:contain; }
+.card, .task-card, .unit-card{ background:var(--mw-card); border:1px solid var(--mw-line); border-radius:14px; }
+button.btn, .btn-primary, .crs-btn{ background:var(--mw-btn) !important; color:#fff !important; }
+.done, .task-card.done, .is-done{ background:var(--mw-done) !important; }
+@media (max-width:899px){ .tab .ic, .tab .ic-img{ width:24px; height:24px; } }
 </style>
 <style id="hw-centering-5953">
 /* ДЗ: вертикальная центровка текста и иконок внутри плашек и кнопок.
@@ -1006,14 +1029,14 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 </div>
 <div class="tabbar" id="tabbar">
   <div class="sb-brand"><img src="logo.png?v=5.35.0" alt="听"><div><div class="sb-name">My wave</div><div class="sb-sub" id="sbVer"></div></div></div>
-  <button class="tab active" id="tab-sched" onclick="goTab('sched')" title="Расписание"><span class="ic"><img class="ic-img ic-img-on" src="tab-sch.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-sch-off.png?v=5.59.0" alt=""></span><span class="tab-label">Расписание<span class="tab-ru">занятия и оплаты</span></span></button>
-  <button class="tab" id="tab-lessons" onclick="goTab('lessons')" title="Китайский"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.59.0" alt=""></span><span class="tab-label">Китайский<span class="tab-ru">HSK 4上</span></span></button>
-  <button class="tab" id="tab-yin" onclick="goTab('yin')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-yin.png?v=5.59.0" alt=""><span class="ic-img ic-img-off" src="tab-yin-off.png?v=5.59.0" alt=""></span></span><span class="tab-label">听力<span class="tab-ru">шэдоуинг</span></span></button>
-  <button class="tab" id="tab-en" onclick="goTab('en')" title="Английский"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.59.0" alt=""></span><span class="tab-label">Английский<span class="tab-ru">уроки</span></span></button>
-  <button class="tab" id="tab-es" onclick="goTab('es')" title="Испанский"><span class="ic"><img class="ic-img ic-img-on" src="tab-idv.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-idv-off.png?v=5.59.0" alt=""></span><span class="tab-label">Испанский<span class="tab-ru">уроки</span></span></button>
-  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.59.0" alt=""></span><span class="tab-label">词典<span class="tab-ru">словарь</span></span></button>
-  <button class="tab" id="tab-dicten" onclick="goTab('dicten')" title="Dictionary"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.59.0" alt=""></span><span class="tab-label">Dictionary<span class="tab-ru">английский</span></span></button>
-  <button class="tab" id="tab-dictes" onclick="goTab('dictes')" title="Diccionario"><span class="ic"><img class="ic-img ic-img-on" src="tab-ci.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-ci-off.png?v=5.59.0" alt=""></span><span class="tab-label">Diccionario<span class="tab-ru">испанский</span></span></button>
+  <button class="tab active" id="tab-sched" onclick="goTab('sched')" title="Расписание"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/01-schedule.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/01-schedule.png" alt=""></span><span class="tab-label">Расписание<span class="tab-ru">занятия и оплаты</span></span></button>
+  <button class="tab" id="tab-lessons" onclick="goTab('lessons')" title="Китайский"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/02-chinese.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/02-chinese.png" alt=""></span><span class="tab-label">Китайский<span class="tab-ru">HSK 4上</span></span></button>
+  <button class="tab" id="tab-yin" onclick="goTab('yin')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/03-listening.png" alt=""><span class="ic-img ic-img-off" src="assets/menu/03-listening.png" alt=""></span></span><span class="tab-label">听力<span class="tab-ru">шэдоуинг</span></span></button>
+  <button class="tab" id="tab-en" onclick="goTab('en')" title="Английский"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/04-english.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/04-english.png" alt=""></span><span class="tab-label">Английский<span class="tab-ru">уроки</span></span></button>
+  <button class="tab" id="tab-es" onclick="goTab('es')" title="Испанский"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/05-spanish.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/05-spanish.png" alt=""></span><span class="tab-label">Испанский<span class="tab-ru">уроки</span></span></button>
+  <button class="tab" id="tab-dict" onclick="goTab('dict')" title="词典"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/06-dictionary-zh.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/06-dictionary-zh.png" alt=""></span><span class="tab-label">词典<span class="tab-ru">словарь</span></span></button>
+  <button class="tab" id="tab-dicten" onclick="goTab('dicten')" title="Dictionary"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/07-dictionary-en.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/07-dictionary-en.png" alt=""></span><span class="tab-label">Dictionary<span class="tab-ru">английский</span></span></button>
+  <button class="tab" id="tab-dictes" onclick="goTab('dictes')" title="Diccionario"><span class="ic"><img class="ic-img ic-img-on" src="assets/menu/08-dictionary-es.png" alt=""><img class="ic-img ic-img-off" src="assets/menu/08-dictionary-es.png" alt=""></span><span class="tab-label">Diccionario<span class="tab-ru">испанский</span></span></button>
   <div class="sb-offline" id="sbOffline">
     <button class="sb-offline-btn" id="sbOfflineBtn" onclick="offlineDownload()">⬇️ Скачать для полёта</button>
     <button class="sb-offline-btn" onclick="offlineVerify()" style="margin-top:6px">Проверить перед полётом</button>
@@ -1123,7 +1146,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '1.4.0';
+const APP_VER = '1.5.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -5481,7 +5504,7 @@ try {
 // Service Worker: офлайн-режим
 try { localStorage.removeItem('arina-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
-  const SW_BUILD = 'offline-1.4.0';
+  const SW_BUILD = 'offline-1.5.0';
   navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
