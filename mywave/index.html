@@ -42,8 +42,17 @@ h1{font-size:28px;margin-bottom:6px}
 .ptime{font-size:12.5px;color:var(--muted);min-width:86px;text-align:right}
 #seek{flex:1;accent-color:#087DA0}
 #prate{border:1px solid var(--line);border-radius:8px;padding:4px 6px;background:#fff;color:var(--ink);font:inherit;font-size:12.5px}
-.playw{width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--btn);font-size:14px;cursor:pointer;flex:none;margin-right:2px}
-.addw{margin-left:auto;width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--btn);font-size:18px;line-height:1;cursor:pointer;flex:none}
+.w{ display:grid; grid-template-columns:1fr 1fr 1.1fr auto; gap:8px; padding:12px 0;
+  border-bottom:1px solid #EAF4FB; align-items:baseline; border-radius:12px; min-width:0; }
+.w:last-child{ border-bottom:0; }
+.w > *{ min-width:0; overflow-wrap:anywhere; }
+.w .zh{ font-size:20.5px; }
+.word-ex{ grid-column:1 / -1; color:#5B7E97; font-size:13px; }
+.w-add{ width:34px; height:34px; border-radius:10px; border:1px solid var(--line); background:#fff;
+  color:var(--btn); font-size:15px; font-weight:700; cursor:pointer; flex:none; line-height:1; }
+.w-add.indict{ color:#15803D; border-color:#BFE3C9; background:#DDF3E6; }
+.card{ overflow-x:hidden; }
+width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--btn);font-size:18px;line-height:1;cursor:pointer;flex:none}
 .addw.on{background:var(--active);border-color:var(--btn);color:#0A5E7A}
 .row:hover{background:#f6fcff}
 .w{display:flex;gap:14px;align-items:baseline;padding:8px 0;border-bottom:1px solid #eaf4fb;font-size:16px}
@@ -126,7 +135,7 @@ h1{font-size:28px;margin-bottom:6px}
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.8.2';
+const APP_VER='0.8.3';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'中文 · 口语',who:'Люба · 60 мин',lang:'中文'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español ·',who:'Мария · 60 мин',lang:'Español'},
@@ -196,7 +205,7 @@ function partWords(){
   return `<button class="back" onclick="go('w1')">← урок 1</button>
   <h1>Слова</h1><div class="sub">19 слов · слушай и добавляй в словарь</div>
   <div class="card">${W.map(w=>{const has=dictHas('zh',w[0]); return `<div class="w"><span class="zh">${w[0]}</span><span class="py">${w[1]}</span><span class="ru">${w[2]}</span>
-    <button class="addw${has?' on':''}" onclick="dictToggle('zh','${w[0]}','${w[1]}','${w[2]}');go('p1')" title="${has?'Убрать из словаря':'Добавить в словарь'}">${has?'✓':'+'}</button></div>`}).join('')}</div>
+    <button class="w-add${has?' indict':''}" onclick="event.stopPropagation();dictToggle('zh','${w[0]}','${w[1]}','${w[2]}');go('p1')" title="${has?'Уже в словаре':'Добавить в словарь'}">${has?'✓':'＋'}</button></div>`}).join('')}</div>
   <div class="foot">© Abramson v. ${APP_VER}</div>`;
 }
 function partText(){
@@ -253,7 +262,7 @@ function soon(t,n){return `<h1>${esc(t)}</h1><div class="sub">${esc(n)}</div><di
 function dict(t,lang){const arr=dictList(lang||'zh');
   return `<h1>${esc(t)}</h1><div class="sub">Словарь · слов: ${arr.length}</div>
   <div class="card">${arr.length?arr.map(w=>`<div class="w"><span class="zh">${esc(w.zh)}</span><span class="py">${esc(w.py||'')}</span><span class="ru">${esc(w.ru||'')}</span>
-    <button class="addw on" onclick="dictToggle('${lang||'zh'}','${esc(w.zh)}','${esc(w.py||'')}','${esc(w.ru||'')}');go('${lang===undefined?'dict':(lang==='en'?'dicten':'dictes')}')">✓</button></div>`).join('')
+    <button class="w-add indict" onclick="event.stopPropagation();dictToggle('${lang||'zh'}','${esc(w.zh)}','${esc(w.py||'')}','${esc(w.ru||'')}');go('${lang===undefined?'dict':(lang==='en'?'dicten':'dictes')}')" title="Уже в словаре">✓</button></div>`).join('')
     : 'Словарь пуст — добавляй слова кнопкой «+» в уроке.'}</div>
   <div class="foot">© Abramson v. ${APP_VER}</div>`}
 (function(){
