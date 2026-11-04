@@ -28,7 +28,7 @@ main{flex:1;min-width:0;padding:32px 36px 56px;max-width:1320px;margin:0 auto}
 h1{font-size:28px;margin-bottom:6px}
 .sub{color:var(--muted);font-size:15px;margin-bottom:20px}
 .week{display:inline-flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px;margin-bottom:20px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid{display:grid;grid-template-columns:1fr;gap:14px;max-width:720px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 6px 18px rgba(18,63,102,.06)}
 .c-top{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:10px}
 .c-time{font-weight:700;color:var(--btn);font-size:15px}
@@ -75,7 +75,7 @@ h1{font-size:28px;margin-bottom:6px}
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.3.0';
+const APP_VER='0.3.1';
 const LESSONS=[
  {day:'Пн · 3 ноября',time:'17:00',title:'口语 · с Любой',who:'Люба · 60 мин',lang:'Китайский'},
  {day:'Вт · 4 ноября',time:'18:00',title:'Español · урок 3',who:'Мария · 60 мин',lang:'Испанский'},
@@ -91,16 +91,34 @@ const W=[['食堂','shítáng','столовая'],['要是','yàoshi','если
  ['留学','liúxué','учиться за границей'],['预科','yùkē','подготовительное отделение'],
  ['硕士','shuòshì','магистр'],['考试','kǎoshì','экзамен']];
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let SUB='lessons';
+const PRICE_KEY='mywave-pay-v1';
+function payState(){try{return JSON.parse(localStorage.getItem(PRICE_KEY)||'{}')}catch(e){return {}}}
+function paySet(k,v){const st=payState(); st[k]=v; try{localStorage.setItem(PRICE_KEY,JSON.stringify(st))}catch(e){}}
 function sched(){
-  return `<h1>Расписание</h1><div class="sub">Арина · 2 — 8 ноября</div>
-  <div class="week">‹ &nbsp;2 — 8 ноября · Москва&nbsp; ›</div>
+  const sub=`<div class="week" style="gap:6px">
+    <button class="mi${SUB==='lessons'?' on':''}" style="width:auto;padding:8px 16px" onclick="SUB='lessons';go('sched')">Занятия</button>
+    <button class="mi${SUB==='pay'?' on':''}" style="width:auto;padding:8px 16px" onclick="SUB='pay';go('sched')">Оплаты</button>
+  </div>`;
+  if(SUB==='pay'){
+    const st=payState();
+    return `<h1>Оплаты</h1><div class="sub">Арина · занятия и суммы</div>${sub}
+    <div class="grid">${LESSONS.map((l,i)=>{const k='l'+i; const paid=!!st[k];
+      return `<article class="card"><div class="c-top"><span>${esc(l.day)}</span><span class="c-time">${esc(l.time)}</span></div>
+      <h3>${esc(l.title)}</h3><div class="c-meta">${esc(l.who)}</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
+        <button class="mi${paid?' on':''}" style="width:auto;padding:8px 14px" onclick="paySet('${k}',${paid?'false':'true'});go('sched')">${paid?'Оплачено':'Отметить оплату'}</button>
+        <span class="chip">${paid?'оплачено':'ожидает'}</span></div></article>`}).join('')}</div>
+    <div class="foot">© Abramson v. ${APP_VER}</div>`;
+  }
+  return `<h1>Расписание</h1><div class="sub">Арина · 2 — 8 ноября</div>${sub}
   <div class="grid">${LESSONS.map(l=>`<article class="card"><div class="c-top"><span>${esc(l.day)}</span><span class="c-time">${esc(l.time)}</span></div>
   <h3>${esc(l.title)}</h3><div class="c-meta">${esc(l.who)}</div><span class="chip">${esc(l.lang)}</span></article>`).join('')}</div>
-  <div class="foot">Версия ${APP_VER}</div>`;
+  <div class="foot">© Abramson v. ${APP_VER}</div>`;
 }
 function lessons(){return `<h1>Китайский</h1><div class="sub">HSK 4上</div><div class="list">
  <div class="row" onclick="go('w1')"><div><b>Урок 1 · 我们来中国学习了</b><div class="c-meta">Слова урока · 19</div></div><span class="chip">открыть</span></div>
-</div><div class="foot">Версия ${APP_VER}</div>`}
+</div><div class="foot">© Abramson v. ${APP_VER}</div>`}
 function words(){return `<button class="back" onclick="go('lessons')">← назад</button>
  <h1>Урок 1 · 我们来中国学习了</h1><div class="sub">Слова, текст, грамматика, вопросы</div>
 
@@ -123,13 +141,13 @@ function words(){return `<button class="back" onclick="go('lessons')">← наз
  <div class="w"><span class="ru">2. 陈天中为什么选择跟经济有关的专业？</span></div>
  <div class="w"><span class="ru">3. 安妮以后想做什么？</span></div>
  </div>
- <div class="foot">Версия ${APP_VER}</div>`}
+ <div class="foot">© Abramson v. ${APP_VER}</div>`}
 function listen(){return `<h1>Аудирование</h1><div class="sub">听力 · шэдоуинг</div><div class="list">
  <div class="row"><div><b>Шэдоуинг 1</b><div class="c-meta">Короткие фразы, повтор за диктором</div></div><span class="chip">скоро</span></div>
  <div class="row"><div><b>Шэдоуинг 2</b><div class="c-meta">Короткие фразы, повтор за диктором</div></div><span class="chip">скоро</span></div>
-</div><div class="foot">Версия ${APP_VER}</div>`}
-function soon(t,n){return `<h1>${esc(t)}</h1><div class="sub">${esc(n)}</div><div class="card">Раздел готовится.</div><div class="foot">Версия ${APP_VER}</div>`}
-function dict(t){return `<h1>${esc(t)}</h1><div class="sub">Словарь</div><div class="card">Словарь пуст — слова добавляются из уроков.</div><div class="foot">Версия ${APP_VER}</div>`}
+</div><div class="foot">© Abramson v. ${APP_VER}</div>`}
+function soon(t,n){return `<h1>${esc(t)}</h1><div class="sub">${esc(n)}</div><div class="card">Раздел готовится.</div><div class="foot">© Abramson v. ${APP_VER}</div>`}
+function dict(t){return `<h1>${esc(t)}</h1><div class="sub">Словарь</div><div class="card">Словарь пуст — слова добавляются из уроков.</div><div class="foot">© Abramson v. ${APP_VER}</div>`}
 function go(s){
   document.querySelectorAll('.mi').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
   const v=document.getElementById('view');
@@ -140,7 +158,7 @@ function go(s){
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.mi').forEach(b=>b.addEventListener('click',()=>go(b.dataset.s)));
-document.getElementById('ver').textContent='My wave '+APP_VER;
+document.getElementById('ver').textContent='© Abramson v. '+APP_VER;
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 go('sched');
 </script>
