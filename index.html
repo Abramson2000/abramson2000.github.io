@@ -1307,6 +1307,18 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .card.list-row.idea-month .row-why{font-size:11.5px;color:#8A6A33;margin-top:2px}
 #newIdeaMonthBtn{background:var(--warm-soft) !important;color:var(--warm) !important;
   border:1px solid var(--warm-line) !important;box-shadow:none !important}
+
+/* 5.31.0: поиск ЛПУ в плане визита */
+.cp-wrap{position:relative}
+.cp-list{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:60;max-height:220px;overflow-y:auto;
+  background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.14)}
+.cp-list.hidden{display:none}
+.cp-item{display:flex;flex-direction:column;gap:1px;width:100%;text-align:left;background:none;border:0;
+  padding:9px 11px;font:inherit;cursor:pointer;border-bottom:1px solid #f1f1f1}
+.cp-item:last-child{border-bottom:0}
+.cp-name{font-size:14px;font-weight:700;color:var(--ink)}
+.cp-city{font-size:11.5px;color:var(--muted)}
+.cp-empty{padding:10px 12px;font-size:12.5px;color:var(--muted)}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2249,7 +2261,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.30.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.31.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -6192,13 +6204,20 @@ async function openIdeaModal(presetClinicId, idea) {
       <input type="text" id="viCity" value="${esc((idea && idea.city) || '')}" placeholder="например: Красноярск" />
     </div>
     <div class="form-err hidden" id="viErr"></div>
-    <div class="field"><label>Клиника (если есть — начни печатать)</label>
-      <input type="text" id="viClinicName" list="viClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно не заполнять" autocomplete="off" />
-      <datalist id="viClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}${isRefKind(c.kind) ? ' · справочник' : ''}</option>`).join('')}</datalist>
+    <div class="field"><label>Клиника (ЛПУ)</label>
+      <div class="cp-wrap">
+        <input type="text" id="viClinicName" value="${esc(cur ? (cur.name + (cur.city ? ' — ' + cur.city : '')) : '')}" placeholder="начни печатать название или город" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <input type="hidden" id="viClinicId" value="${esc(cur ? cur.id : '')}" />
+        <div class="cp-list hidden" id="viClinicResults"></div>
+      </div>
     </div>
     <div class="field"><label>Комментарий</label><input type="text" id="viGoal" value="${esc((idea && idea.goal) || '')}" placeholder="апробация Литокласт" /></div>
-    <div class="field"><label>Ориентир: с какого числа</label><input type="date" id="viFrom" value="${esc((idea && idea.from) || '')}" /></div>
-    <div class="field"><label>Ориентир: по какое</label><input type="date" id="viTo" value="${esc((idea && idea.to) || '')}" /></div>
+    <div class="vm-dates-row">
+      <span class="vm-dates-lbl">Ориентир</span>
+      <input type="date" id="viFrom" value="${esc((idea && idea.from) || '')}" aria-label="С какого числа" />
+      <span class="vm-dates-dash">—</span>
+      <input type="date" id="viTo" value="${esc((idea && idea.to) || '')}" aria-label="По какое число" />
+    </div>
     <div class="field"><label>Участники</label><div class="vm-chks">${participantsHtml((idea && idea.participants) || [])}</div></div>
     <div class="field"><label>Напомнить через (дней)</label><input type="number" id="viRemind" value="4" min="1" max="90" /></div>
     <div class="btn-row">
@@ -6209,11 +6228,32 @@ async function openIdeaModal(presetClinicId, idea) {
     </div>
   `);
   const viClinicInp = document.getElementById('viClinicName');
-  if (viClinicInp) viClinicInp.addEventListener('change', () => {
-    const c = byName[String(viClinicInp.value || '').trim().toLowerCase()];
-    const cityInp = document.getElementById('viCity');
-    if (c && cityInp && !cityInp.value.trim() && c.city) cityInp.value = c.city;
-  });
+  const viClinicIdInp = document.getElementById('viClinicId');
+  const viResults = document.getElementById('viClinicResults');
+  function viRenderResults(q) {
+    if (!viResults) return;
+    const s2 = String(q || '').trim().toLowerCase();
+    if (!s2) { viResults.classList.add('hidden'); viResults.innerHTML = ''; return; }
+    const hits = all.filter(c => (String(c.name || '').toLowerCase().includes(s2) || String(c.city || '').toLowerCase().includes(s2))).slice(0, 25);
+    if (!hits.length) { viResults.innerHTML = '<div class="cp-empty">ничего не найдено</div>'; viResults.classList.remove('hidden'); return; }
+    viResults.innerHTML = hits.map(c => `<button type="button" class="cp-item" data-cid="${Number(c.id)}">
+        <span class="cp-name">${esc(c.name)}</span><span class="cp-city">${esc(c.city || '')}</span></button>`).join('');
+    viResults.classList.remove('hidden');
+    viResults.querySelectorAll('.cp-item').forEach(b => b.addEventListener('click', () => {
+      const c = all.find(x => Number(x.id) === Number(b.dataset.cid));
+      if (!c) return;
+      viClinicInp.value = c.name + (c.city ? ' — ' + c.city : '');
+      if (viClinicIdInp) viClinicIdInp.value = String(c.id);
+      const cityInp = document.getElementById('viCity');
+      if (cityInp && c.city) cityInp.value = c.city;
+      viResults.classList.add('hidden');
+      viClinicInp.blur();
+    }));
+  }
+  if (viClinicInp) {
+    viClinicInp.addEventListener('input', () => { if (viClinicIdInp) viClinicIdInp.value = ''; viRenderResults(viClinicInp.value); });
+    viClinicInp.addEventListener('focus', () => { if (viClinicInp.value.trim() === '') viRenderResults(''); });
+  }
   document.getElementById('viCancel').addEventListener('click', closeModal);
   // 5.15.0: перевод идеи в реальный визит — из окна идеи, доступно всем менеджерам
   const viPlanBtn = document.getElementById('viPlan');
@@ -6246,7 +6286,18 @@ async function openIdeaModal(presetClinicId, idea) {
       const showErr = (msg) => { if (errBox) { errBox.textContent = msg; errBox.classList.remove('hidden'); } };
       if (errBox) errBox.classList.add('hidden');
       const nm = String((document.getElementById('viClinicName').value || '')).trim();
-      let c = nm ? byName[nm.toLowerCase()] : null;
+      const pickedId = Number((document.getElementById('viClinicId') || {}).value) || 0;
+      let c = pickedId ? all.find(x => Number(x.id) === pickedId) : null;
+      if (!c && nm) {
+        let nmOnly = nm, nmCity = (document.getElementById('viCity').value || '').trim();
+        if (nm.indexOf(' — ') > 0) { const p2 = nm.split(' — '); nmOnly = p2[0].trim(); nmCity = (p2[1] || '').trim() || nmCity; }
+        const mm = all.filter(x => String(x.name || '').trim().toLowerCase() === nmOnly.toLowerCase());
+        if (mm.length === 1) c = mm[0];
+        else if (mm.length > 1) {
+          const byC = mm.filter(x => String(x.city || '').trim().toLowerCase() === nmCity.toLowerCase());
+          c = byC.length === 1 ? byC[0] : null;
+        }
+      }
       const cityNow = (document.getElementById('viCity').value || '').trim();
       const fromNow = document.getElementById('viFrom').value || '';
       if (!c && !cityNow) { showErr('Укажи город или выбери клинику из подсказки'); btn.disabled = false; return; }
