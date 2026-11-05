@@ -2188,7 +2188,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.18.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.19.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5872,7 +5872,7 @@ async function openVisitModal(cfg) {
     </div>
     <div class="field"><label>Клиника (не обязательно)</label>
       <input type="text" id="vmClinicName" list="vmClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно оставить пустым, если это конференция" autocomplete="off" />
-      <datalist id="vmClinicList">${all.map(c => `<option value="${esc(c.name)}">${esc(c.city || '')}${isRefKind(c.kind) ? ' · справочник' : ''}</option>`).join('')}</datalist>
+      <datalist id="vmClinicList">${all.map(c => `<option value="${esc(c.name + (c.city ? ' — ' + c.city : ''))}">${esc(c.city || '')}${isRefKind(c.kind) ? ' · справочник' : ''}</option>`).join('')}</datalist>
     </div>
     <div class="row2">
       <div class="field"><label>С какого числа</label><input type="date" id="vmDate" value="${esc(date)}" /></div>
@@ -5966,8 +5966,19 @@ async function openVisitModal(cfg) {
     btn.disabled = true;
     try {
       const nm = String((document.getElementById('vmClinicName').value || '')).trim();
-      const c = byName[nm.toLowerCase()] || (cur && nm.toLowerCase() === String(cur.name || '').toLowerCase() ? cur : null);
       const cityNow = (document.getElementById('vmCity').value || '').trim();
+      // 5.19.0: «ГКБ №7» есть в разных городах — разрешаем по названию И городу
+      let nmOnly = nm, nmCity = cityNow;
+      if (nm.indexOf(' — ') > 0) { const parts = nm.split(' — '); nmOnly = parts[0].trim(); nmCity = (parts[1] || '').trim() || cityNow; }
+      let matches = all.filter(x => String(x.name || '').trim().toLowerCase() === nmOnly.toLowerCase());
+      let c = null;
+      if (matches.length === 1) c = matches[0];
+      else if (matches.length > 1) {
+        const byCity = matches.filter(x => String(x.city || '').trim().toLowerCase() === String(nmCity || '').trim().toLowerCase());
+        c = byCity.length === 1 ? byCity[0] : null;
+        if (!c) { toast('Таких клиник несколько (' + matches.map(x => x.city || 'без города').join(', ') + ') — выбери «' + nmOnly + ' — город» из списка'); btn.disabled = false; return; }
+      }
+      if (!c && cur && nmOnly.toLowerCase() === String(cur.name || '').toLowerCase()) c = cur;
       // 5.14.0: клиника необязательна — достаточно города и даты
       if (!c && !cityNow) {
         toast('Укажи город — клинику можно не заполнять'); btn.disabled = false; return;
