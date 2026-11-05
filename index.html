@@ -2199,7 +2199,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.20.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.21.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -6415,7 +6415,8 @@ async function renderMyDay() {
   const bOver = block('Просрочено', over, badgeOf, true);
   const bToday = block('Сегодня', tod, badgeOf, !over.length);
   const bLater = block('Позже', [...week, ...later].slice(0, 20), badgeOf, !over.length && !tod.length);
-  const ideasBlock = ideasDue.length ? `<div class="md-sec">Пора выбрать дату визита · <b>${ideasDue.length}</b></div>
+  const SHOW_IDEA_PROMPT = false;   // 5.21.0: блок «Пора выбрать дату визита» в «Моём дне» убран
+  const ideasBlock = (SHOW_IDEA_PROMPT && ideasDue.length) ? `<div class="md-sec">Пора выбрать дату визита · <b>${ideasDue.length}</b></div>
     <div class="list">${ideasDue.map(i => {
       const nm = nameById[i.clinic_id] || ('клиника #' + i.clinic_id);
       const win = (i.from && i.to) ? (fmtDate(i.from) + ' — ' + fmtDate(i.to)) : (i.from ? 'с ' + fmtDate(i.from) : '');
