@@ -1297,6 +1297,16 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .vm-doc-call{padding:2px 7px !important;font-size:10.5px !important;min-height:0 !important}
 .vm-doc-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #modal .detail-block .v{font-size:14px}
+
+/* 5.30.0: идеи визитов — компактные плашки с тёплым акцентом */
+:root { --warm: #8A5A12; --warm-soft: #FBF3D9; --warm-line: #EAD9A8; }
+.card.list-row.idea-month{padding:8px 10px !important;min-height:0 !important;
+  background:linear-gradient(180deg,#FEFBF0,#FBF3D9) !important;border-color:var(--warm-line) !important;cursor:pointer}
+.card.list-row.idea-month .visit-title-sm{font-size:13.5px;font-weight:700;color:#6B4708}
+.card.list-row.idea-month .row-next{font-size:11.5px;color:var(--warm);font-weight:700;white-space:nowrap}
+.card.list-row.idea-month .row-why{font-size:11.5px;color:#8A6A33;margin-top:2px}
+#newIdeaMonthBtn{background:var(--warm-soft) !important;color:var(--warm) !important;
+  border:1px solid var(--warm-line) !important;box-shadow:none !important}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2239,7 +2249,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.29.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.30.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5185,7 +5195,7 @@ async function renderVisits() {
       const m = String(i.month || '').slice(0, 7);
       const label = m ? monthLabel(m) : 'месяц не задан';
       const city = String(i.city || '').trim() || 'без города';
-      return `<div class="card list-row" data-idea-month="${i.noteId}">
+      return `<div class="card list-row idea-month" data-idea-month="${i.noteId}">
         <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(city)}</span></span>
           <span class="row-next">${esc(label)}</span></div>
         <div class="row-why">${esc(i.note || '—')}</div>
@@ -5223,6 +5233,13 @@ async function renderVisits() {
     ${VISITS_UI.mode === 'cal' ? '' : ideasMonthHtml + ideasHtml}
     ${listHtml}
     ${VISITS_UI.mode === 'cal' ? statsHtml : ''}`;
+
+  // 5.30.0: идея визита открывается на редактирование по клику
+  view.querySelectorAll('[data-idea-month]').forEach(el => el.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    const idea = monthIdeas.find(x => Number(x.noteId) === Number(el.dataset.ideaMonth));
+    if (idea) openIdeaMonthModal(idea.clinic_id || null, idea);
+  }));
 
   const nb = document.getElementById('newIdeaBtn');
   if (nb) nb.addEventListener('click', () => openIdeaModal());
