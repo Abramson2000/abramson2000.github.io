@@ -2239,7 +2239,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.27.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.28.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2739,6 +2739,7 @@ document.addEventListener('focusin', (e) => {
 
 let __modalOpener = null;
 function closeModal() {
+  try { window.__cardClosedAt = Date.now(); } catch (e) {}
   __formDirty = false;
   setBusy(false);
   const m = document.getElementById('modal');
@@ -8712,6 +8713,8 @@ async function restorePanelSelection() {
 
 async function showHoverCard(row, immediate) {
   if (!immediate) return;   // v3.11.2: по наведению ничего не показываем
+  // 5.28.0: сразу после закрытия окна карточку не открываем повторно (окно «мигало»)
+  if (Date.now() - (window.__cardClosedAt || 0) < 1200) return;
   // 4.67.0: карточку открываем только для настоящей клиники/человека.
   // У строк визита нет data-id — раньше отсюда уходил запрос clinics?id=eq.NaN
   // и база отвечала «invalid input syntax for type bigint: NaN».
