@@ -1270,6 +1270,33 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 #fPanel > summary::after { content: '▾'; font-size: 11px; color: var(--muted); }
 #fPanel[open] > summary::after { content: '▴'; }
 #fPanel:not([open]) .f-ctl { display: none; }
+
+/* 5.26.0: карточка визита — компактная, результаты отдельной панелью */
+#modal .detail-block{padding:5px 0}
+.vm-doc-row{padding:4px 0 !important}
+.vm-doc-name{font-size:13.5px !important}
+.vm-doc-clinics{font-size:11.5px !important}
+.vm-doc-call{padding:2px 8px !important;font-size:11px !important}
+.vm-res-open{display:flex;align-items:center;gap:6px;width:100%;background:var(--bg);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;margin:4px 0 10px}
+.vm-res-arrow{margin-left:auto;color:var(--muted)}
+.vm-res-sub{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+.vm-res-line{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;background:var(--bg);
+  border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:6px;font:inherit;cursor:pointer}
+.vm-res-line-name{font-weight:700;font-size:13.5px;color:var(--ink)}
+.vm-res-line-val{font-size:12px;color:var(--muted)}
+.vm-res-line.has .vm-res-line-val{color:#15803d}
+
+/* 5.27.0: визит — компактные кнопки и врачи */
+#modal .btn-row{margin-top:10px;gap:8px}
+#modal .btn-row .btn{padding:10px 12px;font-size:14px;flex:1 1 46%}
+#modal .btn-row .btn.ghost{font-size:13.5px}
+.vm-doc-row{display:grid !important;grid-template-columns:1fr auto;align-items:center;column-gap:8px;padding:3px 0 !important;border-bottom:0 !important}
+.vm-doc-main{min-width:0}
+.vm-doc-clinics span{display:inline;margin-right:6px}
+.vm-doc-call{padding:2px 7px !important;font-size:10.5px !important;min-height:0 !important}
+.vm-doc-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#modal .detail-block .v{font-size:14px}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2212,7 +2239,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.25.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.27.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4201,7 +4228,7 @@ async function openVisitCard(plan) {
     <div class="detail-block"><div class="k">Комментарии</div><div class="v">${esc(plan.goal || '—')}</div></div>
     <div class="detail-block"><div class="k">Участники</div><div class="v">${esc(parts)}</div></div>
     <div class="detail-block"><div class="k">Врачи</div><div class="v">${docRows}</div></div>
-    ${RESULTS_DRAFT ? '<div class="detail-block"><div class="k">Результаты</div><div class="v" id="vmResults">загрузка…</div></div>' : ''}
+    ${RESULTS_DRAFT ? '<button type="button" class="vm-res-open" id="vmResOpen">Результаты визита<span id="vmResCount"></span><span class="vm-res-arrow">›</span></button>' : ''}
     <div class="btn-row">
       <button class="btn" id="vcEdit">Изменить визит</button>
       <button class="btn ghost" id="vcDrop">Отменить визит</button>
@@ -4209,16 +4236,13 @@ async function openVisitCard(plan) {
     </div>
   `);
   (async () => {
-    const box = document.getElementById('vmResults');
-    if (!box || !RESULTS_DRAFT) return;
+    const btn = document.getElementById('vmResOpen');
+    if (!btn || !RESULTS_DRAFT) return;
     const map = await loadVisitResults(plan.clinic_id);
-    box.innerHTML = visitResultsHtml(plan, docs, map);
-    box.querySelectorAll('.vm-res-row').forEach(btn => btn.addEventListener('click', async () => {
-      const doc = docs.find(d => Number(d.id) === Number(btn.dataset.doc));
-      if (!doc) return;
-      const key = String(plan.noteId) + ':' + String(doc.id);
-      openResultEditor(plan, doc, c, map[key]);
-    }));
+    const filled = Object.keys(map).filter(k => (map[k].text || '').trim()).length;
+    const cnt = document.getElementById('vmResCount');
+    if (cnt) cnt.textContent = docs.length ? ' · ' + filled + ' из ' + docs.length : '';
+    btn.addEventListener('click', () => openResultsPanel(plan, docs, c));
   })();
 
   document.getElementById('vcEdit').addEventListener('click', async () => {
@@ -4312,7 +4336,30 @@ function visitResultsHtml(plan, docs, map) {
     </button>`;
   }).join('');
 }
-async function openResultEditor(plan, doctor, clinic, existing) {
+async function openResultsPanel(plan, docs, clinic) {
+  const map = await loadVisitResults(plan.clinic_id);
+  openModal('Результаты визита', `
+    <div class="vm-res-sub">${esc(visitTitleOf(plan))} · ${esc(fmtDate(plan.date))}${clinic ? ' · ' + esc(clinic.name) : ''}</div>
+    ${docs.length ? docs.map(d => {
+      const nm = d.fullName || d.full_name || ('#' + d.id);
+      const r = map[String(plan.noteId) + ':' + String(d.id)];
+      const prev = r && r.text ? String(r.text).replace(/\s+/g, ' ').slice(0, 70) : '';
+      return `<button type="button" class="vm-res-line${r && r.text ? ' has' : ''}" data-doc="${Number(d.id)}">
+        <span class="vm-res-line-name">${esc(nm)}</span>
+        <span class="vm-res-line-val">${prev ? esc(prev) + (r.text.length > 70 ? '…' : '') : 'написать результат'}</span>
+      </button>`;
+    }).join('') : '<div class="empty">К визиту не привязаны врачи</div>'}
+    <div class="btn-row"><button class="btn ghost" id="vmResBack">Назад к визиту</button></div>
+  `);
+  document.getElementById('vmResBack').addEventListener('click', () => { closeModal(); openVisitCard(plan); });
+  document.querySelectorAll('.vm-res-line').forEach(el => el.addEventListener('click', () => {
+    const doc = docs.find(d => Number(d.id) === Number(el.dataset.doc));
+    if (!doc) return;
+    openResultEditor(plan, doc, clinic, map[String(plan.noteId) + ':' + String(doc.id)], docs);
+  }));
+}
+
+async function openResultEditor(plan, doctor, clinic, existing, docs) {
   const nm = doctor.fullName || doctor.full_name || ('#' + doctor.id);
   openModal('Результат · ' + nm, `
     <div class="visit-title">${esc(nm)}</div>
@@ -4327,7 +4374,7 @@ async function openResultEditor(plan, doctor, clinic, existing) {
   `);
   document.getElementById('vmResCancel').addEventListener('click', () => {
     closeModal();
-    openVisitCard(plan);
+    if (docs) openResultsPanel(plan, docs, clinic); else openVisitCard(plan);
   });
   document.getElementById('vmResSave').addEventListener('click', async () => {
     const t = (document.getElementById('vmResText').value || '').trim();
@@ -4345,7 +4392,7 @@ async function openResultEditor(plan, doctor, clinic, existing) {
       }
       toast(callDate ? ('✓ Результат сохранён · звонок ' + callDate.split('-').reverse().join('.')) : '✓ Результат сохранён');
       closeModal();
-      openVisitCard(plan);
+      if (docs) openResultsPanel(plan, docs, clinic); else openVisitCard(plan);
     } catch (e) { toast('⚠️ Не удалось сохранить: ' + (e && e.message ? e.message : e)); }
   });
 }
