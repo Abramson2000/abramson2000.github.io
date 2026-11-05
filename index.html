@@ -1258,6 +1258,18 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .vm-dates-lbl{font-size:12.5px;font-weight:600;color:var(--muted);flex:0 0 auto}
 .vm-dates-row input[type=date]{flex:1 1 0;min-width:0;padding:8px 6px;font-size:14px}
 .vm-dates-dash{color:var(--muted)}
+
+/* 5.25.0: фильтры в спойлере, без горизонтальной прокрутки */
+.filters .f-ctl, .filters #fChips { flex-wrap: wrap !important; overflow-x: visible !important; }
+@media (max-width: 899px) {
+  .f-ctl, #fChips { flex-wrap: wrap !important; overflow-x: visible !important; }
+}
+#fPanel > summary { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none;
+  font-size: 13px; font-weight: 700; color: var(--ink); padding: 6px 2px; }
+#fPanel > summary::-webkit-details-marker { display: none; }
+#fPanel > summary::after { content: '▾'; font-size: 11px; color: var(--muted); }
+#fPanel[open] > summary::after { content: '▴'; }
+#fPanel:not([open]) .f-ctl { display: none; }
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -1460,7 +1472,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
   </aside>
 
   <div id="filters" class="filters hidden">
-    <details id="fPanel" open>
+    <details id="fPanel">
       <summary>Фильтры<span id="fSumN" class="f-n"></span></summary>
       <div class="f-ctl">
         <select id="f_region"><option value="">Регионы</option></select>
@@ -2200,7 +2212,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.24.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.25.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2619,6 +2631,14 @@ document.addEventListener('click', ev => {
   toggleTagFilter(el.dataset.grp || 'tags', el.dataset.tagf);
 }, true);
 
+/* 5.25.0: состояние спойлера фильтров запоминаем */
+try {
+  const fp = document.getElementById('fPanel');
+  if (fp) {
+    if (localStorage.getItem('crmFiltersOpen') === '1') fp.setAttribute('open', '');
+    fp.addEventListener('toggle', () => { try { localStorage.setItem('crmFiltersOpen', fp.open ? '1' : '0'); } catch (e) {} });
+  }
+} catch (e) {}
 let __modalScrollY = 0, __closingModal = false, __formDirty = false;
 function markFormDirty(v) { __formDirty = !!v; }
 // 4.72.0: пока открыта форма, воркер не перезагружает страницу —
