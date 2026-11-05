@@ -2200,7 +2200,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.22.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.23.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3914,7 +3914,7 @@ async function render() {
   document.body.classList.toggle('plan-mode', state.view === 'plan');   // v4.28.0: «План» — на всю ширину
   document.body.classList.toggle('visits-mode', state.view === 'visits');   // v4.49.0: в «Визитах» поиск не нужен
   document.body.classList.toggle('calls-mode', state.view === 'calls');     // 5.6.0: в «Звонках» тоже без поиска и фильтров
-  document.body.classList.toggle('myday-mode', state.view === 'myday');     // 5.22.0: в «Моём дне» без поиска и фильтров
+  document.body.classList.toggle('myday-mode', state.view === 'myday' || state.view === 'settings');     // 5.22.0: без поиска и фильтров в «Моём дне» и «Настройках»
   // v3.15.0: до выбора — короткая подсказка в правой панели
   if (document.body.classList.contains('detail-mode') && !state.selId) showPanelHint();
   // v3.14.0: тип действия подставляется только при работе из «Звонков»/«Визитов»
