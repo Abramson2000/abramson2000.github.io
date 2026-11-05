@@ -1319,6 +1319,16 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .cp-name{font-size:14px;font-weight:700;color:var(--ink)}
 .cp-city{font-size:11.5px;color:var(--muted)}
 .cp-empty{padding:10px 12px;font-size:12.5px;color:var(--muted)}
+
+/* 5.32.0: карточка визита на телефоне — с полями и мельче подписи */
+@media (max-width: 899px) {
+  #modal .modal-card { width: calc(100% - 14px) !important; margin: 0 7px 7px !important; border-radius: 16px 16px 16px 16px !important; }
+  #modal .detail-block { padding: 4px 0 !important; }
+  #modal .detail-block .k { font-size: 10.5px !important; }
+  #modal .detail-block .v { font-size: 13px !important; line-height: 1.35; }
+  .vm-doc-name { font-size: 12.5px !important; }
+  .vm-doc-clinics { font-size: 11px !important; }
+}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2261,7 +2271,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.31.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.32.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4359,6 +4369,23 @@ function visitResultsHtml(plan, docs, map) {
     </button>`;
   }).join('');
 }
+/* 5.32.0: клиника конкретного врача — результат пишем туда, а не в клинику визита */
+async function doctorClinicFor(doctorId, visitCity, fallbackId) {
+  try {
+    const { data: links } = await sb.from('clinic_people').select('clinic_id').eq('person_id', Number(doctorId));
+    const ids = [...new Set((links || []).map(l => Number(l.clinic_id)).filter(Boolean))];
+    if (!ids.length) return fallbackId || null;
+    const { data: cs } = await sb.from('clinics').select('id,name,city').in('id', ids);
+    const list = cs || [];
+    if (!list.length) return fallbackId || null;
+    const city = String(visitCity || '').trim().toLowerCase();
+    if (city) {
+      const inCity = list.find(c => String(c.city || '').trim().toLowerCase() === city);
+      if (inCity) return Number(inCity.id);
+    }
+    return Number(list[0].id) || fallbackId || null;
+  } catch (e) { return fallbackId || null; }
+}
 async function openResultsPanel(plan, docs, clinic) {
   const map = await loadVisitResults(plan.clinic_id);
   openModal('Результаты визита', `
@@ -4384,9 +4411,16 @@ async function openResultsPanel(plan, docs, clinic) {
 
 async function openResultEditor(plan, doctor, clinic, existing, docs) {
   const nm = doctor.fullName || doctor.full_name || ('#' + doctor.id);
+  // клиника именно этого врача (в поездке бывает несколько больниц)
+  const docClinicId = await doctorClinicFor(doctor.id, plan.city, plan.clinic_id);
+  let docClinic = null;
+  try {
+    if (docClinicId) { const r = await sb.from('clinics').select('id,name,city').eq('id', docClinicId).limit(1); docClinic = (r.data && r.data[0]) || null; }
+  } catch (e) {}
+  const showClinic = docClinic || clinic;
   openModal('Результат · ' + nm, `
     <div class="visit-title">${esc(nm)}</div>
-    <div class="detail-block"><div class="k">Клиника</div><div class="v">${clinic ? esc(clinic.name) + (clinic.city ? ' · ' + esc(clinic.city) : '') : '—'}</div></div>
+    <div class="detail-block"><div class="k">Клиника</div><div class="v">${showClinic ? esc(showClinic.name) + (showClinic.city ? ' · ' + esc(showClinic.city) : '') : '—'}</div></div>
     <div class="detail-block"><div class="k">Встреча</div><div class="v">${esc(visitTitleOf(plan))} · ${esc(fmtDate(plan.date))}</div></div>
     <div class="field"><label for="vmResText">Результат встречи</label>
       <textarea id="vmResText" rows="8" style="min-height:180px" placeholder="Что обсудили, о чём договорились, следующие шаги…">${existing ? esc(existing.text) : ''}</textarea></div>
@@ -4403,22 +4437,23 @@ async function openResultEditor(plan, doctor, clinic, existing, docs) {
     const t = (document.getElementById('vmResText').value || '').trim();
     const body = RESULT_MARK + JSON.stringify({ v: Number(plan.noteId), d: Number(doctor.id), t: t, at: new Date().toISOString() });
     try {
-      if (existing && existing.id) await sb.from('notes').update({ text: body }).eq('id', existing.id);
-      else await sb.from('notes').insert({ clinic_id: Number(plan.clinic_id), text: body });
-      if (t) await appendResultToClinic(plan.clinic_id, nm, fmtDate(plan.date), t);
+      const targetClinic = docClinicId || Number(plan.clinic_id);
+      if (existing && existing.id) await sb.from('notes').update({ text: body, clinic_id: Number(targetClinic) }).eq('id', existing.id);
+      else await sb.from('notes').insert({ clinic_id: Number(targetClinic), text: body });
+      if (t) await appendResultToClinic(targetClinic, nm, fmtDate(plan.date), t);
       const callDate = t ? parseCallIntent(t) : null;
       if (callDate) {
         try {
           // 5.29.0: не перетираем отметку визита — иначе визит исчезает из «Моего дня»
-          const cur = await sb.from('clinic_private').select('action_type').eq('clinic_id', Number(plan.clinic_id)).limit(1);
+          const cur = await sb.from('clinic_private').select('action_type').eq('clinic_id', Number(targetClinic)).limit(1);
           const act = (cur.data && cur.data[0] && cur.data[0].action_type) || null;
           if (act === 'visit') {
             await sb.from('clinic_private').update({
               note: ('звонок ' + callDate.split('-').reverse().join('.') + ': ' + t.slice(0, 120)),
               updated_at: new Date().toISOString()
-            }).eq('clinic_id', Number(plan.clinic_id));
+            }).eq('clinic_id', Number(targetClinic));
           } else {
-            await saveClinicPrivate(Number(plan.clinic_id), (clinic && clinic.manager) || null,
+            await saveClinicPrivate(Number(targetClinic), (clinic && clinic.manager) || null,
               { next_contact: callDate, action_type: 'call', note: t.slice(0, 120) });
           }
         } catch (e) {}
