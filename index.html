@@ -2239,7 +2239,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.28.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.29.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4387,8 +4387,18 @@ async function openResultEditor(plan, doctor, clinic, existing, docs) {
       const callDate = t ? parseCallIntent(t) : null;
       if (callDate) {
         try {
-          await saveClinicPrivate(Number(plan.clinic_id), (clinic && clinic.manager) || null,
-            { next_contact: callDate, action_type: 'call', note: t.slice(0, 120) });
+          // 5.29.0: не перетираем отметку визита — иначе визит исчезает из «Моего дня»
+          const cur = await sb.from('clinic_private').select('action_type').eq('clinic_id', Number(plan.clinic_id)).limit(1);
+          const act = (cur.data && cur.data[0] && cur.data[0].action_type) || null;
+          if (act === 'visit') {
+            await sb.from('clinic_private').update({
+              note: ('звонок ' + callDate.split('-').reverse().join('.') + ': ' + t.slice(0, 120)),
+              updated_at: new Date().toISOString()
+            }).eq('clinic_id', Number(plan.clinic_id));
+          } else {
+            await saveClinicPrivate(Number(plan.clinic_id), (clinic && clinic.manager) || null,
+              { next_contact: callDate, action_type: 'call', note: t.slice(0, 120) });
+          }
         } catch (e) {}
       }
       toast(callDate ? ('✓ Результат сохранён · звонок ' + callDate.split('-').reverse().join('.')) : '✓ Результат сохранён');
