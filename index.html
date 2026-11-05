@@ -1231,6 +1231,12 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .list-row.gone-row .list-row-name { color: #b3261e; }
 .list-row.gone-row .list-row-sub { color: #9c4f47; }
 .list-row.gone-row.selected { box-shadow: inset 3px 0 0 #b3261e; }
+
+.vm-res-row{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-top:6px;cursor:pointer;font:inherit}
+.vm-res-row:hover{border-color:var(--brand)}
+.vm-res-name{font-weight:700;font-size:14px;color:var(--ink)}
+.vm-res-val{font-size:12.5px;color:var(--muted)}
+.vm-res-val.has{color:#15803d}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2173,7 +2179,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.15.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.16.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4153,12 +4159,26 @@ async function openVisitCard(plan) {
     <div class="detail-block"><div class="k">Комментарии</div><div class="v">${esc(plan.goal || '—')}</div></div>
     <div class="detail-block"><div class="k">Участники</div><div class="v">${esc(parts)}</div></div>
     <div class="detail-block"><div class="k">Врачи</div><div class="v">${docRows}</div></div>
+    ${RESULTS_DRAFT ? '<div class="detail-block"><div class="k">Результаты</div><div class="v" id="vmResults">загрузка…</div></div>' : ''}
     <div class="btn-row">
       <button class="btn" id="vcEdit">Изменить визит</button>
       <button class="btn ghost" id="vcDrop">Отменить визит</button>
       ${c ? `<button class="btn ghost" id="vcClinic">Открыть клинику</button>` : ''}
     </div>
   `);
+  (async () => {
+    const box = document.getElementById('vmResults');
+    if (!box || !RESULTS_DRAFT) return;
+    const map = await loadVisitResults(plan.clinic_id);
+    box.innerHTML = visitResultsHtml(plan, docs, map);
+    box.querySelectorAll('.vm-res-row').forEach(btn => btn.addEventListener('click', async () => {
+      const doc = docs.find(d => Number(d.id) === Number(btn.dataset.doc));
+      if (!doc) return;
+      const key = String(plan.noteId) + ':' + String(doc.id);
+      openResultEditor(plan, doc, c, map[key]);
+    }));
+  })();
+
   document.getElementById('vcEdit').addEventListener('click', async () => {
     closeModal();
     try { if (document.body.classList.contains('card-open')) { state.selId = null; closeCardToList(); } } catch (_) {}
@@ -4186,6 +4206,105 @@ async function openVisitCard(plan) {
     closeModal();
     state.view = 'clinics'; state.selId = plan.clinic_id; state.selKind = 'clinic';
     await render();
+  });
+}
+
+
+/* разбор просьбы о звонке из текста результата: «позвонить завтра», «перезвонить через 3 дня» */
+function parseCallIntent(text) {
+  const t = String(text || '').toLowerCase();
+  if (!/(позвон|перезвон|созвон|набрать|связаться)/.test(t)) return null;
+  const base = new Date(); base.setHours(12, 0, 0, 0);
+  const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+  if (/послезавтра/.test(t)) { const d = new Date(base); d.setDate(d.getDate() + 2); return iso(d); }
+  if (/завтра/.test(t)) { const d = new Date(base); d.setDate(d.getDate() + 1); return iso(d); }
+  if (/сегодня/.test(t)) return iso(base);
+  const m = t.match(/через\s+(\d+)\s*(день|дня|дней)/);
+  if (m) { const d = new Date(base); d.setDate(d.getDate() + Number(m[1])); return iso(d); }
+  const wd = { 'понедельник': 1, 'вторник': 2, 'среду': 3, 'среда': 3, 'четверг': 4, 'пятницу': 5, 'пятница': 5, 'субботу': 6, 'суббота': 6, 'воскресенье': 0 };
+  for (const k in wd) {
+    if (t.indexOf(k) >= 0) {
+      const d = new Date(base); const cur = d.getDay();
+      let add = (wd[k] - cur + 7) % 7; if (add === 0) add = 7;
+      d.setDate(d.getDate() + add); return iso(d);
+    }
+  }
+  return null;
+}
+/* дублируем результат в карточку клиники, с указанием врача и даты */
+async function appendResultToClinic(clinicId, doctorName, dateStr, text) {
+  try {
+    const { data } = await sb.from('clinics').select('id,situation').eq('id', Number(clinicId)).limit(1);
+    const cur = (data && data[0] && data[0].situation) || '';
+    const head = 'Результат встречи ' + dateStr + ' · ' + doctorName + ':';
+    if (cur.indexOf(head) >= 0) return; // уже перенесён
+    const add = (cur ? cur + '\n\n' : '') + head + '\n' + text;
+    await sb.from('clinics').update({ situation: add }).eq('id', Number(clinicId));
+  } catch (e) {}
+}
+// ---------- Результаты встреч (черновик 5.16.0, маркер [[R]]) ----------
+async function loadVisitResults(clinicId) {
+  const map = {};
+  try {
+    const { data } = await sb.from('notes').select('id,clinic_id,text')
+      .eq('clinic_id', Number(clinicId)).like('text', RESULT_MARK + '%').limit(500);
+    (data || []).forEach(n => {
+      try {
+        const o = JSON.parse(String(n.text).slice(RESULT_MARK.length));
+        map[String(o.v) + ':' + String(o.d)] = { id: n.id, text: o.t || '', at: o.at || '' };
+      } catch (_) {}
+    });
+  } catch (_) {}
+  return map;
+}
+function visitResultsHtml(plan, docs, map) {
+  if (!docs.length) return '<div class="row-why">Врачи не добавлены — результат писать некому</div>';
+  return docs.map(p => {
+    const nm = p.fullName || p.full_name || ('#' + p.id);
+    const key = String(plan.noteId) + ':' + String(p.id);
+    const r = map[key];
+    const prev = r && r.text ? String(r.text).replace(/\s+/g, ' ').slice(0, 60) : '';
+    return `<button type="button" class="vm-res-row" data-doc="${Number(p.id)}">
+      <span class="vm-res-name">${esc(nm)}</span>
+      <span class="vm-res-val${r && r.text ? ' has' : ''}">${r && r.text ? esc(prev) + (r.text.length > 60 ? '…' : '') : '— результат не записан'}</span>
+    </button>`;
+  }).join('');
+}
+async function openResultEditor(plan, doctor, clinic, existing) {
+  const nm = doctor.fullName || doctor.full_name || ('#' + doctor.id);
+  openModal('Результат · ' + nm, `
+    <div class="visit-title">${esc(nm)}</div>
+    <div class="detail-block"><div class="k">Клиника</div><div class="v">${clinic ? esc(clinic.name) + (clinic.city ? ' · ' + esc(clinic.city) : '') : '—'}</div></div>
+    <div class="detail-block"><div class="k">Встреча</div><div class="v">${esc(visitTitleOf(plan))} · ${esc(fmtDate(plan.date))}</div></div>
+    <div class="field"><label for="vmResText">Результат встречи</label>
+      <textarea id="vmResText" rows="8" style="min-height:180px" placeholder="Что обсудили, о чём договорились, следующие шаги…">${existing ? esc(existing.text) : ''}</textarea></div>
+    <div class="btn-row">
+      <button class="btn" id="vmResSave">Сохранить</button>
+      <button class="btn ghost" id="vmResCancel">Отмена</button>
+    </div>
+  `);
+  document.getElementById('vmResCancel').addEventListener('click', () => {
+    closeModal();
+    openVisitCard(plan);
+  });
+  document.getElementById('vmResSave').addEventListener('click', async () => {
+    const t = (document.getElementById('vmResText').value || '').trim();
+    const body = RESULT_MARK + JSON.stringify({ v: Number(plan.noteId), d: Number(doctor.id), t: t, at: new Date().toISOString() });
+    try {
+      if (existing && existing.id) await sb.from('notes').update({ text: body }).eq('id', existing.id);
+      else await sb.from('notes').insert({ clinic_id: Number(plan.clinic_id), text: body });
+      if (t) await appendResultToClinic(plan.clinic_id, nm, fmtDate(plan.date), t);
+      const callDate = t ? parseCallIntent(t) : null;
+      if (callDate) {
+        try {
+          await saveClinicPrivate(Number(plan.clinic_id), (clinic && clinic.manager) || null,
+            { next_contact: callDate, action_type: 'call', note: t.slice(0, 120) });
+        } catch (e) {}
+      }
+      toast(callDate ? ('✓ Результат сохранён · звонок ' + callDate.split('-').reverse().join('.')) : '✓ Результат сохранён');
+      closeModal();
+      openVisitCard(plan);
+    } catch (e) { toast('⚠️ Не удалось сохранить: ' + (e && e.message ? e.message : e)); }
   });
 }
 
@@ -4957,8 +5076,21 @@ async function renderVisits() {
 
   // идеи
   // 5.9.0: идеи визитов — той же формы, что и визиты
-  const ideasHtml = ideaRows.length ? `<div class="md-sec">Идеи визитов · <b>${ideaRows.length}</b></div>
-    <div class="list visits-list">${ideaRows.map(i => {
+  const monthIdeas = ideaRows.filter(i => i.month && !i.from);
+  const planIdeas = ideaRows.filter(i => !(i.month && !i.from));
+  const ideasMonthHtml = monthIdeas.length ? `<div class="md-sec">Идеи визитов · <b>${monthIdeas.length}</b></div>
+    <div class="list visits-list">${monthIdeas.map(i => {
+      const m = String(i.month || '').slice(0, 7);
+      const label = m ? monthLabel(m) : 'месяц не задан';
+      const city = String(i.city || '').trim() || 'без города';
+      return `<div class="card list-row" data-idea-month="${i.noteId}">
+        <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(city)}</span></span>
+          <span class="row-next">${esc(label)}</span></div>
+        <div class="row-why">${esc(i.note || '—')}</div>
+      </div>`;
+    }).join('')}</div>` : '';
+  const ideasHtml = planIdeas.length ? `<div class="md-sec">Планы визитов · <b>${planIdeas.length}</b></div>
+    <div class="list visits-list">${planIdeas.map(i => {
       const a = String(i.from || '').slice(0, 10);
       const b = String(i.to || i.from || '').slice(0, 10);
       const win = !a ? 'окно не задано' : ((!b || b === a) ? fmtDate(a) : fmtDate(a) + ' - ' + fmtDate(b));
@@ -4979,18 +5111,21 @@ async function renderVisits() {
   view.innerHTML = `
     <div class="plan-bar visits-bar">
       <button class="btn ghost mini" id="visitsModeBtn">${VISITS_UI.mode === 'cal' ? 'Список' : 'Календарь'}</button>
-      <button class="btn primary mini" id="newIdeaBtn">＋ Идея</button>
+      <button class="btn ghost mini" id="newIdeaMonthBtn">＋ Идея</button>
+      <button class="btn primary mini" id="newIdeaBtn">＋ План визита</button>
     </div>
     <div class="plan-filters" style="display:flex">
       ${chip('', 'Все')}${MGR_LIST.map(m => chip(m, m)).join('')}
     </div>
     ${calHtml}
-    ${VISITS_UI.mode === 'cal' ? '' : ideasHtml}
+    ${VISITS_UI.mode === 'cal' ? '' : ideasMonthHtml + ideasHtml}
     ${listHtml}
     ${VISITS_UI.mode === 'cal' ? statsHtml : ''}`;
 
   const nb = document.getElementById('newIdeaBtn');
   if (nb) nb.addEventListener('click', () => openIdeaModal());
+  const nm = document.getElementById('newIdeaMonthBtn');
+  if (nm) nm.addEventListener('click', () => openIdeaMonthModal());
 
 
   const shAll = document.getElementById('visitsShowAll');
@@ -5499,7 +5634,8 @@ async function renderStub(title) {
 // Служебные записи в notes (в ленту истории не попадают):
 //   [[V]]{date,goal,who,addr,participants[],people[]} — визит (date — конкретный день)
 //   [[I]]{goal,from,to,remind,participants[],status} — замысел: дата ещё не выбрана
-const VISIT_MARK = '[[V]]', IDEA_MARK = '[[I]]';
+const VISIT_MARK = '[[V]]', IDEA_MARK = '[[I]]', RESULT_MARK = '[[R]]';
+const RESULTS_DRAFT = false;   // черновик «Результаты встреч» — включить, когда Саша скажет
 // Кто есть кто: в базе менеджер записан фамилией, «Настя» и «Галя» — обиходные имена.
 const VISIT_MANAGERS = [
   { id: 'Абрамов', label: 'Абрамов' },
@@ -5832,6 +5968,47 @@ async function openVisitModal(cfg) {
 }
 
 // Модалка идеи: тот же поиск клиники + участники + срок напоминания
+async function openIdeaMonthModal(presetClinicId, idea) {
+  const cur = new Date();
+  const defMonth = cur.getFullYear() + '-' + String(cur.getMonth() + 1).padStart(2, '0');
+  openModal(idea ? 'Изменить идею визита' : 'Идея визита', `
+    <div class="field"><label>Город или место</label>
+      <input type="text" id="imCity" value="${esc((idea && idea.city) || '')}" placeholder="например: Иваново" />
+    </div>
+    <div class="field"><label>Примерный срок</label>
+      <input type="month" id="imMonth" value="${esc((idea && idea.month) || defMonth)}" />
+    </div>
+    <div class="field"><label>Заметка</label>
+      <textarea id="imNote" rows="3" placeholder="что там интересного, к кому заехать">${esc((idea && idea.note) || '')}</textarea>
+    </div>
+    <div class="form-err hidden" id="imErr"></div>
+    <div class="btn-row">
+      <button class="btn" id="imSave">Сохранить</button>
+      <button class="btn ghost" id="imCancel">Отмена</button>
+    </div>
+  `);
+  document.getElementById('imCancel').addEventListener('click', closeModal);
+  document.getElementById('imSave').addEventListener('click', async () => {
+    const city = (document.getElementById('imCity').value || '').trim();
+    const month = (document.getElementById('imMonth').value || '').trim();
+    const note = (document.getElementById('imNote').value || '').trim();
+    const errBox = document.getElementById('imErr');
+    if (!city || !month) { errBox.textContent = 'Нужны город и месяц'; errBox.classList.remove('hidden'); return; }
+    const body = IDEA_MARK + JSON.stringify({ status: 'idea', city: city, month: month, note: note });
+    try {
+      if (idea && idea.noteId) await sb.from('notes').update({ text: body }).eq('id', idea.noteId);
+      else await sb.from('notes').insert({ clinic_id: null, text: body });
+      invalidateVisitCache();
+      closeModal();
+      toast('✓ Идея сохранена');
+      await renderVisits();
+    } catch (e) {
+      errBox.textContent = 'Не удалось сохранить: ' + (e && e.message ? e.message : e);
+      errBox.classList.remove('hidden');
+    }
+  });
+}
+
 async function openIdeaModal(presetClinicId, idea) {
   let all = [];
   try { all = await clinicPool(); } catch (_) {}
@@ -6016,14 +6193,32 @@ async function renderMyDay() {
   // без фолбэка на роль из localStorage — иначе чужой вход на этом же устройстве видел фильтр)
   const isBoss = String(CURRENT_EMAIL || '').toLowerCase() === 'abramson@crm.ru';
   // v3.28.0: в «Мой день» попадают и справочные клиники, взятые в работу (есть ответственный)
-  let clinics = (await listClinics()).filter(c => !c.markedDel && ((c.kind || 'hospital') === 'hospital' || (isRefClinicCard(c) && String(c.manager || '').trim() !== '')));
+  // 5.16.0: справочная клиника попадает в «Мой день», если по ней есть действие
+  // (визит, звонок) — даже когда ответственный не заполнен
+  let clinics = (await listClinics()).filter(c => !c.markedDel && (
+    (c.kind || 'hospital') === 'hospital'
+    || (isRefClinicCard(c) && (String(c.manager || '').trim() !== '' || c.actionType || c.nextContact))
+  ));
   const MGR_PICK = ['Абрамов', 'Осечкина', 'Скокова'];   // v3.15.2: в «Моём дне» — только эти менеджеры
   const mgrs = MGR_PICK.filter(m => clinics.some(c => (c.manager || '') === m));
   // v4.12.0: имена для блока идей + цели визитов (из служебных записей notes)
   const nameById = {}; clinics.forEach(c => { nameById[c.id] = c.name; });
   await loadVisitMeta();
   const ideasDue = (await loadVisitIdeas()).filter(i => !i.remind || i.remind <= todayISO());
-  if (state.mydayMgr) clinics = clinics.filter(c => (c.manager || '') === state.mydayMgr);
+  // 5.16.0: визит попадает в «Мой день», даже если у клиники не заполнен менеджер,
+  // но выбранный менеджер указан участником поездки
+  if (state.mydayMgr) {
+    const mm = state.mydayMgr;
+    clinics = clinics.filter(c => {
+      if ((c.manager || '') === mm) return true;
+      if (c.actionType === 'visit') {
+        const pv = visitPlanOf(c.id);
+        const parts = (pv && Array.isArray(pv.participants)) ? pv.participants : [];
+        if (parts.map(canonManager).indexOf(mm) >= 0) return true;
+      }
+      return false;
+    });
+  }
   // v3.26.2: поиск работает и в «Моём дне» (раньше строка поиска здесь молчала)
   clinics = clinics.filter(c => matchFilters(state.filters, c));   // v3.33.0: метки-фильтры и здесь
   const sMD = state.search;
