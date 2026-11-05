@@ -1246,6 +1246,17 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .cl-res-h{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--ink)}
 .cl-res-h span{color:var(--muted);font-size:12px}
 .cl-res-t{font-size:13px;line-height:1.5;color:var(--ink-2);margin-top:3px}
+
+/* 5.20.0: карточка визита — врачи столбиком, даты в одну строку */
+.vm-doc-row{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.vm-doc-row:last-child{border-bottom:0}
+.vm-doc-main{width:100%}
+.vm-doc-name{font-weight:700}
+.vm-doc-row .vm-doc-call{margin-top:2px}
+.vm-dates-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:nowrap}
+.vm-dates-lbl{font-size:12.5px;font-weight:600;color:var(--muted);flex:0 0 auto}
+.vm-dates-row input[type=date]{flex:1 1 0;min-width:0;padding:8px 6px;font-size:14px}
+.vm-dates-dash{color:var(--muted)}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2188,7 +2199,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.19.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.20.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5227,7 +5238,7 @@ async function renderVisits() {
   view.querySelectorAll('[data-visit]').forEach(el => el.addEventListener('click', async (e) => {
     if (e.target.closest('button')) return;
     const plan = plans.find(x => Number(x.noteId) === Number(el.dataset.visit));
-    if (plan) await openVisitModal({ clinicId: plan.clinic_id, plan });
+    if (plan) await openVisitCard(plan);   // 5.20.0: карточка визита с результатами
   }));
   // 5.7.0: плашка идеи — тоже сразу окно редактирования
   view.querySelectorAll('[data-idea]').forEach(el => el.addEventListener('click', async (e) => {
@@ -5874,9 +5885,11 @@ async function openVisitModal(cfg) {
       <input type="text" id="vmClinicName" list="vmClinicList" value="${esc(cur ? cur.name : '')}" placeholder="можно оставить пустым, если это конференция" autocomplete="off" />
       <datalist id="vmClinicList">${all.map(c => `<option value="${esc(c.name + (c.city ? ' — ' + c.city : ''))}">${esc(c.city || '')}${isRefKind(c.kind) ? ' · справочник' : ''}</option>`).join('')}</datalist>
     </div>
-    <div class="row2">
-      <div class="field"><label>С какого числа</label><input type="date" id="vmDate" value="${esc(date)}" /></div>
-      <div class="field"><label>По какое число</label><input type="date" id="vmDateTo" value="${esc((plan && plan.dateTo) || (idea && idea.to) || date)}" /></div>
+    <div class="vm-dates-row">
+      <span class="vm-dates-lbl">Даты</span>
+      <input type="date" id="vmDate" value="${esc(date)}" aria-label="С какого числа" />
+      <span class="vm-dates-dash">—</span>
+      <input type="date" id="vmDateTo" value="${esc((plan && plan.dateTo) || (idea && idea.to) || date)}" aria-label="По какое число" />
     </div>
     <div class="field"><label>Комментарий</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
     <div class="field"><label>Участники (визит виден каждому из них)</label><div class="vm-chks">${participantsHtml(partSel)}</div></div>
@@ -5915,12 +5928,7 @@ async function openVisitModal(cfg) {
     if (!cid) { hintBox.textContent = ''; return; }
     const docs = await clinicDoctors(cid);
     if (!docs.length) { hintBox.textContent = 'У этой клиники врачи не привязаны — добавь их по фамилии выше.'; return; }
-    hintBox.innerHTML = 'Быстро добавить врачей клиники: ' + docs.map(d => `<button type="button" class="btn ghost mini" data-add-doc="${d.id}">${esc(d.full_name || ('#' + d.id))}</button>`).join(' ');
-    hintBox.querySelectorAll('[data-add-doc]').forEach(bt => bt.addEventListener('click', () => {
-      const id = Number(bt.dataset.addDoc);
-      if (!chosen.includes(id)) chosen.push(id);
-      renderChips();
-    }));
+    hintBox.textContent = '';   // 5.20.0: блок «Быстро добавить врачей клиники» убран
   }
   renderChips();
   await renderClinicHint(cur ? cur.id : null);
