@@ -1238,6 +1238,14 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .vm-res-name{font-weight:700;font-size:14px;color:var(--ink)}
 .vm-res-val{font-size:12.5px;color:var(--muted)}
 .vm-res-val.has{color:#15803d}
+
+.cl-res-block{margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
+.cl-res-title{font-size:12px;color:var(--muted);margin-bottom:6px}
+.cl-res{padding:8px 0;border-bottom:1px dashed var(--line)}
+.cl-res:last-child{border-bottom:0}
+.cl-res-h{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--ink)}
+.cl-res-h span{color:var(--muted);font-size:12px}
+.cl-res-t{font-size:13px;line-height:1.5;color:var(--ink-2);margin-top:3px}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2180,7 +2188,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.16.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.18.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5427,6 +5435,42 @@ function moneyBlockHtml(mc) {
   return `<div class="nastya-money"><div style="font-size:12px;color:#999;margin:12px 0 4px">Продажи</div>${rows.join('')}</div>`;
 }
 
+/* 5.17.0: в карточке клиники — отдельный блок «Результаты встреч» */
+async function clinicResultsBlockHtml(clinicId) {
+  try {
+    const { data } = await sb.from('notes').select('id,text').eq('clinic_id', Number(clinicId)).like('text', RESULT_MARK + '%').limit(200);
+    if (!data || !data.length) return '';
+    const rows = [];
+    for (const n of data) {
+      let o = null; try { o = JSON.parse(String(n.text).slice(RESULT_MARK.length)); } catch (_) { continue; }
+      if (!o || !o.t) continue;
+      let docName = '#' + o.d;
+      try {
+        const pr = await sb.from('people').select('id,full_name').eq('id', Number(o.d)).limit(1);
+        if (pr.data && pr.data[0]) docName = pr.data[0].full_name;
+      } catch (_) {}
+      const dt = o.at ? new Date(o.at) : null;
+      const ds = dt ? String(dt.getDate()).padStart(2, '0') + '.' + String(dt.getMonth() + 1).padStart(2, '0') + '.' + dt.getFullYear() : '';
+      rows.push(`<div class="cl-res"><div class="cl-res-h"><b>${esc(docName)}</b><span>${esc(ds)}</span></div>
+        <div class="cl-res-t">${esc(String(o.t).replace(/\s+/g, ' '))}</div></div>`);
+    }
+    if (!rows.length) return '';
+    return `<div class="cl-res-block"><div class="cl-res-title">Результаты встреч</div>${rows.join('')}</div>`;
+  } catch (_) { return ''; }
+}
+async function injectClinicResultsBlock(clinicId) {
+  try {
+    const panel = document.getElementById('hoverCard');
+    if (!panel) return;
+    const old = panel.querySelector('.cl-res-block'); if (old) old.remove();
+    const html = await clinicResultsBlockHtml(clinicId);
+    if (!html) return;
+    const anchors = panel.querySelectorAll('.detail-block, .nastya-money, .card-tags');
+    const host = anchors.length ? anchors[anchors.length - 1] : panel;
+    host.insertAdjacentHTML('afterend', html);
+  } catch (_) {}
+}
+
 function renderWorklistDetail(key, c, people) {
   const W = WORKLISTS[key];
   const view = document.getElementById('view');
@@ -5636,7 +5680,7 @@ async function renderStub(title) {
 //   [[V]]{date,goal,who,addr,participants[],people[]} — визит (date — конкретный день)
 //   [[I]]{goal,from,to,remind,participants[],status} — замысел: дата ещё не выбрана
 const VISIT_MARK = '[[V]]', IDEA_MARK = '[[I]]', RESULT_MARK = '[[R]]';
-const RESULTS_DRAFT = false;   // черновик «Результаты встреч» — включить, когда Саша скажет
+const RESULTS_DRAFT = true;   // черновик «Результаты встреч» — включить, когда Саша скажет
 // Кто есть кто: в базе менеджер записан фамилией, «Настя» и «Галя» — обиходные имена.
 const VISIT_MANAGERS = [
   { id: 'Абрамов', label: 'Абрамов' },
@@ -6258,7 +6302,8 @@ async function renderMyDay() {
     const why = (c.actionType === 'visit') ? '' : (c.privateNote || '');
     const vPlan = (c.actionType === 'visit') ? (visitPlanOf(c.id) || {}) : null;
     const vk = vPlan ? visitTitleOf(vPlan) : '';
-    return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic">
+    const visitId = (c.actionType === 'visit' && vPlan && vPlan.noteId) ? vPlan.noteId : '';
+    return `<div class="card list-row${state.selId === c.id ? ' selected' : ''}" data-id="${c.id}" data-kind="clinic"${visitId ? ` data-visit-open="${visitId}"` : ''}>
       <div class="list-row-top">
         <span class="rn-wrap">${vk ? `<span class="visit-title-sm">${esc(vk)}</span>` : ''}<span class="list-row-name">${esc(c.name)}</span></span></span>
         <span class="row-next">${badge}</span>
@@ -8579,6 +8624,13 @@ async function showHoverCard(row, immediate) {
   // У строк визита нет data-id — раньше отсюда уходил запрос clinics?id=eq.NaN
   // и база отвечала «invalid input syntax for type bigint: NaN».
   if (!row || (row.hasAttribute && row.hasAttribute('data-visit'))) return;
+  // 5.17.0: строка визита в «Моём дне» раскрывает сам визит, а не клинику
+  if (row.dataset && row.dataset.visitOpen) {
+    const vid = Number(row.dataset.visitOpen);
+    const vp = (typeof visitPlanOf === 'function') ? visitPlanOf(Number(row.dataset.id)) : null;
+    if (vp) { openVisitCard(vp); return; }
+    if (vid) { return; }
+  }
   const idNum = Number(row.dataset.id);
   if (!row.dataset.id || !Number.isFinite(idNum) || idNum <= 0) return;
   const id = idNum;
@@ -8650,6 +8702,8 @@ async function showHoverCard(row, immediate) {
       panel.innerHTML = cardHead + clinicDetailBody(c, null, [], undefined, [], null);
       if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
       hydrateCard(Number(c.id) || 0);
+      try { injectClinicResultsBlock(Number(c.id) || 0); } catch (e) {}
+      setTimeout(() => { try { injectClinicResultsBlock(Number(c.id) || 0); } catch (e) {} }, 600);
     } else {
       const h3 = panel.querySelector('.card-head h3');
       if (h3 && h3.textContent.trim() !== String(c.name || '').trim()) h3.textContent = c.name;
