@@ -1369,6 +1369,9 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .note-edit:hover{color:var(--brand);border-color:var(--brand)}
 .note-del:hover{color:var(--danger);border-color:#e8b4ae}
 .note-item{padding-right:76px}
+
+/* 5.48.0: кнопка добавления записи вместо узкого поля */
+.note-new{display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;padding:8px 12px;font-size:12.5px;border-radius:9px}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2323,7 +2326,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.47.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.49.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -8687,11 +8690,11 @@ function notesBlock(c, canEditNow) {
   const priv = canSeePrivate(c);
   const sit = situationItem(c, canEditNow);
   const sitTxt = splitSite(c.situation).rest.trim();
-  if (!priv && !sitTxt) return '';
+  if (!priv && !sitTxt && !canEditNow) return '';   // 5.49.0: блок записей виден и без комментария
   // v3.16.1: одно поле ввода сверху, ниже — записи (новые сверху)
   // v3.31.0: первой записью — комментарий/ситуация самой карточки (правится тут же, по клику)
   return `<div class="detail-block notes-block" data-canedit="${canEditNow ? '1' : ''}">
-      ${canEditNow ? `<div class="note-add"><textarea id="noteText" placeholder="Добавить запись…"></textarea><button class="btn-primary-sm" id="noteAdd" data-cid="${c.id}">Добавить</button></div>` : ''}
+      ${canEditNow ? `<button class="btn-primary-sm note-new" id="noteNew" data-cid="${c.id}">＋ Добавить запись</button>` : ''}
       ${sit}
       ${priv ? `<div class="v" id="notesList" data-cid="${c.id}"><span style="color:var(--muted)">загрузка…</span></div>` : ''}
     </div>`;
@@ -8824,52 +8827,64 @@ document.addEventListener('click', async (ev) => {
   const ed = ev.target.closest('[data-note-edit]');
   if (!ed) return;
   ev.preventDefault(); ev.stopPropagation();
-  const item = ed.closest('.note-item');
-  if (!item || item.querySelector('.note-edit-ta')) return;
   const id = Number(ed.dataset.noteEdit);
-  const box = item.closest('#notesList');
+  const item = ed.closest('.note-item');
+  const box = item ? item.closest('#notesList') : null;
   const cid = box ? Number(box.dataset.cid) : 0;
-  const textEl = item.querySelector('.note-text');
-  const cur = textEl ? textEl.textContent : '';
-  const metaEl = item.querySelector('.note-meta');
-  const meta = metaEl ? metaEl.outerHTML : '';
-  hideNoteTools();   // v3.17.1: на время правки корзина/карандаш не показываются
-  item.innerHTML = `${meta}<textarea class="note-edit-ta" id="neTa">${esc(cur)}</textarea>
-    <div class="note-edit-row"><button class="btn-primary-sm" id="neSave">Сохранить</button><button class="pane-btn" id="neCancel">Отмена</button><button class="note-del" id="neDel" title="Удалить запись" aria-label="Удалить запись">🗑</button></div>`;
-  // v3.19.0: корзина живёт ТОЛЬКО в режиме правки записи
-  item.querySelector('#neDel').addEventListener('click', async (e2) => {
-    e2.stopPropagation();
-    const b = e2.currentTarget; if (b.disabled) return; b.disabled = true;
-    try {
-      const { error } = await sb.from('notes').delete().eq('id', id);
-      if (error) throw error;
-      await fillNotesBlock(cid);
-      toast('✓ Запись удалена');
-    } catch (e3) {
-      toast('⚠️ Не удалилось: ' + (e3 && e3.message ? e3.message : e3));
-      b.disabled = false;
-    }
-  });
-  const ta = item.querySelector('#neTa');
+  const cur = item && item.querySelector('.note-text') ? item.querySelector('.note-text').textContent : '';
+  openNoteEditor(cid, id, cur);
+});
+
+/* 5.48.0: запись клиники вводится и правится в отдельном окне */
+function openNoteEditor(cid, noteId, initialText) {
+  openModal(noteId ? 'Изменить запись' : 'Новая запись', `
+    <div class="field"><label for="neModalTa">Текст записи</label>
+      <textarea id="neModalTa" rows="9" style="min-height:200px;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14.5px;line-height:1.5">${esc(initialText || '')}</textarea></div>
+    <div class="btn-row">
+      <button class="btn" id="neModalSave">Сохранить</button>
+      ${noteId ? '<button class="btn ghost danger" id="neModalDel">Удалить</button>' : ''}
+      <button class="btn ghost" id="neModalCancel">Отмена</button>
+    </div>
+  `);
+  const ta = document.getElementById('neModalTa');
   if (ta) { ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (_) {} }
-  item.querySelector('#neCancel').addEventListener('click', async (e2) => { e2.stopPropagation(); await fillNotesBlock(cid); });
-  item.querySelector('#neSave').addEventListener('click', async (e2) => {
-    e2.stopPropagation();
-    const btn = e2.currentTarget; if (btn.disabled) return; btn.disabled = true;
-    const txt = (ta.value || '').trim();
-    if (!txt) { toast('Пустая запись не сохраняется'); btn.disabled = false; return; }
+  document.getElementById('neModalCancel').addEventListener('click', closeModal);
+  const delBtn = document.getElementById('neModalDel');
+  if (delBtn) delBtn.addEventListener('click', async () => {
+    if (!confirm('Удалить запись?')) return;
     try {
-      const { error } = await sb.from('notes').update({ text: txt }).eq('id', id);
+      const { error } = await sb.from('notes').delete().eq('id', noteId);
       if (error) throw error;
-      await fillNotesBlock(cid);
-      if (state.selId) { /* карточка уже открыта */ }
-      toast('✓ Запись изменена');
-    } catch (e3) {
-      toast('⚠️ Не сохранилось: ' + (e3 && e3.message ? e3.message : e3));
+      try { rcDrop && rcDrop('nt:all'); } catch (e) {}
+      closeModal();
+      if (cid) await fillNotesBlock(cid); else await render();
+      toast('✓ Запись удалена');
+    } catch (e) { toast('⚠️ Не удалилось: ' + ((e && e.message) || e)); }
+  });
+  document.getElementById('neModalSave').addEventListener('click', async () => {
+    const btn = document.getElementById('neModalSave');
+    const txt = (document.getElementById('neModalTa').value || '').trim();
+    if (!txt) { toast('Пустая запись не сохраняется'); return; }
+    btn.disabled = true;
+    try {
+      if (noteId) {
+        const { error } = await sb.from('notes').update({ text: txt }).eq('id', noteId);
+        if (error) throw error;
+      } else {
+        const u = await currentUser();
+        const { error } = await sb.from('notes').insert({ clinic_id: cid, text: txt, author_email: (u && u.email) || null, author_name: myManagerName() || (u && u.email) || null });
+        if (error) throw error;
+      }
+      try { rcDrop && rcDrop('nt:all'); } catch (e) {}
+      closeModal();
+      if (cid) await fillNotesBlock(cid); else await render();
+      toast(noteId ? '✓ Запись изменена' : '✓ Запись добавлена');
+    } catch (e) {
+      toast('⚠️ Не сохранилось: ' + ((e && e.message) || e));
       btn.disabled = false;
     }
   });
-});
+}
 function hydrateCard(cid) { if (cid) { fillNotesBlock(cid); setTimeout(bindTypeSeg, 30); } }
 // v4.14.2: переключатель «Тип» в карточке (Контакт / Звонок / Визит / Другое)
 function bindTypeSeg() {
@@ -8944,6 +8959,12 @@ document.addEventListener('click', async (ev) => {
       if (cid) await fillNotesBlock(cid); else await render();
       toast('✓ Запись удалена');
     } catch (e) { toast('⚠️ Не удалось удалить: ' + ((e && e.message) || e)); }
+    return;
+  }
+  const newBtn = ev.target.closest('#noteNew');
+  if (newBtn) {
+    ev.preventDefault(); ev.stopPropagation();
+    openNoteEditor(Number(newBtn.dataset.cid), null, '');
     return;
   }
   const add = ev.target.closest('#noteAdd');
