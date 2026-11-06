@@ -1840,6 +1840,28 @@ function rcHydrate() {
 }
 function rcSet(k, v) { RC.data[k] = v; RC.ts[k] = Date.now(); rcPersist(k, v); }
 function invalidateCache() { RC.data = {}; RC.ts = {}; RC.pending = {}; }
+/* 5.53.0: при смене учётной записи кэши не должны перейти другому человеку.
+   Чистим память и локальный кэш на диске. Офлайн-вход не трогаем — он живёт
+   в отдельном ключе crm-offline-user и проверяется своим кодом. */
+let CACHE_OWNER = null;
+function clearUserCaches() {
+  try { RC.data = {}; RC.ts = {}; RC.pending = {}; } catch (_) {}
+  try { privDropCache(); PRIV_LAST = null; } catch (_) {}
+  try { planCache = null; monAllCache = null; ctrlExcCache = null; } catch (_) {}
+  try { invalidateVisitCache(); } catch (_) {}
+  try { window.__allPeople = null; } catch (_) {}
+  try { Object.keys(SALES_CACHE).forEach(k => delete SALES_CACHE[k]); } catch (_) {}
+  try { Object.keys(MNY_ROWS).forEach(k => delete MNY_ROWS[k]); } catch (_) {}
+  try { loadErrClear(); } catch (_) {}
+  try { rcClearDisk(); } catch (_) {}
+  CACHE_OWNER = null;
+}
+function ensureCacheOwner(email) {
+  const me = String(email || '').toLowerCase();
+  if (!me) return;
+  if (CACHE_OWNER && CACHE_OWNER !== me) clearUserCaches();
+  CACHE_OWNER = me;
+}
 /* 5.53.0: адресный сброс — правка одной записи больше не заставляет перезагружать всю Базу.
    Неизвестная таблица по-прежнему сбрасывает всё (страховка). */
 function dropKeys(pred) {
@@ -2196,12 +2218,13 @@ function clinicCachedById(id) {
   const arr = RC.data['t:clinics'];
   if (!Array.isArray(arr)) return null;
   const nId = Number(id);
-  return arr.find(r => Number(r.id) === nId) || null;
+  return arr.find(r => Number(r.id) === nId) || null;   // строки в кэше — как из базы (snake_case)
 }
 // полный список клиник с закрытой частью — из кэша, без сети, если список уже загружен
 async function clinicsAllWithPrivate() {
   const raw = await fetchAllRows('clinics', 'name', 'id');
-  return mergeClinicPrivate((raw || []).map(r => Object.assign({}, r)));
+  // 5.53.0: в кэше лежат строки Supabase (linked_clinic_id, marked_del) — приводим к виду приложения
+  return mergeClinicPrivate((raw || []).map(fromClinic));
 }
 async function getClinic(id) {
   // 4.67.0: страховка — невалидный id не должен уходить в запрос
@@ -2209,8 +2232,9 @@ async function getClinic(id) {
   if (!Number.isFinite(nId) || nId <= 0) return null;
   const hit = clinicCachedById(nId);
   if (hit) {
-    // копия: слияние закрытых полей не должно менять общий кэш списка
-    const row = await mergeClinicPrivate([Object.assign({}, hit)]);
+    // 5.53.0: из кэша берём строку базы → fromClinic() → linkedClinicId, markedDel и прочее.
+    // fromClinic создаёт новый объект, поэтому общий кэш списка не меняется.
+    const row = await mergeClinicPrivate([fromClinic(hit)]);
     return row[0];
   }
   const { data, error } = await sb.from('clinics').select('*').eq('id', nId).maybeSingle();
@@ -2419,6 +2443,7 @@ async function signOut() {
   // 4.8.1: выход должен вычищать всё, иначе приложение поднимает пользователя
   // из crm-offline-user и офлайн-входа, и база открывается снова без пароля.
   try { await sb.auth.signOut(); } catch (e) {}
+  clearUserCaches();
   try {
     localStorage.removeItem('crm-offline-user');
     localStorage.removeItem('crm-role');
@@ -3186,6 +3211,7 @@ function hideReLogin(snooze) {
 
 async function crmReLogin() {
   try { if (sb && sb.auth) await sb.auth.signOut(); } catch (e) {}
+  clearUserCaches();
   try { localStorage.removeItem('crm-offline-user'); } catch (e) {}
   location.reload();
 }
@@ -3220,6 +3246,7 @@ async function bootstrap(preferredUser) {
   // 5.53.0: адрес известен — сразу показываем прошлые данные и греем клиники в фоне,
   // параллельно с определением роли (роль нужна только для прав и фильтров, не для этих таблиц)
   CURRENT_EMAIL = user.email || null;
+  ensureCacheOwner(CURRENT_EMAIL);   // сменился пользователь — старые данные в памяти стираем
   rcHydrate();
   const __warm = Promise.all([
     withTimeout(fetchAllRows('clinics', 'name', 'id'), 15000, 'warm-clinics').catch(() => null),
