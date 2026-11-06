@@ -3029,7 +3029,15 @@ function requestCloseModal() {
   __formDirty = false;
   closeModal();
 }
+let MODAL_RETURN = null;   // 5.54.0: что открыть после закрытия окна (например, вернуться к визиту)
+function closeModalOrReturn() {
+  const fn = MODAL_RETURN;
+  MODAL_RETURN = null;
+  closeModal();
+  if (typeof fn === 'function') { try { fn(); } catch (_) {} }
+}
 function openModal(title, bodyHtml) {
+  MODAL_RETURN = null;
   __modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
   __modalOpener = (document.activeElement && document.activeElement !== document.body) ? document.activeElement : null;
   const card = document.querySelector('#modal .modal-card');
@@ -4139,7 +4147,7 @@ document.getElementById('fab').addEventListener('click', async () => {
   } catch (e) { toast('⚠️ ' + e.message); }
 });
 
-document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalClose').addEventListener('click', () => closeModalOrReturn());
 
 // 4.64.0: строки списков — доступны с клавиатуры (role=button, tabindex, Enter/Space)
 (function () {
@@ -4173,7 +4181,7 @@ document.getElementById('modalClose').addEventListener('click', closeModal);
     row.click();
   });
 })();
-document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModalOrReturn(); });
 
 // 5.6.0: переключатель производителя в «Плане»
 document.addEventListener('click', (e) => {
@@ -4641,20 +4649,17 @@ async function openVisitCard(plan) {
     <div class="detail-block"><div class="k">Комментарии</div><div class="v">${esc(plan.goal || '—')}</div></div>
     <div class="detail-block"><div class="k">Участники</div><div class="v">${esc(parts)}</div></div>
     <div class="detail-block"><div class="k">Врачи</div><div class="v">${docRows}</div></div>
-    ${RESULTS_DRAFT ? '<button type="button" class="vm-res-open" id="vmResOpen">Результаты визита<span id="vmResCount"></span><span class="vm-res-arrow">›</span></button>' : ''}
+    ${RESULTS_DRAFT ? '<button type="button" class="vm-res-open" id="vmResOpen">Результаты встречи<span class="vm-res-arrow">›</span></button>' : ''}
     <div class="btn-row">
       <button class="btn" id="vcEdit">Изменить визит</button>
       <button class="btn ghost" id="vcDrop">Отменить визит</button>
       ${c ? `<button class="btn ghost" id="vcClinic">Открыть клинику</button>` : ''}
     </div>
   `);
-  (async () => {
+  (() => {
     const btn = document.getElementById('vmResOpen');
     if (!btn || !RESULTS_DRAFT) return;
-    const map = await loadVisitResults(plan.clinic_id, plan.noteId);
-    const filled = Object.keys(map).filter(k => (map[k].text || '').trim()).length;
-    const cnt = document.getElementById('vmResCount');
-    if (cnt) cnt.textContent = docs.length ? ' · ' + filled + ' из ' + docs.length : '';
+    // 5.54.0: без счётчика «1 из 2» — сколько результатов, столько и покажем на экране
     btn.addEventListener('click', () => openResultsPanel(plan, docs, c));
   })();
 
@@ -4796,7 +4801,7 @@ async function openResultsPanel(plan, docs, clinic) {
   const list = await loadVisitResultsList(plan.noteId);
   const names = await peopleNameMap(list.flatMap(n => n.docs));
   const namesOk = (ids) => ids.map(i => names[i] || ('#' + i)).join(', ');
-  openModal('Результаты визита', `
+  openModal('Результаты встречи', `
     <div class="vm-res-sub">${esc(visitTitleOf(plan))} · ${esc(fmtDate(plan.date))}${clinic ? ' · ' + esc(clinic.name) : ''}</div>
     ${list.length ? list.map(n => `<button type="button" class="vm-res-line has" data-note="${n.id}">
         <span class="vm-res-line-name">${esc(n.docs.length ? namesOk(n.docs) : 'без врача')}</span>
@@ -4805,7 +4810,10 @@ async function openResultsPanel(plan, docs, clinic) {
     <div class="btn-row"><button class="btn" id="vmResAdd">＋ Добавить результат</button></div>
     <div class="btn-row"><button class="btn ghost" id="vmResBack">Назад к визиту</button></div>
   `);
-  document.getElementById('vmResBack').addEventListener('click', () => { closeModal(); openVisitCard(plan); });
+  try { document.getElementById('modal').classList.add('modal-full'); } catch (e) {}
+  // 5.54.0: крестик закрывает только экран результатов и оставляет карточку визита
+  MODAL_RETURN = () => { try { openVisitCard(plan); } catch (_) {} };
+  document.getElementById('vmResBack').addEventListener('click', () => closeModalOrReturn());
   document.getElementById('vmResAdd').addEventListener('click', () => openResultEditor(plan, null, clinic, docs));
   document.querySelectorAll('.vm-res-line').forEach(el => el.addEventListener('click', () => {
     const n = list.find(x => Number(x.id) === Number(el.dataset.note));
@@ -6460,6 +6468,13 @@ async function openVisitModal(cfg) {
   const title = plan ? 'Изменить визит' : 'Спланировать визит';
 
   openModal(title, `
+    <div class="vm-docs-top">    <div class="field"><label>Врачи в визите — из любой клиники</label>
+      <input type="text" id="vmDocSearch" list="vmDocList" placeholder="начни печатать фамилию врача" autocomplete="off" />
+      <datalist id="vmDocList">${people.map(p => `<option value="${esc(p.full_name || '')}">${esc(p.position || '')}</option>`).join('')}</datalist>
+      <div id="vmDocChips" class="vm-chks vm-doc-chips"></div>
+      <div class="row-why" id="vmClinicDocsHint"></div>
+    </div>
+</div>
     <div class="field"><label>Название визита</label>
       <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || '')}" placeholder="например: мастер-класс по Литокласт" />
     </div>
@@ -6481,12 +6496,6 @@ async function openVisitModal(cfg) {
     </div>
     <div class="field"><label>Комментарий</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
     <div class="field"><label>Участники (визит виден каждому из них)</label><div class="vm-chks">${participantsHtml(partSel)}</div></div>
-    <div class="field"><label>Врачи в визите — из любой клиники</label>
-      <input type="text" id="vmDocSearch" list="vmDocList" placeholder="начни печатать фамилию врача" autocomplete="off" />
-      <datalist id="vmDocList">${people.map(p => `<option value="${esc(p.full_name || '')}">${esc(p.position || '')}</option>`).join('')}</datalist>
-      <div id="vmDocChips" class="vm-chks vm-doc-chips"></div>
-      <div class="row-why" id="vmClinicDocsHint"></div>
-    </div>
     <div class="btn-row">
       <button class="btn" id="vmSave">${plan ? 'Сохранить' : 'Запланировать'}</button>
       <button class="btn ghost" id="vmCancel">Отмена</button>
