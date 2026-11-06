@@ -4776,7 +4776,9 @@ async function loadVisitResultsList(visitNoteId) {
       try {
         const o = JSON.parse(String(n.text).slice(RESULT_MARK.length));
         if (Number(o.v) !== Number(visitNoteId)) return;
-        out.push({ id: n.id, t: o.t || '', docs: (o.docs && o.docs.length) ? o.docs.map(Number) : (o.d ? [Number(o.d)] : []), at: o.at || '' });
+        const item = { id: n.id, t: o.t || '', docs: (o.docs && o.docs.length) ? o.docs.map(Number) : (o.d ? [Number(o.d)] : []), at: o.at || '' };
+        // 5.54.0: результат может лежать в нескольких клиниках врачей — в панели показываем одну строку
+        if (!out.some(x => x.t === item.t && String(x.at) === String(item.at))) out.push(item);
       } catch (_) {}
     });
   } catch (_) {}
@@ -4858,14 +4860,28 @@ async function openResultEditor(plan, note, clinic, visitDocs) {
     if (!t) { toast('Впиши текст результата'); return; }
     const body = RESULT_MARK + JSON.stringify({ v: Number(plan.noteId), t: t, docs: chosen, at: new Date().toISOString() });
     try {
-      if (note && note.id) await sb.from('notes').update({ text: body }).eq('id', note.id);
-      else await sb.from('notes').insert({ clinic_id: Number(plan.clinic_id) || null, text: body });
-      // дублируем в клиники выбранных врачей
+      // 5.54.0: результат встречи пишем в клинику КАЖДОГО выбранного врача (встреча с человеком),
+      // а не в клинику визита. Один врач — одна запись; врачи из разных клиник — по записи в каждой.
       const clinicIds = [];
       for (const id of chosen) {
-        try { const cid = await doctorClinicFor(id, plan.city, plan.clinic_id); if (cid && !clinicIds.includes(cid)) clinicIds.push(cid); } catch (e) {}
+        try { const cid = await doctorClinicFor(id, plan.city, plan.clinic_id); if (cid && !clinicIds.includes(Number(cid))) clinicIds.push(Number(cid)); } catch (e) {}
       }
       if (!clinicIds.length) clinicIds.push(Number(plan.clinic_id));
+      const saved = [];
+      if (note && note.id) { await sb.from('notes').update({ text: body }).eq('id', note.id); saved.push(Number(note.clinic_id)); }
+      for (const cid of clinicIds) {
+        if (!cid || saved.includes(Number(cid))) continue;
+        // не плодим копию, если результат этого визита в этой клинике уже есть
+        let exists = false;
+        try {
+          const { data: dup } = await sb.from('notes').select('id,text').eq('clinic_id', Number(cid)).like('text', RESULT_MARK + '%');
+          exists = (dup || []).some(r => { try { return Number(JSON.parse(String(r.text).slice(RESULT_MARK.length)).v) === Number(plan.noteId); } catch (_) { return false; } });
+        } catch (_) {}
+        if (exists) continue;
+        await sb.from('notes').insert({ clinic_id: Number(cid), text: body });
+        saved.push(Number(cid));
+      }
+      if (!saved.length && !clinicIds.length) clinicIds.push(Number(plan.clinic_id));
       // 5.42.0: в «Ситуацию» не пишем — показываем в отдельном блоке «Результаты встреч»
       // звонок из текста — не перетирая визит
       const callDate = parseCallIntent(t);
