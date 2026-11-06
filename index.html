@@ -2586,7 +2586,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.54.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.55.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4782,8 +4782,7 @@ async function loadVisitResultsList(visitNoteId) {
         const o = JSON.parse(String(n.text).slice(RESULT_MARK.length));
         if (Number(o.v) !== Number(visitNoteId)) return;
         const item = { id: n.id, t: o.t || '', docs: (o.docs && o.docs.length) ? o.docs.map(Number) : (o.d ? [Number(o.d)] : []), at: o.at || '' };
-        // 5.54.0: результат может лежать в нескольких клиниках врачей — в панели показываем одну строку
-        if (!out.some(x => x.t === item.t && String(x.at) === String(item.at))) out.push(item);
+        out.push(item);   // 5.55.0: каждый результат — своя строка (по врачу), ничего не склеиваем
       } catch (_) {}
     });
   } catch (_) {}
@@ -4862,34 +4861,53 @@ async function openResultEditor(plan, note, clinic, visitDocs) {
     }));
   });
   try { document.getElementById('modal').classList.add('modal-full'); } catch (e) {}
-  document.getElementById('vrCancel').addEventListener('click', () => { closeModal(); openResultsPanel(plan, visitDocs || [], clinic); });
+  // 5.55.0: закрытие формы результата возвращает к результатам встречи, а не закрывает всё
+  MODAL_RETURN = () => { try { openResultsPanel(plan, visitDocs || [], clinic); } catch (_) {} };
+  document.getElementById('vrCancel').addEventListener('click', () => closeModalOrReturn());
   onSaveClick('vrSave', async () => {
     const t = (document.getElementById('vrt').value || '').trim();
     if (!t) { toast('Впиши текст результата'); return; }
     const body = RESULT_MARK + JSON.stringify({ v: Number(plan.noteId), t: t, docs: chosen, at: new Date().toISOString() });
     try {
-      // 5.54.0: результат встречи пишем в клинику КАЖДОГО выбранного врача (встреча с человеком),
-      // а не в клинику визита. Один врач — одна запись; врачи из разных клиник — по записи в каждой.
-      const clinicIds = [];
+      // 5.55.0: результат — НА КАЖДОГО ВРАЧА отдельно. Один врач = одна запись (docs: [он])
+      // в клинике этого врача. Хочешь результат для двоих — это две записи, каждая со своим врачом.
+      const targets = [];
       for (const id of chosen) {
-        try { const cid = await doctorClinicFor(id, plan.city, plan.clinic_id); if (cid && !clinicIds.includes(Number(cid))) clinicIds.push(Number(cid)); } catch (e) {}
+        const doc = Number(id);
+        let cid = null;
+        try { cid = await doctorClinicFor(doc, plan.city, plan.clinic_id); } catch (_) {}
+        targets.push({ doc: doc, clinic: Number(cid || plan.clinic_id) });
       }
-      if (!clinicIds.length) clinicIds.push(Number(plan.clinic_id));
-      const saved = [];
-      if (note && note.id) { await sb.from('notes').update({ text: body }).eq('id', note.id); saved.push(Number(note.clinic_id)); }
-      for (const cid of clinicIds) {
-        if (!cid || saved.includes(Number(cid))) continue;
-        // не плодим копию, если результат этого визита в этой клинике уже есть
-        let exists = false;
+      if (!targets.length) targets.push({ doc: null, clinic: Number(plan.clinic_id) });
+      const savedIds = [];
+      for (const tgt of targets) {
+        const at = (note && note.at) ? note.at : new Date().toISOString();
+        const one = RESULT_MARK + JSON.stringify({ v: Number(plan.noteId), t: t, docs: tgt.doc ? [tgt.doc] : [], at: at });
+        let existingId = null;
         try {
-          const { data: dup } = await sb.from('notes').select('id,text').eq('clinic_id', Number(cid)).like('text', RESULT_MARK + '%');
-          exists = (dup || []).some(r => { try { return Number(JSON.parse(String(r.text).slice(RESULT_MARK.length)).v) === Number(plan.noteId); } catch (_) { return false; } });
+          const { data: rows } = await sb.from('notes').select('id,text').eq('clinic_id', tgt.clinic).like('text', RESULT_MARK + '%');
+          (rows || []).forEach(r => {
+            if (existingId) return;
+            try {
+              const o = JSON.parse(String(r.text).slice(RESULT_MARK.length));
+              if (Number(o.v) !== Number(plan.noteId)) return;
+              const ds = (o.docs && o.docs.length ? o.docs : (o.d ? [o.d] : [])).map(Number);
+              if (tgt.doc ? ds.includes(tgt.doc) : ds.length === 0) existingId = r.id;
+            } catch (_) {}
+          });
         } catch (_) {}
-        if (exists) continue;
-        await sb.from('notes').insert({ clinic_id: Number(cid), text: body });
-        saved.push(Number(cid));
+        if (existingId) { await sb.from('notes').update({ text: one }).eq('id', existingId); savedIds.push(existingId); }
+        else {
+          const ins = await sb.from('notes').insert({ clinic_id: tgt.clinic, text: one }).select().single();
+          if (ins.error) throw ins.error;
+          savedIds.push(ins.data && ins.data.id);
+        }
       }
-      if (!saved.length && !clinicIds.length) clinicIds.push(Number(plan.clinic_id));
+      // если правили существующую запись, а её врач не в списке выбранных — текст всё равно обновляем
+      if (note && note.id && !savedIds.includes(note.id)) {
+        await sb.from('notes').update({ text: RESULT_MARK + JSON.stringify({ v: Number(plan.noteId), t: t, docs: note.docs, at: note.at || new Date().toISOString() }) }).eq('id', note.id);
+      }
+      const clinicIds = targets.map(t => t.clinic);
       // 5.42.0: в «Ситуацию» не пишем — показываем в отдельном блоке «Результаты встреч»
       // звонок из текста — не перетирая визит
       const callDate = parseCallIntent(t);
