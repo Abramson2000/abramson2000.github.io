@@ -1981,6 +1981,18 @@ async function getClinic(id) {
   const list = await mergeClinicPrivate([fromClinic(data)]);
   return list[0];
 }
+/* 5.36.0: не создаём дубль клиники — проверяем название и город */
+async function findSameClinic(name, city) {
+  try {
+    const nm = String(name || '').trim().toLowerCase().replace(/ё/g, 'е');
+    const ct = String(city || '').trim().toLowerCase().replace(/ё/g, 'е');
+    if (!nm) return null;
+    const all = await listClinics();
+    return all.find(x => !x.markedDel
+      && String(x.name || '').trim().toLowerCase().replace(/ё/g, 'е') === nm
+      && String(x.city || '').trim().toLowerCase().replace(/ё/g, 'е') === ct) || null;
+  } catch (e) { return null; }
+}
 async function addClinic(row) {
   const { data, error } = await sb.from('clinics').insert(toClinic(row)).select().single();
   if (error) throw error;
@@ -2287,7 +2299,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.35.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.36.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -8376,6 +8388,13 @@ async function openNewClinicForm(presetName) {
     if (!city) { toast('Город обязателен'); return; }
     const tags = [];
     try {
+      const same = await findSameClinic(name, city);
+      if (same) {
+        toast('⚠️ Такая клиника уже есть: ' + same.name + ' · ' + (same.city || '') + ' — открываю её');
+        closeModal();
+        openClinicCardModal(same.id);
+        return;
+      }
       await addDictValues('region', [region]);
       await addDictValues('city', [city]);
       if (manager) await addDictValues('manager', [manager]);
