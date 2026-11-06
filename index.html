@@ -1355,9 +1355,9 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .vr-empty{font-size:12px;color:var(--muted)}
 
 /* 5.44.0: запись — поле на всю ширину, кнопка компактная; метка «встреча» */
-.note-add{display:flex;gap:8px;align-items:flex-start}
-.note-add textarea{flex:1 1 auto;min-width:0;min-height:44px;box-sizing:border-box}
-.note-add .btn-primary-sm{flex:0 0 auto;width:auto;padding:8px 12px;font-size:12.5px;white-space:nowrap}
+.note-add{display:flex;gap:6px;align-items:stretch}
+.note-add textarea{flex:1 1 auto;min-width:0;min-height:42px;box-sizing:border-box}
+.note-add .btn-primary-sm{flex:0 0 auto;width:auto;max-width:78px;padding:0 8px;font-size:11.5px;white-space:nowrap;letter-spacing:-.1px}
 .note-meta .note-tag{display:inline-block;margin-left:6px;font-size:10px;color:#c0392b;text-transform:lowercase;letter-spacing:.02em}
 .note-del{border:0;background:none;color:#b0a8a2;font-size:13px;cursor:pointer;padding:0 4px}
 .note-del:hover{color:#c0392b}
@@ -2323,7 +2323,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.45.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.47.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -8673,8 +8673,12 @@ function situationItem(c, canEditNow) {
   const { site, rest } = splitSite(c.situation);
   // как обычная запись ленты: номер 1 + дата создания карточки
   const d = fmtDate(c.createdAt || c.created_at);
+  const txt = String(rest || '').trim();
+  if (!txt) return '';   // 5.46.0: пустой комментарий не висит отдельной записью
   const meta = [esc('1'), (d ? esc(d) : '')].filter(Boolean).join(' · ');
+  const trash = editable ? `<span class="note-tools"><button class="note-del" data-sit-del="${c.id}" title="Очистить комментарий" aria-label="Очистить комментарий">🗑</button></span>` : '';
   return `<div class="note-item note-situation" data-cid="${c.id}">
+      ${trash}
       <div class="note-meta">${meta}</div>
       <div class="note-text comment-field"${editable ? ' contenteditable="true" spellcheck="false"' : ''} data-table="clinics" data-id="${c.id}" data-site="${esc(site)}">${esc(rest)}</div>
     </div>`;
@@ -8907,6 +8911,22 @@ document.addEventListener('click', async (ev) => {
     } catch (e) {
       toast('⚠️ Не сохранилось: ' + (e && e.message ? e.message : e) + ' — текст оставлен в поле');
     } finally { save.disabled = false; }
+    return;
+  }
+  const sitDel = ev.target.closest('[data-sit-del]');
+  if (sitDel) {
+    ev.preventDefault(); ev.stopPropagation();
+    const cid = Number(sitDel.dataset.sitDel);
+    if (!cid) return;
+    if (!confirm('Очистить комментарий к клинике?')) return;
+    try {
+      const cur = await sb.from('clinics').select('id,situation').eq('id', cid).limit(1);
+      const sit = String((cur.data && cur.data[0] && cur.data[0].situation) || '');
+      const site = (sit.match(/\[SITE\][^\n]*/) || [''])[0];
+      await sb.from('clinics').update({ situation: site || null }).eq('id', cid);
+      toast('✓ Комментарий очищен');
+      await openClinicCardModal(cid);
+    } catch (e) { toast('⚠️ Не удалось: ' + ((e && e.message) || e)); }
     return;
   }
   const delBtn = ev.target.closest('[data-note-del]');
