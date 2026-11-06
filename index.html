@@ -1346,6 +1346,12 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
   #searchTop { position: sticky; top: 0; z-index: 90; background: var(--bg); padding-top: 6px; }
   .gs-list { max-height: 42vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 }
+
+/* 5.41.0: чипы врачей в результате визита */
+.vr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.vr-chip{display:inline-flex;align-items:center;gap:6px;background:#EEF3F6;border:1px solid #DCE6EC;border-radius:999px;padding:4px 10px;font-size:12.5px;color:var(--ink)}
+.vr-chip button{border:0;background:none;cursor:pointer;font-size:12px;color:#7b8b96;padding:0}
+.vr-empty{font-size:12px;color:var(--muted)}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2300,7 +2306,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.40.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.41.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4470,82 +4476,123 @@ async function doctorClinicFor(doctorId, visitCity, fallbackId) {
     return Number(list[0].id) || fallbackId || null;
   } catch (e) { return fallbackId || null; }
 }
+async function loadVisitResultsList(visitNoteId) {
+  const out = [];
+  try {
+    const { data } = await sb.from('notes').select('id,text').like('text', RESULT_MARK + '%').limit(2000);
+    (data || []).forEach(n => {
+      try {
+        const o = JSON.parse(String(n.text).slice(RESULT_MARK.length));
+        if (Number(o.v) !== Number(visitNoteId)) return;
+        out.push({ id: n.id, t: o.t || '', docs: (o.docs && o.docs.length) ? o.docs.map(Number) : (o.d ? [Number(o.d)] : []), at: o.at || '' });
+      } catch (_) {}
+    });
+  } catch (_) {}
+  return out.sort((a, b) => String(b.at).localeCompare(String(a.at)));
+}
+async function peopleNameMap(ids) {
+  const map = {};
+  const uniq = [...new Set((ids || []).map(Number).filter(Boolean))];
+  if (uniq.length) {
+    try { const r = await sb.from('people').select('id,full_name').in('id', uniq); (r.data || []).forEach(x => { map[Number(x.id)] = x.full_name; }); } catch (_) {}
+  }
+  return map;
+}
 async function openResultsPanel(plan, docs, clinic) {
-  const map = await loadVisitResults(plan.clinic_id, plan.noteId);
+  const list = await loadVisitResultsList(plan.noteId);
+  const names = await peopleNameMap(list.flatMap(n => n.docs));
+  const namesOk = (ids) => ids.map(i => names[i] || ('#' + i)).join(', ');
   openModal('Результаты визита', `
     <div class="vm-res-sub">${esc(visitTitleOf(plan))} · ${esc(fmtDate(plan.date))}${clinic ? ' · ' + esc(clinic.name) : ''}</div>
-    ${docs.length ? docs.map(d => {
-      const nm = d.fullName || d.full_name || ('#' + d.id);
-      const r = map[String(plan.noteId) + ':' + String(d.id)];
-      const prev = r && r.text ? String(r.text).replace(/\s+/g, ' ').slice(0, 70) : '';
-      return `<button type="button" class="vm-res-line${r && r.text ? ' has' : ''}" data-doc="${Number(d.id)}">
-        <span class="vm-res-line-name">${esc(nm)}</span>
-        <span class="vm-res-line-val">${prev ? esc(prev) + (r.text.length > 70 ? '…' : '') : 'написать результат'}</span>
-      </button>`;
-    }).join('') : '<div class="empty">К визиту не привязаны врачи</div>'}
+    ${list.length ? list.map(n => `<button type="button" class="vm-res-line has" data-note="${n.id}">
+        <span class="vm-res-line-name">${esc(n.docs.length ? namesOk(n.docs) : 'без врача')}</span>
+        <span class="vm-res-line-val">${esc(String(n.t).replace(/\s+/g, ' ').slice(0, 90))}</span></button>`).join('')
+      : '<div class="empty">Пока нет результатов</div>'}
+    <div class="btn-row"><button class="btn" id="vmResAdd">＋ Добавить результат</button></div>
     <div class="btn-row"><button class="btn ghost" id="vmResBack">Назад к визиту</button></div>
   `);
   document.getElementById('vmResBack').addEventListener('click', () => { closeModal(); openVisitCard(plan); });
+  document.getElementById('vmResAdd').addEventListener('click', () => openResultEditor(plan, null, clinic, docs));
   document.querySelectorAll('.vm-res-line').forEach(el => el.addEventListener('click', () => {
-    const doc = docs.find(d => Number(d.id) === Number(el.dataset.doc));
-    if (!doc) return;
-    openResultEditor(plan, doc, clinic, map[String(plan.noteId) + ':' + String(doc.id)], docs);
+    const n = list.find(x => Number(x.id) === Number(el.dataset.note));
+    if (n) openResultEditor(plan, n, clinic, docs);
   }));
 }
-
-async function openResultEditor(plan, doctor, clinic, existing, docs) {
-  const nm = doctor.fullName || doctor.full_name || ('#' + doctor.id);
-  // клиника именно этого врача (в поездке бывает несколько больниц)
-  const docClinicId = await doctorClinicFor(doctor.id, plan.city, plan.clinic_id);
-  let docClinic = null;
-  try {
-    if (docClinicId) { const r = await sb.from('clinics').select('id,name,city').eq('id', docClinicId).limit(1); docClinic = (r.data && r.data[0]) || null; }
-  } catch (e) {}
-  const showClinic = docClinic || clinic;
-  openModal('Результат · ' + nm, `
-    <div class="visit-title">${esc(nm)}</div>
-    <div class="detail-block"><div class="k">Клиника</div><div class="v">${showClinic ? esc(showClinic.name) + (showClinic.city ? ' · ' + esc(showClinic.city) : '') : '—'}</div></div>
-    <div class="detail-block"><div class="k">Встреча</div><div class="v">${esc(visitTitleOf(plan))} · ${esc(fmtDate(plan.date))}</div></div>
-    <div class="field"><label for="vmResText">Результат встречи</label>
-      <textarea id="vmResText" rows="8" style="min-height:180px" placeholder="Что обсудили, о чём договорились, следующие шаги…">${existing ? esc(existing.text) : ''}</textarea></div>
+async function openResultEditor(plan, note, clinic, visitDocs) {
+  const title = note ? 'Результат визита' : 'Новый результат визита';
+  let chosen = note ? note.docs.slice() : [];
+  let allPeople = [];
+  try { allPeople = await allPeopleList(); } catch (_) {}
+  const nameOf = id => { const p = allPeople.find(x => Number(x.id) === Number(id)); return p ? p.full_name : ('#' + id); };
+  openModal(title, `
+    <div class="mwfield"><label for="vrt">Текст результата</label>
+      <textarea id="vrt" rows="8" style="min-height:180px;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14.5px">${esc((note && note.t) || '')}</textarea></div>
+    <div class="field"><label>Врачи</label>
+      <div id="vrChips" class="vr-chips"></div>
+      <div class="cp-wrap"><input type="text" id="vrSearch" placeholder="найди врача и добавь" autocomplete="off" /></div>
+      <div class="cp-list hidden" id="vrResults"></div>
+    </div>
     <div class="btn-row">
-      <button class="btn" id="vmResSave">Сохранить</button>
-      <button class="btn ghost" id="vmResCancel">Отмена</button>
+      <button class="btn" id="vrSave">Сохранить</button>
+      <button class="btn ghost" id="vrCancel">Отмена</button>
     </div>
   `);
-  document.getElementById('vmResCancel').addEventListener('click', () => {
-    closeModal();
-    if (docs) openResultsPanel(plan, docs, clinic); else openVisitCard(plan);
+  function chips() {
+    const box = document.getElementById('vrChips');
+    box.innerHTML = chosen.length
+      ? chosen.map(id => `<span class="vr-chip">${esc(nameOf(id))}<button type="button" data-rm="${id}" aria-label="Убрать">✕</button></span>`).join('')
+      : '<span class="vr-empty">врач не выбран</span>';
+    box.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => { chosen = chosen.filter(x => Number(x) !== Number(b.dataset.rm)); chips(); }));
+  }
+  chips();
+  const inp = document.getElementById('vrSearch'), res = document.getElementById('vrResults');
+  inp.addEventListener('input', () => {
+    const q = inp.value.trim().toLowerCase();
+    if (q.length < 2) { res.classList.add('hidden'); res.innerHTML = ''; return; }
+    const hits = allPeople.filter(p => String(p.full_name || '').toLowerCase().includes(q)).slice(0, 20);
+    if (!hits.length) { res.innerHTML = '<div class="cp-empty">не найдено</div>'; res.classList.remove('hidden'); return; }
+    res.innerHTML = hits.map(p => `<button type="button" class="cp-item" data-pid="${Number(p.id)}"><span class="cp-name">${esc(p.full_name)}</span><span class="cp-city">${esc(p.clinic_name || '')}</span></button>`).join('');
+    res.classList.remove('hidden');
+    res.querySelectorAll('[data-pid]').forEach(b => b.addEventListener('click', () => {
+      const id = Number(b.dataset.pid);
+      if (!chosen.includes(id)) chosen.push(id);
+      inp.value = ''; res.classList.add('hidden'); chips();
+    }));
   });
-  document.getElementById('vmResSave').addEventListener('click', async () => {
-    const t = (document.getElementById('vmResText').value || '').trim();
-    const body = RESULT_MARK + JSON.stringify({ v: Number(plan.noteId), d: Number(doctor.id), t: t, at: new Date().toISOString() });
+  document.getElementById('vrCancel').addEventListener('click', () => { closeModal(); openResultsPanel(plan, visitDocs || [], clinic); });
+  document.getElementById('vrSave').addEventListener('click', async () => {
+    const t = (document.getElementById('vrt').value || '').trim();
+    if (!t) { toast('Впиши текст результата'); return; }
+    const body = RESULT_MARK + JSON.stringify({ v: Number(plan.noteId), t: t, docs: chosen, at: new Date().toISOString() });
     try {
-      const targetClinic = docClinicId || Number(plan.clinic_id);
-      if (existing && existing.id) await sb.from('notes').update({ text: body, clinic_id: Number(targetClinic) }).eq('id', existing.id);
-      else await sb.from('notes').insert({ clinic_id: Number(targetClinic), text: body });
-      if (t) await appendResultToClinic(targetClinic, nm, fmtDate(plan.date), t);
-      const callDate = t ? parseCallIntent(t) : null;
-      if (callDate) {
+      if (note && note.id) await sb.from('notes').update({ text: body }).eq('id', note.id);
+      else await sb.from('notes').insert({ clinic_id: Number(plan.clinic_id) || null, text: body });
+      // дублируем в клиники выбранных врачей
+      const clinicIds = [];
+      for (const id of chosen) {
+        try { const cid = await doctorClinicFor(id, plan.city, plan.clinic_id); if (cid && !clinicIds.includes(cid)) clinicIds.push(cid); } catch (e) {}
+      }
+      if (!clinicIds.length) clinicIds.push(Number(plan.clinic_id));
+      for (const cid of clinicIds) {
+        try { await appendResultToClinic(cid, chosen.map(nameOf).join(', ') || 'визит', fmtDate(plan.date), t); } catch (e) {}
+      }
+      // звонок из текста — не перетирая визит
+      const callDate = parseCallIntent(t);
+      if (callDate && clinicIds.length) {
         try {
-          // 5.29.0: не перетираем отметку визита — иначе визит исчезает из «Моего дня»
-          const cur = await sb.from('clinic_private').select('action_type').eq('clinic_id', Number(targetClinic)).limit(1);
+          const cur = await sb.from('clinic_private').select('action_type').eq('clinic_id', Number(clinicIds[0])).limit(1);
           const act = (cur.data && cur.data[0] && cur.data[0].action_type) || null;
           if (act === 'visit') {
-            await sb.from('clinic_private').update({
-              note: ('звонок ' + callDate.split('-').reverse().join('.') + ': ' + t.slice(0, 120)),
-              updated_at: new Date().toISOString()
-            }).eq('clinic_id', Number(targetClinic));
+            await sb.from('clinic_private').update({ note: ('звонок ' + callDate.split('-').reverse().join('.') + ': ' + t.slice(0, 120)) }).eq('clinic_id', Number(clinicIds[0]));
           } else {
-            await saveClinicPrivate(Number(targetClinic), (clinic && clinic.manager) || null,
-              { next_contact: callDate, action_type: 'call', note: t.slice(0, 120) });
+            await saveClinicPrivate(Number(clinicIds[0]), (clinic && clinic.manager) || null, { next_contact: callDate, action_type: 'call', note: t.slice(0, 120) });
           }
         } catch (e) {}
       }
-      toast(callDate ? ('✓ Результат сохранён · звонок ' + callDate.split('-').reverse().join('.')) : '✓ Результат сохранён');
+      toast(callDate ? ('✓ Сохранено · звонок ' + callDate.split('-').reverse().join('.')) : '✓ Результат сохранён');
       closeModal();
-      if (docs) openResultsPanel(plan, docs, clinic); else openVisitCard(plan);
-    } catch (e) { toast('⚠️ Не удалось сохранить: ' + (e && e.message ? e.message : e)); }
+      openResultsPanel(plan, visitDocs || [], clinic);
+    } catch (e) { toast('⚠️ Не сохранилось: ' + ((e && e.message) || e)); }
   });
 }
 
