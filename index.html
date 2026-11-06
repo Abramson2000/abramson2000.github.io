@@ -1361,6 +1361,14 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .note-meta .note-tag{display:inline-block;margin-left:6px;font-size:10px;color:#c0392b;text-transform:lowercase;letter-spacing:.02em}
 .note-del{border:0;background:none;color:#b0a8a2;font-size:13px;cursor:pointer;padding:0 4px}
 .note-del:hover{color:#c0392b}
+
+/* 5.45.0: у каждой записи равные кнопки правки и удаления, с расстоянием */
+.note-tools{position:absolute;right:0;top:4px;display:flex;gap:10px}
+.note-edit,.note-del{width:26px;height:26px;min-width:26px;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);font-size:13px;line-height:1;padding:0;cursor:pointer}
+.note-edit:hover{color:var(--brand);border-color:var(--brand)}
+.note-del:hover{color:var(--danger);border-color:#e8b4ae}
+.note-item{padding-right:76px}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2315,7 +2323,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.44.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.45.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
