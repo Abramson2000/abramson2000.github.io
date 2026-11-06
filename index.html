@@ -1272,7 +1272,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 #fPanel:not([open]) .f-ctl { display: none; }
 
 /* 5.26.0: карточка визита — компактная, результаты отдельной панелью */
-#modal .detail-block{padding:5px 0}
+#modal .detail-block{padding:6px 14px}
 .vm-doc-row{padding:4px 0 !important}
 .vm-doc-name{font-size:13.5px !important}
 .vm-doc-clinics{font-size:11.5px !important}
@@ -1323,7 +1323,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 /* 5.32.0: карточка визита на телефоне — с полями и мельче подписи */
 @media (max-width: 899px) {
   #modal .modal-card { width: calc(100% - 14px) !important; margin: 0 7px 7px !important; border-radius: 16px 16px 16px 16px !important; }
-  #modal .detail-block { padding: 4px 0 !important; }
+  #modal .detail-block { padding: 5px 13px !important; }
   #modal .detail-block .k { font-size: 10.5px !important; }
   #modal .detail-block .v { font-size: 13px !important; line-height: 1.35; }
   .vm-doc-name { font-size: 12.5px !important; }
@@ -2299,7 +2299,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.36.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.37.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
