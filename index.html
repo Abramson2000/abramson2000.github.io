@@ -2300,7 +2300,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.37.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.38.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2808,6 +2808,14 @@ function closeModal() {
   // 4.64.0: возвращаем фокус туда, откуда открыли
   try { if (__modalOpener && __modalOpener.focus) __modalOpener.focus({ preventScroll: true }); } catch (_) {}
   __modalOpener = null;
+  // 5.38.0: если карточка-панель не показана, класс card-open прятал список — отсюда белый экран
+  try {
+    if (document.body.classList.contains('card-open')) {
+      const pan = document.getElementById('hoverCard');
+      const empty = !pan || pan.classList.contains('hidden') || pan.classList.contains('panel-empty') || !String(pan.innerHTML || '').trim();
+      if (empty) document.body.classList.remove('card-open');
+    }
+  } catch (e) {}
   // v4.46.0: на iOS после высокой формы страница оставалась прокрученной ниже контента — «белый экран»
   if (__closingModal) return;
   __closingModal = true;
@@ -5672,14 +5680,14 @@ async function clinicResultsBlockHtml(clinicId) {
     const { data } = await sb.from('notes').select('id,text').eq('clinic_id', Number(clinicId)).like('text', RESULT_MARK + '%').limit(200);
     if (!data || !data.length) return '';
     const rows = [];
-    for (const n of data) {
-      let o = null; try { o = JSON.parse(String(n.text).slice(RESULT_MARK.length)); } catch (_) { continue; }
-      if (!o || !o.t) continue;
-      let docName = '#' + o.d;
-      try {
-        const pr = await sb.from('people').select('id,full_name').eq('id', Number(o.d)).limit(1);
-        if (pr.data && pr.data[0]) docName = pr.data[0].full_name;
-      } catch (_) {}
+    const parsed = data.map(n => { try { return JSON.parse(String(n.text).slice(RESULT_MARK.length)); } catch (_) { return null; } }).filter(o => o && o.t);
+    const docIds = [...new Set(parsed.map(o => Number(o.d)).filter(Boolean))];
+    const nameById = {};
+    if (docIds.length) {
+      try { const pr = await sb.from('people').select('id,full_name').in('id', docIds); (pr.data || []).forEach(x => { nameById[Number(x.id)] = x.full_name; }); } catch (_) {}
+    }
+    for (const o of parsed) {
+      let docName = nameById[Number(o.d)] || ('#' + o.d);
       const dt = o.at ? new Date(o.at) : null;
       const ds = dt ? String(dt.getDate()).padStart(2, '0') + '.' + String(dt.getMonth() + 1).padStart(2, '0') + '.' + dt.getFullYear() : '';
       rows.push(`<div class="cl-res"><div class="cl-res-h"><b>${esc(docName)}</b><span>${esc(ds)}</span></div>
@@ -8992,7 +9000,6 @@ async function showHoverCard(row, immediate) {
       if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
       hydrateCard(Number(c.id) || 0);
       try { injectClinicResultsBlock(Number(c.id) || 0); } catch (e) {}
-      setTimeout(() => { try { injectClinicResultsBlock(Number(c.id) || 0); } catch (e) {} }, 600);
     } else {
       const h3 = panel.querySelector('.card-head h3');
       if (h3 && h3.textContent.trim() !== String(c.name || '').trim()) h3.textContent = c.name;
