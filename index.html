@@ -1352,6 +1352,14 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .vr-chip{display:inline-flex;align-items:center;gap:6px;background:#EEF3F6;border:1px solid #DCE6EC;border-radius:999px;padding:4px 10px;font-size:12.5px;color:var(--ink)}
 .vr-chip button{border:0;background:none;cursor:pointer;font-size:12px;color:#7b8b96;padding:0}
 .vr-empty{font-size:12px;color:var(--muted)}
+
+/* 5.44.0: запись — поле на всю ширину, кнопка компактная; метка «встреча» */
+.note-add{display:flex;gap:8px;align-items:flex-start}
+.note-add textarea{flex:1 1 auto;min-width:0;min-height:44px;box-sizing:border-box}
+.note-add .btn-primary-sm{flex:0 0 auto;width:auto;padding:8px 12px;font-size:12.5px;white-space:nowrap}
+.note-meta .note-tag{display:inline-block;margin-left:6px;font-size:10px;color:#c0392b;text-transform:lowercase;letter-spacing:.02em}
+.note-del{border:0;background:none;color:#b0a8a2;font-size:13px;cursor:pointer;padding:0 4px}
+.note-del:hover{color:#c0392b}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2306,7 +2314,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.43.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.44.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4726,7 +4734,7 @@ async function openClinicCardModal(id) {
   openModal(c.name || 'Клиника',
     clinicHeadHtml(c, canEditC) + clinicDetailBody(c, pair.linked, contacts, undefined, related, monthly, pair));
   hydrateCard(Number(c.id) || 0);
-  try { await injectClinicResultsBlock(Number(c.id) || 0, '#modalBody'); } catch (e) {}
+
 }
 
 // v4.31.0: клик по цифре в «Плане» — всплывающее окно с продажами клиники по месяцам
@@ -8690,7 +8698,10 @@ function renderNotesBox(box, list, canEdit) {
     ? list.map(n => {
         const meta = [fmtDate(n.created_at), (n.author_name || n.author_email || '')].filter(Boolean).join(' · ');
         const pencil = canEdit ? `<button class="note-edit" data-note-edit="${n.id}" title="Изменить запись" aria-label="Изменить запись">✎</button>` : '';
-        return `<div class="note-item" data-note="${n.id}">${pencil ? `<span class="note-tools">${pencil}</span>` : ''}${meta ? `<div class="note-meta">${esc(meta)}</div>` : ''}<div class="note-text">${esc(n.text)}</div></div>`;
+        const trash = `<button class="note-del" data-note-del="${n.id}" title="Удалить запись" aria-label="Удалить запись">🗑</button>`;
+        const tag = n.isResult ? '<span class="note-tag">встреча</span>' : '';
+        const tools = (pencil || trash) ? `<span class="note-tools">${pencil}${trash}</span>` : '';
+        return `<div class="note-item" data-note="${n.id}">${tools}${meta ? `<div class="note-meta">${esc(meta)}${tag}</div>` : (tag ? `<div class="note-meta">${tag}</div>` : '')}<div class="note-text">${esc(n.text)}</div></div>`;
       }).join('')
     : '';
 }
@@ -8702,9 +8713,17 @@ async function allNotesByClinic() {
       const { data } = await sb.from('notes').select('id,clinic_id,text,author_email,author_name,created_at')
         .order('created_at', { ascending: false });
       const map = {};
-      // v4.12.0: служебные записи визитов и идей в ленту истории не попадают
+      // 5.44.0: результаты встреч показываем в общей ленте с меткой «встреча»
       (data || []).forEach(n => {
-        if (/^\[\[/.test(String(n.text || ''))) return;
+        const raw = String(n.text || '');
+        if (raw.indexOf(RESULT_MARK) === 0) {
+          let o = null; try { o = JSON.parse(raw.slice(RESULT_MARK.length)); } catch (_) {}
+          if (!o || !o.t) return;
+          const item = { id: n.id, clinic_id: n.clinic_id, text: o.t, created_at: o.at || n.created_at, author_name: '', author_email: '', isResult: true };
+          const k2 = Number(n.clinic_id); (map[k2] = map[k2] || []).push(item);
+          return;
+        }
+        if (/^\[\[/.test(raw)) return;
         const k = Number(n.clinic_id); (map[k] = map[k] || []).push(n);
       });
       return map;
@@ -8879,6 +8898,23 @@ document.addEventListener('click', async (ev) => {
     } catch (e) {
       toast('⚠️ Не сохранилось: ' + (e && e.message ? e.message : e) + ' — текст оставлен в поле');
     } finally { save.disabled = false; }
+    return;
+  }
+  const delBtn = ev.target.closest('[data-note-del]');
+  if (delBtn) {
+    ev.preventDefault(); ev.stopPropagation();
+    const nid = Number(delBtn.dataset.noteDel);
+    if (!nid) return;
+    if (!confirm('Удалить запись?')) return;
+    try {
+      await sb.from('notes').delete().eq('id', nid);
+      try { rcDrop && rcDrop('nt:all'); } catch (e) {}
+      invalidateVisitCache();
+      const box = delBtn.closest('.notes-block')?.querySelector('#notesList');
+      const cid = box ? Number(box.dataset.cid) : null;
+      if (cid) await fillNotesBlock(cid); else await render();
+      toast('✓ Запись удалена');
+    } catch (e) { toast('⚠️ Не удалось удалить: ' + ((e && e.message) || e)); }
     return;
   }
   const add = ev.target.closest('#noteAdd');
