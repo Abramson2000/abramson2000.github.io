@@ -224,10 +224,10 @@ body {
 .transfer-btn { font-size: 12px; color: var(--muted); cursor: pointer; flex: none; display: inline-flex; align-items: center; justify-content: center; height: 28px; padding: 0 8px; border-radius: 8px; user-select: none; box-sizing: border-box; white-space: nowrap; border: 1px solid var(--line); }
 .transfer-btn.on { color: var(--accent); border-color: var(--accent); }
 /* 4.64.0: подписи и высота фильтров в «Деньгах» */
-.mny-pills { display: inline-flex; gap: 6px; flex-wrap: wrap; }
-.mny-p { font: inherit; font-size: 12.5px; line-height: 1; padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; font-weight: 600; }
-.mny-p:hover { border-color: var(--brand); color: var(--brand-dark); }
-.mny-p.on { background: var(--brand); border-color: var(--brand); color: #fff; }
+.mny-pills { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.mny-p { font: inherit; font-size: 10.5px; line-height: 1; padding: 3px 7px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--muted); cursor: pointer; font-weight: 600; }
+.mny-p:hover { color: var(--ink); border-color: #cfcfcf; }
+.mny-p.on { background: #efefef; border-color: #d8d8d8; color: var(--ink); }
 .money-lbl { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
 .money-lbl select { height: 34px; font-size: 13px; }
 @media (max-width: 899px) {
@@ -2300,7 +2300,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.38.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.39.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -7037,9 +7037,10 @@ async function renderMoney() {
   const total = clinics.reduce((sum, c) => sum + (moneyVal(c, year) || 0), 0);
   const bTotal = clinics.reduce((sum, c) => sum + (curYearSales(c, year) || 0), 0);
   const hTotal = clinics.reduce((sum, c) => sum + (curYearHM(c, year) || 0), 0);
+  // 5.39.0: при «Все» показываем только итог года, без разбивки Boston/HugeMed
   const splitLabel = src === 'boston' ? `Boston ${fmtMoney(bTotal)}`
     : src === 'hugemed' ? `HugeMed ${fmtMoney(hTotal)}`
-    : `Boston ${fmtMoney(bTotal)} · HugeMed ${fmtMoney(hTotal)}`;
+    : '';
   const sortLabel = mode === 'name' ? 'А-Я' : (mode === 'asc' ? '↑ по сумме' : '↓ по сумме');
   const sortTitle = mode === 'name' ? 'Сортировка по алфавиту (нажми для смены)' : `Сортировка по сумме: ${mode === 'asc' ? 'по возрастанию' : 'по убыванию'} (нажми для смены)`;
   view.innerHTML = `<div class="money-total-line">Итого ${year}: <b>${fmtMoney(total)} ₽</b>
@@ -7062,7 +7063,7 @@ async function renderMoney() {
       const loc = c.city || '';
       const money = fmtMoney(moneyVal(c, year));
       const hm = curYearHM(c, year);
-      const split = (src === 'both' && hm != null && hm !== 0) ? ` · ХМ ${fmtMoney(hm)}` : '';
+      const split = '';   // 5.39.0: метку «ХМ» и сумму HugeMed в строке не показываем
       let trend = '';
       const prevVal = moneyVal(c, String(Number(year) - 1));
       const curVal = moneyVal(c, year);
