@@ -1856,6 +1856,13 @@ function loadOk(key) {
   try { setTimeout(renderLoadAlert, 0); } catch (_) {}
 }
 function loadErrClear() { Object.keys(LOAD_ERR).forEach(k => delete LOAD_ERR[k]); }
+// 5.52.0: повтор после ошибки — чистим состояние, сбрасываем кэш и перерисовываем раздел
+async function retryLoad() {
+  loadErrClear();
+  invalidateCache();
+  invalidateVisitCache();
+  try { await render(); } catch (_) {}
+}
 function renderLoadAlert() {
   const el = document.getElementById('loadAlert');
   if (!el) return;
@@ -1936,20 +1943,28 @@ async function rcLoad(k, fn, onFresh) {
 })();
 // связки многие-ко-многим — один раз на сессию
 async function listClinicLinks() {
-  return rcLoad('cpl', async () => {
-    // 5.52.0: постранично и с сообщением об ошибке — при >1000 связях врачи терялись бы молча
-    const out = [];
-    for (let from = 0; from <= 40000; from += 1000) {
-      const { data, error } = await sb.from('clinic_people').select('*')
-        .order('clinic_id', { ascending: true }).order('person_id', { ascending: true })
-        .range(from, from + 999);
-      if (error) { loadFail('clinic_people', error, rcHas('cpl')); return rcHas('cpl') ? RC.data['cpl'] : []; }
-      out.push(...(data || []));
-      if (!data || data.length < 1000) break;
-    }
-    loadOk('clinic_people');
-    return out;
-  });
+  // 5.52.0: постранично; при ошибке НЕ отдаём пустоту в кэш — возвращаем прошлые данные
+  // (или пусто, но без записи в кэш), чтобы следующая попытка снова шла в сеть
+  const key = 'cpl';
+  const stale = rcHas(key) ? RC.data[key] : null;
+  try {
+    return await rcLoad(key, async () => {
+      const out = [];
+      for (let from = 0; from <= 40000; from += 1000) {
+        const { data, error } = await sb.from('clinic_people').select('*')
+          .order('clinic_id', { ascending: true }).order('person_id', { ascending: true })
+          .range(from, from + 999);
+        if (error) { loadFail('clinic_people', error, !!stale); throw error; }
+        out.push(...(data || []));
+        if (!data || data.length < 1000) break;
+      }
+      loadOk('clinic_people');
+      return out;
+    });
+  } catch (e) {
+    loadFail('clinic_people', e, !!stale);
+    return stale || [];
+  }
 }
 // роль пользователя в базе — один запрос вместо четырёх
 async function getManagerRow(email) {
@@ -8855,15 +8870,18 @@ function renderNotesBox(box, list, canEdit) {
 // v4.2.4: все заметки одной загрузкой (их всего несколько десятков) — любой карточке сразу,
 // слоями по клинике. Так блок истории не «доезжает» после открытия карточки.
 async function allNotesByClinic() {
-  return rcLoad('nt:all', async () => {
-    try {
-      // 5.52.0: постранично — иначе сервер отдаёт максимум 1000 заметок и старые исчезают
+  // 5.52.0: постранично; при ошибке пустота НЕ уходит в кэш — показываем прошлые заметки,
+  // а следующая попытка снова идёт в сеть
+  const key = 'nt:all';
+  const stale = rcHas(key) ? RC.data[key] : null;
+  try {
+    return await rcLoad(key, async () => {
       const data = [];
       for (let from = 0; from <= 40000; from += 1000) {
         const { data: part, error } = await sb.from('notes').select('id,clinic_id,text,author_email,author_name,created_at')
           .order('created_at', { ascending: false }).order('id', { ascending: false })
           .range(from, from + 999);
-        if (error) { loadFail('notes', error, rcHas('nt:all')); return rcHas('nt:all') ? RC.data['nt:all'] : {}; }
+        if (error) { loadFail('notes', error, !!stale); throw error; }
         data.push(...(part || []));
         if (!part || part.length < 1000) break;
       }
@@ -8883,8 +8901,11 @@ async function allNotesByClinic() {
         const k = Number(n.clinic_id); (map[k] = map[k] || []).push(n);
       });
       return map;
-    } catch (e) { loadFail('notes', e, rcHas('nt:all')); return rcHas('nt:all') ? RC.data['nt:all'] : {}; }
-  });
+    });
+  } catch (e) {
+    loadFail('notes', e, !!stale);
+    return stale || {};
+  }
 }
 function notesCachedFor(cid) {
   try {
