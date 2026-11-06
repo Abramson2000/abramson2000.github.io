@@ -1372,7 +1372,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 .note-item{padding-right:76px}
 
 /* 5.48.0: кнопка добавления записи вместо узкого поля */
-.note-new{display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;padding:8px 12px;font-size:12.5px;border-radius:9px}
+.note-new{display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;padding:10px 16px;font-size:14px;border-radius:10px;min-height:40px}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2327,7 +2327,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.49.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.50.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4547,7 +4547,7 @@ async function openResultEditor(plan, note, clinic, visitDocs) {
   const nameOf = id => { const p = allPeople.find(x => Number(x.id) === Number(id)); return p ? p.full_name : ('#' + id); };
   openModal(title, `
     <div class="mwfield"><label for="vrt">Текст результата</label>
-      <textarea id="vrt" rows="8" style="min-height:180px;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14.5px">${esc((note && note.t) || '')}</textarea></div>
+      <textarea id="vrt" rows="12" style="min-height:300px;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;font-size:15px;line-height:1.5">${esc((note && note.t) || '')}</textarea></div>
     <div class="field"><label>Врачи</label>
       <div id="vrChips" class="vr-chips"></div>
       <div class="cp-wrap"><input type="text" id="vrSearch" placeholder="найди врача и добавь" autocomplete="off" /></div>
