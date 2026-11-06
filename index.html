@@ -1840,6 +1840,35 @@ function rcHydrate() {
 }
 function rcSet(k, v) { RC.data[k] = v; RC.ts[k] = Date.now(); rcPersist(k, v); }
 function invalidateCache() { RC.data = {}; RC.ts = {}; RC.pending = {}; }
+/* 5.53.0: адресный сброс — правка одной записи больше не заставляет перезагружать всю Базу.
+   Неизвестная таблица по-прежнему сбрасывает всё (страховка). */
+function dropKeys(pred) {
+  Object.keys(RC.data).forEach(k => { if (pred(k)) { delete RC.data[k]; delete RC.ts[k]; } });
+  Object.keys(RC.pending).forEach(k => { if (pred(k)) delete RC.pending[k]; });
+}
+function invalidateForWrite(table) {
+  const t = String(table || '');
+  if (t === 'clinics') { dropKeys(k => k === 't:clinics'); return; }
+  if (t === 'people') { dropKeys(k => k === 't:people'); try { window.__allPeople = null; } catch (_) {} return; }
+  if (t === 'clinic_people') { dropKeys(k => k === 'cpl'); return; }
+  // закрытую часть не выбрасываем, а помечаем устаревшей: сохранение тут же правит запись в кэше
+  if (t === 'clinic_private') { dropKeys(k => k === 'cp'); try { if (Array.isArray(PRIV.rows)) PRIV.ts = 0; } catch (_) {} return; }
+  if (t === 'notes') {
+    dropKeys(k => k === 'nt:all' || k.indexOf('nt:') === 0);
+    try { planCache = null; } catch (_) {}
+    try { invalidateVisitCache(); } catch (_) {}
+    return;
+  }
+  if (t === 'sales_monthly') { dropKeys(k => k.indexOf('sm:') === 0); try { monAllCache = null; } catch (_) {} return; }
+  if (t === 'dicts') { dropKeys(k => k.indexOf('d:') === 0); return; }
+  if (t === 'user_managers') { dropKeys(k => k.indexOf('um:') === 0); return; }
+  if (/^(nastya|galya|abramson)_/.test(t)) {
+    dropKeys(k => k === 'wl:' + t || k === 'wlpool:' + t);
+    dropKeys(k => k.indexOf('wlids:') === 0);
+    return;
+  }
+  invalidateCache();
+}
 
 /* 5.52.0: состояние загрузки — отличаем «данных нет» от «ошибка загрузки».
    LOAD_ERR: ключ → { msg, stale }, stale = показаны ранее загруженные данные. */
@@ -1934,7 +1963,7 @@ async function rcLoad(k, fn, onFresh) {
       ['insert', 'update', 'upsert', 'delete'].forEach((m) => {
         const f = q[m] && q[m].bind(q);
         if (!f) return;
-        q[m] = function () { invalidateCache(); return f.apply(null, arguments); };
+        q[m] = function () { invalidateForWrite(t); return f.apply(null, arguments); };
       });
       return q;
     };
@@ -2059,17 +2088,60 @@ async function fetchClinicPrivateAll() {
   }
   return out;
 }
+/* 5.53.0: закрытая часть клиник — в памяти на 5 минут, один запрос на всех.
+   Раньше вся таблица clinic_private запрашивалась при каждом listClinics().
+   После сохранения запись правится прямо в кэше, поэтому новые задачи, даты
+   контакта и суммы видны сразу, а не после истечения срока. */
+const PRIV = { rows: null, ts: 0, ttl: 5 * 60 * 1000, pending: null, refreshing: false, sig: '' };
+function privFresh() { return Array.isArray(PRIV.rows) && (Date.now() - PRIV.ts) < PRIV.ttl; }
+async function clinicPrivateAll(force) {
+  if (!force && privFresh()) return PRIV.rows;
+  if (PRIV.pending) return PRIV.pending;          // одинаковые одновременные запросы — один
+  const p = (async () => {
+    try {
+      const rows = await fetchClinicPrivateAll();
+      PRIV.rows = rows;
+      PRIV.ts = Date.now();
+      PRIV.sig = JSON.stringify(rows);
+      loadOk('clinic_private');
+      return rows;
+    } finally { PRIV.pending = null; }
+  })();
+  PRIV.pending = p;
+  return p;
+}
+// тихое обновление в фоне: экран не ждёт; если данные изменились — перерисовываем
+function privRefreshInBackground() {
+  if (PRIV.refreshing || !Array.isArray(PRIV.rows)) return;
+  if (Date.now() - PRIV.ts < 60000) return;      // чаще раза в минуту не ходим
+  PRIV.refreshing = true;
+  clinicPrivateAll(true).then(() => {
+    if (PRIV.sig !== PRIV.lastRenderedSig) { PRIV.lastRenderedSig = PRIV.sig; try { render(); } catch (_) {} }
+  }).catch(() => {}).finally(() => { PRIV.refreshing = false; });
+}
+// правка записи в кэше сразу после сохранения (write-through)
+function privPatchLocal(clinicId, patch) {
+  const id = Number(clinicId);
+  if (!Number.isFinite(id) || id <= 0) return;
+  if (!Array.isArray(PRIV.rows)) return;         // ещё ничего не загружено — грузим как обычно
+  const row = PRIV.rows.find(r => Number(r.clinic_id) === id);
+  if (row) Object.assign(row, patch || {});
+  else PRIV.rows.push(Object.assign({ clinic_id: id }, patch || {}));
+  PRIV.ts = Date.now();
+  PRIV.sig = JSON.stringify(PRIV.rows);
+  PRIV.lastRenderedSig = PRIV.sig;
+}
+function privDropCache() { PRIV.rows = null; PRIV.ts = 0; PRIV.sig = ''; PRIV.lastRenderedSig = ''; }
 async function mergeClinicPrivate(list) {
-  // 4.10.0: приватные поля (задачи, даты контакта) больше не кэшируем — иначе
-  // поставленная задача не видна, пока не истечёт кэш.
-  // 5.52.0: ошибку больше не прячем — показываем предупреждение, а не «нули» как факт.
+  // 5.53.0: берём из кэша (5 минут) или одним запросом; ошибку показываем, а не «нули» как факт.
   let data = [];
   try {
-    data = await fetchClinicPrivateAll();
+    data = await clinicPrivateAll(false);
     PRIV_LAST = data;
-    loadOk('clinic_private');
+    if (Date.now() - PRIV.ts > 60000) privRefreshInBackground();
   } catch (e) {
-    if (PRIV_LAST && PRIV_LAST.length) { data = PRIV_LAST; loadFail('clinic_private', e, true); }
+    if (PRIV.rows && PRIV.rows.length) { data = PRIV.rows; loadFail('clinic_private', e, true); }
+    else if (PRIV_LAST && PRIV_LAST.length) { data = PRIV_LAST; loadFail('clinic_private', e, true); }
     else { data = []; loadFail('clinic_private', e, false); }
   }
   const map = {};
@@ -2098,11 +2170,13 @@ async function saveClinicPrivate(clinicId, manager, fields) {
     delete row.action_type;
     const again = await sb.from('clinic_private').upsert(row, { onConflict: 'clinic_id' });
     if (again.error) throw again.error;
+    privPatchLocal(clinicId, row);
     const e2 = new Error('Тип действия сохранён не был: в базе нет колонки action_type (нужен SQL из crm-lite/sql/2026-09-20-v3.14.0-action-type.sql)');
     e2.partial = true;
     throw e2;
   }
   if (res.error) throw res.error;
+  privPatchLocal(clinicId, row);
 }
 
 async function listClinics() {
@@ -2117,10 +2191,28 @@ async function listAllClinics() {
   window.__ALLOW_ALL_CLINICS = true;
   try { return await listClinics(); } finally { window.__ALLOW_ALL_CLINICS = keep; }
 }
+// 5.53.0: карточка берёт клинику из уже загруженного списка — без отдельного запроса
+function clinicCachedById(id) {
+  const arr = RC.data['t:clinics'];
+  if (!Array.isArray(arr)) return null;
+  const nId = Number(id);
+  return arr.find(r => Number(r.id) === nId) || null;
+}
+// полный список клиник с закрытой частью — из кэша, без сети, если список уже загружен
+async function clinicsAllWithPrivate() {
+  const raw = await fetchAllRows('clinics', 'name', 'id');
+  return mergeClinicPrivate((raw || []).map(r => Object.assign({}, r)));
+}
 async function getClinic(id) {
   // 4.67.0: страховка — невалидный id не должен уходить в запрос
   const nId = Number(id);
   if (!Number.isFinite(nId) || nId <= 0) return null;
+  const hit = clinicCachedById(nId);
+  if (hit) {
+    // копия: слияние закрытых полей не должно менять общий кэш списка
+    const row = await mergeClinicPrivate([Object.assign({}, hit)]);
+    return row[0];
+  }
   const { data, error } = await sb.from('clinics').select('*').eq('id', nId).maybeSingle();
   if (error) throw error;
   if (!data) return null;
@@ -2206,15 +2298,17 @@ async function linkedPairInfo(c) {
   const cards = [c];
   let linked = null;
   if (c.linkedClinicId && Number(c.linkedClinicId) !== selfId) {
-    try { linked = await getClinic(Number(c.linkedClinicId)); } catch (_) { linked = null; }
+    try { linked = await getClinic(Number(c.linkedClinicId)); } catch (_) { linked = null; }   // из кэша, без сети
     if (linked) { ids.push(Number(linked.id)); cards.push(linked); }
   }
+  // 5.53.0: связанные карточки ищем в уже загруженном списке клиник — без двух лишних запросов
   let partners = [];
   try {
-    const { data } = await sb.from('clinics').select(CLINIC_COLS).eq('linked_clinic_id', selfId);
-    partners = (data || []).map(fromClinic).filter(r => r && r.id);
+    const pool = await clinicsAllWithPrivate();
+    partners = (pool || []).filter(r => r && r.id && Number(r.linkedClinicId) === selfId);
+    if (!linked && c.linkedClinicId) linked = (pool || []).find(r => Number(r.id) === Number(c.linkedClinicId)) || null;
+    if (linked && !ids.includes(Number(linked.id))) { ids.push(Number(linked.id)); cards.push(linked); }
   } catch (_) { partners = []; }
-  try { await mergeClinicPrivate(partners); } catch (_) {}
   partners.forEach(r => { if (!ids.includes(Number(r.id))) { ids.push(Number(r.id)); cards.push(r); } });
   // продажи/«связаться» берём из записи с закрытой частью (её отдал сервер) — иначе из своей
   const moneyCard = (c.hasPrivate ? c : null) || cards.find(x => x && x.hasPrivate) || c;
@@ -2350,6 +2444,28 @@ async function getWorklist(W) {
     return { clinics: clinics.data || [], people: people.data || [] };
   }, () => { try { render(); } catch (_) {} });
 }
+// 5.53.0: «какие клиники уже на моих листах» — один запрос на пользователя, а не на каждый рендер
+async function myWorklistIds(email) {
+  const listKeys = Object.keys(WORKLISTS).filter(k => WORKLISTS[k].emails.includes(email));
+  if (!listKeys.length) return new Set();
+  const ids = await rcLoad('wlids:' + listKeys.join(','), async () => {
+    const qs = await Promise.all(listKeys.map(k =>
+      withTimeout(sb.from(WORKLISTS[k].cl).select('linked_clinic_id'), 10000, 'wl-check').catch(() => ({ data: [] }))
+    ));
+    const out = [];
+    qs.forEach(res => { (res.data || []).forEach(r => { if (r.linked_clinic_id) out.push(Number(r.linked_clinic_id)); }); });
+    return out;
+  });
+  return new Set(ids || []);
+}
+// состав рабочего листа (для фильтра разделов Настя/Галя/Саша) — тоже из кэша
+async function worklistLinkedIds(W) {
+  const ids = await rcLoad('wlpool:' + W.cl, async () => {
+    const { data } = await withTimeout(sb.from(W.cl).select('linked_clinic_id').not('linked_clinic_id', 'is', null), 15000, 'wl-pool');
+    return (data || []).map(r => Number(r.linked_clinic_id)).filter(Boolean);
+  });
+  return new Set(ids || []);
+}
 async function getNastya() { return getWorklist(WORKLISTS.nastya); }
 async function getGalya() { return getWorklist(WORKLISTS.galya); }
 
@@ -2445,7 +2561,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.52.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.53.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3101,6 +3217,14 @@ async function bootstrap(preferredUser) {
   }
   if (window.__d) window.__d.m.push('user ' + (Date.now() - window.__d.t) + 'ms');
   if (!user) { showLogin(); return; }  // нет валидной сессии — показываем экран входа
+  // 5.53.0: адрес известен — сразу показываем прошлые данные и греем клиники в фоне,
+  // параллельно с определением роли (роль нужна только для прав и фильтров, не для этих таблиц)
+  CURRENT_EMAIL = user.email || null;
+  rcHydrate();
+  const __warm = Promise.all([
+    withTimeout(fetchAllRows('clinics', 'name', 'id'), 15000, 'warm-clinics').catch(() => null),
+    withTimeout(clinicPrivateAll(false), 15000, 'warm-priv').catch(() => null)
+  ]);
   try {
     const am = await withTimeout(getManagerRow(user.email), 1200, 'manager-offline-fallback');
     if (am) {
@@ -3128,7 +3252,6 @@ async function bootstrap(preferredUser) {
     'cns', 'air', 'endo', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'analysis', 'sasha', 'nastya', 'galya'];
   state.view = (savedView && KNOWN_VIEWS.includes(savedView)) ? savedView : 'myday';
   state.mydayMgr = myDayDefaultManager();
-  rcHydrate();   // v3.16.2: показываем прошлые данные сразу, свежесть догоняем в фоне
   Object.keys(WORKLISTS).forEach(k => {
     const can = WORKLISTS[k].emails.includes(CURRENT_EMAIL);
     document.querySelectorAll('.' + k + '-tab').forEach(el => el.classList.toggle('hidden', !can));
@@ -3165,6 +3288,8 @@ async function bootstrap(preferredUser) {
   render();
   refreshCounts();
   // v3.27.3: в фоне прогреваем кэш людей и связок — тогда карточка клиники открывается мгновенно
+  // 5.53.0: клиники уже греются выше, вместе с ролью
+  try { __warm.catch(() => {}); } catch (_) {}
   setTimeout(() => { listPeople().catch(() => {}); listClinicLinks().catch(() => {}); getDict('manager').catch(() => {}); allNotesByClinic().catch(() => {}); loadPlans().catch(() => {}); }, 1200);
 }
 
@@ -3806,8 +3931,7 @@ async function filterRowsFor(view) {
   if (view === 'nastya' || view === 'galya' || view === 'sasha') {
     const W = WORKLISTS[view];
     try {
-      const { data } = await withTimeout(sb.from(W.cl).select('linked_clinic_id').not('linked_clinic_id', 'is', null), 15000, 'wl-pool');
-      const ids = new Set((data || []).map(r => Number(r.linked_clinic_id)));
+      const ids = await worklistLinkedIds(W);
       return all.filter(c => ids.has(c.id));
     } catch (_) { return all.filter(c => (c.kind || 'hospital') === 'hospital'); }
   }
@@ -4519,7 +4643,7 @@ async function openVisitCard(plan) {
     if (!confirm('Отменить этот визит? Он исчезнет из «Предстоящих».')) return;
     try {
       await sb.from('notes').delete().eq('id', nId);
-      if (cId) await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', cId);
+      if (cId) { await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', cId); privPatchLocal(cId, { next_contact: null, action_type: null }); }
       invalidateVisitCache();
       closeModal();
       toast('✓ Визит отменён');
@@ -4723,7 +4847,9 @@ async function openResultEditor(plan, note, clinic, visitDocs) {
           const cur = await sb.from('clinic_private').select('action_type').eq('clinic_id', Number(clinicIds[0])).limit(1);
           const act = (cur.data && cur.data[0] && cur.data[0].action_type) || null;
           if (act === 'visit') {
-            await sb.from('clinic_private').update({ note: ('звонок ' + callDate.split('-').reverse().join('.') + ': ' + t.slice(0, 120)) }).eq('clinic_id', Number(clinicIds[0]));
+            const noteTxt = 'звонок ' + callDate.split('-').reverse().join('.') + ': ' + t.slice(0, 120);
+            await sb.from('clinic_private').update({ note: noteTxt }).eq('clinic_id', Number(clinicIds[0]));
+            privPatchLocal(Number(clinicIds[0]), { note: noteTxt });
           } else {
             await saveClinicPrivate(Number(clinicIds[0]), (clinic && clinic.manager) || null, { next_contact: callDate, action_type: 'call', note: t.slice(0, 120) });
           }
@@ -5647,6 +5773,7 @@ async function renderVisits() {
     try {
       await sb.from('notes').delete().eq('id', nid);
       await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', cid);
+      privPatchLocal(cid, { next_contact: null, action_type: null });
       invalidateVisitCache();
       toast('✓ Визит отменён');
       await render();
@@ -6403,7 +6530,7 @@ async function openVisitModal(cfg) {
     if (!confirm('Отменить этот визит? Он исчезнет из «Предстоящих».')) return;
     try {
       await sb.from('notes').delete().eq('id', nId);
-      if (cId) await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', cId);
+      if (cId) { await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', cId); privPatchLocal(cId, { next_contact: null, action_type: null }); }
       invalidateVisitCache();
       closeModal();
       toast('✓ Визит отменён');
@@ -6696,7 +6823,7 @@ async function mdComplete(id, date) {
   const cur = String(c.nextContact || '').slice(0, 10);
   let cleared = false;
   if (cur && d && cur === d) {
-    try { await sb.from('clinic_private').update({ next_contact: null }).eq('clinic_id', cid); cleared = true; }
+    try { await sb.from('clinic_private').update({ next_contact: null }).eq('clinic_id', cid); privPatchLocal(cid, { next_contact: null }); cleared = true; }
     catch (e) { toast('⚠️ Запись в историю есть, но дату снять не удалось'); }
   }
   mdUndo = { clinicId: cid, name: c.name, prevDate: cur, noteId, cleared };
@@ -6708,7 +6835,7 @@ async function mdUndoLast() {
   const u = mdUndo; mdUndo = null;
   try {
     if (u.noteId) await sb.from('notes').delete().eq('id', u.noteId);
-    if (u.cleared) await sb.from('clinic_private').update({ next_contact: u.prevDate || null }).eq('clinic_id', u.clinicId);
+    if (u.cleared) { await sb.from('clinic_private').update({ next_contact: u.prevDate || null }).eq('clinic_id', u.clinicId); privPatchLocal(u.clinicId, { next_contact: u.prevDate || null }); }
     toast('↩ Отметка отменена');
   } catch (e) { toast('⚠️ Отмена не удалась: ' + (e && e.message ? e.message : e)); }
   await render();
@@ -7104,14 +7231,8 @@ async function renderOrgList(kind) {
   const canTransfer = CURRENT_ROLE !== 'viewer' && CURRENT_ROLE !== 'guest' &&
     (myEmail === 'abramson@crm.ru' || myEmail === 'osechkina@crm.ru' || myEmail === 'skokova@crm.ru');
   // какие клиники уже есть на листах пользователя — подсветка значка ⇄
-  const myWlIds = new Set();
-  if (canTransfer) {
-    const listKeys = Object.keys(WORKLISTS).filter(k => WORKLISTS[k].emails.includes(myEmail));
-    const qs = await Promise.all(listKeys.map(k =>
-      withTimeout(sb.from(WORKLISTS[k].cl).select('linked_clinic_id'), 10000, 'wl-check').catch(() => ({ data: [] }))
-    ));
-    qs.forEach(res => { (res.data || []).forEach(r => { if (r.linked_clinic_id) myWlIds.add(Number(r.linked_clinic_id)); }); });
-  }
+  let myWlIds = new Set();
+  if (canTransfer) { try { myWlIds = await myWorklistIds(myEmail); } catch (_) { myWlIds = new Set(); } }
   const subTabs = '';   // v4.4.1: дублировал фильтр по менеджеру
   view.innerHTML = subTabs + '<div class="list">' + clinics.map(c => {
     const loc = c.city || '';
@@ -8467,7 +8588,7 @@ async function takeClinicIntoWork(cid, mgr) {
   try {
     const { data: ex } = await sb.from('clinic_private').select('clinic_id,manager').eq('clinic_id', target).maybeSingle();
     if (!ex) await saveClinicPrivate(target, who, {});
-    else if (String(ex.manager || '').trim() !== who) await sb.from('clinic_private').update({ manager: who }).eq('clinic_id', target);
+    else if (String(ex.manager || '').trim() !== who) { await sb.from('clinic_private').update({ manager: who }).eq('clinic_id', target); privPatchLocal(target, { manager: who }); }
   } catch (_) { /* закрытую часть настроит руководитель */ }
   patchClinicCache(target, { manager: who });
   toast('✓ В работе · ' + who);
