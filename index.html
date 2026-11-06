@@ -1373,6 +1373,16 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 
 /* 5.48.0: кнопка добавления записи вместо узкого поля */
 .note-new{display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;padding:10px 16px;font-size:14px;border-radius:10px;min-height:40px}
+
+/* 5.51.0: окно результата/записи на весь экран телефона */
+@media (max-width: 899px) {
+  #modal.modal-full .modal-card{ height:100dvh !important; max-height:100dvh !important; width:100vw !important; max-width:100vw !important; margin:0 !important; border-radius:0 !important; padding:12px 14px calc(12px + env(safe-area-inset-bottom)) !important; display:flex; flex-direction:column; }
+  #modal.modal-full #modalBody{ display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
+  #modal.modal-full .field{ flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
+  #modal.modal-full textarea#vrt,
+  #modal.modal-full textarea#neModalTa{ flex:1 1 auto; min-height:0 !important; height:calc(100dvh - 190px) !important; box-sizing:border-box; resize:none; }
+  #modal.modal-full .btn-row{ flex:0 0 auto; }
+}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2327,7 +2337,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.50.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.51.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2831,7 +2841,7 @@ function closeModal() {
   __formDirty = false;
   setBusy(false);
   const m = document.getElementById('modal');
-  if (m) m.classList.add('hidden');
+  if (m) { m.classList.add('hidden'); try { m.classList.remove('modal-full'); } catch (e) {} }
   // 4.64.0: возвращаем фокус туда, откуда открыли
   try { if (__modalOpener && __modalOpener.focus) __modalOpener.focus({ preventScroll: true }); } catch (_) {}
   __modalOpener = null;
@@ -4580,6 +4590,7 @@ async function openResultEditor(plan, note, clinic, visitDocs) {
       inp.value = ''; res.classList.add('hidden'); chips();
     }));
   });
+  try { document.getElementById('modal').classList.add('modal-full'); } catch (e) {}
   document.getElementById('vrCancel').addEventListener('click', () => { closeModal(); openResultsPanel(plan, visitDocs || [], clinic); });
   document.getElementById('vrSave').addEventListener('click', async () => {
     const t = (document.getElementById('vrt').value || '').trim();
@@ -8847,6 +8858,7 @@ function openNoteEditor(cid, noteId, initialText) {
       <button class="btn ghost" id="neModalCancel">Отмена</button>
     </div>
   `);
+  try { document.getElementById('modal').classList.add('modal-full'); } catch (e) {}
   const ta = document.getElementById('neModalTa');
   if (ta) { ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (_) {} }
   document.getElementById('neModalCancel').addEventListener('click', closeModal);
