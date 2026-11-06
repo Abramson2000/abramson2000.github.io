@@ -2586,7 +2586,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.53.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.54.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5897,7 +5897,16 @@ async function openCallModal() {
 // ---------- Настя: изолированные карточки ----------
 function fmtDate(iso) {
   if (!iso) return '';
-  const [y, m, d] = String(iso).slice(0, 10).split('-');
+  const s = String(iso);
+  // 5.54.0: время в базе лежит в UTC. Если пришла дата со временем — показываем по местному,
+  // иначе запись, сделанная в час ночи, показывалась вчерашним числом.
+  if (s.length > 10 && (s[10] === 'T' || s[10] === ' ')) {
+    const dt = new Date(s);
+    if (!isNaN(dt.getTime())) {
+      return String(dt.getDate()).padStart(2, '0') + '.' + String(dt.getMonth() + 1).padStart(2, '0') + '.' + dt.getFullYear();
+    }
+  }
+  const [y, m, d] = s.slice(0, 10).split('-');
   return d + '.' + m + '.' + y;
 }
 async function renderNastya() { return renderWorklist('nastya'); }
@@ -6018,42 +6027,7 @@ function moneyBlockHtml(mc) {
   return `<div class="nastya-money"><div style="font-size:12px;color:#999;margin:12px 0 4px">Продажи</div>${rows.join('')}</div>`;
 }
 
-/* 5.17.0: в карточке клиники — отдельный блок «Результаты встреч» */
-async function clinicResultsBlockHtml(clinicId) {
-  try {
-    const { data } = await sb.from('notes').select('id,text').eq('clinic_id', Number(clinicId)).like('text', RESULT_MARK + '%').limit(200);
-    if (!data || !data.length) return '';
-    const rows = [];
-    const parsed = data.map(n => { try { return JSON.parse(String(n.text).slice(RESULT_MARK.length)); } catch (_) { return null; } }).filter(o => o && o.t);
-    const docIds = [...new Set(parsed.flatMap(o => (o.docs && o.docs.length) ? o.docs.map(Number) : (o.d ? [Number(o.d)] : [])).filter(Boolean))];
-    const nameById = {};
-    if (docIds.length) {
-      try { const pr = await sb.from('people').select('id,full_name').in('id', docIds); (pr.data || []).forEach(x => { nameById[Number(x.id)] = x.full_name; }); } catch (_) {}
-    }
-    for (const o of parsed) {
-      const ids = (o.docs && o.docs.length) ? o.docs.map(Number) : (o.d ? [Number(o.d)] : []);
-      let docName = ids.map(i => nameById[i] || ('#' + i)).join(', ') || 'без врача';
-      const dt = o.at ? new Date(o.at) : null;
-      const ds = dt ? String(dt.getDate()).padStart(2, '0') + '.' + String(dt.getMonth() + 1).padStart(2, '0') + '.' + dt.getFullYear() : '';
-      rows.push(`<div class="cl-res"><div class="cl-res-h"><b>${esc(docName)}</b><span>${esc(ds)}</span></div>
-        <div class="cl-res-t">${esc(String(o.t).replace(/\s+/g, ' '))}</div></div>`);
-    }
-    if (!rows.length) return '';
-    return `<div class="cl-res-block"><div class="cl-res-title">Результаты встреч</div>${rows.join('')}</div>`;
-  } catch (_) { return ''; }
-}
-async function injectClinicResultsBlock(clinicId, hostSel) {
-  try {
-    const panel = document.querySelector(hostSel || '#hoverCard');
-    if (!panel) return;
-    const old = panel.querySelector('.cl-res-block'); if (old) old.remove();
-    const html = await clinicResultsBlockHtml(clinicId);
-    if (!html) return;
-    const anchors = panel.querySelectorAll('.detail-block, .nastya-money, .card-tags');
-    const host = anchors.length ? anchors[anchors.length - 1] : panel;
-    host.insertAdjacentHTML('afterend', html);
-  } catch (_) {}
-}
+/* 5.54.0: отдельный блок «Результаты встреч» убран — результат показывается в общей ленте с меткой «встреча» */
 
 function renderWorklistDetail(key, c, people) {
   const W = WORKLISTS[key];
@@ -9460,7 +9434,7 @@ async function showHoverCard(row, immediate) {
       panel.innerHTML = cardHead + clinicDetailBody(c, null, [], undefined, [], null);
       if (window.innerWidth < 900) panel.insertBefore(makeBackBtn(), panel.firstChild);
       hydrateCard(Number(c.id) || 0);
-      try { injectClinicResultsBlock(Number(c.id) || 0); } catch (e) {}
+      // 5.54.0: результат встречи показываем в общей ленте с меткой «встреча» — отдельный блок убран (был дубль)
     } else {
       const h3 = panel.querySelector('.card-head h3');
       if (h3 && h3.textContent.trim() !== String(c.name || '').trim()) h3.textContent = c.name;
@@ -9469,7 +9443,7 @@ async function showHoverCard(row, immediate) {
       if (sub && wantSub && sub.textContent !== wantSub) sub.textContent = wantSub;
       const acts = panel.querySelector('.card-head-acts');
       if (acts) acts.innerHTML = `${canEditC ? `<button class="pane-btn primary" id="paneEditClinic" data-id="${c.id}">Изменить</button>` : ''}${siteChipHtml(c.situation)}`;
-      try { injectClinicResultsBlock(Number(c.id) || 0); } catch (e) {}
+      // 5.54.0: результат встречи показываем в общей ленте с меткой «встреча» — отдельный блок убран (был дубль)
     }
     // медленная часть — одним заходом (параллельно)
     // v3.36.0: данные по всей связанной паре (люди + продажи + блок «Связанная запись»)
