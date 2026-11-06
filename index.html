@@ -2300,7 +2300,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.39.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.40.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4353,7 +4353,7 @@ async function openVisitCard(plan) {
   (async () => {
     const btn = document.getElementById('vmResOpen');
     if (!btn || !RESULTS_DRAFT) return;
-    const map = await loadVisitResults(plan.clinic_id);
+    const map = await loadVisitResults(plan.clinic_id, plan.noteId);
     const filled = Object.keys(map).filter(k => (map[k].text || '').trim()).length;
     const cnt = document.getElementById('vmResCount');
     if (cnt) cnt.textContent = docs.length ? ' · ' + filled + ' из ' + docs.length : '';
@@ -4424,14 +4424,16 @@ async function appendResultToClinic(clinicId, doctorName, dateStr, text) {
   } catch (e) {}
 }
 // ---------- Результаты встреч (черновик 5.16.0, маркер [[R]]) ----------
-async function loadVisitResults(clinicId) {
+async function loadVisitResults(clinicId, visitNoteId) {
   const map = {};
   try {
     const { data } = await sb.from('notes').select('id,clinic_id,text')
-      .eq('clinic_id', Number(clinicId)).like('text', RESULT_MARK + '%').limit(500);
+      .like('text', RESULT_MARK + '%').limit(2000);
     (data || []).forEach(n => {
       try {
         const o = JSON.parse(String(n.text).slice(RESULT_MARK.length));
+        // 5.40.0: результат принадлежит визиту, даже если записан в клинику врача
+        if (visitNoteId && Number(o.v) !== Number(visitNoteId)) return;
         map[String(o.v) + ':' + String(o.d)] = { id: n.id, text: o.t || '', at: o.at || '' };
       } catch (_) {}
     });
@@ -4469,7 +4471,7 @@ async function doctorClinicFor(doctorId, visitCity, fallbackId) {
   } catch (e) { return fallbackId || null; }
 }
 async function openResultsPanel(plan, docs, clinic) {
-  const map = await loadVisitResults(plan.clinic_id);
+  const map = await loadVisitResults(plan.clinic_id, plan.noteId);
   openModal('Результаты визита', `
     <div class="vm-res-sub">${esc(visitTitleOf(plan))} · ${esc(fmtDate(plan.date))}${clinic ? ' · ' + esc(clinic.name) : ''}</div>
     ${docs.length ? docs.map(d => {
@@ -6277,10 +6279,20 @@ async function openIdeaMonthModal(presetClinicId, idea) {
     <div class="form-err hidden" id="imErr"></div>
     <div class="btn-row">
       <button class="btn" id="imSave">Сохранить</button>
+      <button class="btn ghost" id="imPlan">Перевести в визит</button>
       <button class="btn ghost" id="imCancel">Отмена</button>
     </div>
   `);
   document.getElementById('imCancel').addEventListener('click', closeModal);
+  const imPlanBtn = document.getElementById('imPlan');
+  if (imPlanBtn) imPlanBtn.addEventListener('click', async () => {
+    const city = (document.getElementById('imCity').value || '').trim();
+    const month = (document.getElementById('imMonth').value || '').trim();
+    const note = (document.getElementById('imNote').value || '').trim();
+    closeModal();
+    await openVisitModal({ clinicId: (idea && idea.clinic_id) || null,
+      idea: { city: city, goal: note, from: month ? (month + '-01') : '', to: month ? (month + '-28') : '', title: city } });
+  });
   document.getElementById('imSave').addEventListener('click', async () => {
     const city = (document.getElementById('imCity').value || '').trim();
     const month = (document.getElementById('imMonth').value || '').trim();
@@ -7037,10 +7049,9 @@ async function renderMoney() {
   const total = clinics.reduce((sum, c) => sum + (moneyVal(c, year) || 0), 0);
   const bTotal = clinics.reduce((sum, c) => sum + (curYearSales(c, year) || 0), 0);
   const hTotal = clinics.reduce((sum, c) => sum + (curYearHM(c, year) || 0), 0);
-  // 5.39.0: при «Все» показываем только итог года, без разбивки Boston/HugeMed
   const splitLabel = src === 'boston' ? `Boston ${fmtMoney(bTotal)}`
     : src === 'hugemed' ? `HugeMed ${fmtMoney(hTotal)}`
-    : '';
+    : `Boston ${fmtMoney(bTotal)} · HugeMed ${fmtMoney(hTotal)}`;
   const sortLabel = mode === 'name' ? 'А-Я' : (mode === 'asc' ? '↑ по сумме' : '↓ по сумме');
   const sortTitle = mode === 'name' ? 'Сортировка по алфавиту (нажми для смены)' : `Сортировка по сумме: ${mode === 'asc' ? 'по возрастанию' : 'по убыванию'} (нажми для смены)`;
   view.innerHTML = `<div class="money-total-line">Итого ${year}: <b>${fmtMoney(total)} ₽</b>
