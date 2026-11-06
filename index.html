@@ -483,6 +483,14 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
   background: var(--brand-dark); color: #fff; font-weight: 600; white-space: nowrap;
 }
 
+.load-alert{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:9500;max-width:min(600px,calc(100vw - 24px));
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-radius:12px;
+  background:#fff6e6;border:1px solid #f0b46a;color:#7a4a00;font-size:13px;line-height:1.35;
+  box-shadow:0 8px 24px rgba(0,0,0,.16)}
+.load-alert.hidden{display:none}
+.load-alert .la-txt{flex:1 1 240px}
+.load-alert .la-btn{border:1px solid #c98a2e;background:#fff;color:#7a4a00;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.load-alert .la-x{border:0;background:transparent;color:#7a4a00;font-size:15px;line-height:1;padding:4px 6px;cursor:pointer}
 .empty { text-align: center; color: var(--muted); padding: 40px 16px; font-size: 15px; }
 
 /* FAB — кнопка добавления (в строке поиска) */
@@ -1626,6 +1634,8 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
     </div>
   </div>
 
+  <div id="loadAlert" class="load-alert hidden" role="status" aria-live="polite"></div>
+
   <div class="work">
     <main id="view" class="view"></main>
     <aside id="hoverCard" class="hover-card hidden"></aside>
@@ -1830,6 +1840,63 @@ function rcHydrate() {
 }
 function rcSet(k, v) { RC.data[k] = v; RC.ts[k] = Date.now(); rcPersist(k, v); }
 function invalidateCache() { RC.data = {}; RC.ts = {}; RC.pending = {}; }
+
+/* 5.52.0: состояние загрузки — отличаем «данных нет» от «ошибка загрузки».
+   LOAD_ERR: ключ → { msg, stale }, stale = показаны ранее загруженные данные. */
+const LOAD_ERR = {};
+let PRIV_LAST = null;                 // последние удачно загруженные приватные данные клиник
+const LOAD_NAMES = { clinic_private: 'продажи и заметки клиник', notes: 'заметки', visits: 'визиты', clinic_people: 'врачи клиник' };
+function loadFail(key, e, stale) {
+  LOAD_ERR[key] = { msg: (e && e.message) || String(e || 'ошибка'), stale: !!stale };
+  try { setTimeout(renderLoadAlert, 0); } catch (_) {}   // плашка появляется сразу, из любого места
+}
+function loadOk(key) {
+  if (!Object.prototype.hasOwnProperty.call(LOAD_ERR, key)) return;
+  delete LOAD_ERR[key];
+  try { setTimeout(renderLoadAlert, 0); } catch (_) {}
+}
+function loadErrClear() { Object.keys(LOAD_ERR).forEach(k => delete LOAD_ERR[k]); }
+function renderLoadAlert() {
+  const el = document.getElementById('loadAlert');
+  if (!el) return;
+  const keys = Object.keys(LOAD_ERR);
+  if (!keys.length) { el.classList.add('hidden'); el.innerHTML = ''; return; }
+  const names = [];
+  keys.forEach(k => { const n = LOAD_NAMES[k] || k; if (names.indexOf(n) < 0) names.push(n); });
+  const stale = keys.some(k => LOAD_ERR[k].stale);
+  el.innerHTML = '<span class="la-txt">⚠️ Не удалось загрузить: ' + esc(names.join(', '))
+    + (stale ? '. Показаны ранее загруженные данные — они могут быть устаревшими.' : '.') + '</span>'
+    + '<button type="button" class="la-btn" id="loadRetry">Повторить</button>'
+    + '<button type="button" class="la-x" id="loadClose" aria-label="Скрыть сообщение">✕</button>';
+  el.classList.remove('hidden');
+  const r = document.getElementById('loadRetry');
+  if (r) r.onclick = () => {
+    loadErrClear();
+    invalidateCache();
+    invalidateVisitCache();
+    render();
+  };
+  const x = document.getElementById('loadClose');
+  if (x) x.onclick = () => { el.classList.add('hidden'); };
+}
+/* 5.52.0: одна операция сохранения за раз — повторное нажатие «Сохранить» не делает второй INSERT */
+function onSaveClick(btnId, fn) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    if (btn.dataset.busy === '1') return;
+    btn.dataset.busy = '1';
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    try { await fn(); }
+    catch (e) { toast('⚠️ Не сохранилось: ' + ((e && e.message) || e)); }
+    finally {
+      btn.dataset.busy = '';
+      btn.removeAttribute('aria-busy');
+      if (btn.isConnected) btn.disabled = false;
+    }
+  });
+}
 async function rcLoad(k, fn, onFresh) {
   if (rcHas(k)) {
     const old = RC.data[k];
@@ -1870,7 +1937,18 @@ async function rcLoad(k, fn, onFresh) {
 // связки многие-ко-многим — один раз на сессию
 async function listClinicLinks() {
   return rcLoad('cpl', async () => {
-    try { const { data } = await sb.from('clinic_people').select('*'); return data || []; } catch (_) { return []; }
+    // 5.52.0: постранично и с сообщением об ошибке — при >1000 связях врачи терялись бы молча
+    const out = [];
+    for (let from = 0; from <= 40000; from += 1000) {
+      const { data, error } = await sb.from('clinic_people').select('*')
+        .order('clinic_id', { ascending: true }).order('person_id', { ascending: true })
+        .range(from, from + 999);
+      if (error) { loadFail('clinic_people', error, rcHas('cpl')); return rcHas('cpl') ? RC.data['cpl'] : []; }
+      out.push(...(data || []));
+      if (!data || data.length < 1000) break;
+    }
+    loadOk('clinic_people');
+    return out;
   });
 }
 // роль пользователя в базе — один запрос вместо четырёх
@@ -1954,15 +2032,30 @@ async function fetchAllRows(table, orderCol, tieCol) {
 // менеджеру — поэтому она либо пустая, либо без нужных строк.
 const MONEY_COLS = ['sales_2016', 'sales_2017', 'sales_2018', 'sales_2019', 'sales_2020', 'sales_2021', 'sales_2022', 'sales_2023', 'sales_2024', 'sales_2025', 'sales_2026', 'hugemed_2025', 'hugemed_2026'];
 
+async function fetchClinicPrivateAll() {
+  // 5.52.0: постранично — иначе клиент получает не больше 1000 строк и часть клиник остаётся без денег
+  const out = [];
+  for (let from = 0; from <= 40000; from += 1000) {
+    const { data, error } = await sb.from('clinic_private').select('*')
+      .order('clinic_id', { ascending: true }).range(from, from + 999);
+    if (error) throw error;
+    out.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+  return out;
+}
 async function mergeClinicPrivate(list) {
   // 4.10.0: приватные поля (задачи, даты контакта) больше не кэшируем — иначе
   // поставленная задача не видна, пока не истечёт кэш.
+  // 5.52.0: ошибку больше не прячем — показываем предупреждение, а не «нули» как факт.
   let data = [];
   try {
-    const res = await sb.from('clinic_private').select('*');
-    data = res.data || [];
-  } catch (_) {
-    try { data = (await rcLoad('cp', async () => [])) || []; } catch (__) { data = []; }
+    data = await fetchClinicPrivateAll();
+    PRIV_LAST = data;
+    loadOk('clinic_private');
+  } catch (e) {
+    if (PRIV_LAST && PRIV_LAST.length) { data = PRIV_LAST; loadFail('clinic_private', e, true); }
+    else { data = []; loadFail('clinic_private', e, false); }
   }
   const map = {};
   data.forEach(p => { map[p.clinic_id] = p; });
@@ -2337,7 +2430,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.51.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.52.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4101,6 +4194,7 @@ function decorateGoneRows() {
 })();
 let __lastRenderedView = null;
 async function render() {
+  renderLoadAlert();
   if (isRefEdit() && REFEDIT_DENIED.includes(state.view)) { state.view = 'clinics'; }
   // 4.65.0: перешли в другой раздел — скрытая карточка не должна занимать место
   if (__lastRenderedView && __lastRenderedView !== state.view) {
@@ -4172,8 +4266,9 @@ async function render() {
     // любая ошибка загрузки — видимое сообщение + кнопка повтора вместо пустого экрана
     const view = document.getElementById('view');
     view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки: ' + esc(e && e.message ? e.message : e) +
-      '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+      '<br><br><button class="btn" onclick="retryLoad()">Повторить</button></div>';
   }
+  renderLoadAlert();
 }
 
 // ---------- ЦНС: отобранные клиники (v1.158) ----------
@@ -4592,7 +4687,7 @@ async function openResultEditor(plan, note, clinic, visitDocs) {
   });
   try { document.getElementById('modal').classList.add('modal-full'); } catch (e) {}
   document.getElementById('vrCancel').addEventListener('click', () => { closeModal(); openResultsPanel(plan, visitDocs || [], clinic); });
-  document.getElementById('vrSave').addEventListener('click', async () => {
+  onSaveClick('vrSave', async () => {
     const t = (document.getElementById('vrt').value || '').trim();
     if (!t) { toast('Впиши текст результата'); return; }
     const body = RESULT_MARK + JSON.stringify({ v: Number(plan.noteId), t: t, docs: chosen, at: new Date().toISOString() });
@@ -4789,7 +4884,7 @@ function openPlanEditor(clinicId, curPlan, onSaved) {
     <div class="btn-row"><button class="btn" id="planSave">Сохранить</button><button class="btn ghost" id="planCancel">Отмена</button></div>
   `);
   document.getElementById('planCancel').addEventListener('click', closeModal);
-  document.getElementById('planSave').addEventListener('click', async () => {
+  onSaveClick('planSave', async () => {
     const btn = document.getElementById('planSave');
     btn.disabled = true;
     try {
@@ -4903,7 +4998,7 @@ async function renderPlan() {
     plans = await loadPlans();
     vplans = await loadVisitPlans();
   } catch (e) {
-    view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+    view.innerHTML = '<div class="empty-state">⚠️ Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="retryLoad()">Повторить</button></div>';
     return;
   }
   const CUR_Y = new Date().getFullYear(), PREV_Y = CUR_Y - 1, LAST_M = 10;
@@ -5208,7 +5303,7 @@ async function renderVisits() {
     ideas = await loadVisitIdeas();
     plans = await loadVisitPlans();
   } catch (e) {
-    view.innerHTML = '<div class="empty-state">\u26a0\ufe0f Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+    view.innerHTML = '<div class="empty-state">\u26a0\ufe0f Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="retryLoad()">Повторить</button></div>';
     return;
   }
 
@@ -5571,7 +5666,7 @@ async function renderActionList(type, title) {
       (c.region || '').toLowerCase().includes(sAL) ||
       (c.manager || '').toLowerCase().includes(sAL));
   } catch (e) {
-    view.innerHTML = '<div class="empty-state">\u26a0\ufe0f Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+    view.innerHTML = '<div class="empty-state">\u26a0\ufe0f Ошибка загрузки: ' + esc(e && e.message ? e.message : e) + '<br><br><button class="btn" onclick="retryLoad()">Повторить</button></div>';
     return;
   }
   rows.sort((a, b) => {
@@ -5612,7 +5707,7 @@ async function openCallModal() {
     <div class="btn-row"><button class="btn" id="clSave">Поставить</button><button class="btn ghost" id="clCancel">Отмена</button></div>
   `);
   document.getElementById('clCancel').addEventListener('click', closeModal);
-  document.getElementById('clSave').addEventListener('click', async () => {
+  onSaveClick('clSave', async () => {
     const btn = document.getElementById('clSave');
     btn.disabled = true;
     try {
@@ -5651,7 +5746,7 @@ async function renderWorklist(key) {
     members = data || [];
   } catch (e) {
     view.innerHTML = '<div class="empty-state">\u26a0\ufe0f Ошибка загрузки вкладки ' + esc(W.label) + ': ' + esc(e && e.message ? e.message : e) +
-      '<br><br><button class="btn" onclick="render()">Повторить</button></div>';
+      '<br><br><button class="btn" onclick="retryLoad()">Повторить</button></div>';
     return;
   }
   let all = [];
@@ -6019,7 +6114,7 @@ function parseVisitText(t, mark) {
   if (s.indexOf(mark) !== 0) return null;
   try { return JSON.parse(s.slice(mark.length)); } catch (_) { return null; }
 }
-function invalidateVisitCache() { visitPlansMap = null; visitPlansList = null; visitIdeasCache = null; }
+function invalidateVisitCache() { visitPlansMap = null; visitPlansList = null; visitIdeasCache = null; visitNotesFailed = false; }
 function todayISO() {
   const d = new Date(); d.setHours(0, 0, 0, 0);
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -6029,25 +6124,49 @@ function addDaysISO(iso, days) {
   d.setDate(d.getDate() + days);
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }
+// 5.52.0: заметки визитов и идей — отдельными выборками по маркеру, постранично.
+// Раньше читались последние 2000 заметок целиком: при росте базы старые визиты исчезали.
+let visitNotesFailed = false;
+async function fetchNotesByMark(mark) {
+  const out = [];
+  for (let from = 0; from <= 40000; from += 1000) {
+    const { data, error } = await sb.from('notes')
+      .select('id,clinic_id,text,created_at')
+      .like('text', mark + '%')
+      .order('created_at', { ascending: false }).order('id', { ascending: false })
+      .range(from, from + 999);
+    if (error) throw error;
+    out.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+  return out;
+}
 async function loadVisitNotes() {
-  if (visitPlansMap && visitPlansList && visitIdeasCache) return;
-  const plans = {}, list = [], ideas = [];
+  if (visitPlansMap && visitPlansList && visitIdeasCache && !visitNotesFailed) return;
+  visitNotesFailed = false;
   try {
-    const { data } = await sb.from('notes').select('id,clinic_id,text,created_at').order('created_at', { ascending: false }).limit(2000);
-    (data || []).forEach(n => {
+    const [vRows, iRows] = await Promise.all([fetchNotesByMark(VISIT_MARK), fetchNotesByMark(IDEA_MARK)]);
+    const plans = {}, list = [], ideas = [];
+    (vRows || []).forEach(n => {
       const v = parseVisitText(n.text, VISIT_MARK);
-      if (v) {
-        const rec = Object.assign({ noteId: n.id, clinic_id: (n.clinic_id == null ? null : Number(n.clinic_id)) }, v);
-        list.push(rec);
-        // 5.24.0: в карту кладём запись с noteId — без него строка визита в «Моём дне» не открывала визит
-        if (!plans[rec.clinic_id]) plans[rec.clinic_id] = rec;
-        return;
-      }
+      if (!v) return;
+      const rec = Object.assign({ noteId: n.id, clinic_id: (n.clinic_id == null ? null : Number(n.clinic_id)) }, v);
+      list.push(rec);
+      // 5.24.0: в карту кладём запись с noteId — без него строка визита в «Моём дне» не открывала визит
+      if (!plans[rec.clinic_id]) plans[rec.clinic_id] = rec;
+    });
+    (iRows || []).forEach(n => {
       const i = parseVisitText(n.text, IDEA_MARK);
       if (i && (i.status || 'idea') === 'idea') ideas.push(Object.assign({ noteId: n.id, clinic_id: Number(n.clinic_id) }, i));
     });
-  } catch (_) {}
-  visitPlansMap = plans; visitPlansList = list; visitIdeasCache = ideas;
+    loadOk('visits');
+    visitPlansMap = plans; visitPlansList = list; visitIdeasCache = ideas;
+  } catch (e) {
+    // пустоту не кэшируем: следующее открытие повторит попытку, а на экране будет предупреждение
+    visitNotesFailed = true;
+    loadFail('visits', e, !!(visitPlansList && visitPlansList.length));
+    if (!visitPlansMap) { visitPlansMap = {}; visitPlansList = []; visitIdeasCache = []; }
+  }
 }
 async function loadVisitMeta() { await loadVisitNotes(); return visitPlansMap; }
 async function loadVisitIdeas() { await loadVisitNotes(); return visitIdeasCache; }
@@ -6279,7 +6398,7 @@ async function openVisitModal(cfg) {
       toast('⚠️ ' + saveError(e));
     }
   });
-  document.getElementById('vmSave').addEventListener('click', async () => {
+  onSaveClick('vmSave', async () => {
     const btn = document.getElementById('vmSave');
     btn.disabled = true;
     try {
@@ -6372,7 +6491,7 @@ async function openIdeaMonthModal(presetClinicId, idea) {
     await openVisitModal({ clinicId: (idea && idea.clinic_id) || null,
       idea: { city: city, goal: note, from: month ? (month + '-01') : '', to: month ? (month + '-28') : '', title: city } });
   });
-  document.getElementById('imSave').addEventListener('click', async () => {
+  onSaveClick('imSave', async () => {
     const city = (document.getElementById('imCity').value || '').trim();
     const month = (document.getElementById('imMonth').value || '').trim();
     const note = (document.getElementById('imNote').value || '').trim();
@@ -6486,7 +6605,7 @@ async function openIdeaModal(presetClinicId, idea) {
       toast('⚠️ ' + saveError(e));
     }
   });
-  document.getElementById('viSave').addEventListener('click', async () => {
+  onSaveClick('viSave', async () => {
     const btn = document.getElementById('viSave');
     btn.disabled = true;
     try {
@@ -6590,7 +6709,7 @@ async function mdReschedule(id, date) {
     <div class="btn-row"><button class="btn" id="mdMoveSave">Перенести</button><button class="btn ghost" id="mdMoveCancel">Отмена</button></div>
   `);
   document.getElementById('mdMoveCancel').addEventListener('click', closeModal);
-  document.getElementById('mdMoveSave').addEventListener('click', async () => {
+  onSaveClick('mdMoveSave', async () => {
     const btn = document.getElementById('mdMoveSave');
     btn.disabled = true;
     try {
@@ -7563,7 +7682,7 @@ async function openRefOrgForm(id, kind) {
     ${id ? '<div class="btn-row"><button class="btn ghost" id="f_delete">Удалить</button></div>' : ''}
   `);
   teRender();
-  document.getElementById('f_save').addEventListener('click', () => saveRefOrg(id, k));
+  onSaveClick('f_save', () => saveRefOrg(id, k));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deleteClinic(id));
 }
 
@@ -7607,7 +7726,7 @@ async function openRefDoctorForm(id) {
     ${id ? '<div class="btn-row"><button class="btn ghost" id="f_delete">Удалить</button></div>' : ''}
   `);
   teRender();
-  document.getElementById('f_save').addEventListener('click', () => saveRefDoctor(id));
+  onSaveClick('f_save', () => saveRefDoctor(id));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deletePerson(id));
   maskPhoneInput(document.getElementById('f_phone'));
 }
@@ -7701,7 +7820,7 @@ async function openClinicForm(id, presetKind) {
 
   teRender();
   markFormDirty(false);
-  document.getElementById('f_save').addEventListener('click', () => saveClinic(id));
+  onSaveClick('f_save', () => saveClinic(id));
   const cancelBtn = document.getElementById('f_cancel');
   if (cancelBtn) cancelBtn.addEventListener('click', () => requestCloseModal());
   const formCard = document.querySelector('#modal .modal-card');
@@ -7925,7 +8044,7 @@ async function openPersonForm(id, presetClinicId, opts) {
   `);
 
   teRender();
-  document.getElementById('f_save').addEventListener('click', () => savePerson(id));
+  onSaveClick('f_save', () => savePerson(id));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deletePerson(id));
   maskPhoneInput(document.getElementById('f_phone'));
 }
@@ -8738,8 +8857,17 @@ function renderNotesBox(box, list, canEdit) {
 async function allNotesByClinic() {
   return rcLoad('nt:all', async () => {
     try {
-      const { data } = await sb.from('notes').select('id,clinic_id,text,author_email,author_name,created_at')
-        .order('created_at', { ascending: false });
+      // 5.52.0: постранично — иначе сервер отдаёт максимум 1000 заметок и старые исчезают
+      const data = [];
+      for (let from = 0; from <= 40000; from += 1000) {
+        const { data: part, error } = await sb.from('notes').select('id,clinic_id,text,author_email,author_name,created_at')
+          .order('created_at', { ascending: false }).order('id', { ascending: false })
+          .range(from, from + 999);
+        if (error) { loadFail('notes', error, rcHas('nt:all')); return rcHas('nt:all') ? RC.data['nt:all'] : {}; }
+        data.push(...(part || []));
+        if (!part || part.length < 1000) break;
+      }
+      loadOk('notes');
       const map = {};
       // 5.44.0: результаты встреч показываем в общей ленте с меткой «встреча»
       (data || []).forEach(n => {
@@ -8755,7 +8883,7 @@ async function allNotesByClinic() {
         const k = Number(n.clinic_id); (map[k] = map[k] || []).push(n);
       });
       return map;
-    } catch (_) { return {}; }
+    } catch (e) { loadFail('notes', e, rcHas('nt:all')); return rcHas('nt:all') ? RC.data['nt:all'] : {}; }
   });
 }
 function notesCachedFor(cid) {
@@ -8795,7 +8923,13 @@ async function fillNotesBlock0(cid) {
         return data || [];
       });
     }
-  } catch (_) { list = []; box.classList.remove('hidden'); box.innerHTML = '<span style="color:var(--muted)">нет доступа к заметкам</span>'; return; }
+  } catch (e) {
+    // 5.52.0: ошибка загрузки — не выдаём за «нет доступа», показываем предупреждение и повтор
+    loadFail('notes', e, rcHas('nt:' + cid));
+    list = rcHas('nt:' + cid) ? (RC.data['nt:' + cid] || []) : [];
+    box.classList.remove('hidden');
+    if (!list.length) { box.innerHTML = '<span style="color:var(--muted)">заметки не загрузились — нажмите «Повторить» выше</span>'; return; }
+  }
   // v3.16.2: пустую историю и счётчик не показываем; у записи — дата и автор (если известны)
   // v4.14.1: служебные записи визитов/идей не должны попадать в комментарии карточки
   list = (list || []).filter(n => !/^\[\[/.test(String(n.text || '')));
@@ -8874,7 +9008,7 @@ function openNoteEditor(cid, noteId, initialText) {
       toast('✓ Запись удалена');
     } catch (e) { toast('⚠️ Не удалилось: ' + ((e && e.message) || e)); }
   });
-  document.getElementById('neModalSave').addEventListener('click', async () => {
+  onSaveClick('neModalSave', async () => {
     const btn = document.getElementById('neModalSave');
     const txt = (document.getElementById('neModalTa').value || '').trim();
     if (!txt) { toast('Пустая запись не сохраняется'); return; }
