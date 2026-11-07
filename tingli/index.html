@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.7.1") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.0") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -109,9 +109,10 @@
 .rik-review { box-shadow: inset 0 0 0 2px rgba(178,124,40,.35); }
 .rik-badge-review { background: var(--ochre-soft); color: var(--ochre-ink); }
 .rik-arrow-review { color: var(--ochre-ink); font-size: 22px; }
+.rik-due { margin: 0 4px 10px; padding: 10px 12px; border-radius: 10px; background: var(--ochre-soft); color: var(--ochre-ink); font-size: 13.5px; line-height: 1.45; }
 .rik-review-note { background: var(--ochre-soft); border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.5; margin-bottom: 4px; }
 .rik-traps { display: flex; flex-direction: column; gap: 8px; }
-.rik-trap { background: var(--danger-soft); border-left: 3px solid var(--danger); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; line-height: 1.5; color: var(--ink); }
+.rik-trap { background: var(--danger-soft); border-left: 4px solid var(--danger); border-radius: 12px; padding: 14px 16px; font-size: 17.5px; line-height: 1.6; color: var(--ink); }
 .rik-res { font-size: 15px; margin: 4px 2px 12px; }
 .rik-glyph { font-family: "TLKai", "TLCJK", serif; font-size: 26px; font-weight: 700; }
 .rik-locked { background: var(--danger-soft); box-shadow: inset 0 0 0 1px rgba(166,59,52,.14); }
@@ -32691,7 +32692,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.7.1';
+const APP_VER = '6.8.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33021,6 +33022,146 @@ RIK_UNITS.forEach(function (u) {
   const r = RIK_REVIEW_BANK[u.n];
   if (r) { u.rvEx = r.ex; u.rvQuiz = r.quiz; }
 });
+/* 6.8.0: второй и третий повтор — задания сложнее, чем в прошлый раз */
+const RIK_REVIEW_MORE = {
+ 1: { lv2:[
+      {q:'你去过上海___次？', opts:['几','几个','多'], a:0},
+      {q:'他以前___过我们学校。', opts:['来','来了','来得'], a:0},
+      {q:'我从来没听___过这个名字。', opts:['说','说了','说着'], a:0},
+      {q:'你___过这本书吗？', opts:['看','看了','看得'], a:0},
+      {q:'我一次也没___过这么难的问题。', opts:['见','看了','见面'], a:0} ],
+    lv3:[
+      {q:'我___过三次长城，去年又去了一次。', opts:['去','去了','到'], a:0},
+      {q:'他说他从来没___过北京。', opts:['去','去了','去的'], a:0},
+      {q:'你什么时候___过这儿？', opts:['来','来了','来又'], a:0},
+      {q:'那部电影我看___过，不好看。', opts:['过','了','得'], a:0},
+      {q:'我们十年没___过面了。', opts:['见','见着','看见'], a:0} ] },
+ 2: { lv2:[
+      {q:'这件衣服比那件___贵。', opts:['还','很','太'], a:0},
+      {q:'坐飞机比坐火车___。', opts:['快','很快','快得'], a:0},
+      {q:'他比我___来十分钟。', opts:['早','很早','早得'], a:0},
+      {q:'我的房间没有你的___干净。', opts:['那么','很','太'], a:0},
+      {q:'她比我___两斤。', opts:['轻','很轻','轻得'], a:0} ],
+    lv3:[
+      {q:'今天比昨天___热一点。', opts:['还','很','太'], a:0},
+      {q:'这个办法比那个好___多。', opts:['得','很','太'], a:0},
+      {q:'他汉语说得比我___流利。', opts:['更','很','太'], a:0},
+      {q:'我弟弟___我高一点儿。', opts:['比','跟','没有'], a:0},
+      {q:'这本书比那本___有意思。', opts:['更','最','太'], a:0} ] },
+ 3: { lv2:[
+      {q:'他跑___非常快。', opts:['得','的','地'], a:0},
+      {q:'你汉字写___越来越好看了。', opts:['得','的','了'], a:0},
+      {q:'她笑___很开心。', opts:['得','的','地'], a:0},
+      {q:'我们玩___很高兴。', opts:['得','的','地'], a:0},
+      {q:'那件衣服洗___很干净。', opts:['得','的','地'], a:0} ],
+    lv3:[
+      {q:'他感冒了，睡___不好。', opts:['得','的','了'], a:0},
+      {q:'这道题他做___又快又好。', opts:['得','的','地'], a:0},
+      {q:'我说___不流利，请说慢一点。', opts:['得','的','不'], a:0},
+      {q:'老师讲___很清楚。', opts:['得','的','地'], a:0},
+      {q:'他们聊___很高兴。', opts:['得','的','地'], a:0} ] },
+ 4: { lv2:[
+      {q:'他把车停___门口了。', opts:['在','给','上'], a:0},
+      {q:'请把这本书___小王。', opts:['给','在','到'], a:0},
+      {q:'我把作业做___了。', opts:['完','在','给'], a:0},
+      {q:'别把杯子打___了。', opts:['破','在','给'], a:0},
+      {q:'他把钱存___银行了。', opts:['在','给','上'], a:0} ],
+    lv3:[
+      {q:'昨天我没___这本书看完。', opts:['把','被','给'], a:0},
+      {q:'他把孩子送___学校了。', opts:['到','给','在'], a:0},
+      {q:'请把你的名字写___这儿。', opts:['在','给','上'], a:0},
+      {q:'他把我的自行车修___了。', opts:['好','在','上'], a:0},
+      {q:'你别把钥匙弄___！', opts:['丢','在','给'], a:0} ] },
+ 5: { lv2:[
+      {q:'我的书___妹妹拿走了。', opts:['被','把','比'], a:0},
+      {q:'那块蛋糕___弟弟吃完了。', opts:['被','把','给'], a:0},
+      {q:'他被老板___了一顿。', opts:['批评','批评在','给批评'], a:0},
+      {q:'树___风吹倒了。', opts:['被','把','比'], a:0},
+      {q:'我们的计划___他改坏了。', opts:['被','把','比'], a:0} ],
+    lv3:[
+      {q:'我的护照___人偷了。', opts:['被','把','比'], a:0},
+      {q:'他没有___老师发现。', opts:['被','把','给'], a:0},
+      {q:'房间___孩子们弄乱了。', opts:['被','把','比'], a:0},
+      {q:'这件事___他知道了。', opts:['被','把','比'], a:0},
+      {q:'我的伞被风___走了。', opts:['吹','吹在','给吹'], a:0} ] },
+ 6: { lv2:[
+      {q:'我比他___喜欢喝茶。', opts:['更','最','太'], a:0},
+      {q:'我的想法跟你___。', opts:['不一样','不更','不比'], a:0},
+      {q:'他比我___吃一碗饭。', opts:['多','很多','最'], a:0},
+      {q:'姐姐比妹妹___。', opts:['高','很高','高得'], a:0},
+      {q:'我不比他___，我们差不多。', opts:['瘦','很瘦','最瘦'], a:0} ],
+    lv3:[
+      {q:'他比我来得___。', opts:['早','很早','早得'], a:0},
+      {q:'这个城市比那个城市___热闹。', opts:['还','很','太'], a:0},
+      {q:'我跟他___喜欢音乐。', opts:['一样','更','比'], a:0},
+      {q:'弟弟比我___两岁。', opts:['小','很小','小得'], a:0},
+      {q:'这儿的天气比那儿___。', opts:['舒服','很舒服','舒服得'], a:0} ] },
+ 7: { lv2:[
+      {q:'我还没做___作业。', opts:['完','到','住'], a:0},
+      {q:'你记___我的名字了吗？', opts:['住','到','走'], a:0},
+      {q:'谁把这本书拿___了？', opts:['走','住','上'], a:0},
+      {q:'请关___电视。', opts:['上','到','走'], a:0},
+      {q:'他找___了一个好工作。', opts:['到','住','上'], a:0} ],
+    lv3:[
+      {q:'我昨天看___他了。', opts:['到','住','上'], a:0},
+      {q:'这个字我记不___。', opts:['住','到','走'], a:0},
+      {q:'你买___票了吗？', opts:['到','住','上'], a:0},
+      {q:'我没关___窗户，风进来了。', opts:['上','到','走'], a:0},
+      {q:'他把我的笔拿___了，我没笔用。', opts:['走','住','上'], a:0} ] },
+ 8: { lv2:[
+      {q:'他从包里拿___一本书。', opts:['出','上','下'], a:0},
+      {q:'大家听了都笑___了。', opts:['起来','下去','出来'], a:0},
+      {q:'天气热___了，我们开空调吧。', opts:['起来','下去','出来'], a:0},
+      {q:'这个故事请讲___去。', opts:['下','上','出'], a:0},
+      {q:'我想___一个办法。', opts:['出','起','下'], a:0} ],
+    lv3:[
+      {q:'他一句话也说不___来。', opts:['出','起','下'], a:0},
+      {q:'天气慢慢冷___了。', opts:['下来','起来','出去'], a:0},
+      {q:'雨停___了，我们出去吧。', opts:['下来','起来','出去'], a:0},
+      {q:'我才想___来他是谁。', opts:['出','起','下'], a:0},
+      {q:'灯突然亮___了。', opts:['起来','下去','出来'], a:0} ] },
+ 9: { lv2:[
+      {q:'这么多菜，我一个人吃不___。', opts:['完','得','很'], a:0},
+      {q:'你说的话我听不___。', opts:['懂','得','很'], a:0},
+      {q:'他高兴___跳起来。', opts:['得','不','了'], a:0},
+      {q:'这本书好___很。', opts:['得','不','了'], a:0},
+      {q:'今天热___了。', opts:['极','得','很'], a:0} ],
+    lv3:[
+      {q:'这些题太难，我做不___。', opts:['完','得','很'], a:0},
+      {q:'你听得___清楚吗？', opts:['得','不','很'], a:0},
+      {q:'他累___不得了。', opts:['得','不','了'], a:0},
+      {q:'这个房间脏___很。', opts:['得','不','了'], a:0},
+      {q:'那场雨大___了。', opts:['极','得','很'], a:0} ] },
+ 10:{ lv2:[
+      {q:'我们___上个月认识的。', opts:['是','得','了'], a:0},
+      {q:'你___在哪儿买的？', opts:['是','得','了'], a:0},
+      {q:'他打乒乓球打___不错。', opts:['得','的','是'], a:0},
+      {q:'这个菜___妈妈做的。', opts:['是','得','了'], a:0},
+      {q:'我游泳游___不快。', opts:['得','的','是'], a:0} ],
+    lv3:[
+      {q:'他___骑自行车去的。', opts:['是','得','了'], a:0},
+      {q:'我不是坐___来的。', opts:['飞机','是','得'], a:0},
+      {q:'他们___什么时候结婚的？', opts:['是','得','了'], a:0},
+      {q:'他唱歌唱___非常好。', opts:['得','的','是'], a:0},
+      {q:'我跳舞跳___不好。', opts:['得','的','了'], a:0} ] },
+ 11:{ lv2:[
+      {q:'桌子上摆___很多水果。', opts:['着','得','是'], a:0},
+      {q:'墙上写___几个字。', opts:['着','得','是'], a:0},
+      {q:'我家门前种___一棵树。', opts:['着','得','是'], a:0},
+      {q:'昨天教室里来___很多人。', opts:['了','着','得'], a:0},
+      {q:'椅子上坐___一位老人。', opts:['着','得','是'], a:0} ],
+    lv3:[
+      {q:'沙发上躺___一只猫。', opts:['着','得','是'], a:0},
+      {q:'书包里装___几本书。', opts:['着','得','是'], a:0},
+      {q:'前天我们班来___一个新同学。', opts:['了','着','得'], a:0},
+      {q:'窗台上放___两盆花。', opts:['着','得','是'], a:0},
+      {q:'空中飞___几只鸟。', opts:['着','得','是'], a:0} ] }
+};
+RIK_UNITS.forEach(function (u) {
+  const m = RIK_REVIEW_MORE[u.n];
+  if (m) { u.rvLv2 = m.lv2; u.rvLv3 = m.lv3; }
+});
+
 
 
 
@@ -34138,6 +34279,7 @@ function rikReviewDue(pr) {                      // сдано раньше, с�
 }
 function rikAvailable(n, pr) {
   if (pr[n] && pr[n].ok) return true;                       // пройденные открыты всегда
+  if (rikReviewDue(pr).length) return false;                 // сначала повторы, потом новое
   if (rikTodayCount(pr) >= RIK_PER_DAY) return false;        // дневной лимит выбран
   const nextU = RIK_UNITS.find(u => !(pr[u.n] && pr[u.n].ok));
   return !!nextU && nextU.n === n;                           // вперёд не забегаем
@@ -34190,7 +34332,7 @@ function renderRik() {
     const newToday = ok && rikDayKey(p[u.n].at) === todayKey;
     const revToday = ok && !newToday && rikDayKey(p[u.n].last) === todayKey;
     const due = ok && !newToday && !revToday;
-    const status = ok ? (newToday ? 'пройден сегодня' : (revToday ? 'повтор сегодня' : 'на повтор')) : (can ? 'сегодня' : (limitHit ? 'завтра' : 'закрыт'));
+    const status = ok ? (newToday ? 'пройден сегодня' : (revToday ? 'повтор сегодня' : 'на повтор')) : (can ? 'сегодня' : 'закрыт');
     const cls = ok ? ('unit-done rik-passed' + (due ? ' rik-review' : '')) : (can ? 'rik-today' : 'rik-locked');
     const click = ok ? `onclick="openRik(${u.n},true)"` : (can ? `onclick="openRik(${u.n})"` : '');
     return `<div class="unit-card ${cls}" ${click}>
@@ -34202,7 +34344,7 @@ function renderRik() {
           <div class="pbar"><i style="width:${ok ? 100 : 0}%"></i></div>
           <span class="unit-progress">${status}</span>
           ${ok ? (due ? '<span class="done-badge rik-badge-review">к повтору</span>' : (revToday ? '<span class="done-badge rik-badge-review">повторено</span>' : '<span class="done-badge">готово</span>')) : ''}
-          ${(!can && !ok) ? `<span class="rik-when">${limitHit ? 'лимит дня' : 'завтра'}</span>` : ''}
+          ${(!can && !ok && limitHit) ? '<span class="rik-when">лимит дня</span>' : ''}
         </div>
       </div>
       <div class="unit-right">${ok ? (due ? '<div class="unit-arrow rik-arrow-review">›</div>' : '<span class="rik-check" aria-hidden="true">✓</span>') : (can ? '<div class="unit-arrow">›</div>' : '<span class="rik-lock">🔒</span>')}</div>
@@ -34213,7 +34355,8 @@ function renderRik() {
       <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
       <div class="top-title" style="font-family:'Zhi Mang Xing',serif">日课</div><div class="sub">New HSK 3.0 Грамматика</div>
     </div>
-    <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length} · сегодня <b style="color:var(--ink)">${todayDone}</b> из ${RIK_PER_DAY}${reviewDone ? ` · повтор <b style="color:var(--ink)">${reviewDone}</b>` : ((rikReviewDue(p).length && !todayDone) ? ' · есть уроки на повтор' : '')}</div>
+    <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length} · сегодня <b style="color:var(--ink)">${todayDone}</b> из ${RIK_PER_DAY}${reviewDone ? ` · повтор <b style="color:var(--ink)">${reviewDone}</b>` : ''}</div>
+    ${rikReviewDue(p).length ? '<div class="rik-due">Сначала повторы: ' + rikReviewDue(p).length + (rikReviewDue(p).length === 1 ? ' урок' : ' урока') + '. Новые откроются после них.</div>' : ''}
     ${rows}`;
 }
 function rikBackToList(animated) {
@@ -34229,7 +34372,18 @@ function rikBackToList(animated) {
     if (c) { c.classList.add('edge-back-in'); setTimeout(function(){ c.classList.remove('edge-back-in'); }, 270); }
   }, 165);
 }
-let RIK_REVIEW = false, RIK_ORDER = null, RIK_QUIZ = null, RIK_EX = null;
+let RIK_REVIEW = false, RIK_ORDER = null, RIK_QUIZ = null, RIK_EX = null, RIK_VIEW = null;
+function rikViewQuiz(quiz) {                       // верные ответы раскладываем по разным позициям
+  const off = Math.floor(Math.random() * 3);
+  return quiz.map(function (q, i) {
+    const n = q.opts.length, pos = (i + off) % n;
+    const wrong = q.opts.map(function (o, j) { return j; }).filter(function (j) { return j !== q.a; });
+    for (let k = wrong.length - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); const t = wrong[k]; wrong[k] = wrong[r]; wrong[r] = t; }
+    let w = 0; const opts = [];
+    for (let k = 0; k < n; k++) opts[k] = (k === pos) ? q.opts[q.a] : q.opts[wrong[w++]];
+    return { q: q.q, opts: opts, a: pos };
+  });
+}
 /* служебное: открыть первые три урока как сданные вчера — только по адресу с rik=yesterday */
 (function () {
   function seed() {
@@ -34253,16 +34407,19 @@ function openRik(n, review) {
   RIK_REVIEW = !!(review && isDone);
   window.RIK_OPEN = true;
   RIK_ANS = {};
-  RIK_QUIZ = (RIK_REVIEW && u.rvQuiz) ? u.rvQuiz : u.quiz;
+  const rvN = (pr[n] && pr[n].rv) || 0;
+  RIK_QUIZ = u.quiz;
+  if (RIK_REVIEW) RIK_QUIZ = (rvN >= 2 && u.rvLv3) ? u.rvLv3 : ((rvN === 1 && u.rvLv2) ? u.rvLv2 : (u.rvQuiz || u.quiz));
   RIK_EX = (RIK_REVIEW && u.rvEx) ? u.rvEx : u.ex;
-  RIK_ORDER = RIK_REVIEW ? RIK_QUIZ.map((q, i) => i).sort(() => Math.random() - 0.5) : null;
+  RIK_VIEW = rikViewQuiz(RIK_QUIZ);
+  RIK_ORDER = RIK_REVIEW ? RIK_VIEW.map((q, i) => i).sort(() => Math.random() - 0.5) : null;
   showPlayer(false);
   const ex = RIK_EX.map(e => `<div class="rik-ex">
       <div class="rik-ex-zh">${e.zh}</div>
       <div class="rik-ex-py">${e.py}</div>
       <div class="rik-ex-ru">${e.ru}</div></div>`).join('');
-  const order = RIK_ORDER || RIK_QUIZ.map((q, i) => i);
-  const qs = order.map((qi, pos) => { const q = RIK_QUIZ[qi]; return `<div class="rik-q" data-q="${qi}">
+  const order = RIK_ORDER || RIK_VIEW.map((q, i) => i);
+  const qs = order.map((qi, pos) => { const q = RIK_VIEW[qi]; return `<div class="rik-q" data-q="${qi}">
       <div class="rik-q-num">${pos + 1}</div>
       <div class="rik-q-body">
         <div class="rik-q-text">${q.q}</div>
@@ -34273,7 +34430,7 @@ function openRik(n, review) {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
-      <div class="top-title" style="font-family:'TLKai','TLCJK',serif">${u.zh}</div><div class="sub">${RIK_REVIEW ? 'повтор' : 'урок ' + u.n} · ${u.ru}</div>
+      <div class="top-title" style="font-family:'TLKai','TLCJK',serif">${u.zh}</div><div class="sub">${RIK_REVIEW ? ('повтор ' + (rvN >= 2 ? '3' : String(rvN + 1))) : 'урок ' + u.n} · ${u.ru}</div>
     </div>
     ${RIK_REVIEW ? `<div class="rik-sec">复习 · Повтор</div>
     <div class="rik-review-note">Новые примеры и новые задания по тому же правилу. Забыл правило — <b>открой урок целиком</b>.</div>
@@ -34302,7 +34459,7 @@ function rikPick(n, qi, oi) {
 }
 function rikCheck(n) {
   const u = RIK_UNITS.find(x => x.n === n); if (!u) return;
-  const quiz = RIK_QUIZ || u.quiz;
+  const quiz = RIK_VIEW || rikViewQuiz(RIK_QUIZ || u.quiz);
   let right = 0;
   quiz.forEach((q, qi) => {
     const ok = RIK_ANS[qi] === q.a;
