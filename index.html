@@ -335,9 +335,9 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .pl-over { color: #1a73e8; font-weight: 600; }
 /* v4.39.0: название визита — бейдж цветом акцента */
 /* v4.40.0: название визита крупным заголовком в карточке */
-.month-bar { display: flex; align-items: center; gap: 8px; padding: 4px 16px 8px; }
+.month-bar { flex-wrap: wrap; display: flex; align-items: center; gap: 8px; padding: 4px 16px 8px; }
 .month-bar .btn { flex: 0 0 auto; width: 30px; min-width: 30px; height: 28px; padding: 0; font-size: 15px; line-height: 1; }
-.month-stat { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.month-stat { flex: 1 1 100%; min-width: 0; font-size: 12.5px; color: var(--muted); white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.4; }
 .month-stat b { color: var(--ink); }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px 2px; padding: 0 10px 16px; align-items: start; }
 .cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px 3px; grid-column: 1 / -1; margin-bottom: 12px; }
@@ -2596,7 +2596,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.61.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.62.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4660,7 +4660,7 @@ async function openVisitCard(plan) {
     <div class="detail-block"><div class="k">Тип</div><div class="v">${esc(plan.kind || 'Встреча')}</div></div>
     <div class="detail-block"><div class="k">Клиника</div><div class="v">${esc(c ? c.name : ('#' + plan.clinic_id))}${c && c.city ? ' · ' + esc(c.city) : ''}</div></div>
     <div class="detail-block"><div class="k">Когда</div><div class="v">${esc(visitRange(plan))}</div></div>
-    <div class="detail-block"><div class="k">Комментарии</div><div class="v">${esc(plan.goal || '—')}</div></div>
+    <div class="detail-block"><div class="k">Комментарии</div><div class="v" style="white-space:pre-wrap">${esc(plan.goal || '—')}</div></div>
     <div class="detail-block"><div class="k">Участники</div><div class="v">${esc(parts)}</div></div>
     <div class="detail-block"><div class="k">Врачи</div><div class="v">${docRows}</div></div>
     ${RESULTS_DRAFT ? '<button type="button" class="vm-res-open" id="vmResOpen">Результаты встречи<span class="vm-res-arrow">›</span></button>' : ''}
@@ -5583,7 +5583,7 @@ async function renderVisits() {
   const statsHtml = `<div class="md-gap">
       <div class="md-sec">Итоги · ${esc(monthLabel(curMonth))}</div>
       <div class="month-bar">
-        <span class="month-stat">визитов <b>${inMonth.length}</b> · городов <b>${cities.size}</b> · дней <b>${days}</b>${cities.size ? ' · ' + esc([...cities].slice(0, 5).join(', ')) : ''}</span>
+        <span class="month-stat">визитов <b>${inMonth.length}</b> · городов <b>${cities.size}</b> · дней <b>${days}</b>${cities.size ? '<br>' + esc([...cities].join(', ')) : ''}</span>
       </div>
     </div>`;
 
@@ -6511,7 +6511,9 @@ async function openVisitModal(cfg) {
       <span class="vm-dates-dash">—</span>
       <input type="date" id="vmDateTo" value="${esc((plan && plan.dateTo) || (idea && idea.to) || date)}" aria-label="По какое число" />
     </div>
-    <div class="field"><label>Комментарий</label><input type="text" id="vmGoal" value="${esc((plan && plan.goal) || (idea && idea.goal) || '')}" placeholder="апробация Литокласт / мастер-класс" /></div>
+    <div class="field"><label>Комментарий</label>
+      <textarea id="vmGoal" rows="3" style="min-height:76px;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;line-height:1.45;resize:vertical">${esc((plan && plan.goal) || (idea && idea.goal) || '')}</textarea>
+    </div>
     <div class="field"><label>Участники (визит виден каждому из них)</label><div class="vm-chks">${participantsHtml(partSel)}</div></div>
     <div class="btn-row">
       <button class="btn" id="vmSave">${plan ? 'Сохранить' : 'Запланировать'}</button>
