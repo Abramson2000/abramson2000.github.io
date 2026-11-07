@@ -1120,7 +1120,10 @@ body.detail-mode.card-open.swipe-drag #view { display: block; }
 .note-confirm-text { color: var(--muted); font-size: 12.5px; margin: 4px 0 6px; }
 /* v3.16.2: правка ранее записанного — маленький карандаш у записи */
 .note-item { position: relative; padding-right: 44px; }
-.note-edit { border: none; background: transparent; color: var(--muted); font-size: 14px; line-height: 1; padding: 2px 3px; cursor: pointer; }
+.note-edit { border: none; background: transparent; color: var(--muted); font-size: 13px; line-height: 1; padding: 2px 3px; cursor: pointer; }
+.note-tools .note-edit, .note-tools .note-del { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; min-height: 24px; }
+.cal-nav { display: inline-flex; align-items: center; justify-content: center; }
+.cal-nav svg { display: block; }
 .note-edit:hover { color: var(--brand); }
 .note-edit-ta { width: 100%; min-height: 62px; border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; line-height: 1.45; resize: vertical; background: #fff; box-sizing: border-box; }
 .note-edit-row { display: flex; gap: 8px; margin-top: 6px; }
@@ -2588,7 +2591,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.59.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.60.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5653,9 +5656,9 @@ async function renderVisits() {
     }).join('');
 
     calHtml = `<div class="cal-head">
-        <button class="cal-nav" data-month="-1" aria-label="Предыдущий месяц">‹</button>
+        <button class="cal-nav" data-month="-1" aria-label="Предыдущий месяц"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
         <span class="cal-title">${esc(monthLabel(curMonth))}</span>
-        <button class="cal-nav" data-month="1" aria-label="Следующий месяц">›</button>
+        <button class="cal-nav" data-month="1" aria-label="Следующий месяц"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
       </div>
       <div class="cal-grid" id="calGrid">
         ${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => `<div class="cal-dow">${d}</div>`).join('')}
@@ -8835,10 +8838,10 @@ function openDateCal(curIso, onPick) {
       cells += `<div class="${cls.join(' ')}" data-d="${iso(d)}">${d.getDate()}</div>`;
     }
     calPop.innerHTML = `<div class="cal-head">
-        <button type="button" class="cal-nav" data-nav="-1">‹</button>
+        <button type="button" class="cal-nav" data-nav="-1" aria-label="Предыдущий месяц"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
         <button type="button" class="cal-dot" data-today="1" title="Сегодня"></button>
         <div class="cal-title">${MONTH_RU[m + 1]} ${y}</div>
-        <button type="button" class="cal-nav" data-nav="1">›</button></div>
+        <button type="button" class="cal-nav" data-nav="1" aria-label="Следующий месяц"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
       <div class="cal-grid">${['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'].map(w => `<div class="cal-w">${w}</div>`).join('')}${cells}</div>
       <div class="cal-foot"><button type="button" class="btn ghost" data-clr="1">Очистить</button><button type="button" class="btn ghost" data-close="1">Отмена</button></div>`;
   };
@@ -9015,7 +9018,7 @@ function renderNotesBox(box, list, canEdit) {
   box.innerHTML = list.length
     ? list.map(n => {
         const meta = [fmtDate(n.created_at), (n.author_name || n.author_email || '')].filter(Boolean).join(' · ');
-        const pencil = canEdit ? `<button class="note-edit" data-note-edit="${n.id}" title="Изменить запись" aria-label="Изменить запись">✎</button>` : '';
+        const pencil = canEdit ? `<button class="note-edit" data-note-edit="${n.id}" title="Изменить запись" aria-label="Изменить запись">✏️</button>` : '';
         const trash = `<button class="note-del" data-note-del="${n.id}" title="Удалить запись" aria-label="Удалить запись">🗑</button>`;
         const tag = n.isResult ? '<span class="note-tag">встреча</span>' : '';
         const tools = (pencil || trash) ? `<span class="note-tools">${pencil}${trash}</span>` : '';
