@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.1") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.2") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -32692,7 +32692,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.8.1';
+const APP_VER = '6.8.2';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33310,6 +33310,54 @@ RIK_UNITS.forEach(function (u) {
   if (m) { u.rvLv2 = m.lv2; u.rvLv3 = m.lv3; }
 });
 /* 6.9.0: повторы для уроков 12–21 — свои примеры и три уровня заданий */
+
+/* 6.8.2: примеры к правилам — дословно из официального «New HSK Course 3» (小语讲堂) */
+const RIK_BOOK_EX = {
+ 4:[ {zh:'老师把作业本放到桌子上了。', py:'Lǎoshī bǎ zuòyèběn fàng dào zhuōzi shàng le.', ru:'Учитель положил тетради на стол.'},
+     {zh:'你不能把名字写在这里。', py:'Nǐ bù néng bǎ míngzi xiě zài zhèlǐ.', ru:'Здесь нельзя писать имя.'},
+     {zh:'妈妈把衣服洗干净了。', py:'Māma bǎ yīfu xǐ gānjìng le.', ru:'Мама выстирала одежду дочиста.'} ],
+ 5:[ {zh:'这本书被别人借走了。', py:'Zhè běn shū bèi biéren jiè zǒu le.', ru:'Эту книгу забрал кто-то другой.'},
+     {zh:'水果可能被弟弟吃了。', py:'Shuǐguǒ kěnéng bèi dìdi chī le.', ru:'Фрукты, наверное, съел брат.'},
+     {zh:'我们俩经常被叫错名字。', py:'Wǒmen liǎ jīngcháng bèi jiào cuò míngzi.', ru:'Нас двоих часто путают по именам.'} ],
+ 6:[ {zh:'冬天比夏天早关门一个小时。', py:'Dōngtiān bǐ xiàtiān zǎo guānmén yí ge xiǎoshí.', ru:'Зимой закрываются на час раньше, чем летом.'},
+     {zh:'哥哥比弟弟多吃了三个饺子。', py:'Gēge bǐ dìdi duō chī le sān ge jiǎozi.', ru:'Старший брат съел на три пельменя больше.'},
+     {zh:'我比他晚到了十分钟。', py:'Wǒ bǐ tā wǎn dào le shí fēnzhōng.', ru:'Я пришёл на десять минут позже него.'} ],
+ 9:[ {zh:'现在天气好得很。', py:'Xiànzài tiānqì hǎo de hěn.', ru:'Сейчас погода очень хорошая.'},
+     {zh:'房间里面热得很。', py:'Fángjiān lǐmiàn rè de hěn.', ru:'В комнате очень жарко.'},
+     {zh:'我觉得爬山累得很。', py:'Wǒ juéde páshān lèi de hěn.', ru:'По-моему, в горы лезть — очень утомительно.'} ],
+ 11:[ {zh:'后边走过去两个人。', py:'Hòubian zǒu guòqu liǎng ge rén.', ru:'Сзади прошли двое.'},
+      {zh:'前面开过来很多车。', py:'Qiánmiàn kāi guòlai hěn duō chē.', ru:'Спереди ехало много машин.'},
+      {zh:'楼上下来了几个人。', py:'Lóushàng xiàlai le jǐ ge rén.', ru:'Сверху спустились несколько человек.'} ],
+ 12:[ {zh:'她一件衣服都不想买。', py:'Tā yí jiàn yīfu dōu bù xiǎng mǎi.', ru:'Она не хочет покупать ни одной вещи.'},
+      {zh:'我一个中国电影也没看过。', py:'Wǒ yí ge Zhōngguó diànyǐng yě méi kànguo.', ru:'Я не смотрел ни одного китайского фильма.'},
+      {zh:'我一点儿东西也不想吃。', py:'Wǒ yìdiǎnr dōngxi yě bù xiǎng chī.', ru:'Я совсем не хочу есть.'} ],
+ 13:[ {zh:'前面的人越来越多。', py:'Qiánmiàn de rén yuèláiyuè duō.', ru:'Людей впереди всё больше.'},
+      {zh:'我越来越喜欢这里的生活了。', py:'Wǒ yuèláiyuè xǐhuan zhèlǐ de shēnghuó le.', ru:'Мне всё больше нравится здешняя жизнь.'},
+      {zh:'今天的足球比赛我越看越着急。', py:'Jīntiān de zúqiú bǐsài wǒ yuè kàn yuè zháojí.', ru:'Чем больше смотрю сегодняшний футбол, тем больше нервничаю.'} ],
+ 14:[ {zh:'咱们一边吃蛋糕，一边聊天儿吧。', py:'Zánmen yìbiān chī dàngāo, yìbiān liáotiānr ba.', ru:'Давай есть торт и болтать.'},
+      {zh:'弟弟吃着苹果写作业。', py:'Dìdi chī zhe píngguǒ xiě zuòyè.', ru:'Брат ест яблоко и делает уроки.'},
+      {zh:'他们坐着看电视。', py:'Tāmen zuò zhe kàn diànshì.', ru:'Они сидят и смотрят телевизор.'} ],
+ 15:[ {zh:'中国银行很近，走路几分钟就能到。', py:'Zhōngguó Yínháng hěn jìn, zǒulù jǐ fēnzhōng jiù néng dào.', ru:'Банк Китая близко, пешком дойти — пара минут.'},
+      {zh:'我下午要去医院，很晚才能回来。', py:'Wǒ xiàwǔ yào qù yīyuàn, hěn wǎn cái néng huílai.', ru:'Днём мне в больницу, вернусь только поздно.'},
+      {zh:'我早上五点就起床了。', py:'Wǒ zǎoshang wǔ diǎn jiù qǐchuáng le.', ru:'Я встал уже в пять утра.'} ],
+ 17:[ {zh:'如果你需要帮忙，就给我打电话。', py:'Rúguǒ nǐ xūyào bāngmáng, jiù gěi wǒ dǎ diànhuà.', ru:'Если нужна помощь — позвони мне.'},
+      {zh:'除了我以外，大家都在玩手机。', py:'Chúle wǒ yǐwài, dàjiā dōu zài wán shǒujī.', ru:'Кроме меня, все сидят в телефонах.'},
+      {zh:'除了这个汉字，别的汉字我都会写。', py:'Chúle zhège hànzì, biéde hànzì wǒ dōu huì xiě.', ru:'Кроме этого иероглифа, все остальные я умею писать.'} ],
+ 19:[ {zh:'他们看上去有点儿像。', py:'Tāmen kànshangqu yǒudiǎnr xiàng.', ru:'Они выглядят немного похожими.'},
+      {zh:'这些菜看起来都很好吃。', py:'Zhèxiē cài kànqǐlai dōu hěn hǎochī.', ru:'Все эти блюда выглядят очень вкусно.'},
+      {zh:'那个新来的老师看上去很年轻。', py:'Nàge xīn lái de lǎoshī kànshangqu hěn niánqīng.', ru:'Новый учитель выглядит совсем молодым.'} ],
+ 20:[ {zh:'我们用会议室的电脑还是自己的笔记本电脑？', py:'Wǒmen yòng huìyìshì de diànnǎo háishi zìjǐ de bǐjìběn diànnǎo?', ru:'Нам использовать компьютер из переговорной или свой ноутбук?'},
+      {zh:'你可以坐地铁或者打车去学校。', py:'Nǐ kěyǐ zuò dìtiě huòzhě dǎchē qù xuéxiào.', ru:'Можешь доехать до школы на метро или на такси.'},
+      {zh:'晚饭你自己选，或者吃中国菜，或者吃日本菜。', py:'Wǎnfàn nǐ zìjǐ xuǎn, huòzhě chī Zhōngguócài, huòzhě chī Rìběncài.', ru:'Ужин выбирай сам: либо китайская еда, либо японская.'} ],
+ 21:[ {zh:'关于这个问题，我得慢慢给你讲。', py:'Guānyú zhège wèntí, wǒ děi mànmàn gěi nǐ jiǎng.', ru:'Об этом вопросе мне придётся рассказать постепенно.'},
+      {zh:'关于他的要求，我们还要开会以后再决定。', py:'Guānyú tā de yāoqiú, wǒmen hái yào kāihuì yǐhòu zài juédìng.', ru:'Насчёт его требований решим после совещания.'},
+      {zh:'关于比赛的时间，我明天一定告诉大家。', py:'Guānyú bǐsài de shíjiān, wǒ míngtiān yídìng gàosu dàjiā.', ru:'О времени соревнования завтра обязательно всем скажу.'} ]
+};
+RIK_UNITS.forEach(function (u) {
+  const b = RIK_BOOK_EX[u.n];
+  if (b) u.bkEx = b;
+});
+
 const RIK_REVIEW_L3 = {
  12:{ ex:[
       {zh:'我一本中文书也没有。', py:'Wǒ yì běn Zhōngwén shū yě méiyǒu.', ru:'У меня нет ни одной китайской книги.'},
@@ -34719,7 +34767,7 @@ function rikBackToList(animated) {
     if (c) { c.classList.add('edge-back-in'); setTimeout(function(){ c.classList.remove('edge-back-in'); }, 270); }
   }, 165);
 }
-let RIK_REVIEW = false, RIK_ORDER = null, RIK_QUIZ = null, RIK_EX = null, RIK_VIEW = null;
+let RIK_REVIEW = false, RIK_ORDER = null, RIK_QUIZ = null, RIK_EX = null, RIK_VIEW = null, RIK_EX_BOOK = false;
 function rikViewQuiz(quiz) {                       // верные ответы раскладываем по разным позициям
   const off = Math.floor(Math.random() * 3);
   return quiz.map(function (q, i) {
@@ -34757,7 +34805,8 @@ function openRik(n, review) {
   const rvN = (pr[n] && pr[n].rv) || 0;
   RIK_QUIZ = u.quiz;
   if (RIK_REVIEW) RIK_QUIZ = (rvN >= 2 && u.rvLv3) ? u.rvLv3 : ((rvN === 1 && u.rvLv2) ? u.rvLv2 : (u.rvQuiz || u.quiz));
-  RIK_EX = (RIK_REVIEW && u.rvEx) ? u.rvEx : u.ex;
+  RIK_EX = (RIK_REVIEW && (u.bkEx || u.rvEx)) ? (u.bkEx || u.rvEx) : u.ex;
+  RIK_EX_BOOK = !!(RIK_REVIEW && u.bkEx);
   RIK_VIEW = rikViewQuiz(RIK_QUIZ);
   RIK_ORDER = RIK_REVIEW ? RIK_VIEW.map((q, i) => i).sort(() => Math.random() - 0.5) : null;
   showPlayer(false);
@@ -34781,7 +34830,7 @@ function openRik(n, review) {
     </div>
     ${RIK_REVIEW ? `<div class="rik-sec">复习 · Повтор</div>
     <div class="rik-review-note">Новые примеры и новые задания по тому же правилу. Забыл правило — <b>открой урок целиком</b>.</div>
-    <div class="rik-sec">例子 · Новые примеры</div>
+    <div class="rik-sec">${RIK_EX_BOOK ? '例子 · Примеры из учебника' : '例子 · Новые примеры'}</div>
     ${ex}` : `<div class="rik-sec">理论 · Теория</div>
     <div class="rik-rule">${String(u.rule).split('\n').map(function (ln) { return '<p style="margin:0 0 8px">' + ln + '</p>'; }).join('')}</div>
     ${u.traps && u.traps.length ? `<div class="rik-sec" style="margin-top:14px">注意 · Ловушки</div><div class="rik-traps">${u.traps.map(function (t) { return '<div class="rik-trap">' + t + '</div>'; }).join('')}</div>` : ''}
