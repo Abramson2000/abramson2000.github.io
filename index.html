@@ -347,6 +347,11 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .cal-nav { width: 44px; height: 44px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 12px; background: var(--card, #fff); color: var(--ink); font-size: 26px; line-height: 1; cursor: pointer; }
 .cal-nav:active { background: #eef7f7; }
 .cal-dnum { height: 24px; font-size: 12.5px; color: var(--muted); text-align: center; line-height: 20px; }
+/* 5.61.0: прошедшие визиты — приглушённый фон и серая полоса слева, чтобы отличать от предстоящих */
+.visit-past { background: #eef1f2; border-color: #e2e6e8; }
+.visit-past .visit-title-sm { color: #4f565a; }
+.visit-past .row-next { color: #6f767b; }
+.visit-past .row-why { color: #5d6468; }
 .cal-bar { height: 40px; line-height: 40px; border-radius: 9px; padding: 0 10px; font-size: 13px; font-weight: 600; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
 .cal-bar.past { background: #e6f0fb; color: #2c6fb0; }
 .cal-bar.now { background: #e8f6ec; color: #1f7a45; }
@@ -2591,7 +2596,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.60.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.61.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5667,7 +5672,7 @@ async function renderVisits() {
   }
 
   // ---- список: прошедшие и предстоящие ----
-  const rowHtml = (p) => `<div class="card list-row" data-visit="${p.noteId}">
+  const rowHtml = (p, isPast) => `<div class="card list-row${isPast ? ' visit-past' : ''}"${isPast ? ' style="box-shadow:inset 4px 0 0 #93a1a9"' : ''} data-visit="${p.noteId}">
       <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(visitRange(p))}</span></div>
       <div class="row-why"><b>${esc(String(p.city || '').trim() || 'без города')}</b></div>
       <div class="row-why">${byId[p.clinic_id] ? esc(byId[p.clinic_id]) : '&nbsp;'}</div>
@@ -5688,10 +5693,10 @@ async function renderVisits() {
   const listHtml = (VISITS_UI.mode === 'cal') ? '' :
     hiddenHtml + `<div class="md-gap">
       <div class="md-sec">Предстоящие · <b>${future.length}</b></div>
-      ${future.length ? `<div class="list visits-list">${future.map(rowHtml).join('')}</div>` : '<div class="empty">Предстоящих визитов нет.</div>'}
+      ${future.length ? `<div class="list visits-list">${future.map(p => rowHtml(p, false)).join('')}</div>` : '<div class="empty">Предстоящих визитов нет.</div>'}
       ${past.length ? `<div class="visits-sep"><span>сегодня · ${fmtDate(today)}</span></div>
         <div class="md-sec" style="margin-top:6px">Прошедшие · <b>${past.length}</b></div>
-        <div class="list visits-list">${past.slice().reverse().map(rowHtml).join('')}</div>` : ''}
+        <div class="list visits-list">${past.slice().reverse().map(p => rowHtml(p, true)).join('')}</div>` : ''}
     </div>`;
 
   // идеи
