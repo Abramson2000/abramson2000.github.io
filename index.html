@@ -2586,7 +2586,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.56.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.57.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -9057,10 +9057,9 @@ async function allNotesByClinic() {
       // 5.44.0: результаты встреч показываем в общей ленте с меткой «встреча»
       (data || []).forEach(n => {
         const raw = String(n.text || '');
-        if (raw.indexOf(RESULT_MARK) === 0) {
-          let o = null; try { o = JSON.parse(raw.slice(RESULT_MARK.length)); } catch (_) {}
-          if (!o || !o.t) return;
-          const item = { id: n.id, clinic_id: n.clinic_id, text: o.t, created_at: o.at || n.created_at, author_name: '', author_email: '', isResult: true };
+        if (raw.indexOf('[[R]]') === 0) {
+          const item = resultFeedItem(n);
+          if (!item) return;
           const k2 = Number(n.clinic_id); (map[k2] = map[k2] || []).push(item);
           return;
         }
@@ -9073,6 +9072,18 @@ async function allNotesByClinic() {
     loadFail('notes', e, !!stale);
     return stale || {};
   }
+}
+// 5.57.0: результат встречи — такая же запись ленты, просто с меткой «встреча».
+// Общий разбор для всех путей (полный кэш и загрузка по клинике).
+function resultFeedItem(n) {
+  try {
+    const raw = String(n.text || '');
+    if (raw.indexOf(RESULT_MARK) !== 0) return null;
+    const o = JSON.parse(raw.slice(RESULT_MARK.length));
+    if (!o || !o.t) return null;
+    return { id: n.id, clinic_id: n.clinic_id, text: o.t, created_at: o.at || n.created_at,
+      author_name: '', author_email: '', isResult: true };
+  } catch (_) { return null; }
 }
 function notesCachedFor(cid) {
   try {
@@ -9120,7 +9131,9 @@ async function fillNotesBlock0(cid) {
   }
   // v3.16.2: пустую историю и счётчик не показываем; у записи — дата и автор (если известны)
   // v4.14.1: служебные записи визитов/идей не должны попадать в комментарии карточки
-  list = (list || []).filter(n => !/^\[\[/.test(String(n.text || '')));
+  // 5.57.0: НО результат встречи ([[R]]) — это запись ленты с меткой «встреча», её не выбрасываем
+  list = (list || []).map(n => String(n.text || '').indexOf('[[R]]') === 0 ? resultFeedItem(n) : n)
+    .filter(n => n && !/^\[\[/.test(String(n.text || '')));
   renderNotesBox(box, list || [], canEdit);
 }
 // v3.16.2: правка ранее записанного (карандаш → текст → «Сохранить»/«Отмена»)
