@@ -92,7 +92,11 @@
   /* Карточка урока */
   .unit-card { background: var(--card); border-radius: 20px; padding: 15px 14px 15px 16px; margin-bottom: 11px; cursor: pointer; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); transition: transform .12s ease, box-shadow .12s ease; }
   .unit-card:active { transform: scale(.98); box-shadow: 0 1px 3px rgba(29,29,33,.06); }
-  .unit-emoji { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 25px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(29,29,33,.04); }
+  .rik-locked { opacity: .5; }
+.rik-locked .unit-zh, .rik-locked .unit-zh-sub { color: var(--ink-3, #9a968f); }
+.rik-today { box-shadow: inset 0 0 0 2px rgba(166,45,19,.35); }
+.rik-lock { font-size: 16px; opacity: .7; }
+.unit-emoji { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 25px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(29,29,33,.04); }
   .unit-zh { font-family: "TLKai", "TLCJK", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
   .unit-zh-sub { font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .unit-arrow { color: var(--line); font-size: 22px; font-weight: 600; flex-shrink: 0; line-height: 1; width: 12px; text-align: right; font-family: "TLKai", "TLCJK", -apple-system, sans-serif; }
@@ -33848,6 +33852,16 @@ function renderTeam() {
   refreshUnitBadges();
 }
 
+function rikAvailable(n, pr) {
+  if (pr[n] && pr[n].ok) return true;                       // пройденные открыты всегда
+  const nextU = RIK_UNITS.find(u => !(pr[u.n] && pr[u.n].ok));
+  if (!nextU || nextU.n !== n) return false;                // вперёд не забегаем
+  const times = Object.keys(pr).filter(k => pr[k] && pr[k].ok).map(k => pr[k].at || 0);
+  if (!times.length) return true;                           // первый урок — сразу
+  const last = new Date(Math.max.apply(null, times)); last.setHours(0, 0, 0, 0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return last < today;                                      // следующий — со следующего дня
+}
 function rikProgress() { try { return JSON.parse(localStorage.getItem('rik_progress_v1') || '{}'); } catch (e) { return {}; } }
 function rikSave(n, ok) { const p = rikProgress(); p[n] = { ok: !!ok, at: Date.now() }; try { localStorage.setItem('rik_progress_v1', JSON.stringify(p)); } catch (e) {} }
 let RIK_ANS = {};
@@ -33858,18 +33872,22 @@ function renderRik() {
   const done = RIK_UNITS.filter(u => p[u.n] && p[u.n].ok).length;
   const rows = RIK_UNITS.map(u => {
     const ok = !!(p[u.n] && p[u.n].ok);
-    return `<div class="unit-card ${ok ? 'unit-done' : ''}" onclick="openRik(${u.n})">
+    const can = rikAvailable(u.n, p);
+    const status = ok ? 'пройден' : (can ? 'сегодня' : 'закрыт');
+    const cls = ok ? 'unit-done' : (can ? 'rik-today' : 'rik-locked');
+    return `<div class="unit-card ${cls}" ${can ? `onclick="openRik(${u.n})"` : ''}>
       <div class="unit-emoji" style="background:var(--paper);font-weight:700">${u.n}</div>
       <div style="flex:1;min-width:0">
         <div class="unit-zh">${u.zh}</div>
         <div class="unit-zh-sub">${u.ru}</div>
         <div class="unit-meta">
           <div class="pbar"><i style="width:${ok ? 100 : 0}%"></i></div>
-          <span class="unit-progress">${ok ? 'пройден' : 'не пройден'}</span>
+          <span class="unit-progress">${status}</span>
           ${ok ? '<span class="done-badge">готово</span>' : ''}
+          ${(!can && !ok) ? '<span class="rik-when">завтра</span>' : ''}
         </div>
       </div>
-      <div class="unit-right"><div class="unit-arrow">›</div></div>
+      <div class="unit-right">${can ? '<div class="unit-arrow">›</div>' : '<span class="rik-lock">🔒</span>'}</div>
     </div>`;
   }).join('');
   app.innerHTML = `
@@ -33882,6 +33900,7 @@ function renderRik() {
 }
 function openRik(n) {
   const u = RIK_UNITS.find(x => x.n === n); if (!u) return;
+  if (!rikAvailable(n, rikProgress())) return;   // закрытый урок не открываем
   RIK_ANS = {};
   showPlayer(false);
   const ex = u.ex.map(e => `<div style="margin:10px 0">
