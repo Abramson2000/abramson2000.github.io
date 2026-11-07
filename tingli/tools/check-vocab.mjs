@@ -67,12 +67,25 @@ function unknown(text) {
   return out;
 }
 
+// слова самой темы урока считаются «новыми законно» — это и есть изучаемая грамматика
+const TARGET = {
+  12: ['任何'], 24: ['什么'], 30: ['口', '眼', '顿', '死'], 32: ['任何', '随着', '等'],
+  33: ['就是了', '不过', '并'], 34: ['甚至', '于是', '再说'], 35: ['得', '了', '来得及', '来不及'],
+  36: ['既', '又', '各', '至少'], 37: ['够', '厉害', '偶尔'], 38: ['此', '从来', '再次', '而'],
+  39: ['方面', '拿', '相比', '既然'], 40: ['不管', '否则', '使'], 41: ['有的是', '有', '好', '说什么'],
+};
+const targetWords = n => new Set([...(TARGET[n] || []), ...String((units[n - 1] || {}).zh || '').split(/[^\u4e00-\u9fa5]+/).filter(Boolean)]);
+
 let total = 0, bad = 0; const rows = [];
 for (const u of units) {
   const txt = x => (typeof x === 'string' ? x : x.zh);
   const items = [...(u.ex || []).map(txt), ...(u.rvEx || []).map(txt)].filter(Boolean);
+  const allow = targetWords(u.n);
   let b = 0;
-  for (const t of items) { total++; if (unknown(t).length) b++; }
+  for (const t of items) {
+    total++;
+    if (unknown(t).filter(w => !allow.has(w)).length) b++;
+  }
   bad += b;
   if (b) rows.push(`урок ${u.n} (${u.zh}): ${b} из ${items.length}`);
 }
