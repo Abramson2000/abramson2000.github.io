@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.6.0") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.7.0") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -106,6 +106,10 @@
 .rik-opt.on { border-color: var(--red); color: var(--red); font-weight: 700; }
 .rik-opt.right { background: var(--done-soft); border-color: var(--done); color: #1f7a45; font-weight: 700; }
 .rik-opt.wrong { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+.rik-review { box-shadow: inset 0 0 0 2px rgba(178,124,40,.35); }
+.rik-badge-review { background: var(--ochre-soft); color: var(--ochre-ink); }
+.rik-arrow-review { color: var(--ochre-ink); font-size: 22px; }
+.rik-review-note { background: var(--ochre-soft); border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.5; margin-bottom: 4px; }
 .rik-traps { display: flex; flex-direction: column; gap: 8px; }
 .rik-trap { background: var(--danger-soft); border-left: 3px solid var(--danger); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; line-height: 1.5; color: var(--ink); }
 .rik-res { font-size: 15px; margin: 4px 2px 12px; }
@@ -32687,7 +32691,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.6.0';
+const APP_VER = '6.7.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33987,14 +33991,32 @@ function renderTeam() {
   refreshUnitBadges();
 }
 
-const RIK_PER_DAY = 3;   // не более трёх уроков в день
-function rikTodayCount(pr) {
-  const t = new Date(); t.setHours(0, 0, 0, 0);
+const RIK_PER_DAY = 3;   // не более трёх новых уроков в день
+const RIK_REVIEW_PER_DAY = 20;  // повтор не ограничен — это закрепление
+function rikDayKey(ts) { const d = new Date(ts || 0); d.setHours(0, 0, 0, 0); return d.getTime(); }
+function rikTodayCount(pr) {                     // новые уроки, впервые сданные сегодня
+  const t = rikDayKey(Date.now());
   return Object.keys(pr).filter(function (k) {
     if (!pr[k] || !pr[k].ok || !pr[k].at) return false;
-    const d = new Date(pr[k].at); d.setHours(0, 0, 0, 0);
-    return d.getTime() === t.getTime();
+    return rikDayKey(pr[k].at) === t;
   }).length;
+}
+function rikReviewCount(pr) {                    // повторы, сделанные сегодня
+  const t = rikDayKey(Date.now());
+  return Object.keys(pr).filter(function (k) {
+    if (!pr[k] || !pr[k].ok) return false;
+    if (rikDayKey(pr[k].at) === t) return false;
+    return rikDayKey(pr[k].last) === t;
+  }).length;
+}
+function rikReviewDue(pr) {                      // сдано раньше, сегодня ещё не повторяли
+  const t = rikDayKey(Date.now());
+  return RIK_UNITS.filter(function (u) {
+    const r = pr[u.n];
+    if (!r || !r.ok) return false;
+    if (rikDayKey(r.at) === t) return false;
+    return rikDayKey(r.last) !== t;
+  }).map(function (u) { return u.n; });
 }
 function rikAvailable(n, pr) {
   if (pr[n] && pr[n].ok) return true;                       // пройденные открыты всегда
@@ -34020,7 +34042,15 @@ function rikAvailable(n, pr) {
   }, { passive: true });
 })();
 function rikProgress() { try { return JSON.parse(localStorage.getItem('rik_progress_v2') || '{}'); } catch (e) { return {}; } }
-function rikSave(n, ok) { const p = rikProgress(); p[n] = { ok: !!ok, at: Date.now() }; try { localStorage.setItem('rik_progress_v2', JSON.stringify(p)); } catch (e) {} }
+function rikSave(n, ok, isReview) {
+  const p = rikProgress(), now = Date.now(), rec = p[n] || {};
+  if (isReview && rec.ok) {                       // повтор: дата первого зачёта не меняется
+    if (ok) { rec.last = now; rec.rv = (rec.rv || 0) + 1; }   // засчитываем только успешный повтор
+  }
+  else { rec.ok = !!ok; rec.at = now; rec.last = now; }
+  p[n] = rec;
+  try { localStorage.setItem('rik_progress_v2', JSON.stringify(p)); } catch (e) {}
+}
 let RIK_ANS = {};
 function rikFirstChar(u) {
   const first = String(u.zh || '').replace(/[^\u4e00-\u9fa5]/g, '').charAt(0);
@@ -34033,13 +34063,19 @@ function renderRik() {
   const p = rikProgress();
   const done = RIK_UNITS.filter(u => p[u.n] && p[u.n].ok).length;
   const todayDone = rikTodayCount(p);
+  const reviewDone = rikReviewCount(p);
+  const todayKey = rikDayKey(Date.now());
   const limitHit = todayDone >= RIK_PER_DAY;
   const rows = RIK_UNITS.map(u => {
     const ok = !!(p[u.n] && p[u.n].ok);
     const can = rikAvailable(u.n, p);
-    const status = ok ? 'пройден' : (can ? 'сегодня' : (limitHit ? 'завтра' : 'закрыт'));
-    const cls = ok ? 'unit-done rik-passed' : (can ? 'rik-today' : 'rik-locked');
-    return `<div class="unit-card ${cls}" ${can ? `onclick="openRik(${u.n})"` : ''}>
+    const newToday = ok && rikDayKey(p[u.n].at) === todayKey;
+    const revToday = ok && !newToday && rikDayKey(p[u.n].last) === todayKey;
+    const due = ok && !newToday && !revToday;
+    const status = ok ? (newToday ? 'пройден сегодня' : (revToday ? 'повтор сегодня' : 'на повтор')) : (can ? 'сегодня' : (limitHit ? 'завтра' : 'закрыт'));
+    const cls = ok ? ('unit-done rik-passed' + (due ? ' rik-review' : '')) : (can ? 'rik-today' : 'rik-locked');
+    const click = ok ? `onclick="openRik(${u.n},true)"` : (can ? `onclick="openRik(${u.n})"` : '');
+    return `<div class="unit-card ${cls}" ${click}>
       <div class="unit-emoji rik-glyph" style="background:var(--paper)">${rikFirstChar(u)}</div>
       <div style="flex:1;min-width:0">
         <div class="unit-zh">${u.n}. ${u.zh}</div>
@@ -34047,11 +34083,11 @@ function renderRik() {
         <div class="unit-meta">
           <div class="pbar"><i style="width:${ok ? 100 : 0}%"></i></div>
           <span class="unit-progress">${status}</span>
-          ${ok ? '<span class="done-badge">готово</span>' : ''}
+          ${ok ? (due ? '<span class="done-badge rik-badge-review">к повтору</span>' : (revToday ? '<span class="done-badge rik-badge-review">повторено</span>' : '<span class="done-badge">готово</span>')) : ''}
           ${(!can && !ok) ? `<span class="rik-when">${limitHit ? 'лимит дня' : 'завтра'}</span>` : ''}
         </div>
       </div>
-      <div class="unit-right">${ok ? '<span class="rik-check" aria-hidden="true">✓</span>' : (can ? '<div class="unit-arrow">›</div>' : '<span class="rik-lock">🔒</span>')}</div>
+      <div class="unit-right">${ok ? (due ? '<div class="unit-arrow rik-arrow-review">›</div>' : '<span class="rik-check" aria-hidden="true">✓</span>') : (can ? '<div class="unit-arrow">›</div>' : '<span class="rik-lock">🔒</span>')}</div>
     </div>`;
   }).join('');
   app.innerHTML = `
@@ -34059,7 +34095,7 @@ function renderRik() {
       <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
       <div class="top-title" style="font-family:'Zhi Mang Xing',serif">日课</div><div class="sub">New HSK 3.0 Грамматика</div>
     </div>
-    <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length} · сегодня <b style="color:var(--ink)">${todayDone}</b> из ${RIK_PER_DAY}</div>
+    <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length} · сегодня <b style="color:var(--ink)">${todayDone}</b> из ${RIK_PER_DAY}${reviewDone ? ` · повтор <b style="color:var(--ink)">${reviewDone}</b>` : ((rikReviewDue(p).length && !todayDone) ? ' · есть уроки на повтор' : '')}</div>
     ${rows}`;
 }
 function rikBackToList(animated) {
@@ -34075,40 +34111,63 @@ function rikBackToList(animated) {
     if (c) { c.classList.add('edge-back-in'); setTimeout(function(){ c.classList.remove('edge-back-in'); }, 270); }
   }, 165);
 }
-function openRik(n) {
+let RIK_REVIEW = false, RIK_ORDER = null;
+/* служебное: открыть первые три урока как сданные вчера — только по адресу с rik=yesterday */
+(function () {
+  function seed() {
+    if (!/[?#&]rik=yesterday/.test(location.href)) return;
+    const p = rikProgress(), y = Date.now() - 86400000;
+    [1, 2, 3].forEach(function (n, i) {
+      if (!p[n] || !p[n].ok) p[n] = { ok: true, at: y + i * 60000, last: y + i * 60000 };
+    });
+    try { localStorage.setItem('rik_progress_v2', JSON.stringify(p)); } catch (e) {}
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}
+    if (typeof goTab === 'function') goTab('rik');
+  }
+  if (document.readyState === 'complete') setTimeout(seed, 400);
+  else window.addEventListener('load', function () { setTimeout(seed, 400); });
+})();
+function openRik(n, review) {
   const u = RIK_UNITS.find(x => x.n === n); if (!u) return;
-  if (!rikAvailable(n, rikProgress())) return;   // закрытый урок не открываем
+  const pr = rikProgress();
+  const isDone = !!(pr[n] && pr[n].ok);
+  if (!isDone && !rikAvailable(n, pr)) return;   // закрытый урок не открываем
+  RIK_REVIEW = !!(review && isDone);
   window.RIK_OPEN = true;
   RIK_ANS = {};
+  RIK_ORDER = RIK_REVIEW ? u.quiz.map((q, i) => i).sort(() => Math.random() - 0.5) : null;
   showPlayer(false);
   const ex = u.ex.map(e => `<div class="rik-ex">
       <div class="rik-ex-zh">${e.zh}</div>
       <div class="rik-ex-py">${e.py}</div>
       <div class="rik-ex-ru">${e.ru}</div></div>`).join('');
-  const qs = u.quiz.map((q, qi) => `<div class="rik-q" data-q="${qi}">
-      <div class="rik-q-num">${qi + 1}</div>
+  const order = RIK_ORDER || u.quiz.map((q, i) => i);
+  const qs = order.map((qi, pos) => { const q = u.quiz[qi]; return `<div class="rik-q" data-q="${qi}">
+      <div class="rik-q-num">${pos + 1}</div>
       <div class="rik-q-body">
         <div class="rik-q-text">${q.q}</div>
         <div class="rik-q-opts">${q.opts.map((o, oi) =>
           `<button class="rik-opt" data-pick="${qi}:${oi}" onclick="rikPick(${n},${qi},${oi})">${o}</button>`).join('')}</div>
       </div>
-    </div>`).join('');
+    </div>`; }).join('');
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
-      <div class="top-title" style="font-family:'TLKai','TLCJK',serif">${u.zh}</div><div class="sub">урок ${u.n} · ${u.ru}</div>
+      <div class="top-title" style="font-family:'TLKai','TLCJK',serif">${u.zh}</div><div class="sub">${RIK_REVIEW ? 'повтор' : 'урок ' + u.n} · ${u.ru}</div>
     </div>
-    <div class="rik-sec">理论 · Теория</div>
+    ${RIK_REVIEW ? `<div class="rik-sec">复习 · Повтор</div>
+    <div class="rik-review-note">Только проверка — без теории. Забыл правило — <b>открой урок целиком</b>.</div>` : `<div class="rik-sec">理论 · Теория</div>
     <div class="rik-rule">${String(u.rule).split('\n').map(function (ln) { return '<p style="margin:0 0 8px">' + ln + '</p>'; }).join('')}</div>
     ${u.traps && u.traps.length ? `<div class="rik-sec" style="margin-top:14px">注意 · Ловушки</div><div class="rik-traps">${u.traps.map(function (t) { return '<div class="rik-trap">' + t + '</div>'; }).join('')}</div>` : ''}
     <div class="rik-sec">例子 · Примеры</div>
-    ${ex}
+    ${ex}`}
     <div class="rik-sec">练习 · Практика</div>
     <div class="rik-qs">${qs}</div>
     <div id="rikRes" class="rik-res"></div>
     <div style="display:flex;gap:10px;margin:6px 0 26px">
       <button class="btn" onclick="rikCheck(${n})">Проверить</button>
       <button class="btn ghost" onclick="rikBackToList(true)">К списку</button>
+      ${RIK_REVIEW ? `<button class="btn ghost" onclick="openRik(${n},false)">Теория</button>` : ''}
     </div>`;
   window.scrollTo(0, 0);
 }
@@ -34134,10 +34193,11 @@ function rikCheck(n) {
   });
   const need = Math.ceil(u.quiz.length * 0.8);      // 4 из 5
   const pass = right >= need;
-  rikSave(n, pass);
+  rikSave(n, pass, RIK_REVIEW);
   const res = document.getElementById('rikRes');
   if (res) res.innerHTML = pass
-    ? `<span style="color:#1f7a45">Верно ${right} из ${u.quiz.length} — урок зачтён</span>`
+    ? (RIK_REVIEW ? `<span style="color:#1f7a45">Повтор: верно ${right} из ${u.quiz.length} — закреплено</span>`
+                  : `<span style="color:#1f7a45">Верно ${right} из ${u.quiz.length} — урок зачтён</span>`)
     : `<span style="color:#b3261e">Верно ${right} из ${u.quiz.length}. Нужно ${need}. Повтори правило и попробуй ещё</span>`;
 }
 function renderMine() {
