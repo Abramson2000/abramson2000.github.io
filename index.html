@@ -1386,6 +1386,8 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 @media (max-width: 899px) {
   #modal.modal-full .modal-card{ height:100dvh !important; max-height:100dvh !important; width:100vw !important; max-width:100vw !important; margin:0 !important; border-radius:0 !important; padding:12px 14px calc(12px + env(safe-area-inset-bottom)) !important; display:flex; flex-direction:column; }
   #modal.modal-full #modalBody{ display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
+  /* 5.58.0: верхние блоки не сжимаются — иначе их содержимое наезжало на соседнее поле */
+  #modal.modal-full #modalBody > .field, #modal.modal-full #modalBody > .vm-docs-top, #modal.modal-full #modalBody > .mwfield { flex: 0 0 auto; }
   #modal.modal-full .field{ flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
   #modal.modal-full textarea#vrt,
   #modal.modal-full textarea#neModalTa{ flex:1 1 auto; min-height:0 !important; height:calc(100dvh - 190px) !important; box-sizing:border-box; resize:none; }
@@ -2586,7 +2588,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.57.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.58.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3087,6 +3089,10 @@ document.addEventListener('keydown', (e) => {
 // v3.16.0: при открытой клавиатуре подтягиваем кнопку «Сохранить» в видимую часть формы
 document.addEventListener('focusin', (e) => {
   if (!e.target.closest || !e.target.closest('#modal')) return;
+  // 5.58.0: в полноэкранных формах не подтягиваем кнопку — она уводила вниз верх формы,
+  // и поле «Врач» уезжало под шапку. Там пользователь листает сам.
+  const m = document.getElementById('modal');
+  if (m && m.classList.contains('modal-full')) return;
   const btn = document.querySelector('#modal .btn');
   if (!btn) return;
   setTimeout(() => { try { btn.scrollIntoView({ block: 'nearest' }); } catch (_) {} }, 300);
@@ -4826,10 +4832,10 @@ async function openResultEditor(plan, note, clinic, visitDocs) {
   try { allPeople = await allPeopleList(); } catch (_) {}
   const nameOf = id => { const p = allPeople.find(x => Number(x.id) === Number(id)); return p ? p.full_name : ('#' + id); };
   openModal(title, `
-    <div class="field"><label>Врач</label>
+    <div class="field vr-top"><label>Врач</label>
       <div id="vrChips" class="vr-chips"></div>
-      <div class="cp-wrap"><input type="text" id="vrSearch" placeholder="найди врача и выбери" autocomplete="off" /></div>
-      <div class="cp-list hidden" id="vrResults"></div>
+      <div class="cp-wrap"><input type="text" id="vrSearch" placeholder="найди врача и выбери" autocomplete="off" />
+        <div class="cp-list hidden" id="vrResults"></div></div>
       <div class="row-why">результат запишется в клинику этого врача</div>
     </div>
     <div class="mwfield"><label for="vrt">Текст результата</label>
@@ -4862,6 +4868,7 @@ async function openResultEditor(plan, note, clinic, visitDocs) {
     }));
   });
   try { document.getElementById('modal').classList.add('modal-full'); } catch (e) {}
+  setTimeout(() => { const b = document.getElementById('modalBody'); if (b) b.scrollTop = 0; }, 30);   // 5.58.0: форма открывается сверху
   // 5.55.0: закрытие формы результата возвращает к результатам встречи, а не закрывает всё
   MODAL_RETURN = () => { try { openResultsPanel(plan, visitDocs || [], clinic); } catch (_) {} };
   document.getElementById('vrCancel').addEventListener('click', () => closeModalOrReturn());
