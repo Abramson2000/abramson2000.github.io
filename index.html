@@ -2588,7 +2588,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.58.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.59.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4658,7 +4658,6 @@ async function openVisitCard(plan) {
     ${RESULTS_DRAFT ? '<button type="button" class="vm-res-open" id="vmResOpen">Результаты встречи<span class="vm-res-arrow">›</span></button>' : ''}
     <div class="btn-row">
       <button class="btn" id="vcEdit">Изменить визит</button>
-      <button class="btn ghost" id="vcDrop">Отменить визит</button>
       ${c ? `<button class="btn ghost" id="vcClinic">Открыть клинику</button>` : ''}
     </div>
   `);
@@ -4673,23 +4672,6 @@ async function openVisitCard(plan) {
     closeModal();
     try { if (document.body.classList.contains('card-open')) { state.selId = null; closeCardToList(); } } catch (_) {}
     await openVisitModal({ clinicId: plan.clinic_id, plan });
-  });
-  document.getElementById('vcDrop').addEventListener('click', async () => {
-    // 4.67.0: проверяем id до первого запроса
-    const nId = validId(plan.noteId), cId = validId(plan.clinic_id);
-    if (!nId) { toast('⚠️ Не удалось определить визит — обнови страницу'); return; }
-    if (!confirm('Отменить этот визит? Он исчезнет из «Предстоящих».')) return;
-    try {
-      await sb.from('notes').delete().eq('id', nId);
-      if (cId) { await sb.from('clinic_private').update({ next_contact: null, action_type: null }).eq('clinic_id', cId); privPatchLocal(cId, { next_contact: null, action_type: null }); }
-      invalidateVisitCache();
-      closeModal();
-      toast('✓ Визит отменён');
-      await render();
-    } catch (e) {
-      try { console.error('[визит] отмена не удалась', { message: e && e.message }); } catch (_) {}
-      toast('⚠️ ' + saveError(e));
-    }
   });
   const vc = document.getElementById('vcClinic');
   if (vc) vc.addEventListener('click', async () => {
@@ -6526,7 +6508,7 @@ async function openVisitModal(cfg) {
     <div class="btn-row">
       <button class="btn" id="vmSave">${plan ? 'Сохранить' : 'Запланировать'}</button>
       <button class="btn ghost" id="vmCancel">Отмена</button>
-      ${plan ? '<button class="btn ghost" id="vmDrop" style="color:#b91c1c;border-color:#e5b8b8">Отменить визит</button>' : ''}
+      ${plan ? '<button class="btn ghost" id="vmDrop" style="color:#b91c1c;border-color:#e5b8b8">Удалить визит</button>' : ''}
     </div>
   `);
 

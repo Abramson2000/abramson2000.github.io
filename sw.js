@@ -7,7 +7,7 @@
 // Онлайн-поведение НЕ меняется: при живой сети запросы идут напрямую, как раньше.
 // Имя кэша привязано к видимой версии: см. APP_VER в index.html (сейчас 4.7.1).
 // При выпуске новой версии поднимать оба числа вместе — иначе старый HTML останется в кэше.
-const APP_CACHE = 'crm-app-5.58.0';
+const APP_CACHE = 'crm-app-5.59.0';
 const DATA_CACHE = 'crm-data-v1';
 const SUPABASE_HOST = 'mkehzkobjxnjobkqeiwt.supabase.co';
 const SHELL = ['./', './index.html', './manifest.json', './supabase.v139.min.js?v=139', './icon.svg', './logo-192.png', './logo-512.png', './logo.jpg', './bg-wide.jpg', './bg-narrow.jpg'];
