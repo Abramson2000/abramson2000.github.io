@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.5.0") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.6.0") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -106,6 +106,8 @@
 .rik-opt.on { border-color: var(--red); color: var(--red); font-weight: 700; }
 .rik-opt.right { background: var(--done-soft); border-color: var(--done); color: #1f7a45; font-weight: 700; }
 .rik-opt.wrong { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+.rik-traps { display: flex; flex-direction: column; gap: 8px; }
+.rik-trap { background: var(--danger-soft); border-left: 3px solid var(--danger); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; line-height: 1.5; color: var(--ink); }
 .rik-res { font-size: 15px; margin: 4px 2px 12px; }
 .rik-glyph { font-family: "TLKai", "TLCJK", serif; font-size: 26px; font-weight: 700; }
 .rik-locked { background: var(--danger-soft); box-shadow: inset 0 0 0 1px rgba(166,59,52,.14); }
@@ -32685,7 +32687,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.5.0';
+const APP_VER = '6.6.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32813,6 +32815,92 @@ RIK_UNITS.forEach(function (u) {
   const add = RIK_EXTRA_QUIZ[u.n];
   if (add) u.quiz = u.quiz.concat(add);
 });
+/* 6.6.0: три темы уровня 2, на которых чаще всего ошибаются, — перед 把 */
+const RIK_L2 = [
+ { n:0, zh:'过', ru:'Опыт: уже бывало',
+   rule:'过 стоит после глагола и говорит про опыт: действие случалось хотя бы раз, время не важно.\nСравни: 我去了 — я поехал (один конкретный раз), 我去过 — я бывал (есть опыт).',
+   traps:['«Я был в Китае» → 我去过中国, а не 我去了中国.',
+          'Отрицание только через 没: 没去过. «不去过» — ошибка.',
+          'Вопрос: 你去过中国吗？ — 过 остаётся на месте.'],
+   ex:[ {zh:'我去过中国两次。', py:'Wǒ qùguo Zhōngguó liǎng cì.', ru:'Я дважды был в Китае.'},
+        {zh:'他没吃过北京烤鸭。', py:'Tā méi chīguo Běijīng kǎoyā.', ru:'Он не пробовал утку по-пекински.'},
+        {zh:'你见过她吗？', py:'Nǐ jiànguo tā ma?', ru:'Ты её видел?'}],
+   quiz:[ {q:'我去___中国两次。', opts:['过','了','着'], a:0},
+          {q:'他从来没___过这么好吃的菜。', opts:['吃','吃了','吃着'], a:0},
+          {q:'你___过长城吗？', opts:['去','去了','去过'], a:0},
+          {q:'我___去过日本，只去过韩国。', opts:['没','不','别'], a:0},
+          {q:'她学___过三年汉语。', opts:['过','了','的'], a:0} ] },
+ { n:0, zh:'比较句', ru:'Сравнение: 比 (уровень 2)',
+   rule:'A 比 B + прилагательное. Перед прилагательным нельзя ставить 很, 非常, 太 — это главная ошибка.\nНасколько больше — 得多 / 一点儿. Отрицание — через 没有: A 没有 B (+那么) + прилагательное.',
+   traps:['我比他很高 ✗ → 我比他高 ✓',
+          '«Не такой…, как» → 他没有我高, а не 他不比我高 (это другой смысл).',
+          'Разница в возрасте: 他比我大三岁 — количество после прилагательного.'],
+   ex:[ {zh:'今天比昨天冷。', py:'Jīntiān bǐ zuótiān lěng.', ru:'Сегодня холоднее, чем вчера.'},
+        {zh:'他比我大三岁。', py:'Tā bǐ wǒ dà sān suì.', ru:'Он старше меня на три года.'},
+        {zh:'这个房间没有那个那么大。', py:'Zhège fángjiān méiyǒu nàge nàme dà.', ru:'Эта комната не такая большая, как та.'}],
+   quiz:[ {q:'今天___昨天冷。', opts:['比','跟','没有'], a:0},
+          {q:'他比我___三岁。', opts:['大','很大','非常大'], a:0},
+          {q:'这个房间没有那个___大。', opts:['那么','很','太'], a:0},
+          {q:'这个比那个贵___。', opts:['得多','很多','很'], a:0},
+          {q:'我跑得比他___。', opts:['慢','很慢','慢得'], a:0} ] },
+ { n:0, zh:'状态补语', ru:'Как действие выполнено: V + 得',
+   rule:'Оценка действия ставится после глагола через 得: 他跑得快 — он бегает быстро.\nПеред глаголом так нельзя: 他快跑 значит «он быстро побежал», а не «он быстро бегает».\nОтрицание — 得不: 跑得不快. Не путать три знака: 的 — чей, 得 — как, 地 — как образ действия перед глаголом.',
+   traps:['他跑得很快 ✓; 他跑得很快吗 ✓',
+          '«Он медленно говорит» → 他说得慢, не 他慢说.',
+          '这是我买的书 (的) · 他慢慢地说 (地) · 他说得很好 (得).'],
+   ex:[ {zh:'他说得很好。', py:'Tā shuō de hěn hǎo.', ru:'Он хорошо говорит.'},
+        {zh:'她跑得不快。', py:'Tā pǎo de bú kuài.', ru:'Она бегает небыстро.'},
+        {zh:'你汉字写得真漂亮。', py:'Nǐ Hànzì xiě de zhēn piàoliang.', ru:'У тебя иероглифы написаны красиво.'}],
+   quiz:[ {q:'他说___很好。', opts:['得','的','地'], a:0},
+          {q:'她跑___不快。', opts:['得','的','了'], a:0},
+          {q:'今天雨下___很大。', opts:['得','的','了'], a:0},
+          {q:'这是我买___书。', opts:['的','得','地'], a:0},
+          {q:'他慢慢___走过来。', opts:['地','得','的'], a:0} ] }
+];
+RIK_UNITS.unshift.apply(RIK_UNITS, RIK_L2);
+RIK_UNITS.forEach(function (u, i) { u.n = i + 1; });
+
+/* 6.6.0: новая теория — сначала «зачем», потом схема, потом ловушки */
+const RIK_THEORY = {
+ 4: { rule:'Зачем вообще 把. В китайском нельзя сказать «放书在桌子上» — после объекта обстоятельство не поставить. 把 выносит объект вперёд, и тогда место/результат спокойно встают после глагола.\nСхема: подлежащее + 把 + объект + глагол + место / адресат / результат.',
+      traps:['Объект должен быть определённым: 我把这本书看完了 ✓, 我把书看完了 — только если книга уже обсуждалась.',
+             'Отрицание ставится ПЕРЕД 把: 我没把门关上 ✓, 我把门没关上 ✗.',
+             'Наречие — до 把 или до глагола, и смысл меняется: 我们都把作业做完了 (все мы) ≠ 他把咖啡都喝完了 (весь кофе).',
+             'Не работают с 把 глаголы чувств и восприятия: 爱, 喜欢, 怕, 看, 听.'] },
+ 5: { rule:'Зачем 被. Когда важно не «кто сделал», а «что случилось с предметом», предмет становится подлежащим: 窗户被风吹开了.\nСхема: предмет + 被 + (кто) + глагол + результат. Если виновник неизвестен — 被 сразу перед глаголом.',
+      traps:['После глагола обязательно «что-то»: 被风吹开了 ✓, 被风吹 ✗.',
+             '被 — про неприятность или помеху, для хорошего обычно не говорят: 我的钱包被偷了 ✓.',
+             'Отрицание перед 被: 我没被他骗 ✓.'] },
+ 6: { rule:'Сравнение, продолжение. 比 + прилагательное — база (урок 2). Здесь добавляются оттенки: 比…更 / 比…还 (ещё более), 跟…一样 (такой же), 不比 (не более чем — не то же, что 没有).',
+      traps:['比…更/还 — перед прилагательным: 今天比昨天更冷 ✓.',
+             '一样 требует 跟: 他跟他哥哥一样高 ✓.',
+             '不比 ≠ 没有: 我不比他高 — «я не выше», 我没有他高 — «я ниже».'] },
+ 7: { rule:'Результат действия. Глагол + 到/住/走/上 говорит, чем закончилось: 找到 — нашёл, 记住 — запомнил, 拿走 — забрал, 关上 — закрыл.\nБез этого «после глагола ничего» фраза часто неполная: 我找了 ✗ → 我找到了 ✓.',
+      traps:['找到 ключ ✓, 找钥匙 ✗ (если речь о результате).',
+             '记住 = запомнить, 记得 = помнить. Разные вещи.',
+             '走 как результат значит «прочь»: 拿走, 带走, а не «идти».'] },
+ 8: { rule:'Направление и начало. 出 — наружу или «получилось» (想出 — придумал). 起来 — начало действия (笑了起来). 下去 / 下来 — продолжение или изменение (讲下去, 冷下来).',
+      traps:['想出了办法 ✓ — именно 出.',
+             '笑了起来 = засмеялись (начало), 笑着 = смеясь (состояние).',
+             '冷下来 — стало холоднее; 冷下去 — холодает и дальше.'] },
+ 9: { rule:'Можно или нельзя, и насколько. Возможность: глагол + 得/不 + глагол (看得懂 — могу понять, 走不动 — не могу идти).\nСтепень: прилагательное + 得很, прилагательное + 极了.',
+      traps:['看得懂 ✓; 看懂得不 ✗.',
+             '程度补语 得很 идёт после прилагательного: 热得很 ✓, 很热得 ✗.',
+             '极了 сильнее, чем 很: 好极了 — «отлично».'] },
+ 10:{ rule:'Выделение и повтор. 是…的 выделяет обстоятельство: 我是坐火车来的 (приехал именно на поезде), а не просто сообщает факт.\nПовтор глагола нужен, когда у глагола уже есть дополнение, а оценку надо поставить: 唱歌唱得很好.',
+      traps:['我是坐火车来的 ✓; 我坐火车是来的 ✗.',
+             'Отрицание: 我不是坐火车来的 ✓.',
+             '重动句: 他写字写得很好 ✓, 他写字得很好 ✗.'] },
+ 11:{ rule:'Что где находится. Место + глагол + 着/了 + количество + предмет.\n着 — состояние (放着 — лежит), 了 — появление (来了 — пришли).',
+      traps:['桌子上放着一本书 ✓ — про состояние.',
+             'В русском «на столе лежит книга» порядок другой, в китайском место всегда первым.',
+             '门口站着两个人 ✓; 门口站两个人 ✗.'] }
+};
+RIK_UNITS.forEach(function (u) {
+  const t = RIK_THEORY[u.n];
+  if (t) { u.rule = t.rule; u.traps = t.traps; }
+});
+
 
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
@@ -33931,8 +34019,8 @@ function rikAvailable(n, pr) {
     if (dx > 60 && dx > dy * 1.4) rikBackToList(true);
   }, { passive: true });
 })();
-function rikProgress() { try { return JSON.parse(localStorage.getItem('rik_progress_v1') || '{}'); } catch (e) { return {}; } }
-function rikSave(n, ok) { const p = rikProgress(); p[n] = { ok: !!ok, at: Date.now() }; try { localStorage.setItem('rik_progress_v1', JSON.stringify(p)); } catch (e) {} }
+function rikProgress() { try { return JSON.parse(localStorage.getItem('rik_progress_v2') || '{}'); } catch (e) { return {}; } }
+function rikSave(n, ok) { const p = rikProgress(); p[n] = { ok: !!ok, at: Date.now() }; try { localStorage.setItem('rik_progress_v2', JSON.stringify(p)); } catch (e) {} }
 let RIK_ANS = {};
 function rikFirstChar(u) {
   const first = String(u.zh || '').replace(/[^\u4e00-\u9fa5]/g, '').charAt(0);
@@ -34011,7 +34099,8 @@ function openRik(n) {
       <div class="top-title" style="font-family:'TLKai','TLCJK',serif">${u.zh}</div><div class="sub">урок ${u.n} · ${u.ru}</div>
     </div>
     <div class="rik-sec">理论 · Теория</div>
-    <div class="rik-rule">${u.rule}</div>
+    <div class="rik-rule">${String(u.rule).split('\n').map(function (ln) { return '<p style="margin:0 0 8px">' + ln + '</p>'; }).join('')}</div>
+    ${u.traps && u.traps.length ? `<div class="rik-sec" style="margin-top:14px">注意 · Ловушки</div><div class="rik-traps">${u.traps.map(function (t) { return '<div class="rik-trap">' + t + '</div>'; }).join('')}</div>` : ''}
     <div class="rik-sec">例子 · Примеры</div>
     ${ex}
     <div class="rik-sec">练习 · Практика</div>
