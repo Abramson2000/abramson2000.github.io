@@ -33858,10 +33858,20 @@ function renderRik() {
   const done = RIK_UNITS.filter(u => p[u.n] && p[u.n].ok).length;
   const next = (RIK_UNITS.find(u => !(p[u.n] && p[u.n].ok)) || RIK_UNITS[0]).n;
   const rows = RIK_UNITS.map(u => {
-    const st = p[u.n] ? (p[u.n].ok ? '✓' : '·') : '';
-    return `<div class="card list-row" onclick="openRik(${u.n})" style="cursor:pointer">
-      <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${u.n}. ${u.zh}</span></span><span class="row-next">${st}</span></div>
-      <div class="row-why">${u.ru}</div></div>`;
+    const ok = !!(p[u.n] && p[u.n].ok);
+    return `<div class="unit-card ${ok ? 'unit-done' : ''}" onclick="openRik(${u.n})">
+      <div class="unit-emoji" style="background:var(--paper);font-weight:700">${u.n}</div>
+      <div style="flex:1;min-width:0">
+        <div class="unit-zh">${u.zh}</div>
+        <div class="unit-zh-sub">${u.ru}</div>
+        <div class="unit-meta">
+          <div class="pbar"><i style="width:${ok ? 100 : 0}%"></i></div>
+          <span class="unit-progress">${ok ? 'пройден' : 'не пройден'}</span>
+          ${ok ? '<span class="done-badge">готово</span>' : ''}
+        </div>
+      </div>
+      <div class="unit-right"><div class="unit-arrow">›</div></div>
+    </div>`;
   }).join('');
   app.innerHTML = `
     <div class="topbar">
