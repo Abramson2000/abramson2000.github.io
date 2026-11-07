@@ -33059,7 +33059,7 @@ document.addEventListener('click', function (e) {
     const off = document.body.classList.contains('sb-off');
     const onSb = e.target && e.target.closest && e.target.closest('#tabbar');
     /* тащим колонку только если палец лёг на неё саму (закрыть) или у самого левого края (открыть) */
-    if (!off && onSb) sbTouch = { x: t.clientX, y: t.clientY, mode: 'close', armed: true };
+    if (!off && onSb) sbTouch = { x: t.clientX, y: t.clientY, mode: 'close', armed: false };
     else if (off && t.clientX < 24) sbTouch = { x: t.clientX, y: t.clientY, mode: 'open', armed: false };
     if (sbTouch && sbTouch.armed) sb.classList.add('sb-drag');
   }, { passive: true });
@@ -33072,7 +33072,7 @@ document.addEventListener('click', function (e) {
     const w = sb.offsetWidth;
     if (!sbTouch.armed) {
       /* пока палец не пошёл явно вбок — колонку не трогаем (иначе она дрожит при прокрутке) */
-      if (Math.abs(dx) < 10 || Math.abs(dx) < dy) return;
+      if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
       sbTouch.armed = true;
       sb.classList.add('sb-drag');
     }
@@ -33899,7 +33899,7 @@ function renderRik() {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
-      <div class="top-title">日课</div><div class="sub">New HSK 3.0 Грамматика</div>
+      <div class="top-title" style="font-family:'Zhi Mang Xing',serif">日课</div><div class="sub">New HSK 3.0 Грамматика</div>
     </div>
     <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length}</div>
     ${rows}`;
@@ -33921,7 +33921,7 @@ function openRik(n) {
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
-      <div class="top-title">${u.zh}</div><div class="sub">урок ${u.n} · ${u.ru}</div>
+      <div class="top-title" style="font-family:'TLKai','TLCJK',serif">${u.zh}</div><div class="sub">урок ${u.n} · ${u.ru}</div>
     </div>
     <div class="card" style="padding:16px;margin-bottom:14px">
       <div style="font-size:14px;line-height:1.6">${u.rule}</div>
