@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.3.0") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.4.0") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -92,7 +92,23 @@
   /* Карточка урока */
   .unit-card { background: var(--card); border-radius: 20px; padding: 15px 14px 15px 16px; margin-bottom: 11px; cursor: pointer; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); transition: transform .12s ease, box-shadow .12s ease; }
   .unit-card:active { transform: scale(.98); box-shadow: 0 1px 3px rgba(29,29,33,.06); }
-  .rik-locked { background: var(--danger-soft); box-shadow: inset 0 0 0 1px rgba(166,59,52,.14); }
+  .rik-sec { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3, #9a968f); margin: 18px 2px 8px; }
+.rik-rule { background: var(--card); border-radius: 16px; padding: 16px; font-size: 16.5px; line-height: 1.62; box-shadow: var(--shadow-card); }
+.rik-ex { background: var(--card); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow-card); }
+.rik-ex-zh { font-family: "TLKai", "TLCJK", serif; font-size: 25px; line-height: 1.5; color: var(--ink); }
+.rik-ex-py { font-size: 13.5px; color: var(--ink-2); margin-top: 4px; }
+.rik-ex-ru { font-size: 15px; color: var(--ink); margin-top: 6px; }
+.rik-q { display: flex; gap: 12px; background: var(--card); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow-card); }
+.rik-q-num { width: 26px; height: 26px; border-radius: 50%; background: var(--paper); color: var(--ink-2); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.rik-q-text { font-size: 17.5px; line-height: 1.55; color: var(--ink); }
+.rik-q-opts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.rik-opt { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 10px 16px; font-size: 16px; font-family: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.rik-opt.on { border-color: var(--red); color: var(--red); font-weight: 700; }
+.rik-opt.right { background: var(--done-soft); border-color: var(--done); color: #1f7a45; font-weight: 700; }
+.rik-opt.wrong { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+.rik-res { font-size: 15px; margin: 4px 2px 12px; }
+.rik-glyph { font-family: "TLKai", "TLCJK", serif; font-size: 26px; font-weight: 700; }
+.rik-locked { background: var(--danger-soft); box-shadow: inset 0 0 0 1px rgba(166,59,52,.14); }
 .rik-locked .unit-zh { color: var(--danger); }
 .rik-locked .unit-zh-sub { color: rgba(166,59,52,.75); }
 .rik-locked .unit-progress { color: var(--danger); }
@@ -32669,7 +32685,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.3.0';
+const APP_VER = '6.4.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32773,6 +32789,30 @@ const RIK_UNITS = [
      {q:'墙上___着一张画。', opts:['挂','坐','放'], a:0},
      {q:'门口站___两个人。', opts:['着','了','得'], a:0}] }
 ];
+
+/* 6.4.0: в каждом уроке пять заданий, для зачёта нужно четыре */
+const RIK_EXTRA_QUIZ = {
+  1: [ {q:'请把书放___书架上。', opts:['在','给','干净'], a:0},
+       {q:'他把钱给___我了。', opts:['给','在','干净'], a:0} ],
+  2: [ {q:'我的伞被风___走了。', opts:['吹','在','给'], a:0},
+       {q:'他被公司___了。', opts:['辞退','辞退在','给辞退'], a:0} ],
+  3: [ {q:'这个比那个___便宜。', opts:['更','一样','比'], a:0},
+       {q:'他跑得比我___。', opts:['快','一样','比'], a:0} ],
+  4: [ {q:'请你记___我的名字。', opts:['住','到','走'], a:0},
+       {q:'他拿___书就走了。', opts:['走','住','上'], a:0} ],
+  5: [ {q:'我想___了一个办法。', opts:['出','起','下'], a:0},
+       {q:'天黑了___。', opts:['下来','起来','出去'], a:0} ],
+  6: [ {q:'这个字我看不___。', opts:['懂','得','很'], a:0},
+       {q:'他高兴___跳了起来。', opts:['得','不','了'], a:0} ],
+  7: [ {q:'这本小说___去年买的。', opts:['是','得','了'], a:0},
+       {q:'他写字写得___认真。', opts:['很','是','的'], a:0} ],
+  8: [ {q:'教室里坐___很多学生。', opts:['着','了','得'], a:0},
+       {q:'门口停___一辆车。', opts:['着','了','得'], a:0} ]
+};
+RIK_UNITS.forEach(function (u) {
+  const add = RIK_EXTRA_QUIZ[u.n];
+  if (add) u.quiz = u.quiz.concat(add);
+});
 
 const EXTRA = (typeof EXTRA_UNITS !== 'undefined') ? EXTRA_UNITS : [];
 const unitLabel = u => u.label || ('Урок ' + u.unit);
@@ -33883,12 +33923,16 @@ function rikAvailable(n, pr) {
     const t = e.changedTouches[0];
     const dx = t.clientX - st.x, dy = Math.abs(t.clientY - st.y);
     st = null;
-    if (dx > 60 && dx > dy * 1.4) renderRik();
+    if (dx > 60 && dx > dy * 1.4) rikBackToList(true);
   }, { passive: true });
 })();
 function rikProgress() { try { return JSON.parse(localStorage.getItem('rik_progress_v1') || '{}'); } catch (e) { return {}; } }
 function rikSave(n, ok) { const p = rikProgress(); p[n] = { ok: !!ok, at: Date.now() }; try { localStorage.setItem('rik_progress_v1', JSON.stringify(p)); } catch (e) {} }
 let RIK_ANS = {};
+function rikFirstChar(u) {
+  const first = String(u.zh || '').replace(/[^\u4e00-\u9fa5]/g, '').charAt(0);
+  return first || '日';
+}
 function renderRik() {
   window.RIK_OPEN = false;
   showTabbar(true); partAudioKey = null; showPlayer(false);
@@ -33901,9 +33945,9 @@ function renderRik() {
     const status = ok ? 'пройден' : (can ? 'сегодня' : 'закрыт');
     const cls = ok ? 'unit-done rik-passed' : (can ? 'rik-today' : 'rik-locked');
     return `<div class="unit-card ${cls}" ${can ? `onclick="openRik(${u.n})"` : ''}>
-      <div class="unit-emoji" style="background:var(--paper);font-weight:700">${u.n}</div>
+      <div class="unit-emoji rik-glyph" style="background:var(--paper)">${rikFirstChar(u)}</div>
       <div style="flex:1;min-width:0">
-        <div class="unit-zh">${u.zh}</div>
+        <div class="unit-zh">${u.n}. ${u.zh}</div>
         <div class="unit-zh-sub">${u.ru}</div>
         <div class="unit-meta">
           <div class="pbar"><i style="width:${ok ? 100 : 0}%"></i></div>
@@ -33920,39 +33964,55 @@ function renderRik() {
       <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
       <div class="top-title" style="font-family:'Zhi Mang Xing',serif">日课</div><div class="sub">New HSK 3.0 Грамматика</div>
     </div>
-    <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length}</div>
+    <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length} уроков</div>
     ${rows}`;
+}
+function rikBackToList(animated) {
+  const a = document.getElementById('app');
+  if (!a || !animated) { renderRik(); return; }
+  a.style.transition = '';
+  a.classList.add('edge-back-out');
+  setTimeout(function () {
+    const b = document.getElementById('app');
+    if (b) { b.classList.remove('edge-back-out'); b.style.translate = ''; b.style.opacity = ''; }
+    renderRik();
+    const c = document.getElementById('app');
+    if (c) { c.classList.add('edge-back-in'); setTimeout(function(){ c.classList.remove('edge-back-in'); }, 270); }
+  }, 165);
 }
 function openRik(n) {
   const u = RIK_UNITS.find(x => x.n === n); if (!u) return;
-  window.RIK_OPEN = true;
   if (!rikAvailable(n, rikProgress())) return;   // закрытый урок не открываем
+  window.RIK_OPEN = true;
   RIK_ANS = {};
   showPlayer(false);
-  const ex = u.ex.map(e => `<div style="margin:10px 0">
-      <div style="font-size:20px;line-height:1.5">${e.zh}</div>
-      <div style="font-size:13px;color:var(--muted)">${e.py}</div>
-      <div style="font-size:14px">${e.ru}</div></div>`).join('');
-  const qs = u.quiz.map((q, qi) => `<div style="margin:14px 0" data-q="${qi}">
-      <div style="font-size:16px;margin-bottom:8px">${qi + 1}. ${q.q}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">${q.opts.map((o, oi) =>
-        `<button class="btn ghost" data-pick="${qi}:${oi}" onclick="rikPick(${n},${qi},${oi})">${o}</button>`).join('')}</div>
+  const ex = u.ex.map(e => `<div class="rik-ex">
+      <div class="rik-ex-zh">${e.zh}</div>
+      <div class="rik-ex-py">${e.py}</div>
+      <div class="rik-ex-ru">${e.ru}</div></div>`).join('');
+  const qs = u.quiz.map((q, qi) => `<div class="rik-q" data-q="${qi}">
+      <div class="rik-q-num">${qi + 1}</div>
+      <div class="rik-q-body">
+        <div class="rik-q-text">${q.q}</div>
+        <div class="rik-q-opts">${q.opts.map((o, oi) =>
+          `<button class="rik-opt" data-pick="${qi}:${oi}" onclick="rikPick(${n},${qi},${oi})">${o}</button>`).join('')}</div>
+      </div>
     </div>`).join('');
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
       <div class="top-title" style="font-family:'TLKai','TLCJK',serif">${u.zh}</div><div class="sub">урок ${u.n} · ${u.ru}</div>
     </div>
-    <div class="card" style="padding:16px;margin-bottom:14px">
-      <div style="font-size:14px;line-height:1.6">${u.rule}</div>
-    </div>
-    <div class="card" style="padding:16px;margin-bottom:14px">${ex}</div>
-    <div class="card" style="padding:16px;margin-bottom:14px">${qs}
-      <div id="rikRes" style="margin-top:6px;font-size:15px"></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:24px">
+    <div class="rik-sec">理论 · Теория</div>
+    <div class="rik-rule">${u.rule}</div>
+    <div class="rik-sec">例子 · Примеры</div>
+    ${ex}
+    <div class="rik-sec">练习 · Практика</div>
+    <div class="rik-qs">${qs}</div>
+    <div id="rikRes" class="rik-res"></div>
+    <div style="display:flex;gap:10px;margin:6px 0 26px">
       <button class="btn" onclick="rikCheck(${n})">Проверить</button>
-      <button class="btn ghost" onclick="renderRik()">К списку</button>
+      <button class="btn ghost" onclick="rikBackToList(true)">К списку</button>
     </div>`;
   window.scrollTo(0, 0);
 }
@@ -33960,30 +34020,29 @@ function rikPick(n, qi, oi) {
   RIK_ANS[qi] = oi;
   document.querySelectorAll('[data-pick^="' + qi + ':"]').forEach(b => {
     const on = b.dataset.pick === qi + ':' + oi;
-    b.style.borderColor = on ? 'var(--red-deep, #A62D13)' : '';
-    b.style.color = on ? 'var(--red-deep, #A62D13)' : '';
-    b.style.fontWeight = on ? '700' : '';
+    b.classList.toggle('on', on);
   });
 }
 function rikCheck(n) {
   const u = RIK_UNITS.find(x => x.n === n); if (!u) return;
   let right = 0;
   u.quiz.forEach((q, qi) => {
-    const pickEl = document.querySelector('[data-pick="' + qi + ':' + q.a + '"]');
     const ok = RIK_ANS[qi] === q.a;
     if (ok) right++;
-    if (pickEl) { pickEl.style.background = '#e8f6ec'; pickEl.style.borderColor = '#1f7a45'; pickEl.style.color = '#1f7a45'; }
+    const good = document.querySelector('[data-pick="' + qi + ':' + q.a + '"]');
+    if (good) good.classList.add('right');
     if (!ok && RIK_ANS[qi] != null) {
-      const wrongEl = document.querySelector('[data-pick="' + qi + ':' + RIK_ANS[qi] + '"]');
-      if (wrongEl) { wrongEl.style.background = '#fdecec'; wrongEl.style.borderColor = '#b3261e'; wrongEl.style.color = '#b3261e'; }
+      const bad = document.querySelector('[data-pick="' + qi + ':' + RIK_ANS[qi] + '"]');
+      if (bad) bad.classList.add('wrong');
     }
   });
-  const pass = right >= 2;
+  const need = Math.ceil(u.quiz.length * 0.8);      // 4 из 5
+  const pass = right >= need;
   rikSave(n, pass);
   const res = document.getElementById('rikRes');
   if (res) res.innerHTML = pass
     ? `<span style="color:#1f7a45">Верно ${right} из ${u.quiz.length} — урок зачтён</span>`
-    : `<span style="color:#b3261e">Верно ${right} из ${u.quiz.length}. Повтори правило и попробуй ещё</span>`;
+    : `<span style="color:#b3261e">Верно ${right} из ${u.quiz.length}. Нужно ${need}. Повтори правило и попробуй ещё</span>`;
 }
 function renderMine() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
