@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.2.0") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.3.0") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -32669,7 +32669,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.2.0';
+const APP_VER = '6.3.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33053,6 +33053,7 @@ document.addEventListener('click', function (e) {
   document.addEventListener('touchstart', function (e) {
     if (window.TingliWritingFocus && window.TingliWritingFocus.isOpen()) { sbTouch = null; return; }
     if (!isNarrow()) return;
+    if (window.RIK_OPEN) return;      // в уроке 日课 свайп — это «назад к списку», а не панель
     const sb = sbEl();
     if (!sb || getComputedStyle(sb).display === 'none') return;
     const t = e.touches[0];
@@ -33868,10 +33869,28 @@ function rikAvailable(n, pr) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   return last < today;                                      // следующий — со следующего дня
 }
+/* свайп вправо внутри урока 日课 — назад к списку уроков */
+(function () {
+  let st = null;
+  document.addEventListener('touchstart', function (e) {
+    st = null;
+    if (!window.RIK_OPEN) return;
+    const t = e.touches[0];
+    st = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (!st) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - st.x, dy = Math.abs(t.clientY - st.y);
+    st = null;
+    if (dx > 60 && dx > dy * 1.4) renderRik();
+  }, { passive: true });
+})();
 function rikProgress() { try { return JSON.parse(localStorage.getItem('rik_progress_v1') || '{}'); } catch (e) { return {}; } }
 function rikSave(n, ok) { const p = rikProgress(); p[n] = { ok: !!ok, at: Date.now() }; try { localStorage.setItem('rik_progress_v1', JSON.stringify(p)); } catch (e) {} }
 let RIK_ANS = {};
 function renderRik() {
+  window.RIK_OPEN = false;
   showTabbar(true); partAudioKey = null; showPlayer(false);
   curUnit = null; curPart = null;
   const p = rikProgress();
@@ -33906,6 +33925,7 @@ function renderRik() {
 }
 function openRik(n) {
   const u = RIK_UNITS.find(x => x.n === n); if (!u) return;
+  window.RIK_OPEN = true;
   if (!rikAvailable(n, rikProgress())) return;   // закрытый урок не открываем
   RIK_ANS = {};
   showPlayer(false);
