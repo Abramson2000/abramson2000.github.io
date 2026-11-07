@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.4.0") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.5.0") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -32685,7 +32685,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.4.0';
+const APP_VER = '6.5.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33899,15 +33899,20 @@ function renderTeam() {
   refreshUnitBadges();
 }
 
+const RIK_PER_DAY = 3;   // не более трёх уроков в день
+function rikTodayCount(pr) {
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  return Object.keys(pr).filter(function (k) {
+    if (!pr[k] || !pr[k].ok || !pr[k].at) return false;
+    const d = new Date(pr[k].at); d.setHours(0, 0, 0, 0);
+    return d.getTime() === t.getTime();
+  }).length;
+}
 function rikAvailable(n, pr) {
   if (pr[n] && pr[n].ok) return true;                       // пройденные открыты всегда
+  if (rikTodayCount(pr) >= RIK_PER_DAY) return false;        // дневной лимит выбран
   const nextU = RIK_UNITS.find(u => !(pr[u.n] && pr[u.n].ok));
-  if (!nextU || nextU.n !== n) return false;                // вперёд не забегаем
-  const times = Object.keys(pr).filter(k => pr[k] && pr[k].ok).map(k => pr[k].at || 0);
-  if (!times.length) return true;                           // первый урок — сразу
-  const last = new Date(Math.max.apply(null, times)); last.setHours(0, 0, 0, 0);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  return last < today;                                      // следующий — со следующего дня
+  return !!nextU && nextU.n === n;                           // вперёд не забегаем
 }
 /* свайп вправо внутри урока 日课 — назад к списку уроков */
 (function () {
@@ -33939,10 +33944,12 @@ function renderRik() {
   curUnit = null; curPart = null;
   const p = rikProgress();
   const done = RIK_UNITS.filter(u => p[u.n] && p[u.n].ok).length;
+  const todayDone = rikTodayCount(p);
+  const limitHit = todayDone >= RIK_PER_DAY;
   const rows = RIK_UNITS.map(u => {
     const ok = !!(p[u.n] && p[u.n].ok);
     const can = rikAvailable(u.n, p);
-    const status = ok ? 'пройден' : (can ? 'сегодня' : 'закрыт');
+    const status = ok ? 'пройден' : (can ? 'сегодня' : (limitHit ? 'завтра' : 'закрыт'));
     const cls = ok ? 'unit-done rik-passed' : (can ? 'rik-today' : 'rik-locked');
     return `<div class="unit-card ${cls}" ${can ? `onclick="openRik(${u.n})"` : ''}>
       <div class="unit-emoji rik-glyph" style="background:var(--paper)">${rikFirstChar(u)}</div>
@@ -33953,7 +33960,7 @@ function renderRik() {
           <div class="pbar"><i style="width:${ok ? 100 : 0}%"></i></div>
           <span class="unit-progress">${status}</span>
           ${ok ? '<span class="done-badge">готово</span>' : ''}
-          ${(!can && !ok) ? '<span class="rik-when">завтра</span>' : ''}
+          ${(!can && !ok) ? `<span class="rik-when">${limitHit ? 'лимит дня' : 'завтра'}</span>` : ''}
         </div>
       </div>
       <div class="unit-right">${ok ? '<span class="rik-check" aria-hidden="true">✓</span>' : (can ? '<div class="unit-arrow">›</div>' : '<span class="rik-lock">🔒</span>')}</div>
@@ -33964,7 +33971,7 @@ function renderRik() {
       <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
       <div class="top-title" style="font-family:'Zhi Mang Xing',serif">日课</div><div class="sub">New HSK 3.0 Грамматика</div>
     </div>
-    <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length} уроков</div>
+    <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length} · сегодня <b style="color:var(--ink)">${todayDone}</b> из ${RIK_PER_DAY}</div>
     ${rows}`;
 }
 function rikBackToList(animated) {
