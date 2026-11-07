@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.6") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.7") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -32692,7 +32692,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.8.6';
+const APP_VER = '6.8.7';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -32717,20 +32717,18 @@ async function syncRequest(path, opts) {
 const RIK_UNITS = [
  { n:1, zh:'把字句', ru:'Что сделали с предметом',
    rule:'把 + предмет + глагол + результат. После глагола обязательно «что-то»: 在/到 + место, 给 + адресат или результат (完/好/干净). Голое «我把书看» — ошибка.',
-   ex:[
-     {zh:'我把书放在桌子上了。', py:'Wǒ bǎ shū fàng zài zhuōzi shàng le.', ru:'Я положил книгу на стол.'},
-     {zh:'我把作业给老师了。', py:'Wǒ bǎ zuòyè gěi lǎoshī le.', ru:'Я отдал домашнюю работу учителю.'},
-     {zh:'他把房间打扫干净了。', py:'Tā bǎ fángjiān dǎsǎo gānjìng le.', ru:'Он убрал комнату дочиста.'}],
+   ex:[ {zh:'我把书放在桌子上了。', py:'Wǒ bǎ shū fàng zài zhuōzi shàng le.', ru:'Я положил книгу на стол.'},
+        {zh:'请把书给我。', py:'Qǐng bǎ shū gěi wǒ.', ru:'Дай мне книгу, пожалуйста.'},
+        {zh:'我把手机放在桌子上了。', py:'Wǒ bǎ shǒujī fàng zài zhuōzi shàng le.', ru:'Я положил телефон на стол.'} ],
    quiz:[
      {q:'请把水放___桌子上。', opts:['在','给','干净'], a:0},
      {q:'我把照片发___你了。', opts:['在','给','干净'], a:1},
      {q:'他把衣服洗___了。', opts:['干净','在','给'], a:0}] },
  { n:2, zh:'被', ru:'Пассив: что произошло с предметом',
    rule:'被 + тот, кто действует + глагол + результат. Если деятель неважен — 被 сразу перед глаголом.',
-   ex:[
-     {zh:'我的手机被弟弟弄坏了。', py:'Wǒ de shǒujī bèi dìdi nòng huài le.', ru:'Мой телефон брат сломал.'},
-     {zh:'窗户被风吹开了。', py:'Chuānghu bèi fēng chuī kāi le.', ru:'Окно распахнуло ветром.'},
-     {zh:'他被老师批评了。', py:'Tā bèi lǎoshī pīpíng le.', ru:'Его отругал учитель.'}],
+   ex:[ {zh:'他被老师批评了。', py:'Tā bèi lǎoshī pīpíng le.', ru:'Его отругал учитель.'},
+        {zh:'我的手机被弟弟拿走了。', py:'Wǒ de shǒujī bèi dìdi ná zǒu le.', ru:'Мой телефон забрал брат.'},
+        {zh:'这本书被他拿走了。', py:'Zhè běn shū bèi tā ná zǒu le.', ru:'Эту книгу он забрал.'} ],
    quiz:[
      {q:'我的自行车___人偷了。', opts:['被','把','给'], a:0},
      {q:'房间被妈妈打扫___了。', opts:['干净','在','住'], a:0},
@@ -32787,10 +32785,9 @@ const RIK_UNITS = [
      {q:'我们___去年认识的。', opts:['是','得','了'], a:0}] },
  { n:8, zh:'存现句', ru:'Что где находится',
    rule:'Место + глагол + 着/了 + количество + предмет. 着 — состояние (放着 — лежит), 了 — появление (来了 — пришли).',
-   ex:[
-     {zh:'桌子上放着一本书。', py:'Zhuōzi shàng fàng zhe yì běn shū.', ru:'На столе лежит книга.'},
-     {zh:'墙上挂着一张照片。', py:'Qiáng shàng guà zhe yì zhāng zhàopiàn.', ru:'На стене висит фотография.'},
-     {zh:'门口站着两个人。', py:'Ménkǒu zhàn zhe liǎng ge rén.', ru:'У входа стоят двое.'}],
+   ex:[ {zh:'桌子上放着一本书。', py:'Zhuōzi shàng fàng zhe yì běn shū.', ru:'На столе лежит книга.'},
+        {zh:'车上坐着一个人。', py:'Chē shàng zuò zhe yí ge rén.', ru:'В машине сидит человек.'},
+        {zh:'家里来了两个人。', py:'Jiālǐ lái le liǎng ge rén.', ru:'Домой пришли двое.'} ],
    quiz:[
      {q:'桌子上___着一本书。', opts:['放','站','挂'], a:0},
      {q:'墙上___着一张画。', opts:['挂','坐','放'], a:0},
@@ -33281,9 +33278,9 @@ const RIK_L6 = [
    traps:['После 不管 обязательно 都 или 也, иначе фраза неполная.',
           '否则 ставится в начале второй части, перед последствием.',
           '使 книжнее, чем 让; после 使 — человек или вещь, потом результат.'],
-   ex:[ {zh:'不管遇到多大困难，我们也要坚持，最后一定能完成任务。', py:'Bùguǎn yùdào duō dà kùnnan, wǒmen yě yào jiānchí, zuìhòu yídìng néng wánchéng rènwu.', ru:'Какие бы трудности ни встретились, мы будем держаться и в итоге справимся.'},
-        {zh:'今晚早点儿睡吧，否则明天早上起不来。', py:'Jīnwǎn zǎodiǎnr shuì ba, fǒuzé míngtiān zǎoshang qǐbulái.', ru:'Ложись сегодня пораньше, иначе утром не встанешь.'},
-        {zh:'这个新方法使工作变得更加简单了。', py:'Zhège xīn fāngfǎ shǐ gōngzuò biàn de gèngjiā jiǎndān le.', ru:'Новый метод сделал работу проще.'}],
+   ex:[ {zh:'不管多少钱，我都要买。', py:'Bùguǎn duōshao qián, wǒ dōu yào mǎi.', ru:'Сколько бы ни стоило — куплю.'},
+        {zh:'早点儿睡，否则我们要迟到了。', py:'Zǎodiǎnr shuì, fǒuzé wǒmen yào chídào le.', ru:'Ложись пораньше, иначе опоздаем.'},
+        {zh:'这个办法使工作更简单了。', py:'Zhège bànfǎ shǐ gōngzuò gèng jiǎndān le.', ru:'Этот способ сделал работу проще.'} ],
    quiz:[ {q:'___遇到多大困难，我们也要坚持。', opts:['不管','虽然','因为'], a:0},
           {q:'今晚早点儿睡吧，___明天起不来。', opts:['否则','因为','所以'], a:0},
           {q:'这个新方法___工作变得更简单了。', opts:['使','把','被'], a:0},
@@ -33295,9 +33292,9 @@ const RIK_L6 = [
    traps:['В 有A有B оба слова односложные: 有山有水 ✓, 有山水有风景 ✗.',
           '有的是 — про количество, не про выбор.',
           '好… во второй части — цель, переводится «чтобы».'],
-   ex:[ {zh:'郊区有山有水，还有很多农家乐。', py:'Jiāoqū yǒu shān yǒu shuǐ, hái yǒu hěn duō nóngjiālè.', ru:'За городом есть и горы, и вода, и много фермерских гостевых дворов.'},
-        {zh:'你跟我有什么好客气的。', py:'Nǐ gēn wǒ yǒu shénme hǎo kèqi de.', ru:'Чего ты со мной церемонишься.'},
-        {zh:'过年时，家里有的是好吃的、好喝的。', py:'Guònián shí, jiālǐ yǒu de shì hǎochī de, hǎohē de.', ru:'На Новый год дома полно вкусной еды и напитков.'}],
+   ex:[ {zh:'公园里有花有草。', py:'Gōngyuán lǐ yǒu huā yǒu cǎo.', ru:'В парке есть и цветы, и трава.'},
+        {zh:'这有什么好问的。', py:'Zhè yǒu shénme hǎo wèn de.', ru:'Что тут спрашивать.'},
+        {zh:'时间有的是。', py:'Shíjiān yǒu de shì.', ru:'Времени полно.'} ],
    quiz:[ {q:'郊区有山___水。', opts:['有','和','的'], a:0},
           {q:'你跟我有什么好___的。', opts:['客气','客气的','客气得'], a:0},
           {q:'医生会做一些检查，___给出合适的治疗方法。', opts:['好','为了的','因为'], a:0},
@@ -33380,20 +33377,18 @@ const RIK_REVIEW_BANK = {
       {q:'这是妈妈做___菜。', opts:['的','得','地'], a:0},
       {q:'他高兴___笑了起来。', opts:['地','得','的'], a:0},
       {q:'她跳舞跳___很好看。', opts:['得','的','地'], a:0} ] },
- 4: { ex:[
-      {zh:'请把窗户关上。', py:'Qǐng bǎ chuānghu guānshàng.', ru:'Закрой, пожалуйста, окно.'},
-      {zh:'他把钥匙忘在办公室了。', py:'Tā bǎ yàoshi wàng zài bàngōngshì le.', ru:'Он забыл ключи в офисе.'},
-      {zh:'我没把这件事告诉他。', py:'Wǒ méi bǎ zhè jiàn shì gàosu tā.', ru:'Я не сказал ему об этом.'}],
+ 4: { ex:[ {zh:'老师把书给我们了。', py:'Lǎoshī bǎ shū gěi wǒmen le.', ru:'Учитель дал нам книги.'},
+        {zh:'请把水给我。', py:'Qǐng bǎ shuǐ gěi wǒ.', ru:'Дай мне воды.'},
+        {zh:'他把钱给我了。', py:'Tā bǎ qián gěi wǒ le.', ru:'Он отдал мне деньги.'} ],
     quiz:[
       {q:'请把门关___。', opts:['上','在','给'], a:0},
       {q:'他把书放___书架上了。', opts:['在','给','干净'], a:0},
       {q:'我没___作业做完。', opts:['把','被','给'], a:0},
       {q:'请把电脑___我。', opts:['给','在','上'], a:0},
       {q:'他把房间打扫___了。', opts:['干净','在','给'], a:0} ] },
- 5: { ex:[
-      {zh:'我的伞被人拿走了。', py:'Wǒ de sǎn bèi rén ná zǒu le.', ru:'Мой зонт кто-то забрал.'},
-      {zh:'他的自行车被偷了。', py:'Tā de zìxíngchē bèi tōu le.', ru:'Его велосипед украли.'},
-      {zh:'蛋糕被孩子吃完了。', py:'Dàngāo bèi háizi chī wán le.', ru:'Торт съел ребёнок.'}],
+ 5: { ex:[ {zh:'我的书被弟弟拿走了。', py:'Wǒ de shū bèi dìdi ná zǒu le.', ru:'Мою книгу забрал брат.'},
+        {zh:'他的车被人拿走了。', py:'Tā de chē bèi rén ná zǒu le.', ru:'Его машину кто-то забрал.'},
+        {zh:'手机被他拿走了。', py:'Shǒujī bèi tā ná zǒu le.', ru:'Телефон он забрал.'} ],
     quiz:[
       {q:'我的手机___偷了。', opts:['被','把','比'], a:0},
       {q:'窗户___风吹开了。', opts:['被','把','给'], a:0},
@@ -33450,10 +33445,9 @@ const RIK_REVIEW_BANK = {
       {q:'他打篮球打___很好。', opts:['得','的','是'], a:0},
       {q:'这本书___去年买的。', opts:['是','得','了'], a:0},
       {q:'我做饭做得不___。', opts:['好','很','是'], a:0} ] },
- 11:{ ex:[
-      {zh:'桌上放着三本书。', py:'Zhuō shàng fàng zhe sān běn shū.', ru:'На столе лежат три книги.'},
-      {zh:'墙上挂着两张画。', py:'Qiáng shàng guà zhe liǎng zhāng huà.', ru:'На стене висят две картины.'},
-      {zh:'教室里坐着很多学生。', py:'Jiàoshì lǐ zuò zhe hěn duō xuésheng.', ru:'В аудитории сидит много студентов.'}],
+ 11:{ ex:[ {zh:'桌子上放着两本书。', py:'Zhuōzi shàng fàng zhe liǎng běn shū.', ru:'На столе лежат две книги.'},
+        {zh:'家里来了两个人。', py:'Jiālǐ lái le liǎng ge rén.', ru:'Домой пришли двое.'},
+        {zh:'车上放着很多东西。', py:'Chē shàng fàng zhe hěn duō dōngxi.', ru:'В машине лежит много вещей.'} ],
     quiz:[
       {q:'桌上放___三本书。', opts:['着','得','是'], a:0},
       {q:'墙上挂___两张画。', opts:['着','得','是'], a:0},
@@ -33651,6 +33645,11 @@ const RIK_BOOK_EX = {
 RIK_UNITS.forEach(function (u) {
   const b = RIK_BOOK_EX[u.n];
   if (b) u.bkEx = b;
+});
+[4, 5, 11].forEach(function (n) {
+  delete RIK_BOOK_EX[n];
+  const u = RIK_UNITS.find(function (x) { return x.n === n; });
+  if (u) delete u.bkEx;            // в повторе этих уроков — простые свои примеры
 });
 
 const RIK_REVIEW_L3 = {
@@ -34210,10 +34209,9 @@ const RIK_REVIEW_L6 = {
          {q:'___去年相比，今年生意好多了。', opts:['跟','从','对'], a:0},
          {q:'___大家都到了，我们就开始吧。', opts:['既然','虽然','因为'], a:0},
          {q:'在工作___，他很有经验。', opts:['方面','方面上','面'], a:0} ] },
- 40:{ ex:[
-      {zh:'不管有什么想法，你都要说出来。', py:'Bùguǎn yǒu shénme xiǎngfǎ, nǐ dōu yào shuō chūlai.', ru:'Какие бы мысли ни были — говори их.'},
-      {zh:'明早八点集合，否则就赶不上车了。', py:'Míngzǎo bā diǎn jíhé, fǒuzé jiù gǎnbushàng chē le.', ru:'Сбор в восемь утра, иначе не успеем на поезд.'},
-      {zh:'参加这些交流活动使留学生更快适应了大学生活。', py:'Cānjiā zhèxiē jiāoliú huódòng shǐ liúxuéshēng gèng kuài shìyìng le dàxué shēnghuó.', ru:'Эти мероприятия помогли иностранным студентам быстрее привыкнуть к университету.'}],
+ 40:{ ex:[ {zh:'不管多晚，他都要去。', py:'Bùguǎn duō wǎn, tā dōu yào qù.', ru:'Как бы поздно ни было, он пойдёт.'},
+        {zh:'早点儿走，否则我们要迟到了。', py:'Zǎodiǎnr zǒu, fǒuzé wǒmen yào chídào le.', ru:'Выходи пораньше, иначе опоздаем.'},
+        {zh:'这件事使我很难过。', py:'Zhè jiàn shì shǐ wǒ hěn nánguò.', ru:'Это меня очень расстроило.'} ],
     q1:[ {q:'___有什么想法，你都要说出来。', opts:['不管','因为','但是'], a:0},
          {q:'明早八点集合，___就赶不上车了。', opts:['否则','因为','所以'], a:0},
          {q:'参加这些活动___留学生更快适应了生活。', opts:['使','把','被'], a:0},
@@ -34229,10 +34227,9 @@ const RIK_REVIEW_L6 = {
          {q:'音乐___人放松。', opts:['使','把','被'], a:0},
          {q:'___结果如何，我们都要总结。', opts:['不管','虽然','因为'], a:0},
          {q:'多穿点儿，___会感冒。', opts:['否则','因为','所以'], a:0} ] },
- 41:{ ex:[
-      {zh:'超市里的苹果有大有小，看起来都非常好吃。', py:'Chāoshì lǐ de píngguǒ yǒu dà yǒu xiǎo, kàn qǐlai dōu fēicháng hǎochī.', ru:'Яблоки в магазине и большие, и маленькие — все выглядят вкусно.'},
-      {zh:'这种事在网上有很多，没有什么奇怪的。', py:'Zhè zhǒng shì zài wǎngshang yǒu hěn duō, méiyǒu shénme qíguài de.', ru:'Такого в интернете полно, ничего странного.'},
-      {zh:'假期还有两天就结束了，我明天说什么也得把作业做完。', py:'Jiàqī hái yǒu liǎng tiān jiù jiéshù le, wǒ míngtiān shuō shénme yě děi bǎ zuòyè zuòwán.', ru:'До конца каникул два дня — завтра я обязан доделать уроки.'}],
+ 41:{ ex:[ {zh:'这些车有大有小。', py:'Zhèxiē chē yǒu dà yǒu xiǎo.', ru:'Эти машины и большие, и маленькие.'},
+        {zh:'这有什么好看的。', py:'Zhè yǒu shénme hǎo kàn de.', ru:'Что тут смотреть.'},
+        {zh:'书有的是。', py:'Shū yǒu de shì.', ru:'Книг полно.'} ],
     q1:[ {q:'超市里的苹果有大有___。', opts:['小','少的','小得'], a:0},
          {q:'这种事没有什么___的。', opts:['奇怪','奇怪的','奇怪得'], a:0},
          {q:'他提前准备了材料，___会议开得顺利。', opts:['好让','为了的','因为'], a:0},
