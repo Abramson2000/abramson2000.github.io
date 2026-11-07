@@ -92,10 +92,16 @@
   /* Карточка урока */
   .unit-card { background: var(--card); border-radius: 20px; padding: 15px 14px 15px 16px; margin-bottom: 11px; cursor: pointer; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); transition: transform .12s ease, box-shadow .12s ease; }
   .unit-card:active { transform: scale(.98); box-shadow: 0 1px 3px rgba(29,29,33,.06); }
-  .rik-locked { opacity: .5; }
-.rik-locked .unit-zh, .rik-locked .unit-zh-sub { color: var(--ink-3, #9a968f); }
+  .rik-locked { background: var(--danger-soft); box-shadow: inset 0 0 0 1px rgba(166,59,52,.14); }
+.rik-locked .unit-zh { color: var(--danger); }
+.rik-locked .unit-zh-sub { color: rgba(166,59,52,.75); }
+.rik-locked .unit-progress { color: var(--danger); }
+.rik-locked .unit-emoji { background: rgba(255,255,255,.7) !important; color: var(--danger); }
 .rik-today { box-shadow: inset 0 0 0 2px rgba(166,45,19,.35); }
-.rik-lock { font-size: 16px; opacity: .7; }
+.rik-lock { font-size: 16px; opacity: .8; }
+/* пройденный урок: зелёная подсветка и галочка, как у законченных уроков */
+.rik-passed { background: linear-gradient(180deg, var(--done-soft), var(--card) 62%); }
+.rik-check { width: 30px; height: 30px; border-radius: 50%; background: var(--done); color: #fff; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .unit-emoji { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 25px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(29,29,33,.04); }
   .unit-zh { font-family: "TLKai", "TLCJK", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
   .unit-zh-sub { font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -33874,7 +33880,7 @@ function renderRik() {
     const ok = !!(p[u.n] && p[u.n].ok);
     const can = rikAvailable(u.n, p);
     const status = ok ? 'пройден' : (can ? 'сегодня' : 'закрыт');
-    const cls = ok ? 'unit-done' : (can ? 'rik-today' : 'rik-locked');
+    const cls = ok ? 'unit-done rik-passed' : (can ? 'rik-today' : 'rik-locked');
     return `<div class="unit-card ${cls}" ${can ? `onclick="openRik(${u.n})"` : ''}>
       <div class="unit-emoji" style="background:var(--paper);font-weight:700">${u.n}</div>
       <div style="flex:1;min-width:0">
@@ -33887,7 +33893,7 @@ function renderRik() {
           ${(!can && !ok) ? '<span class="rik-when">завтра</span>' : ''}
         </div>
       </div>
-      <div class="unit-right">${can ? '<div class="unit-arrow">›</div>' : '<span class="rik-lock">🔒</span>'}</div>
+      <div class="unit-right">${ok ? '<span class="rik-check" aria-hidden="true">✓</span>' : (can ? '<div class="unit-arrow">›</div>' : '<span class="rik-lock">🔒</span>')}</div>
     </div>`;
   }).join('');
   app.innerHTML = `
