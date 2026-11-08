@@ -229,11 +229,12 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
 .player{background:transparent;border:0;box-shadow:none;padding:0}
 .crs-form input[type=date],.crs-form input[type=time]{max-width:100%;min-width:0;-webkit-appearance:none;appearance:none}
 @media (max-width:899px){
-  .w{grid-template-columns:auto 1fr 34px;column-gap:10px;row-gap:2px;align-items:center}
-  .w .zh{grid-column:1;grid-row:1}
-  .w .py{grid-column:2;grid-row:1;text-align:left}
-  .w .ru{grid-column:1 / span 2;grid-row:2}
-  .w .w-add{grid-column:3;grid-row:1 / span 2;justify-self:end;align-self:center;margin-left:0}
+  .w{display:grid;grid-template-columns:1fr 34px;column-gap:10px;row-gap:1px;align-items:start}
+  .w .zh{grid-column:1;grid-row:1;font-size:21px;line-height:1.3;min-width:0}
+  .w .py{grid-column:1;grid-row:2;text-align:left;min-width:0}
+  .w .ru{grid-column:1;grid-row:3;line-height:1.45;padding-bottom:2px;min-width:0}
+  .w .w-add{grid-column:2;grid-row:1 / span 3;justify-self:end;align-self:center;margin-left:0}
+  .word-ex{grid-column:1 / -1;grid-row:4}
   .crs-card{margin-bottom:8px}
 }
 .crs-done{flex:0 0 32px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#9DB6C6;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
@@ -288,7 +289,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.31.0';
+const APP_VER='0.32.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-02',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-03',time:'18:00',course:'Español',teacher:'Сайра',mat:'Разговорная практика',lang:'Español'},
