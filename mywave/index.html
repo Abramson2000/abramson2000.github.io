@@ -243,6 +243,8 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
 /* 0.25.0 — расписание без общей плашки; плеер по центру рабочей колонки */
 .crs-col{background:transparent;border:0;box-shadow:none;padding:0}
 @media (min-width:900px){ .player{left:280px} }
+.tx-audio{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.tx-audio .crs-b{font-size:13.5px;padding:6px 10px}
 .tx-h{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:6px}
 .tx-line{margin-top:10px}
 .tx-who{font-size:12px;font-weight:700;color:var(--btn);margin-bottom:2px}
@@ -289,7 +291,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.32.0';
+const APP_VER='0.33.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-02',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-03',time:'18:00',course:'Español',teacher:'Сайра',mat:'Разговорная практика',lang:'Español'},
@@ -630,6 +632,11 @@ function partWords(){
   <div class="card">${l.words.map(w=>{const has=dictHas('zh',w.zh); return `<div class="w"><span class="zh">${w.zh}</span><span class="py">${w.py}</span><span class="ru">${w.ru}</span>
     <button class="w-add${has?' indict':''}" onclick="event.stopPropagation();dictToggle('zh','${w.zh}','${w.py}','${w.ru}');go('wp')" title="${has?'Уже в словаре':'Добавить в словарь'}">${has?'✓':'＋'}</button></div>`}).join('')}</div>`;
 }
+// аудио учебника: 1-1 текст1, 1-2 生词1, 1-3 текст2, 1-4 生词2 … (то же для уроков 2 и 3)
+const LESSON_AUDIO={1:['1-1','1-2','1-3','1-4','1-5','1-6','1-7','1-8'],
+ 2:['2-1','2-2','2-3','2-4','2-5','2-6','2-7','2-8'],
+ 3:['3-1','3-2','3-3','3-4','3-5','3-6','3-7','3-8']};
+
 const GRAM={1:{t:'随着',b:'Предлог 随着 стоит перед словом или фразой об изменении: одно происходит по мере другого.'},
  2:{t:'……就是了',b:'Разговорная конструкция в конце предложения: «просто… и всё», выражает уверенное утверждение.'},
  3:{t:'×是×，就是 / 不过……',b:'Уступительная конструкция: сначала соглашаемся, затем через 就是 или 不过 вводим возражение.'}};
@@ -666,7 +673,9 @@ function partText(){
   <div class="hw-actions"><button class="crs-b" onclick="hwSend()">Отправить учителю</button></div>
   ${c.texts.map((tx,ti)=>`<div class="card" style="margin-bottom:12px">
     <div class="tx-h">${esc(tx.t)}</div>
-    ${tx.ru?`<div class="c-meta" style="margin-bottom:10px">${esc(tx.ru)}</div>`:''}
+    ${tx.ru?`<div class="c-meta" style="margin-bottom:6px">${esc(tx.ru)}</div>`:''}
+    ${(()=>{const a=(LESSON_AUDIO[l.n]||[]).slice(ti*2,ti*2+2); if(!a.length) return '';
+      return `<div class="tx-audio"><button class="crs-b" onclick="mwPlayerShow('audio/${a[0]}.mp3')">▶ Слушать текст</button>${a[1]?`<button class="crs-b" onclick="mwPlayerShow('audio/${a[1]}.mp3')">▶ 生词 · слова</button>`:''}</div>`;})()}
     ${(tx.lines||[]).map(([who,zh,ru])=>`<div class="tx-line"><div class="tx-who">${esc(who)}</div>
        <div class="tx-zh">${esc(zh)}</div><div class="tx-ru">${esc(ru)}</div></div>`).join('')}
     ${(tx.paras||[]).map(([zh,ru])=>`<div class="tx-line"><div class="tx-zh">${esc(zh)}</div><div class="tx-ru">${esc(ru)}</div></div>`).join('')}
