@@ -17,12 +17,6 @@ body::after{content:'';position:fixed;inset:0;background:rgba(255,255,255,.22);z
 .side{width:280px;flex:none;background:var(--menu);padding:18px 14px;display:flex;flex-direction:column;gap:4px;
   border-right:1px solid var(--line);box-shadow:0 0 40px rgba(18,63,102,.06)}
 .logo{display:block;width:100%;max-width:232px;height:auto;margin:2px auto 18px}
-.prof{margin:14px 12px 6px;padding:12px;border-radius:14px;background:#fff;border:1px solid var(--line)}
-.prof-cap{font-size:12px;color:#7A94A6;margin-bottom:8px}
-.prof-btns{display:flex;gap:8px}
-.prof-b{flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13.5px;cursor:pointer;color:var(--ink)}
-.prof-b.on{background:var(--active);border-color:var(--btn);color:#0A5E7A;font-weight:700}
-.prof-note{margin-top:8px;font-size:11.5px;color:#8AA2B2;line-height:1.35}
 .mi{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;cursor:pointer;border:0;background:none;width:100%;text-align:left;font:inherit;color:inherit}
 .mi:hover{background:#eef9ff}
 .mi.on{background:var(--active)}
@@ -293,20 +287,12 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
     <button class="mi" data-s="dict"><span class="ic"><img src="assets/i6.png"></span><span><b>词典</b><small>китайский</small></span></button>
     <button class="mi" data-s="dicten"><span class="ic"><img src="assets/i7.png"></span><span><b>Dictionary</b><small>английский</small></span></button>
     <button class="mi" data-s="dictes"><span class="ic"><img src="assets/i8.png"></span><span><b>Diccionario</b><small>испанский</small></span></button>
-    <div class="prof" id="profBox">
-      <div class="prof-cap">Кто занимается</div>
-      <div class="prof-btns">
-        <button class="prof-b" data-p="arina" onclick="profSet('arina')">Арина</button>
-        <button class="prof-b" data-p="sasha" onclick="profSet('sasha')">Саша</button>
-      </div>
-      <div class="prof-note">У каждого свой прогресс: уроки, грамматика, словарь.</div>
-    </div>
     <div class="foot" id="ver"></div>
   </aside>
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.35.0';
+const APP_VER='0.34.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-02',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-03',time:'18:00',course:'Español',teacher:'Сайра',mat:'Разговорная практика',lang:'Español'},
@@ -314,34 +300,13 @@ const LESSONS=[
  {id:'L4',daily:false,date:'2026-11-06',time:'19:30',course:'中文 · HSK 4上',teacher:'Ли лаоши',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L5',daily:false,date:'2026-11-07',time:'12:00',course:'Español',teacher:'Сайра',mat:'Разговорная практика',lang:'Español'}
 ];
-// 0.35.0 — у каждого свой прогресс: профиль на устройстве (Арина / Саша)
-const PROFILE_KEY='mywave-profile';
-const PROFILES=[{k:'arina',ru:'Арина'},{k:'sasha',ru:'Саша'}];
-let PROF=(localStorage.getItem(PROFILE_KEY)||'arina');
-function pf(base){return base+'::'+PROF}
-function profSet(k){
-  if(k===PROF) return;
-  PROF=k; try{localStorage.setItem(PROFILE_KEY,k)}catch(e){}
-  PROF_SHADOW=null; CUR=1; go('sched');
-}
-function profLabel(){const x=PROFILES.find(p=>p.k===PROF); return x?x.ru:'Арина'}
-function profInit(){
-  // переносим старые (беспрофильные) данные тому, кто занимался до этого — Арине
-  try{
-    [['mywave-hw-v1','hw'],['mywave-grammar-v1','gr'],['mywave-dict-v1','dict']].forEach(([k])=>{
-      const old=localStorage.getItem(k);
-      if(old && !localStorage.getItem(k+'::arina')) localStorage.setItem(k+'::arina', old);
-    });
-  }catch(e){}
-  try{ if(!localStorage.getItem(PROFILE_KEY)) localStorage.setItem(PROFILE_KEY,'arina'); }catch(e){}
-}
 const DICT_KEY='mywave-dict-v1';
-function dictAll(){try{return JSON.parse(localStorage.getItem(pf(DICT_KEY))||'{}')}catch(e){return {}}}
+function dictAll(){try{return JSON.parse(localStorage.getItem(DICT_KEY)||'{}')}catch(e){return {}}}
 function dictList(lang){const d=dictAll(); return Array.isArray(d[lang])?d[lang]:[]}
 function dictHas(lang,zh){return dictList(lang).some(w=>w.zh===zh)}
 function dictToggle(lang,zh,py,ru){const d=dictAll(); const arr=Array.isArray(d[lang])?d[lang]:[];
   const i=arr.findIndex(w=>w.zh===zh); if(i>=0) arr.splice(i,1); else arr.unshift({zh,py,ru});
-  d[lang]=arr; try{localStorage.setItem(pf(DICT_KEY),JSON.stringify(d))}catch(e){}}
+  d[lang]=arr; try{localStorage.setItem(DICT_KEY,JSON.stringify(d))}catch(e){}}
 
 const LESSON_DATA=[
  {n:1,title:"我们来中国学习了",audio:"audio/words1.mp3",words:[{zh:"签证",py:"qiān zhèng",ru:"виза"},{zh:"入学",py:"rù xué",ru:"поступить в учебное заведение"},{zh:"通知",py:"tōng zhī",ru:"уведомлять; уведомление"},{zh:"证件",py:"zhèng jiàn",ru:"документы, удостоверение"},{zh:"材料",py:"cái liào",ru:"материалы, документы"},{zh:"证",py:"zhèng",ru:"удостоверение, свидетельство"},{zh:"任何",py:"rèn hé",ru:"любой, всякий"},{zh:"食堂",py:"shí táng",ru:"столовая"},{zh:"座",py:"zuò",ru:"счётное слово для зданий"},{zh:"要是",py:"yào shì",ru:"если (бы)"},{zh:"减轻",py:"jiǎn qīng",ru:"облегчать, снижать"},{zh:"申请",py:"shēn qǐng",ru:"подавать заявление"},{zh:"经济",py:"jīng jì",ru:"экономика"},{zh:"奖学金",py:"jiǎng xué jīn",ru:"стипендия"},{zh:"随着",py:"suí zhe",ru:"вместе с, по мере"},{zh:"课程",py:"kè chéng",ru:"курс, учебная программа"},{zh:"专业",py:"zhuān yè",ru:"специальность"},{zh:"本科",py:"běn kē",ru:"бакалавриат"},{zh:"硕士",py:"shuò shì",ru:"магистратура"},{zh:"研究生",py:"yán jiū shēng",ru:"аспирант"}]},
@@ -748,8 +713,8 @@ function qzPick(btn,i,ok){
   if(i!==ok) btn.classList.add('wrong');
 }
 const HWKEY='mywave-hw-v1';
-function hwAll(){try{const o=JSON.parse(localStorage.getItem(pf(HWKEY))||'{}'); return o&&typeof o==='object'?o:{}}catch(e){return {}}}
-function hwSave(o){try{localStorage.setItem(pf(HWKEY),JSON.stringify(o)); return true}catch(e){return false}}
+function hwAll(){try{const o=JSON.parse(localStorage.getItem(HWKEY)||'{}'); return o&&typeof o==='object'?o:{}}catch(e){return {}}}
+function hwSave(o){try{localStorage.setItem(HWKEY,JSON.stringify(o)); return true}catch(e){return false}}
 function hwLesson(n){const a=hwAll(); return a[n]||{}}
 function hwCount(n){const d=hwLesson(n); return Object.values(d).filter(x=>x&&x.ok).length}
 function hwTotal(n){const e=HWEX[n]; const q=(QZ2[n]||[]).length; if(!e) return q; return q+e.items.length+(e.passage?e.passage.ans.length:0)}
@@ -883,8 +848,8 @@ function dict(t,lang){const arr=dictList(lang||'zh');
 /* ===== Грамматика HSK 3.0 (порт курса 日课 из Тингли) ===== */
 const GKEY='mywave-grammar-v1', G_LIMIT=3;
 let GCUR=null, GMODE='new', GANS={}, GVIEW=[];
-function gLoad(){try{return JSON.parse(localStorage.getItem(pf(GKEY))||'{}')}catch(e){return {}}}
-function gSaveStore(p){try{localStorage.setItem(pf(GKEY),JSON.stringify(p))}catch(e){}}
+function gLoad(){try{return JSON.parse(localStorage.getItem(GKEY)||'{}')}catch(e){return {}}}
+function gSaveStore(p){try{localStorage.setItem(GKEY,JSON.stringify(p))}catch(e){}}
 function gDay(ts){const d=new Date(ts||0);d.setHours(0,0,0,0);return d.getTime()}
 function gNewToday(p){const t=gDay(Date.now());return Object.values(p).filter(r=>r&&r.ok&&gDay(r.at)===t).length}
 function gRevToday(p){const t=gDay(Date.now());return Object.values(p).filter(r=>r&&r.ok&&gDay(r.at)!==t&&gDay(r.last)===t).length}
@@ -976,10 +941,7 @@ function go(s){
   document.querySelector('.side').classList.remove('open');
   window.scrollTo(0,0);
 }
-profInit();
-function profPaint(){document.querySelectorAll('.prof-b').forEach(b=>b.classList.toggle('on',b.dataset.p===PROF));}
 document.querySelectorAll('.mi').forEach(b=>b.addEventListener('click',()=>go(b.dataset.s)));
-setTimeout(profPaint,0);
 document.getElementById('ver').textContent='© Abramson '+APP_VER;
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 
