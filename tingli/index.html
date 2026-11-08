@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.22") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.23") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -24340,7 +24340,7 @@ const IDV_UNITS = [
  "emoji": "🐎",
  "zh": "难忘的朋友",
  "ru": "",
- "src": "idv",
+ "src": "team",
  "parts": [
   {
    "id": 1,
@@ -24352,16 +24352,6 @@ const IDV_UNITS = [
      "zh": "难忘",
      "py": "nánwàng",
      "ru": "незабываемый"
-    },
-    {
-     "zh": "吉尔吉斯斯坦人",
-     "py": "jí'ěrjīsīsītǎnrén",
-     "ru": "киргиз, киргизка"
-    },
-    {
-     "zh": "伊特",
-     "py": "Yītè",
-     "ru": "Итэ (кличка маленького коня)"
     },
     {
      "zh": "细心",
@@ -24398,7 +24388,7 @@ const IDV_UNITS = [
    "kind": "quiz",
    "title": "ДЗ 1 · Выбор слова",
    "titleZh": "选出正确答案",
-   "text": "选出正确答案。\n外公是中国人，他1___时来到泰国，当时他一个人也不认识，一句泰国话也不会说，但他2___努力工作。后来外公3___了“我”的外婆，然后他们4___了。外公很爱“我”，现在“我”努力学习汉语，因为汉语5___着外公对“我”的爱。这就是“我”和汉语的故事。",
+   "text": "外公是中国人，他1___时来到泰国，当时他一个人也不认识，一句泰国话也不会说，但他2___努力工作。后来外公3___了“我”的外婆，然后他们4___了。外公很爱“我”，现在“我”努力学习汉语，因为汉语5___着外公对“我”的爱。这就是“我”和汉语的故事。",
    "tasks": [
     {
      "type": "choice",
@@ -24463,10 +24453,11 @@ const IDV_UNITS = [
    "voiceHomework": true,
    "title": "ДЗ 2 · Пересказ (запись)",
    "titleZh": "复述课文",
-   "text": "Перескажи текст «难忘的朋友» своими словами — 1–2 минуты, вслух. Смотри на план: кто автор и откуда → что значит подарить коня → история Итэ → что случилось → чем всё закончилось. Запиши голосом, запись сохраняется на устройстве.",
+   "text": "外公是中国人，他1___时来到泰国，当时他一个人也不认识，一句泰国话也不会说，但他2___努力工作。后来外公3___了“我”的外婆，然后他们4___了。外公很爱“我”，现在“我”努力学习汉语，因为汉语5___着外公对“我”的爱。这就是“我”和汉语的故事。",
    "questions": [
-    "请用自己的话复述课文《难忘的朋友》，1–2分钟。"
-   ]
+    "用自己的话讲一讲外公和汉语的故事"
+   ],
+   "hideNum": true
   }
  ]
 }
@@ -33533,7 +33524,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.8.22';
+const APP_VER = '6.8.23';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -37834,7 +37825,7 @@ function renderVoiceHw(u, part){
     <div class="vhw-intro">${esc(part.text||'')}<br><b>Записи сохраняются на этом устройстве.</b></div>
     ${part.questions.map((q,i)=>`
       <div class="vhw-item">
-        <div class="vhw-num">A · фраза ${i+1}</div>
+        ${part.hideNum ? '' : `<div class="vhw-num">A · фраза ${i+1}</div>`}
         <div class="vhw-zh">${esc(typeof q==='string'?q:q.q)}</div>
         <div class="vhw-actions">
           <button class="vhw-b" onclick="dlgSpeakText(${i})">🔊 Образец</button>
@@ -37847,7 +37838,7 @@ function renderVoiceHw(u, part){
       </div>`).join('')}
     <div class="vhw-footer">
       <div id="vhwCount" class="hw-count"></div>
-      <button class="btn" id="vhwShareAll" onclick="voiceHwShareAll()" disabled>📤 Отправить все 4 записи</button>
+      <button class="btn" id="vhwShareAll" onclick="voiceHwShareAll()" disabled>📤 Отправить все записи</button>
       <div class="note">Откроется системное меню «Поделиться» — выбери Telegram и нужный чат.</div>
     </div>`;
   voiceHwRefresh(); posRestore();
