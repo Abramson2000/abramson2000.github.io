@@ -1,5 +1,5 @@
 /* Tingli 5.95.2: pinned offline shell, durable media, resumable verified downloads. */
-const VERSION = '6.8.23';
+const VERSION = '6.8.24';
 const CACHE = 'tingli-shell-' + VERSION;
 const MEDIA_CACHE = 'tingli-media-v1';
 const MANIFEST = './offline-manifest.5.95.2.json';
