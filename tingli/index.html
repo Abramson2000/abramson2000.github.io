@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.14") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.15") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -18651,10 +18651,10 @@ const EXTRA_UNITS = [
 ,
 {
  "unit": 1010,
- "label": "10.1",
+ "label": "10.1 第十课。Счастье на самом деле просто",
  "emoji": "😊",
  "zh": "快乐，其实很简单",
- "ru": "Урок 10.1 · Счастье на самом деле просто",
+ "ru": "",
  "src": "teacher",
  "parts": [
   {
@@ -33116,7 +33116,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.8.14';
+const APP_VER = '6.8.15';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -33220,7 +33220,7 @@ const RIK_UNITS = [
 /* 6.4.0: в каждом уроке пять заданий, для зачёта нужно четыре */
 const RIK_EXTRA_QUIZ = {
   1: [ {q:'请把书放___书架上。', opts:['在','给','干净'], a:0},
-       {q:'他把钱给___我了。', opts:['给','在','干净'], a:0} ],
+       {q:'请把这本书___他。', opts:['给','在','上'], a:0} ],
   2: [ {q:'我的伞被风___走了。', opts:['吹','在','给'], a:0},
        {q:'他被公司___了。', opts:['辞退','辞退在','给辞退'], a:0} ],
   3: [ {q:'这个比那个___便宜。', opts:['更','一样','比'], a:0},
