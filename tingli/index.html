@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="writing.5.95.2.css?v=5.98.0">
 <style>
-  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.19") format("truetype"); }
+  @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.20") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
@@ -24266,57 +24266,68 @@ const IDV_UNITS = [
     {
      "zh": "下载文件",
      "py": "xiàzǎi wénjiàn",
-     "ru": "Скачать файл"
+     "ru": "Скачать файл",
+     "ph": true
     },
     {
      "zh": "出差很顺利",
      "py": "chūchāi hěn shùnlì",
-     "ru": "Командировка прошла успешно"
+     "ru": "Командировка прошла успешно",
+     "ph": true
     },
     {
      "zh": "好信息",
      "py": "hǎo xìnxī",
-     "ru": "Хорошая новость"
+     "ru": "Хорошая новость",
+     "ph": true
     },
     {
      "zh": "习惯固定下来了",
      "py": "xíguàn gùdìng xiàlái le",
-     "ru": "Привычка закрепилась"
+     "ru": "Привычка закрепилась",
+     "ph": true
     },
     {
      "zh": "讲故事",
      "py": "jiǎng gùshi",
-     "ru": "Рассказывать историю"
+     "ru": "Рассказывать историю",
+     "ph": true
     },
     {
      "zh": "包括这些",
      "py": "bāokuò zhèxiē",
-     "ru": "Включая вот это"
+     "ru": "Включая вот это",
+     "ph": true
     },
     {
      "zh": "看得清楚",
      "py": "kàn de qīngchu",
-     "ru": "Ясно видно"
+     "ru": "Ясно видно",
+     "ph": true
     },
     {
      "zh": "很模糊",
      "py": "hěn móhu",
-     "ru": "Очень смутный, нечёткий"
+     "ru": "Очень смутный, нечёткий",
+     "ph": true
     },
     {
      "zh": "水平很高",
      "py": "shuǐpíng hěn gāo",
-     "ru": "Высокий уровень"
+     "ru": "Высокий уровень",
+     "ph": true
     },
     {
      "zh": "通知我",
      "py": "tōngzhī wǒ",
-     "ru": "Сообщи мне"
+     "ru": "Сообщи мне",
+     "ph": true
     },
     {
      "zh": "社交媒体",
      "py": "shèjiāo méitǐ",
-     "ru": "Социальные сети"
+     "ru": "Социальные сети",
+     "ph": true
     }
    ]
   }
@@ -33385,7 +33396,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.8.19';
+const APP_VER = '6.8.20';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -36362,7 +36373,8 @@ function cidianSend(items,label){
  for(const it of items){
   const h=String(it.zh||it.hanzi||'').trim();if(!h)continue;
   const uid='t3-'+h,now=new Date().toISOString();
-  if(!pending[uid])pending[uid]={uid,hanzi:h,pinyin:String(it.py||it.pinyin||''),translation:String(it.ru||it.translation||''),kind:'word',tags:[],comment:'из Тингли: '+(it.src||label||''),laoshi:false,favorite:false,deleted:false,createdAt:now,updatedAt:now};
+  const kind=(it.ph||it.kind==='phrase')?'phrase':'word';
+  if(!pending[uid])pending[uid]={uid,hanzi:h,pinyin:String(it.py||it.pinyin||''),translation:String(it.ru||it.translation||''),kind:kind,tags:[],comment:'из Тингли: '+(it.src||label||''),laoshi:false,favorite:false,deleted:false,createdAt:now,updatedAt:now};
   sent.push(pending[uid]);
  }
  localStorage.setItem(CIDIAN_SEND_KEY,JSON.stringify(pending));
@@ -36389,12 +36401,18 @@ function sendWordOne(el) {
   const label = dictSrcLabel();
   const res = dictAdd([w], label);
   row.classList.add('indict'); el.textContent = '✓';
-  dictToast(res.added ? ('В словарь Tingli добавлено: ' + w.zh) : ('В словаре Tingli уже есть: ' + w.zh));
+  // сразу же передаём в «Мои слова» (Cidian): фраза — в раздел «Фразы», слово — в «Слова»
+  try { const sent = cidianSend([w], label); cidianSender.run(); 
+    dictToast((res.added ? 'В словарь Tingli добавлено: ' : 'В словаре Tingli уже есть: ') + w.zh +
+      ' · в «Мои слова» → ' + (w.ph ? 'Фразы' : 'Слова') + ' (' + sent.added + ')');
+  } catch (e) {
+    dictToast((res.added ? 'В словарь Tingli добавлено: ' : 'В словаре Tingli уже есть: ') + w.zh);
+  }
 }
 function sendAllWords() {
   if (!curPart || !curPart.words || !curPart.words.length) return;
   const label = dictSrcLabel();
-  const items = curPart.words.map(w => ({ zh: w.zh, py: w.py, ru: w.ru }));
+  const items = curPart.words.map(w => ({ zh: w.zh, py: w.py, ru: w.ru, ph: !!w.ph }));
   const res = dictAdd(items, label);
   document.querySelectorAll('#wordList .word').forEach(el => { el.classList.add('indict'); const a = el.querySelector('.w-add'); if (a) a.textContent = '✓'; });
   dictToast('В словарь Tingli добавлено: ' + res.added);
