@@ -33527,7 +33527,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.8.24';
+const APP_VER = '6.9.0';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -36174,7 +36174,16 @@ function renderTeam() {
 }
 
 const RIK_PER_DAY = 3;   // не более трёх новых уроков в день
-const RIK_REVIEW_PER_DAY = 20;  // повтор не ограничен — это закрепление
+const RIK_REVIEW_PER_DAY = 20;  // предохранитель: больше 20 повторов в день не показываем
+/* 6.9.0: повторы по лестнице, а не каждый день.
+   rv — сколько успешных повторов уже сделано; от него берём интервал до следующего. */
+const RIK_LADDER = [1, 3, 7, 14, 30, 60];
+const RIK_EXAM_EVERY = 5;              // зачёт после каждых пяти уроков
+function rikInterval(rv) { return RIK_LADDER[Math.min(Math.max(Number(rv) || 0, 0), RIK_LADDER.length - 1)]; }
+function rikNextDay(rec) {             // день, с которого урок снова положено повторить
+  const base = (rec && (rec.last || rec.at)) || Date.now();
+  return rikDayKey(base + rikInterval(rec && rec.rv) * 86400000);
+}
 function rikDayKey(ts) { const d = new Date(ts || 0); d.setHours(0, 0, 0, 0); return d.getTime(); }
 function rikTodayCount(pr) {                     // новые уроки, впервые сданные сегодня
   const t = rikDayKey(Date.now());
@@ -36186,19 +36195,21 @@ function rikTodayCount(pr) {                     // новые уроки, вп�
 function rikReviewCount(pr) {                    // повторы, сделанные сегодня
   const t = rikDayKey(Date.now());
   return Object.keys(pr).filter(function (k) {
-    if (!pr[k] || !pr[k].ok) return false;
+    if (!String(k).match(/^\d+$/)) return false;          // зачёты сюда не считаем
+    if (!pr[k] || !pr[k].ok || !(pr[k].rv || 0)) return false;   // только успешный повтор
     if (rikDayKey(pr[k].at) === t) return false;
     return rikDayKey(pr[k].last) === t;
   }).length;
 }
-function rikReviewDue(pr) {                      // сдано раньше, сегодня ещё не повторяли
+function rikReviewDue(pr) {                      // сдано раньше, подошёл срок по лестнице
   const t = rikDayKey(Date.now());
   return RIK_UNITS.filter(function (u) {
     const r = pr[u.n];
     if (!r || !r.ok) return false;
-    if (rikDayKey(r.at) === t) return false;
-    return rikDayKey(r.last) !== t;
-  }).map(function (u) { return u.n; });
+    if (rikDayKey(r.at) === t) return false;      // сдан сегодня — не повтор
+    if (r.tried && rikDayKey(r.tried) === t) return false;   // сегодня уже пробовал (даже с ошибкой)
+    return rikNextDay(r) <= t;                    // срок подошёл
+  }).map(function (u) { return u.n; }).slice(0, RIK_REVIEW_PER_DAY);
 }
 function rikAvailable(n, pr) {
   if (pr[n] && pr[n].ok) return true;                       // пройденные открыты всегда
@@ -36246,9 +36257,17 @@ function rikProgress() { try { return JSON.parse(localStorage.getItem('rik_progr
 function rikSave(n, ok, isReview) {
   const p = rikProgress(), now = Date.now(), rec = p[n] || {};
   if (isReview && rec.ok) {                       // повтор: дата первого зачёта не меняется
-    if (ok) { rec.last = now; rec.rv = (rec.rv || 0) + 1; }   // засчитываем только успешный повтор
+    rec.tried = now;                              // день попытки — второй раз сегодня не спрашиваем
+    if (ok) {
+      rec.last = now;                             // успех: ступень вверх (1 → 3 → 7 → 14 → 30 → 60 дней)
+      rec.rv = (rec.rv || 0) + 1;
+    } else {
+      rec.last = now;                             // ошибка: откат на первую ступень — спросим завтра
+      rec.rv = 0;
+      rec.miss = (rec.miss || 0) + 1;
+    }
   }
-  else { rec.ok = !!ok; rec.at = now; rec.last = now; }
+  else { rec.ok = !!ok; rec.at = now; rec.last = now; rec.tried = now; if (!ok) rec.rv = 0; }
   p[n] = rec;
   try { localStorage.setItem('rik_progress_v2', JSON.stringify(p)); } catch (e) {}
 }
@@ -36256,6 +36275,38 @@ let RIK_ANS = {};
 function rikFirstChar(u) {
   const first = String(u.zh || '').replace(/[^\u4e00-\u9fa5]/g, '').charAt(0);
   return first || '日';
+}
+/* 6.9.0: зачёт по последним пяти урокам */
+function rikExamUnits(to) { return RIK_UNITS.filter(u => u.n > to - RIK_EXAM_EVERY && u.n <= to); }
+function rikExamReady(to, pr) {
+  const us = rikExamUnits(to);
+  return us.length === RIK_EXAM_EVERY && us.every(u => pr[u.n] && pr[u.n].ok);
+}
+function rikExamBuild(to) {                     // 10 заданий: по два из каждого урока, вперемешку
+  const byUnit = {};
+  rikExamUnits(to).forEach(function (u) {
+    const add = [].concat(u.quiz || [], RIK_EXTRA_QUIZ[u.n] || []);
+    byUnit[u.n] = add.slice().sort(() => Math.random() - 0.5).slice(0, 2);
+  });
+  let picked = [];
+  Object.keys(byUnit).forEach(k => { picked = picked.concat(byUnit[k]); });
+  picked.sort(() => Math.random() - 0.5);
+  return rikViewQuiz(picked);
+}
+function rikExamCard(to, p) {
+  const k = 'ex' + Math.round(to / RIK_EXAM_EVERY);
+  const rec = p[k], done = !!(rec && rec.ok), ready = rikExamReady(to, p);
+  const cls = done ? 'unit-card unit-done rik-passed' : (ready ? 'unit-card rik-today' : 'unit-card rik-locked');
+  const status = done ? 'зачёт сдан' : (ready ? (rec && rec.tries ? 'пересдать' : 'можно сдавать') : 'сдай уроки ' + (to - RIK_EXAM_EVERY + 1) + '–' + to);
+  return `<div class="${cls}" ${ready ? `onclick="openRikExam(${to})"` : ''}>
+    <div class="unit-emoji rik-glyph" style="background:var(--ochre-soft);color:var(--ochre-ink)">测</div>
+    <div style="flex:1;min-width:0">
+      <div class="unit-zh">Зачёт · уроки ${to - RIK_EXAM_EVERY + 1}–${to}</div>
+      <div class="unit-zh-sub">测验 · 10 заданий вперемешку</div>
+      <div class="unit-meta"><div class="pbar"><i style="width:${done ? 100 : 0}%"></i></div><span class="unit-progress">${status}</span></div>
+    </div>
+    <div class="unit-right">${done ? '<span class="rik-check" aria-hidden="true">✓</span>' : (ready ? '<div class="unit-arrow">›</div>' : '<span class="rik-lock">🔒</span>')}</div>
+  </div>`;
 }
 function renderRik() {
   window.RIK_OPEN = false;
@@ -36270,13 +36321,20 @@ function renderRik() {
   const rows = RIK_UNITS.map(u => {
     const ok = !!(p[u.n] && p[u.n].ok);
     const can = rikAvailable(u.n, p);
-    const newToday = ok && rikDayKey(p[u.n].at) === todayKey;
-    const revToday = ok && !newToday && rikDayKey(p[u.n].last) === todayKey;
-    const due = ok && !newToday && !revToday;
-    const status = ok ? (newToday ? 'пройден сегодня' : (revToday ? 'повтор сегодня' : 'на повтор')) : (can ? 'сегодня' : 'закрыт');
+    const rec = p[u.n] || {};
+    const newToday = ok && rikDayKey(rec.at) === todayKey;
+    const okRevToday = ok && !newToday && (rec.rv || 0) > 0 && rikDayKey(rec.last) === todayKey;
+    const errToday = ok && !newToday && !okRevToday && rec.tried && rikDayKey(rec.tried) === todayKey;
+    const due = ok && !newToday && !okRevToday && !errToday && rikNextDay(rec) <= todayKey;
+    const leftDays = ok ? Math.max(0, Math.round((rikNextDay(rec) - todayKey) / 86400000)) : 0;
+    const status = ok ? (newToday ? 'пройден сегодня'
+      : (okRevToday ? 'повторено сегодня'
+      : (errToday ? 'ошибка · повтор завтра'
+      : (due ? 'на повтор' : 'повтор через ' + leftDays + ' дн.'))))
+      : (can ? 'сегодня' : 'закрыт');
     const cls = ok ? ('unit-done rik-passed' + (due ? ' rik-review' : '')) : (can ? 'rik-today' : 'rik-locked');
     const click = ok ? `onclick="openRik(${u.n},true)"` : (can ? `onclick="openRik(${u.n})"` : '');
-    return `<div class="unit-card ${cls}" ${click}>
+    const card = `<div class="unit-card ${cls}" ${click}>
       <div class="unit-emoji rik-glyph" style="background:var(--paper)">${rikFirstChar(u)}</div>
       <div style="flex:1;min-width:0">
         <div class="unit-zh">${u.n}. ${u.zh}</div>
@@ -36284,12 +36342,13 @@ function renderRik() {
         <div class="unit-meta">
           <div class="pbar"><i style="width:${ok ? 100 : 0}%"></i></div>
           <span class="unit-progress">${status}</span>
-          ${ok ? (due ? '<span class="done-badge rik-badge-review">к повтору</span>' : (revToday ? '<span class="done-badge rik-badge-review">повторено</span>' : '<span class="done-badge">готово</span>')) : ''}
+          ${ok ? (due ? '<span class="done-badge rik-badge-review">к повтору</span>' : (okRevToday ? '<span class="done-badge rik-badge-review">повторено</span>' : '<span class="done-badge">готово</span>')) : ''}
           ${(!can && !ok && limitHit) ? '<span class="rik-when">лимит дня</span>' : ''}
         </div>
       </div>
       <div class="unit-right">${ok ? (due ? '<div class="unit-arrow rik-arrow-review">›</div>' : '<span class="rik-check" aria-hidden="true">✓</span>') : (can ? '<div class="unit-arrow">›</div>' : '<span class="rik-lock">🔒</span>')}</div>
     </div>`;
+    return (u.n % RIK_EXAM_EVERY === 0) ? card + rikExamCard(u.n, p) : card;
   }).join('');
   app.innerHTML = `
     <div class="topbar">
@@ -36391,6 +36450,65 @@ function openRik(n, review) {
       ${RIK_REVIEW ? `<button class="btn ghost" onclick="openRik(${n},false)">Теория</button>` : ''}
     </div>`;
   window.scrollTo(0, 0);
+}
+/* 6.9.0: экран зачёта по пяти урокам */
+let RIK_EXAM = null, RIK_EXAM_ANS = {}, RIK_EXAM_TO = 0;
+function openRikExam(to) {
+  const pr = rikProgress();
+  if (!rikExamReady(to, pr)) return;
+  RIK_EXAM_TO = to; RIK_EXAM_ANS = {}; RIK_EXAM = rikExamBuild(to);
+  window.RIK_OPEN = true;
+  const qs = RIK_EXAM.map((q, i) => `<div class="rik-q" data-q="${i}">
+      <div class="rik-q-num">${i + 1}</div>
+      <div class="rik-q-body">
+        <div class="rik-q-text">${q.q}</div>
+        <div class="rik-q-opts">${q.opts.map((o, oi) =>
+          `<button class="rik-opt" data-expick="${i}:${oi}" onclick="rikExamPick(${i},${oi})">${o}</button>`).join('')}</div>
+      </div>
+    </div>`).join('');
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
+      <div class="top-title" style="font-family:'Zhi Mang Xing',serif">测验</div><div class="sub">Зачёт · уроки ${to - RIK_EXAM_EVERY + 1}–${to}</div>
+    </div>
+    <div class="rik-sec">测验 · Зачёт</div>
+    <div class="rik-review-note">Задания вперемешку по пяти урокам. Для зачёта нужно <b>8 из 10</b>.</div>
+    <div class="rik-qs">${qs}</div>
+    <div id="rikRes" class="rik-res"></div>
+    <div style="display:flex;gap:10px;margin:6px 0 26px">
+      <button class="btn" onclick="rikExamCheck(${to})">Проверить</button>
+      <button class="btn ghost" onclick="rikBackToList(true)">К списку</button>
+    </div>`;
+  window.scrollTo(0, 0);
+}
+function rikExamPick(i, oi) {
+  RIK_EXAM_ANS[i] = oi;
+  document.querySelectorAll('[data-expick^="' + i + ':"]').forEach(b => {
+    b.classList.toggle('on', b.dataset.expick === i + ':' + oi);
+  });
+}
+function rikExamCheck(to) {
+  const quiz = RIK_EXAM || [];
+  let right = 0;
+  quiz.forEach((q, i) => {
+    const ok = RIK_EXAM_ANS[i] === q.a;
+    if (ok) right++;
+    const good = document.querySelector('[data-expick="' + i + ':' + q.a + '"]');
+    if (good) good.classList.add('right');
+    if (!ok && RIK_EXAM_ANS[i] != null) {
+      const bad = document.querySelector('[data-expick="' + i + ':' + RIK_EXAM_ANS[i] + '"]');
+      if (bad) bad.classList.add('wrong');
+    }
+  });
+  const need = Math.ceil(quiz.length * 0.8);
+  const pass = right >= need;
+  const p = rikProgress(), k = 'ex' + Math.round(to / RIK_EXAM_EVERY);
+  const prev = p[k] || {};
+  p[k] = pass ? { ok: true, at: Date.now() } : { ok: false, at: Date.now(), tries: (prev.tries || 0) + 1 };
+  try { localStorage.setItem('rik_progress_v2', JSON.stringify(p)); } catch (e) {}
+  const res = document.getElementById('rikRes');
+  if (res) res.innerHTML = (pass ? '<b style="color:var(--jade)">Зачёт сдан: ' : '<b style="color:var(--danger)">Не сдано: ')
+    + right + ' из ' + quiz.length + '</b>';
 }
 function rikPick(n, qi, oi) {
   RIK_ANS[qi] = oi;
