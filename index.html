@@ -2596,7 +2596,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.62.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.63.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -6976,10 +6976,21 @@ async function renderMyDay() {
     return !!end && end < todayIso;   // закончился раньше сегодня — убираем из «Моего дня»
   };
   const withDate = clinics.filter(c => effDate(c) && !visitAlreadyDone(c));
-  const over = withDate.filter(c => days(c) < 0).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
+  // 5.63.0: «Мой день» разложен по смыслу — пропущенные звонки (дата прошла),
+  // звонки на сегодня, визиты сегодня и визиты этой недели.
+  // Раньше всё лежало вперемешку в «Просрочено / Сегодня / Позже».
+  const isVisit = (c) => c.actionType === 'visit';
+  const byDate = (a, b) => ((effDate(a) || '') < (effDate(b) || '') ? -1 : 1);
+  const isoLocal = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const todayDow = (base.getDay() + 6) % 7;               // 0 = понедельник
+  const weekEnd = new Date(base); weekEnd.setDate(base.getDate() + (6 - todayDow));   // воскресенье
+  const weekEndIso = isoLocal(weekEnd);
+  const over = withDate.filter(c => days(c) < 0 && !isVisit(c)).sort(byDate);   // пропущенные звонки
   const tod  = withDate.filter(c => days(c) === 0);
-  const week = withDate.filter(c => days(c) > 0 && days(c) <= 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
-  const later = withDate.filter(c => days(c) > 7).sort((a, b) => (a.nextContact < b.nextContact ? -1 : 1));
+  const callsToday  = tod.filter(c => !isVisit(c));
+  const visitsToday = tod.filter(isVisit);
+  const visitsWeek  = withDate.filter(c => isVisit(c) && days(c) > 0 && (effDate(c) || '') <= weekEndIso).sort(byDate);
+  const later = withDate.filter(c => !isVisit(c) && days(c) > 0).sort(byDate);
   const row = (c, badge) => {
     // v4.12.0: под городом — зачем контакт: цель визита или пометка к звонку
     const sub = [c.city, c.manager].filter(Boolean).join(' · ');
@@ -6998,13 +7009,15 @@ async function renderMyDay() {
     </div>`;
   };
   // v4.12.0: секция делится на «Звонки» и «Визиты» — визит видно сразу
-  const block = (title, list, badgeFn, useChip) => {
+  const block = (title, list, badgeFn, useChip, flat) => {
     if (!list.length) return '';
+    const head = `<div class="md-sec">${title} · <b>${list.length}</b>${useChip && mgrSel ? mgrSel : ''}</div>`;
+    // 5.63.0: в новых блоках только один тип — подзаголовки «Звонки/Визиты» больше не нужны
+    if (flat) return head + `<div class="list">${list.map(c => row(c, badgeFn(c))).join('')}</div>`;
     const calls = list.filter(c => c.actionType !== 'visit');
     const visits = list.filter(c => c.actionType === 'visit');
     const sub = (t, arr) => arr.length ? `<div class="md-sub">${t} · ${arr.length}</div><div class="list">${arr.map(c => row(c, badgeFn(c))).join('')}</div>` : '';
-    return `<div class="md-sec">${title} · <b>${list.length}</b>${useChip && mgrSel ? mgrSel : ''}</div>`
-      + sub('Звонки', calls) + sub('Визиты', visits);
+    return head + sub('Звонки', calls) + sub('Визиты', visits);
   };
   // ---------- v4.18.0: «Пора вернуться» ----------
   // Сравниваем ЛИБО год к году, ЛИБО квартал к кварталу — переключателем. Месяц к месяцу не сравниваем.
@@ -7077,9 +7090,15 @@ async function renderMyDay() {
     }
     return fmtDate(c.nextContact);
   };
-  const bOver = block('Просрочено', over, badgeOf, true);
-  const bToday = block('Сегодня', tod, badgeOf, !over.length);
-  const bLater = block('Позже', [...week, ...later].slice(0, 20), badgeOf, !over.length && !tod.length);
+  // фильтр по менеджеру встраиваем в шапку первого непустого блока
+  const firstFilled = over.length ? 'm' : callsToday.length ? 'c' : visitsToday.length ? 'v'
+    : visitsWeek.length ? 'w' : later.length ? 'l' : '';
+  const bMissed = block('Пропущенные звонки', over, badgeOf, firstFilled === 'm', true);
+  const bCallsToday = block('Звонки сегодня', callsToday, badgeOf, firstFilled === 'c', true);
+  const bVisitsToday = block('Визиты сегодня', visitsToday, badgeOf, firstFilled === 'v', true);
+  const bVisitsWeek = block('Визиты этой недели', visitsWeek, badgeOf, firstFilled === 'w', true);
+  const bLater = block('Звонки позже', later.slice(0, 20), badgeOf, firstFilled === 'l', true);
+  const chipInHead = !!firstFilled;
   const SHOW_IDEA_PROMPT = false;   // 5.21.0: блок «Пора выбрать дату визита» в «Моём дне» убран
   const ideasBlock = (SHOW_IDEA_PROMPT && ideasDue.length) ? `<div class="md-sec">Пора выбрать дату визита · <b>${ideasDue.length}</b></div>
     <div class="list">${ideasDue.map(i => {
@@ -7096,10 +7115,9 @@ async function renderMyDay() {
         </div>
       </div>`;
     }).join('')}</div>` : '';
-  const chipInHead = !!(bOver || bToday || bLater);
   const toolsRow = mgrSel ? `<div class="md-tools">${mgrSel}</div>` : '';
   view.innerHTML = (mgrSel && !chipInHead ? toolsRow : '')
-    + ideasBlock + bOver + bToday + bLater
+    + ideasBlock + bMissed + bCallsToday + bVisitsToday + bVisitsWeek + bLater
     + (!withDate.length ? `<div class="empty">${sMD ? 'Ничего не найдено' : `Запланированных контактов нет. Клиник в базе: ${clinics.length}.`}</div>` : '')
     + (sMD ? '' : `<div class="md-gap">${ctrlBlock}</div>`);
   const mb = document.getElementById('mdMgrBtn');
