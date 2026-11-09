@@ -33527,7 +33527,18 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.9.0';
+const APP_VER = '6.10.0';
+/* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
+   всё открыто, свой ключ прогресса, в статистику владельца не пишет */
+const RIK_BETA = (function () {
+  try {
+    const on = /[?&]beta=1/.test(location.search) || /\/beta\/?$/.test(location.pathname)
+      || sessionStorage.getItem('rik_beta') === '1';
+    if (on) sessionStorage.setItem('rik_beta', '1');
+    return on;
+  } catch (e) { return false; }
+})();
+const RIK_PKEY = RIK_BETA ? 'rik_progress_beta' : 'rik_progress_v2';
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -36202,6 +36213,7 @@ function rikReviewCount(pr) {                    // повторы, сделан
   }).length;
 }
 function rikReviewDue(pr) {                      // сдано раньше, подошёл срок по лестнице
+  if (RIK_BETA) return [];                       // в бете повторы не навязываем
   const t = rikDayKey(Date.now());
   return RIK_UNITS.filter(function (u) {
     const r = pr[u.n];
@@ -36212,6 +36224,7 @@ function rikReviewDue(pr) {                      // сдано раньше, п�
   }).map(function (u) { return u.n; }).slice(0, RIK_REVIEW_PER_DAY);
 }
 function rikAvailable(n, pr) {
+  if (RIK_BETA) return true;                     // в бете открыт любой урок
   if (pr[n] && pr[n].ok) return true;                       // пройденные открыты всегда
   if (rikReviewDue(pr).length) return false;                 // сначала повторы, потом новое
   if (rikTodayCount(pr) >= RIK_PER_DAY) return false;        // дневной лимит выбран
@@ -36235,14 +36248,14 @@ function rikAvailable(n, pr) {
     if (dx > 60 && dx > dy * 1.4) rikBackToList(true);
   }, { passive: true });
 })();
-function rikProgress() { try { return JSON.parse(localStorage.getItem('rik_progress_v2') || '{}'); } catch (e) { return {}; } }
+function rikProgress() { try { return JSON.parse(localStorage.getItem(RIK_PKEY) || '{}'); } catch (e) { return {}; } }
 /* 6.8.22 — возвращаем прогресс, сделанный до 6.6.0: старые номера уроков -> новые (+3) */
 (function rikMigrateV1(){
   try{
     const v1 = localStorage.getItem('rik_progress_v1');
     if (!v1) return;
     const old = JSON.parse(v1) || {};
-    const p = JSON.parse(localStorage.getItem('rik_progress_v2') || '{}') || {};
+    const p = JSON.parse(localStorage.getItem(RIK_PKEY) || '{}') || {};
     const map = {1:4, 2:5, 3:6, 4:7, 5:8, 6:9, 7:10, 8:11};   // 把→4, 被→5, 比较→6, 结果→7, 趋向→8, 补语→9, 是…的→10, 存现→11
     let moved = 0;
     Object.keys(old).forEach(function(k){
@@ -36251,7 +36264,7 @@ function rikProgress() { try { return JSON.parse(localStorage.getItem('rik_progr
       if (p[nk] && p[nk].ok) return;          // уже есть отметка в новой нумерации — не трогаем
       p[nk] = rec; moved++;
     });
-    if (moved) localStorage.setItem('rik_progress_v2', JSON.stringify(p));
+    if (moved) localStorage.setItem(RIK_PKEY, JSON.stringify(p));
   }catch(e){}
 })();
 function rikSave(n, ok, isReview) {
@@ -36269,7 +36282,7 @@ function rikSave(n, ok, isReview) {
   }
   else { rec.ok = !!ok; rec.at = now; rec.last = now; rec.tried = now; if (!ok) rec.rv = 0; }
   p[n] = rec;
-  try { localStorage.setItem('rik_progress_v2', JSON.stringify(p)); } catch (e) {}
+  try { localStorage.setItem(RIK_PKEY, JSON.stringify(p)); } catch (e) {}
 }
 let RIK_ANS = {};
 function rikFirstChar(u) {
@@ -36279,6 +36292,7 @@ function rikFirstChar(u) {
 /* 6.9.0: зачёт по последним пяти урокам */
 function rikExamUnits(to) { return RIK_UNITS.filter(u => u.n > to - RIK_EXAM_EVERY && u.n <= to); }
 function rikExamReady(to, pr) {
+  if (RIK_BETA) return true;                    // в бете зачёт можно открыть на проверку
   const us = rikExamUnits(to);
   return us.length === RIK_EXAM_EVERY && us.every(u => pr[u.n] && pr[u.n].ok);
 }
@@ -36317,7 +36331,7 @@ function renderRik() {
   const todayDone = rikTodayCount(p);
   const reviewDone = rikReviewCount(p);
   const todayKey = rikDayKey(Date.now());
-  const limitHit = todayDone >= RIK_PER_DAY;
+  const limitHit = !RIK_BETA && todayDone >= RIK_PER_DAY;
   const rows = RIK_UNITS.map(u => {
     const ok = !!(p[u.n] && p[u.n].ok);
     const can = rikAvailable(u.n, p);
@@ -36331,7 +36345,7 @@ function renderRik() {
       : (okRevToday ? 'повторено сегодня'
       : (errToday ? 'ошибка · повтор завтра'
       : (due ? 'на повтор' : 'повтор через ' + leftDays + ' дн.'))))
-      : (can ? 'сегодня' : 'закрыт');
+      : (can ? (RIK_BETA ? 'открыт' : 'сегодня') : 'закрыт');
     const cls = ok ? ('unit-done rik-passed' + (due ? ' rik-review' : '')) : (can ? 'rik-today' : 'rik-locked');
     const click = ok ? `onclick="openRik(${u.n},true)"` : (can ? `onclick="openRik(${u.n})"` : '');
     const card = `<div class="unit-card ${cls}" ${click}>
@@ -36355,7 +36369,10 @@ function renderRik() {
       <div class="logo"><img src="logo.png?v=5.35.0" alt="日"></div>
       <div class="top-title" style="font-family:'Zhi Mang Xing',serif">日课</div><div class="sub">New HSK 3.0 Грамматика</div>
     </div>
-    <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length} · сегодня <b style="color:var(--ink)">${todayDone}</b> из ${RIK_PER_DAY}${reviewDone ? ` · повтор <b style="color:var(--ink)">${reviewDone}</b>` : ''}</div>
+    <div style="padding:0 4px 8px;font-size:13px;color:var(--ink-2)">${RIK_BETA
+      ? `Уроков в курсе <b style="color:var(--ink)">${RIK_UNITS.length}</b> · открыт любой`
+      : `Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length} · сегодня <b style="color:var(--ink)">${todayDone}</b> из ${RIK_PER_DAY}${reviewDone ? ` · повтор <b style="color:var(--ink)">${reviewDone}</b>` : ''}`}</div>
+    ${RIK_BETA ? '<div class="rik-due" style="background:var(--ochre-soft);color:var(--ochre-ink)">Бета для проверки курса: открыт любой урок, порядок и лимиты не действуют. Ваш прогресс хранится отдельно и не влияет на статистику автора.</div>' : ''}
     ${rikReviewDue(p).length ? '<div class="rik-due">Сначала повторы: ' + rikReviewDue(p).length + (rikReviewDue(p).length === 1 ? ' урок' : ' урока') + '. Новые откроются после них.</div>' : ''}
     ${rows}`;
 }
@@ -36392,7 +36409,7 @@ function rikViewQuiz(quiz) {                       // верные ответы 
     [1, 2, 3].forEach(function (n, i) {
       if (!p[n] || !p[n].ok) p[n] = { ok: true, at: y + i * 60000, last: y + i * 60000 };
     });
-    try { localStorage.setItem('rik_progress_v2', JSON.stringify(p)); } catch (e) {}
+    try { localStorage.setItem(RIK_PKEY, JSON.stringify(p)); } catch (e) {}
     try { history.replaceState(null, '', location.pathname); } catch (e) {}
     if (typeof goTab === 'function') goTab('rik');
   }
@@ -36505,7 +36522,7 @@ function rikExamCheck(to) {
   const p = rikProgress(), k = 'ex' + Math.round(to / RIK_EXAM_EVERY);
   const prev = p[k] || {};
   p[k] = pass ? { ok: true, at: Date.now() } : { ok: false, at: Date.now(), tries: (prev.tries || 0) + 1 };
-  try { localStorage.setItem('rik_progress_v2', JSON.stringify(p)); } catch (e) {}
+  try { localStorage.setItem(RIK_PKEY, JSON.stringify(p)); } catch (e) {}
   const res = document.getElementById('rikRes');
   if (res) res.innerHTML = (pass ? '<b style="color:var(--jade)">Зачёт сдан: ' : '<b style="color:var(--danger)">Не сдано: ')
     + right + ' из ' + quiz.length + '</b>';
