@@ -33527,7 +33527,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.10.0';
+const APP_VER = '6.11.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -38873,6 +38873,8 @@ function crsLessonWhen(ev) {
 
 /* ================= CRS_BLOCK_V3 (часть 2: экраны) ================= */
 let crsMode = 'week';
+/* 6.10.1: в бете деньги не показываем вовсе — режим оплат недоступен */
+if (RIK_BETA) crsMode = 'week';
 let crsWeekStartD = crsWeekStart(new Date());
 let crsMonthD = crsMonStart(new Date());
 let crsSelDay = crsYmd(new Date());
@@ -38891,11 +38893,11 @@ function crsShell() {
       '<div class="crs-seg" id="crsSeg">' +
         '<button data-m="week" class="' + (crsMode === 'week' ? 'on' : '') + '">课程</button>' +
         '<button data-m="hw" class="' + (crsMode === 'hw' ? 'on' : '') + '">作业</button>' +
-        '<button data-m="pay" class="' + (crsMode === 'pay' ? 'on' : '') + '">付钱</button>' +
+        (RIK_BETA ? '' : '<button data-m="pay" class="' + (crsMode === 'pay' ? 'on' : '') + '">付钱</button>') +
       '</div>' +
       '<button class="crs-add crs-top-icon" style="margin-left:auto" title="Напоминания и системные уведомления" onclick="crsPushStatusSheet(\'Настройки напоминаний\')">🔔</button>' +
       '<button class="crs-add crs-top-mini" style="margin-left:0" onclick="crsForm(\'\')">+课</button>' +
-      '<button class="crs-add crs-top-mini" style="margin-left:0" onclick="crsPayForm()">+钱</button>' +
+      (RIK_BETA ? '' : '<button class="crs-add crs-top-mini" style="margin-left:0" onclick="crsPayForm()">+钱</button>') +
     '</div>' +
     '<div class="crs-bar" id="crsBar"></div>' +
     '<div id="crsBody"></div>' +
@@ -38920,7 +38922,7 @@ function crsPaint(recent) {
   try { if (tab === 'sched' && !curUnit) stopAudioHome(); } catch (e) {}
   const bar = document.getElementById('crsBar'), body = document.getElementById('crsBody');
   if (!body) return;
-  if (crsMode === 'pay') { bar.innerHTML = crsPayBar(); body.innerHTML = crsPayHtml(); }
+  if (crsMode === 'pay' && !RIK_BETA) { bar.innerHTML = crsPayBar(); body.innerHTML = crsPayHtml(); }
   else if (crsMode === 'hw') { bar.innerHTML = crsHwBar(); body.innerHTML = crsHwHtml(); }
   else { bar.innerHTML = crsWeekBar(); body.innerHTML = crsWeekHtml(); }
   const seg = document.getElementById('crsSeg');
