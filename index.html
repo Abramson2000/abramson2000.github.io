@@ -2602,7 +2602,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.64.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.65.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -6156,7 +6156,7 @@ function renderWorklistDetail(key, c, people) {
     el.value = fmtPhone(el.value);
     el.addEventListener('input', () => { el.value = fmtPhone(el.value); });
   };
-  const personFormHtml = p => `<input class="np-in" data-f="full_name" value="${esc(p.full_name || '')}" placeholder="ФИО" ${canManage ? '' : 'readonly'} /><input class="np-in" data-f="position" value="${esc(p.position || '')}" placeholder="Должность" ${canManage ? '' : 'readonly'} /><input class="np-in np-phone" data-f="phone" value="${fmtPhone(p.phone)}" placeholder="8 (___) ___-__-__" inputmode="tel" ${canManage ? '' : 'readonly'} /><input class="np-in" data-f="email" value="${esc(p.email || '')}" placeholder="Email" ${canManage ? '' : 'readonly'} /><textarea class="np-in" data-f="situation" placeholder="Ситуация" ${canManage ? '' : 'readonly'}>${esc(p.situation || '')}</textarea><div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button class="np-save" style="flex:1;padding:8px;border:none;border-radius:8px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer">Сохранить</button><button class="np-cancel" style="flex:1;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#555;cursor:pointer">Отмена</button>${p.id !== 'new' ? `<button class="np-del" style="flex:1;min-width:120px;padding:8px;border:none;border-radius:8px;background:${CURRENT_ROLE === 'admin' ? '#dc2626' : '#f59e0b'};color:#fff;font-weight:700;cursor:pointer">${CURRENT_ROLE === 'admin' ? 'Удалить' : (p.marked_del ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button>` : ''}</div>`;
+  const personFormHtml = p => `<input class="np-in" data-f="full_name" value="${esc(p.full_name || '')}" placeholder="ФИО" ${canManage ? '' : 'readonly'} /><input class="np-in" data-f="position" value="${esc(p.position || '')}" placeholder="Должность" ${canManage ? '' : 'readonly'} /><input class="np-in np-phone" data-f="phone" value="${esc(splitPhones(p.phone)[0] || '')}" placeholder="8 (___) ___-__-__" inputmode="tel" ${canManage ? '' : 'readonly'} /><input class="np-in np-phone" data-f="phone2" value="${esc(splitPhones(p.phone)[1] || '')}" placeholder="второй номер" inputmode="tel" ${canManage ? '' : 'readonly'} /><input class="np-in np-phone" data-f="phone3" value="${esc(splitPhones(p.phone)[2] || '')}" placeholder="третий номер" inputmode="tel" ${canManage ? '' : 'readonly'} /><input class="np-in" data-f="email" value="${esc(p.email || '')}" placeholder="Email" ${canManage ? '' : 'readonly'} /><textarea class="np-in" data-f="situation" placeholder="Ситуация" ${canManage ? '' : 'readonly'}>${esc(p.situation || '')}</textarea><div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button class="np-save" style="flex:1;padding:8px;border:none;border-radius:8px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer">Сохранить</button><button class="np-cancel" style="flex:1;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#555;cursor:pointer">Отмена</button>${p.id !== 'new' ? `<button class="np-del" style="flex:1;min-width:120px;padding:8px;border:none;border-radius:8px;background:${CURRENT_ROLE === 'admin' ? '#dc2626' : '#f59e0b'};color:#fff;font-weight:700;cursor:pointer">${CURRENT_ROLE === 'admin' ? 'Удалить' : (p.marked_del ? 'Снять пометку на удаление' : 'Пометить на удаление')}</button>` : ''}</div>`;
   const openPersonEdit = (id, people) => {
     const row = view.querySelector(`.nastya-person[data-person="${id}"]`);
     if (!row) return;
@@ -6165,8 +6165,8 @@ function renderWorklistDetail(key, c, people) {
     row.innerHTML = personFormHtml(p);
     const f = row.querySelector('.np-in');
     if (f) { try { f.focus(); } catch (_) {} }
-    const ph = row.querySelector('.np-phone');
-    if (ph) maskPhone(ph);
+    const phs = row.querySelectorAll('.np-phone');
+    phs.forEach(ph => maskPhone(ph));
   };
   const npList = view.querySelector('.list');
   if (npList) npList.addEventListener('click', async e => {
@@ -6204,14 +6204,18 @@ function renderWorklistDetail(key, c, people) {
     if (e.target.closest('.np-save')) {
       const id = row.dataset.person;
       const read = f => { const el = row.querySelector(`[data-f="${f}"]`); return el ? el.value.trim() : ''; };
-      const body = { full_name: read('full_name'), position: read('position'), phone: read('phone'), email: read('email'), situation: read('situation') };
+      const body = { full_name: read('full_name'), position: read('position'), phone: joinPhones([read('phone'), read('phone2'), read('phone3')]), email: read('email'), situation: read('situation') };
       if (!body.full_name) { toast('Введите ФИО'); return; }
-      let pd = (body.phone || '').replace(/\D/g, '');
-      if (pd) {
+      // 5.65.0: проверяем каждый из трёх номеров отдельно
+      const phonesOk = splitPhones(body.phone).map(v => {
+        let pd = v.replace(/\D/g, '');
+        if (!pd) return '';
         if (pd.length === 10 && pd.startsWith('9')) pd = '8' + pd;
-        if (!(pd.length === 11 && (pd.startsWith('8') || pd.startsWith('7')))) { toast('Телефон: формат 8 (___) ___-__-__'); return; }
-        body.phone = '8' + pd.slice(1);
-      } else body.phone = '';
+        if (!(pd.length === 11 && (pd.startsWith('8') || pd.startsWith('7')))) return null;
+        return '8' + pd.slice(1);
+      });
+      if (phonesOk.some(v => v === null)) { toast('Телефон: формат 8 (___) ___-__-__'); return; }
+      body.phone = phonesOk.filter(Boolean).join(', ');
       // синхронизация с общим листом «Клиенты» (если клиника связана с основной базой)
       let mainSyncFail = false;
       try {
@@ -6247,8 +6251,7 @@ function renderWorklistDetail(key, c, people) {
     div.innerHTML = personFormHtml({ id: 'new', full_name: '', position: '', phone: '', email: '', situation: '' });
     try { listEl.insertBefore(div, listEl.firstChild); }
     catch (err) { listEl.appendChild(div); }
-    const ph = div.querySelector('.np-phone');
-    if (ph) maskPhone(ph);
+    div.querySelectorAll('.np-phone').forEach(ph => maskPhone(ph));
     const f = div.querySelector('.np-in');
     if (f) { try { f.focus(); } catch (_) {} }
   });
@@ -7551,6 +7554,18 @@ function telLink(phone) {
   return `<a class="tel" href="tel:${telHref(phone)}">${esc(formatPhone(phone))}</a>`;
 }
 
+/* 5.65.0: у контакта до трёх номеров. В базе они лежат в одном поле через запятую,
+   в форме — тремя отдельными полями: Телефон / Второй номер / Третий номер. */
+function splitPhones(v) {
+  return String(v || '').split(/[,;\n]/).map(s => s.trim()).filter(Boolean).slice(0, 3);
+}
+function joinPhones(arr) {
+  return (arr || []).map(s => String(s || '').trim()).filter(Boolean).slice(0, 3).join(', ');
+}
+function phoneFieldHtml(label, id, value, ro) {
+  return `<div class="field"><label>${label}</label><input id="${id}" value="${esc(value || '')}" inputmode="tel" placeholder="8 (___) ___-__-__" ${ro ? 'readonly' : ''} /></div>`;
+}
+
 async function renderPeople() {
   const view = document.getElementById('view');
   let people = (await listPeople()).filter(p => !p.markedDel);   // v4.3.0: тут все люди, включая врачей и контакты компаний
@@ -7922,8 +7937,12 @@ async function openRefDoctorForm(id) {
       <div class="field"><label>Город</label><input id="fm_city" list="dl_city" value="${esc(p.city)}" /><datalist id="dl_city">${cities}</datalist></div>
     </div>
     <div class="row2">
-      <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(p.phone)}" /></div>
+      <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(splitPhones(p.phone)[0] || '')}" inputmode="tel" placeholder="8 (___) ___-__-__" /></div>
       <div class="field"><label>Почта</label><input id="f_email" value="${esc(p.email)}" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Второй номер</label><input id="f_phone2" value="${esc(splitPhones(p.phone)[1] || '')}" inputmode="tel" placeholder="если есть" /></div>
+      <div class="field"><label>Третий номер</label><input id="f_phone3" value="${esc(splitPhones(p.phone)[2] || '')}" inputmode="tel" placeholder="если есть" /></div>
     </div>
     ${tagEditorHtml(p.tags, 'Метки врача', ownTagSuggest(p.tags))}
     <div class="field"><label>Комментарии</label><textarea id="f_situation">${esc(p.situation)}</textarea></div>
@@ -7934,6 +7953,8 @@ async function openRefDoctorForm(id) {
   onSaveClick('f_save', () => saveRefDoctor(id));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deletePerson(id));
   maskPhoneInput(document.getElementById('f_phone'));
+  if (document.getElementById('f_phone2')) maskPhoneInput(document.getElementById('f_phone2'));
+  if (document.getElementById('f_phone3')) maskPhoneInput(document.getElementById('f_phone3'));
 }
 
 async function saveRefDoctor(id) {
@@ -7943,7 +7964,7 @@ async function saveRefDoctor(id) {
   const clinicId = document.getElementById('f_clinic').value ? Number(document.getElementById('f_clinic').value) : null;
   const region = document.getElementById('fm_region').value.trim();
   const city = document.getElementById('fm_city').value.trim();
-  const phone = document.getElementById('f_phone').value.trim();
+  const phone = joinPhones([document.getElementById('f_phone').value, (document.getElementById('f_phone2') || {}).value, (document.getElementById('f_phone3') || {}).value]);
   const email = document.getElementById('f_email').value.trim();
   const situation = document.getElementById('f_situation').value.trim();
   const tags = [...new Set([...(teTags || [])].map(t => canonTag(t)).filter(Boolean).concat([REFDOC_TAG]))];   // v3.32.0
@@ -8237,8 +8258,12 @@ async function openPersonForm(id, presetClinicId, opts) {
     <div class="field"><label>Должность</label><input id="f_position" value="${esc(p.position)}" /></div>
     <div class="field"><label>Учреждение (клиника) *</label>${clinicOptions}</div>
     <div class="row2">
-      <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(p.phone)}" /></div>
+      <div class="field"><label>Телефон</label><input id="f_phone" value="${esc(splitPhones(p.phone)[0] || '')}" inputmode="tel" placeholder="8 (___) ___-__-__" /></div>
       <div class="field"><label>Почта</label><input id="f_email" value="${esc(p.email)}" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Второй номер</label><input id="f_phone2" value="${esc(splitPhones(p.phone)[1] || '')}" inputmode="tel" placeholder="если есть" /></div>
+      <div class="field"><label>Третий номер</label><input id="f_phone3" value="${esc(splitPhones(p.phone)[2] || '')}" inputmode="tel" placeholder="если есть" /></div>
     </div>
     <div class="field"><label>Сайт</label><input id="f_site" type="url" placeholder="https://…" value="${esc(splitSite(p.situation).site)}" /></div>
     <div class="field"><label>Комментарии / ситуация</label><textarea id="f_situation">${esc(splitSite(p.situation).rest)}</textarea></div>
@@ -8252,6 +8277,8 @@ async function openPersonForm(id, presetClinicId, opts) {
   onSaveClick('f_save', () => savePerson(id));
   if (id) document.getElementById('f_delete').addEventListener('click', () => deletePerson(id));
   maskPhoneInput(document.getElementById('f_phone'));
+  if (document.getElementById('f_phone2')) maskPhoneInput(document.getElementById('f_phone2'));
+  if (document.getElementById('f_phone3')) maskPhoneInput(document.getElementById('f_phone3'));
 }
 
 async function savePerson(id) {
@@ -8262,7 +8289,7 @@ async function savePerson(id) {
   const clinic = await getClinic(clinicId);
   const region = clinic ? (clinic.region || '') : '';
   const city = clinic ? (clinic.city || '') : '';
-  const phone = document.getElementById('f_phone').value.trim();
+  const phone = joinPhones([document.getElementById('f_phone').value, (document.getElementById('f_phone2') || {}).value, (document.getElementById('f_phone3') || {}).value]);
   const email = document.getElementById('f_email').value.trim();
   const position = document.getElementById('f_position').value.trim();
   const sitRawP = document.getElementById('f_situation').value.trim();
@@ -9370,7 +9397,7 @@ function personDetailBody(p, clinics, canEditCard) {
     ${orgs.length ? `<div class="detail-block"><div class="k">${orgs.length > 1 ? 'Учреждения' : 'Учреждение'}</div><div class="v">${orgs.join('<br>')}</div></div>` : ''}
     ${[['Должность', p.position], ['Почта', p.email]]
       .filter(([k, v]) => v).map(([k, v]) => `<div class="detail-block"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}
-    ${p.phone ? `<div class="detail-block"><div class="k">Телефон</div><div class="v">${telLink(p.phone)}</div></div>` : ''}
+    ${p.phone ? `<div class="detail-block"><div class="k">${splitPhones(p.phone).length > 1 ? 'Телефоны' : 'Телефон'}</div><div class="v">${phoneLines(p.phone)}</div></div>` : ''}
     ${cardTagsBlockHtml(p)}
     ${commentField('people', p.id, p.situation, canEditNow)}
   `;
