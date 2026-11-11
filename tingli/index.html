@@ -531,6 +531,7 @@
   .unit-done-btn.on { background: var(--done); color: var(--surface); box-shadow: none; }
   .unit-done-btn:active { transform: scale(.985); }
   .unit-bar-info { font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .hw-copy-all-unit { margin-left: auto; font-size: 12.5px; padding: 7px 12px; }
   .part-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); color: transparent; font-size: 13px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 11px; cursor: pointer; transition: background .12s ease, border-color .12s ease, transform .12s ease; }
   .part-check.on { background: var(--jade-soft); border-color: var(--jade-soft); color: var(--jade); }
   /* v5.67.4: в списке частей отметка ДЗ — такой же кружок, как у остальных частей,
@@ -34036,7 +34037,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.13.1';
+const APP_VER = '6.14.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -37383,6 +37384,7 @@ function openUnit(n) {
     <div class="unit-bar">
       <button class="unit-done-btn ${uMan ? 'on' : ''}" onclick="manToggleUnit(${u.unit}, event)">${uMan ? '✓ Пройдено' : 'Отметить пройденным'}</button>
       <span class="unit-bar-info">${uStat.done}/${uStat.total}</span>
+      ${(u.parts || []).some(p => p && (p.kind === 'hw' || p.kind === 'record_hw')) ? `<button class="unit-done-btn hw-copy-all-unit" onclick="unitCopyAllHw()">📋 Все ответы ДЗ</button>` : ''}
     </div>
     ${u.parts.map((part, i) => {
       const num = partNum(part) || (i + 1 - u.parts.filter((p, j) => j < i && p.kind === 'text').length);
@@ -38254,6 +38256,58 @@ function hwText(withQ) {
     return withQ ? (i + 1) + '. ' + qs + '\n' + (a || '—') : (i + 1) + '. ' + (a || '—');
   }).join('\n\n');
 }
+function hwTextAll(u) {
+  const unit = u || curUnit;
+  if (!unit) return '';
+  const parts = (unit.parts || []).filter(p => p && (p.kind === 'hw' || p.kind === 'record_hw') && (p.questions || []).length);
+  const chunks = [];
+  chunks.push('ДЗ · ' + (unit.label || unit.zh || ''));
+  parts.forEach(p => {
+    const lines = [''];
+    lines.push(p.title + (p.titleZh ? ' · ' + p.titleZh : ''));
+    (p.questions || []).forEach((q, i) => {
+      const qt = typeof q === 'string' ? q : q.q;
+      const a = hwLoad(unit.unit, p.id, i).trim();
+      lines.push((i + 1) + '. ' + qt);
+      lines.push(a || '—');
+    });
+    chunks.push(lines.join('\n'));
+  });
+  return chunks.join('\n').trim();
+}
+
+function copyTextToClipboard(txt, done) {
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); if (done) done(); }
+    catch (e) { alert('Не удалось скопировать — выдели текст вручную.'); }
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => { if (done) done(); }, fallback);
+  else fallback();
+}
+
+function hwCopyAll() {
+  const txt = hwTextAll(curUnit);
+  const out = document.getElementById('hwOut');
+  if (out) {
+    out.classList.add('show');
+    out.innerHTML = '<div class="hw-out-label">📄 Все ответы по ДЗ урока — можно поправить и скопировать:</div>' +
+      '<textarea class="hw-out-ta" rows="18" spellcheck="false">' + esc(txt) + '</textarea>' +
+      '<div class="btn-row" style="margin-top:8px"><button class="btn ghost" onclick="hwOutCopy()">📋 Скопировать из поля</button></div>';
+  }
+  copyTextToClipboard(txt, () => { const b = document.getElementById('hwCopyAllBtn'); if (b) { const o = b.textContent; b.textContent = '✅ Скопировано!'; setTimeout(() => { b.textContent = o; }, 1600); } });
+}
+
+function unitCopyAllHw() {
+  if (!curUnit) return;
+  const txt = hwTextAll(curUnit);
+  if (!txt) { dictToast('Ответов пока нет'); return; }
+  copyTextToClipboard(txt, () => dictToast('Все ответы ДЗ скопированы одним текстом'));
+}
+
 function hwOutCopy() {
   const ta = document.querySelector('.hw-out-ta');
   if (!ta) return;
@@ -38593,6 +38647,9 @@ function renderHw(u, part) {
       </div>
       <div class="btn-row">
         <button class="btn ghost" id="hwCopyBtnQ" onclick="hwCopy(false)">📋 Только ответы</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="hwCopyAllBtn" onclick="hwCopyAll()">📋 Все ответы всех ДЗ одним текстом</button>
       </div>
       <div class="hw-out" id="hwOut"></div>
     </div>`;
