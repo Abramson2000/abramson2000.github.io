@@ -34036,7 +34036,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.13.0';
+const APP_VER = '6.13.1';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -38165,7 +38165,7 @@ function dueBadge(unitN, partId, done) {
   const n = dueDays(d);
   const short = (() => { const p = String(d).split('-'); if (p.length !== 3) return dueFmt(d); const now = new Date(); const sameYear = Number(p[0]) === now.getFullYear(); return p[2] + '.' + p[1] + (sameYear ? '' : '.' + p[0].slice(2)); })();
   let cls = '', txt = '⏰ до ' + short;
-  if (done) { cls = 'done'; txt = '✅ до ' + short; }
+  if (done) { cls = 'done'; txt = 'до ' + short; }
   else if (n === null) { txt = '⏰ до ' + short; }
   else if (n < 0) { cls = 'over'; txt = '⌛ ' + (-n) + ' ' + dayWord(-n) + ' просрочки'; }
   else if (n === 0) { cls = 'soon'; txt = '⏰ сегодня!'; }
