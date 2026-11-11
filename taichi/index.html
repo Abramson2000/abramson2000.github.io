@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FBFCF9" />
-<meta name="app-version" content="1.1.1" />
+<meta name="app-version" content="1.1.2" />
 <title>Тайчи · программа тренировок с гантелями</title>
 <link rel="icon" href="assets/brand/app-mark.png" />
 <style>
@@ -23,7 +23,7 @@ body{
 button{font:inherit;color:inherit}
 a{color:var(--primary)}
 .bg{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
-  background:url('assets/backgrounds/route-relief-desktop.png?v=1.1.1') center/cover no-repeat}
+  background:url('assets/backgrounds/route-relief-desktop.png?v=1.1.2') center/cover no-repeat}
 
 /* ---------- шапка компьютера ---------- */
 .topbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--div)}
@@ -57,7 +57,7 @@ h3{font-size:16px;margin:0 0 6px}
 .map-card{padding:18px 18px 22px}
 .map-cap{font-size:13px;color:var(--muted);letter-spacing:.02em;margin:0 0 10px}
 .map{position:relative;width:100%;max-width:720px;margin:0 auto;aspect-ratio:660/400;
-  background:url('assets/routes/program-route-desktop.png?v=1.1.1') 0 0/100% 100% no-repeat}
+  background:url('assets/routes/program-route-desktop.png?v=1.1.2') 0 0/100% 100% no-repeat}
 .mk{position:absolute;transform:translate(-50%,-50%);padding:0;border:0;background:none;
   aspect-ratio:1;cursor:pointer;border-radius:50%}
 .mk img{width:100%;height:100%;display:block;object-fit:contain}
@@ -77,7 +77,9 @@ h3{font-size:16px;margin:0 0 6px}
 .item.on{background:var(--sel);border-color:var(--line)}
 .item .name{font-weight:600}
 .item .meta{font-size:13.5px;color:var(--muted)}
-.thumb{width:128px;height:72px;flex:none;border-radius:10px;object-fit:cover;background:var(--sel)}
+.thumb{width:128px;height:72px;flex:none;border-radius:10px;object-fit:contain;background:var(--sel);padding:4px}
+.ex-fig{background:var(--sel);border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;height:240px;margin:0 0 14px}
+.ex-fig img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
 .pill{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--sel);color:var(--primary);
   font-weight:600;display:inline-block;white-space:nowrap}
 .pill.next{background:#F6EEDF;color:#8a5f1f}
@@ -153,7 +155,7 @@ input[type=text],input[type=number],input[type=time],select{
   .theory{grid-template-columns:1fr}
 }
 @media (max-width:720px){
-  .bg{background-image:url('assets/backgrounds/route-relief-mobile.png?v=1.1.1');opacity:.45}
+  .bg{background-image:url('assets/backgrounds/route-relief-mobile.png?v=1.1.2');opacity:.45}
   .shell{padding:0 16px calc(84px + env(safe-area-inset-bottom))}
   .topbar{display:none}
   .m-head{display:flex;align-items:center;padding:14px 0 8px}
@@ -163,13 +165,14 @@ input[type=text],input[type=number],input[type=time],select{
   .card{padding:16px;border-radius:16px}
   .map-card{padding:14px 12px 16px}
   .map{max-width:340px;aspect-ratio:300/405;
-    background-image:url('assets/routes/program-route-mobile.png?v=1.1.1')}
+    background-image:url('assets/routes/program-route-mobile.png?v=1.1.2')}
   .mk{min-width:44px;min-height:44px}
   .cap b{font-size:13px}
   .map-start{display:flex;position:absolute;left:18.667%;top:55.802%;width:79.333%;height:10.864%;
     align-items:center;justify-content:center;border:0;border-radius:10px;background:var(--primary);
     color:#fff;font-weight:600;font-size:14px;cursor:pointer;padding:0 6px;line-height:1.15}
   .thumb{width:80px;height:64px}
+  .ex-fig{height:200px;padding:10px}
   .set-card{padding:2px 16px 16px}
   .set-row{grid-template-columns:1fr;gap:6px}
   .fields{grid-template-columns:1fr 1fr}
@@ -200,20 +203,20 @@ input[type=text],input[type=number],input[type=time],select{
 
 <header class="topbar">
   <div class="inner">
-    <a class="brand" href="#" data-go="home" aria-label="Тайчи — на главную"><img src="assets/brand/wordmark-horizontal.png?v=1.1.1" alt="Тайчи" /></a>
+    <a class="brand" href="#" data-go="home" aria-label="Тайчи — на главную"><img src="assets/brand/wordmark-horizontal.png?v=1.1.2" alt="Тайчи" /></a>
     <nav class="nav" id="nav"></nav>
   </div>
 </header>
 
 <div class="shell">
-  <div class="m-head mob-only"><img src="assets/brand/wordmark-horizontal.png?v=1.1.1" alt="Тайчи" /></div>
+  <div class="m-head mob-only"><img src="assets/brand/wordmark-horizontal.png?v=1.1.2" alt="Тайчи" /></div>
   <main id="view"></main>
 </div>
 
 <nav class="tabs mob-only" id="tabs">
-  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=1.1.1" alt=""><span>Главная</span></button>
-  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=1.1.1" alt=""><span>Программа</span></button>
-  <button class="tab" data-tab="sections"><img src="assets/icons/nav-sections.png?v=1.1.1" alt=""><span>Разделы</span></button>
+  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=1.1.2" alt=""><span>Главная</span></button>
+  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=1.1.2" alt=""><span>Программа</span></button>
+  <button class="tab" data-tab="sections"><img src="assets/icons/nav-sections.png?v=1.1.2" alt=""><span>Разделы</span></button>
 </nav>
 
 <div class="workbar" id="workbar"></div>
@@ -287,7 +290,7 @@ const THEORY = [
 ];
 
 /* ---------- состояние ---------- */
-const APP_VER = '1.1.1';   // поднимать вместе с ?v= в CSS и в статических <img>
+const APP_VER = '1.1.2';   // поднимать вместе с ?v= в CSS и в статических <img>
 const AV = '?v=' + APP_VER;
 const STORE_KEY = 'taichi_v1';
 function state(){
@@ -319,6 +322,7 @@ function cycleWeek(){
   return Math.floor((Date.now() - h[0].at) / (7*86400000)) + 1;
 }
 function ex(id){ return EXERCISES.find(e => e.id === id) || { id, name:id, group:'', about:'', how:[] }; }
+function exImg(e){ return 'assets/exercises/' + e.id + '.svg' + AV; }
 function setsNow(){ return cycleWeek() <= 2 ? 1 : 2; }
 function isMob(){ return window.innerWidth <= 720; }
 
@@ -465,11 +469,12 @@ function renderExercises(v, selectedId){
       <input type="text" id="exSearch" placeholder="Поиск упражнений" value="${esc(state().exSearch || '')}" />
       <div class="panel-list" style="margin-top:14px">
         ${list.length ? list.map(e => `<button class="item" data-ex="${e.id}">
-            <img class="thumb" src="assets/illustrations/exercise-card-relief.png${AV}" alt="" />
+            <img class="thumb" src="${exImg(e)}" alt="" loading="lazy" />
             <span style="flex:1"><span class="name" style="display:block">${esc(e.name)}</span>
             <span class="meta">${esc(e.group)}</span></span>
             <span aria-hidden="true">›</span></button>`).join('') : '<div class="empty">Ничего не найдено</div>'}
-      </div>`;
+      </div>
+      <p class="small" style="margin-top:16px">Иллюстрации: Open Exercise Art (Everkinetic), CC BY-SA 4.0</p>`;
     return;
   }
   v.innerHTML = `
@@ -479,18 +484,19 @@ function renderExercises(v, selectedId){
         <div style="max-width:360px"><input type="text" id="exSearch" placeholder="Поиск упражнений" value="${esc(state().exSearch || '')}" /></div>
         <div class="panel-list" style="margin-top:14px">
           ${list.length ? list.map(e => `<button class="item${selectedId === e.id ? ' on' : ''}" data-ex="${e.id}">
-              <img class="thumb" src="assets/illustrations/exercise-card-relief.png${AV}" alt="" />
+              <img class="thumb" src="${exImg(e)}" alt="" loading="lazy" />
               <span style="flex:1"><span class="name" style="display:block">${esc(e.name)}</span>
               <span class="meta">${esc(e.group)}</span></span></button>`).join('') : '<div class="empty">Ничего не найдено</div>'}
         </div>
+        <p class="small" style="margin-top:16px">Иллюстрации: Open Exercise Art (Everkinetic), CC BY-SA 4.0</p>
       </section>
       <aside class="card" id="exCard">${selectedId ? exCardHtml(ex(selectedId)) : '<p class="small">Выберите упражнение в списке.</p>'}</aside>
     </div>`;
 }
 
 function exCardHtml(e){
-  return `<img class="ill" src="assets/illustrations/exercise-card-relief.png${AV}" alt="Рельеф упражнения" width="260" height="180" />
-    <h2 style="margin-top:14px">${esc(e.name)}</h2>
+  return `<div class="ex-fig"><img src="${exImg(e)}" alt="Иллюстрация: ${esc(e.name)}" loading="lazy" /></div>
+    <h2 style="margin-top:2px">${esc(e.name)}</h2>
     <span class="pill">${esc(e.group)}</span>
     <p style="margin:12px 0 0">${esc(e.about)}</p>
     <h3 style="margin-top:16px">Техника</h3>
