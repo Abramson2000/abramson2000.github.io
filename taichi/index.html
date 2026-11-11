@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FBFCF9" />
-<meta name="app-version" content="1.1.0" />
+<meta name="app-version" content="1.1.1" />
 <title>Тайчи · программа тренировок с гантелями</title>
 <link rel="icon" href="assets/brand/app-mark.png" />
 <style>
@@ -23,7 +23,7 @@ body{
 button{font:inherit;color:inherit}
 a{color:var(--primary)}
 .bg{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
-  background:url('assets/backgrounds/route-relief-desktop.png?v=1.1.0') center/cover no-repeat}
+  background:url('assets/backgrounds/route-relief-desktop.png?v=1.1.1') center/cover no-repeat}
 
 /* ---------- шапка компьютера ---------- */
 .topbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--div)}
@@ -57,7 +57,7 @@ h3{font-size:16px;margin:0 0 6px}
 .map-card{padding:18px 18px 22px}
 .map-cap{font-size:13px;color:var(--muted);letter-spacing:.02em;margin:0 0 10px}
 .map{position:relative;width:100%;max-width:720px;margin:0 auto;aspect-ratio:660/400;
-  background:url('assets/routes/program-route-desktop.png?v=1.1.0') 0 0/100% 100% no-repeat}
+  background:url('assets/routes/program-route-desktop.png?v=1.1.1') 0 0/100% 100% no-repeat}
 .mk{position:absolute;transform:translate(-50%,-50%);padding:0;border:0;background:none;
   aspect-ratio:1;cursor:pointer;border-radius:50%}
 .mk img{width:100%;height:100%;display:block;object-fit:contain}
@@ -153,7 +153,7 @@ input[type=text],input[type=number],input[type=time],select{
   .theory{grid-template-columns:1fr}
 }
 @media (max-width:720px){
-  .bg{background-image:url('assets/backgrounds/route-relief-mobile.png?v=1.1.0');opacity:.45}
+  .bg{background-image:url('assets/backgrounds/route-relief-mobile.png?v=1.1.1');opacity:.45}
   .shell{padding:0 16px calc(84px + env(safe-area-inset-bottom))}
   .topbar{display:none}
   .m-head{display:flex;align-items:center;padding:14px 0 8px}
@@ -163,7 +163,7 @@ input[type=text],input[type=number],input[type=time],select{
   .card{padding:16px;border-radius:16px}
   .map-card{padding:14px 12px 16px}
   .map{max-width:340px;aspect-ratio:300/405;
-    background-image:url('assets/routes/program-route-mobile.png?v=1.1.0')}
+    background-image:url('assets/routes/program-route-mobile.png?v=1.1.1')}
   .mk{min-width:44px;min-height:44px}
   .cap b{font-size:13px}
   .map-start{display:flex;position:absolute;left:18.667%;top:55.802%;width:79.333%;height:10.864%;
@@ -200,20 +200,20 @@ input[type=text],input[type=number],input[type=time],select{
 
 <header class="topbar">
   <div class="inner">
-    <a class="brand" href="#" data-go="home" aria-label="Тайчи — на главную"><img src="assets/brand/wordmark-horizontal.png" alt="Тайчи" /></a>
+    <a class="brand" href="#" data-go="home" aria-label="Тайчи — на главную"><img src="assets/brand/wordmark-horizontal.png?v=1.1.1" alt="Тайчи" /></a>
     <nav class="nav" id="nav"></nav>
   </div>
 </header>
 
 <div class="shell">
-  <div class="m-head mob-only"><img src="assets/brand/wordmark-horizontal.png" alt="Тайчи" /></div>
+  <div class="m-head mob-only"><img src="assets/brand/wordmark-horizontal.png?v=1.1.1" alt="Тайчи" /></div>
   <main id="view"></main>
 </div>
 
 <nav class="tabs mob-only" id="tabs">
-  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png" alt=""><span>Главная</span></button>
-  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png" alt=""><span>Программа</span></button>
-  <button class="tab" data-tab="sections"><img src="assets/icons/nav-sections.png" alt=""><span>Разделы</span></button>
+  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=1.1.1" alt=""><span>Главная</span></button>
+  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=1.1.1" alt=""><span>Программа</span></button>
+  <button class="tab" data-tab="sections"><img src="assets/icons/nav-sections.png?v=1.1.1" alt=""><span>Разделы</span></button>
 </nav>
 
 <div class="workbar" id="workbar"></div>
@@ -287,7 +287,8 @@ const THEORY = [
 ];
 
 /* ---------- состояние ---------- */
-const APP_VER = '1.1.0';   // поднимать вмете с ?v= в CSS (там номер захардкожен)
+const APP_VER = '1.1.1';   // поднимать вместе с ?v= в CSS и в статических <img>
+const AV = '?v=' + APP_VER;
 const STORE_KEY = 'taichi_v1';
 function state(){
   try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch(e){ return {}; }
@@ -334,15 +335,6 @@ const MAP_MOB = {
 
 function pct(v, total){ return (v / total * 100).toFixed(3) + '%'; }
 
-/* все картинки получают ?v=APP_VER — иначе после выпуска браузер и чужой
-   service worker держат старый файл по прежнему адресу */
-function stampAssets(root){
-  (root || document).querySelectorAll('img[src^="assets/"]').forEach(i => {
-    const s = i.getAttribute('src');
-    if (s && s.indexOf('?v=') < 0) i.setAttribute('src', s + '?v=' + APP_VER);
-  });
-}
-
 function routeState(w, done, cur){
   if (done.has(w.n)) return 'complete';
   if (cur && cur.n === w.n) return 'current';
@@ -363,7 +355,7 @@ function routeHtml(selected){
     return `<button class="mk${sel}" data-open="${w.n}"${isCur}
         aria-label="${esc(w.block)}: ${esc(w.title)}, ${w.minutes} минут, ${stName.toLowerCase()}"
         style="left:${pct(p.x, g.w)};top:${pct(p.y, g.h)};width:${pct(size, g.w)}">
-        <img src="assets/icons/route-${st}.png" alt="" width="${size}" height="${size}"></button>
+        <img src="assets/icons/route-${st}.png${AV}" alt="" width="${size}" height="${size}"></button>
       <span class="cap" style="left:${pct(p.lx, g.w)};top:${pct(p.y, g.h)}">
         <b>${esc(w.title)}</b><i>${stName}</i></span>`;
   }).join('');
@@ -387,7 +379,6 @@ function render(){
     done: renderDone
   };
   (map[VIEW] || renderHome)(v);
-  stampAssets();
   paintNav();
   window.scrollTo(0, 0);
 }
@@ -420,7 +411,7 @@ function renderHome(v){
           <span class="pill">${esc(cur.block)}</span>
           <h3 style="margin-top:10px">${cur.n}. ${esc(cur.title)}</h3>
           <p class="small" style="margin:6px 0 14px">${esc(cur.focus)} · ${cur.minutes} мин · ${cur.plan.length} фрагментов</p>
-          <img class="ill" src="assets/illustrations/exercise-card-relief.png" alt="Рельеф тренировки" width="260" height="180" />
+          <img class="ill" src="assets/illustrations/exercise-card-relief.png${AV}" alt="Рельеф тренировки" width="260" height="180" />
           <div class="controls" style="margin-top:14px"><button class="btn" data-start="${cur.n}">${s.running ? 'Продолжить тренировку' : 'Начать тренировку'}</button>
             <button class="btn ghost" data-go="progress">Прогресс</button></div>
           <p class="small" style="margin:12px 0 0">${esc(PROGRAM.startNote)}</p>
@@ -474,7 +465,7 @@ function renderExercises(v, selectedId){
       <input type="text" id="exSearch" placeholder="Поиск упражнений" value="${esc(state().exSearch || '')}" />
       <div class="panel-list" style="margin-top:14px">
         ${list.length ? list.map(e => `<button class="item" data-ex="${e.id}">
-            <img class="thumb" src="assets/illustrations/exercise-card-relief.png" alt="" />
+            <img class="thumb" src="assets/illustrations/exercise-card-relief.png${AV}" alt="" />
             <span style="flex:1"><span class="name" style="display:block">${esc(e.name)}</span>
             <span class="meta">${esc(e.group)}</span></span>
             <span aria-hidden="true">›</span></button>`).join('') : '<div class="empty">Ничего не найдено</div>'}
@@ -488,7 +479,7 @@ function renderExercises(v, selectedId){
         <div style="max-width:360px"><input type="text" id="exSearch" placeholder="Поиск упражнений" value="${esc(state().exSearch || '')}" /></div>
         <div class="panel-list" style="margin-top:14px">
           ${list.length ? list.map(e => `<button class="item${selectedId === e.id ? ' on' : ''}" data-ex="${e.id}">
-              <img class="thumb" src="assets/illustrations/exercise-card-relief.png" alt="" />
+              <img class="thumb" src="assets/illustrations/exercise-card-relief.png${AV}" alt="" />
               <span style="flex:1"><span class="name" style="display:block">${esc(e.name)}</span>
               <span class="meta">${esc(e.group)}</span></span></button>`).join('') : '<div class="empty">Ничего не найдено</div>'}
         </div>
@@ -498,7 +489,7 @@ function renderExercises(v, selectedId){
 }
 
 function exCardHtml(e){
-  return `<img class="ill" src="assets/illustrations/exercise-card-relief.png" alt="Рельеф упражнения" width="260" height="180" />
+  return `<img class="ill" src="assets/illustrations/exercise-card-relief.png${AV}" alt="Рельеф упражнения" width="260" height="180" />
     <h2 style="margin-top:14px">${esc(e.name)}</h2>
     <span class="pill">${esc(e.group)}</span>
     <p style="margin:12px 0 0">${esc(e.about)}</p>
@@ -548,7 +539,7 @@ function renderTheory(v, openId){
       <article class="card read">
         <h2>${esc(t.title)}</h2>
         ${t.text.split('\n\n').map(p => `<p>${esc(p)}</p>`).join('')}
-        <img class="ill" style="margin-top:18px" src="assets/illustrations/exercise-card-relief.png" alt="Рельеф" width="260" height="180" />
+        <img class="ill" style="margin-top:18px" src="assets/illustrations/exercise-card-relief.png${AV}" alt="Рельеф" width="260" height="180" />
       </article>
     </div>`;
 }
@@ -654,7 +645,7 @@ function renderSections(v){
   ];
   v.innerHTML = `${head('Разделы', '')}
     <div class="panel-list">${items.map(i => `<button class="item" data-go="${i.go}">
-      <img src="assets/icons/${i.icon}" alt="" style="width:26px;height:26px" />
+      <img src="assets/icons/${i.icon}${AV}" alt="" style="width:26px;height:26px" />
       <span style="flex:1"><span class="name" style="display:block">${i.t}</span><span class="meta">${i.d}</span></span>
       <span aria-hidden="true">›</span></button>`).join('')}</div>`;
 }
@@ -672,7 +663,7 @@ function stepsHtml(w, idx){
     const e = ex(f.ex);
     const cls = i < idx ? 'done' : (i === idx ? 'cur' : 'next');
     const icon = i < idx ? 'route-complete.png' : (i === idx ? 'route-current.png' : 'route-next.png');
-    return `<li class="step ${cls}"><span class="dot"><img src="assets/icons/${icon}" alt=""></span>
+    return `<li class="step ${cls}"><span class="dot"><img src="assets/icons/${icon}${AV}" alt=""></span>
       <span class="t">${esc(e.name)}<em>${f.sets} × ${esc(f.reps)}</em></span></li>`;
   }).join('');
   return `<ol class="steps">${items}</ol>`;
@@ -864,8 +855,7 @@ const NAV = [
   ['settings','Настройки','nav-settings.png']
 ];
 document.getElementById('nav').innerHTML = NAV.map(([go,t,ic]) =>
-  `<button data-go="${go}"><img src="assets/icons/${ic}" alt="">${t}</button>`).join('');
-stampAssets();
+  `<button data-go="${go}"><img src="assets/icons/${ic}${AV}" alt="">${t}</button>`).join('');
 document.querySelectorAll('#tabs .tab').forEach(b => b.onclick = () => {
   VIEW = b.dataset.tab; render();
 });
@@ -919,7 +909,7 @@ function showWorkoutInfo(n){
         }).join('')}</div>
       </section>
       <aside class="card">
-        <img class="ill" src="assets/illustrations/exercise-card-relief.png" alt="Рельеф занятия" width="260" height="180" />
+        <img class="ill" src="assets/illustrations/exercise-card-relief.png${AV}" alt="Рельеф занятия" width="260" height="180" />
         <h3 style="margin-top:12px">${w.minutes} минут</h3>
         <p class="small">${done.has(w.n) ? 'Это занятие уже пройдено. Можно пройти снова — в истории останется последняя запись.' : 'Занятие ещё не пройдено.'}</p>
         <div class="controls">
