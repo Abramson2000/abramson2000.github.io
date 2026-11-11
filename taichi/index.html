@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#FBFCF9" />
+<title>Тайчи · программа тренировок с гантелями</title>
+<link rel="icon" href="assets/brand/app-mark.png" />
+<style>
+:root{
+  --bg:#FBFCF9; --surface:#FFFFFF; --ink:#172820; --primary:#285444;
+  --sel:#E5EFE6; --line:#C2D8C5; --next:#AE7A30; --div:#D4DDD5;
+  --muted:#5b6a62; --radius:12px; --panel:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit}
+a{color:var(--primary)}
+.app{min-height:100vh;display:flex;flex-direction:column}
+.shell{flex:1;width:100%;max-width:1440px;margin:0 auto;padding:0 32px 96px}
+/* ---------- шапка (компьютер) ---------- */
+.topbar{display:flex;align-items:center;gap:28px;padding:18px 0 10px;border-bottom:1px solid var(--div);position:sticky;top:0;background:var(--bg);z-index:20}
+.brand{display:flex;align-items:center;gap:10px;flex:none}
+.brand img{height:34px;width:auto;display:block}
+.nav{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.nav button{
+  border:none;background:transparent;padding:9px 14px;border-radius:10px;cursor:pointer;
+  color:var(--muted);font-size:15px
+}
+.nav button.on{background:var(--sel);color:var(--ink);font-weight:600}
+.nav button:focus-visible,.btn:focus-visible,.marker:focus-visible,.tab:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+/* ---------- типографика ---------- */
+h1{font-size:30px;line-height:1.2;margin:22px 0 6px;letter-spacing:-.4px}
+h2{font-size:20px;margin:0 0 10px}
+h3{font-size:16px;margin:0 0 6px}
+.sub{color:var(--muted);font-size:15px;margin:0 0 18px}
+.small{font-size:14px;color:var(--muted)}
+/* ---------- кнопки ---------- */
+.btn{
+  border:none;border-radius:var(--radius);background:var(--primary);color:#fff;
+  padding:12px 20px;font-weight:600;cursor:pointer;min-height:44px
+}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--div)}
+.btn.soft{background:var(--sel);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+/* ---------- дорожка ---------- */
+.route{position:relative;margin:8px 0 6px;padding:6px 0}
+.route-line{position:absolute;left:0;right:0;top:50%;height:2px;background:var(--line);border-radius:2px}
+.route-v .route-line{left:50%;right:auto;top:0;bottom:0;width:2px;height:auto}
+.markers{position:relative;display:flex;justify-content:space-between;gap:12px}
+.route-v .markers{flex-direction:column;gap:22px}
+.marker{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;padding:6px 4px;min-width:44px;min-height:44px}
+.route-v .marker{flex-direction:row;align-items:center;gap:12px}
+.marker .dot{width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:50%}
+.marker.done .dot{background:var(--primary);color:#fff;font-size:14px}
+.marker.current .dot{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--primary);background:var(--bg)}
+.marker.current .dot::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary)}
+.marker.next .dot{box-shadow:inset 0 0 0 2px var(--next)}
+.marker .cap{font-size:13px;color:var(--muted);max-width:132px;text-align:center;line-height:1.25}
+.route-v .marker .cap{text-align:left;max-width:none}
+.route-scroll{max-height:46vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+@media (min-width:721px){.route-scroll{max-height:none;overflow:visible}}
+.marker.sel .cap{color:var(--ink);font-weight:600}
+/* ---------- карточки ---------- */
+.card{background:var(--surface);border-radius:var(--panel);padding:18px;box-shadow:0 1px 2px rgba(23,40,32,.05)}
+.grid{display:grid;gap:18px}
+.cols-main{grid-template-columns:minmax(0,1fr) 340px}
+@media (max-width:1080px){.cols-main{grid-template-columns:1fr}}
+.list{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius);background:var(--surface);cursor:pointer;border:1px solid transparent}
+.row:hover{border-color:var(--div)}
+.row.on{background:var(--sel);border-color:var(--line)}
+.row .name{font-weight:600}
+.row .meta{font-size:14px;color:var(--muted)}
+.pill{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--sel);color:var(--primary);font-weight:600}
+.pill.next{background:#F6EEDF;color:#8a5f1f}
+/* ---------- формы ---------- */
+.field{display:block;margin-bottom:14px}
+.field span{display:block;font-size:14px;color:var(--muted);margin-bottom:6px}
+input[type=text],input[type=number],input[type=time],select{
+  width:100%;padding:11px 12px;border:1px solid var(--div);border-radius:10px;background:var(--surface);color:var(--ink)
+}
+.days{display:flex;gap:8px;flex-wrap:wrap}
+.day{border:1px solid var(--div);background:var(--surface);border-radius:10px;padding:9px 12px;cursor:pointer;min-width:44px}
+.day.on{background:var(--sel);border-color:var(--line);font-weight:600}
+/* ---------- тренировка ---------- */
+.workout{display:grid;gap:18px;grid-template-columns:300px minmax(0,1fr)}
+@media (max-width:900px){.workout{grid-template-columns:1fr}}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;background:var(--surface);font-size:15px;color:var(--muted)}
+.step.done{background:var(--sel);color:var(--primary)}
+.step.cur{background:var(--sel);color:var(--ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--line)}
+.step .num{font-variant-numeric:tabular-nums;font-weight:600;min-width:22px}
+.frag-title{font-size:22px;font-weight:700;margin:0 0 4px}
+.timer{font-variant-numeric:tabular-nums;font-size:44px;font-weight:700;letter-spacing:-1px;margin:14px 0}
+.fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0}
+.fields div{background:var(--sel);border-radius:12px;padding:10px 12px}
+.fields b{display:block;font-size:20px}
+.fields span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+/* ---------- телефон ---------- */
+.tabs{display:none}
+@media (max-width:720px){
+  .shell{padding:0 16px 108px}
+  .topbar{display:none}
+  .m-head{display:flex;align-items:center;gap:10px;padding:14px 0 8px}
+  .m-head img{height:28px}
+  h1{font-size:25px;margin-top:14px}
+  .tabs{
+    display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--surface);
+    border-top:1px solid var(--div);padding-bottom:env(safe-area-inset-bottom);z-index:30
+  }
+  .tab{flex:1;border:none;background:transparent;padding:10px 6px 12px;font-size:12px;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px}
+  .tab img{width:22px;height:22px;object-fit:contain;opacity:.75}
+  .tab.on{color:var(--ink);font-weight:600}
+  .tab.on img{opacity:1}
+  .desk-only{display:none!important}
+}
+@media (min-width:721px){ .mob-only{display:none!important} }
+.m-head{display:none}
+.empty{padding:22px;border:1px dashed var(--div);border-radius:var(--radius);color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="shell">
+    <!-- компьютер: верхняя навигация -->
+    <div class="topbar desk-only">
+      <div class="brand"><img src="assets/brand/wordmark-horizontal.png" alt="Тайчи" /></div>
+      <nav class="nav" id="nav"></nav>
+    </div>
+    <!-- телефон: шапка -->
+    <div class="m-head mob-only"><img src="assets/brand/wordmark-horizontal.png" alt="Тайчи" /></div>
+
+    <main id="view"></main>
+  </div>
+
+  <!-- телефон: нижние вкладки -->
+  <nav class="tabs mob-only" id="tabs">
+    <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png" alt=""><span>Главная</span></button>
+    <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png" alt=""><span>Программа</span></button>
+    <button class="tab" data-tab="sections"><img src="assets/icons/nav-sections.png" alt=""><span>Разделы</span></button>
+  </nav>
+</div>
+
+<script>
+/* =======================================================================
+   Тайчи — программа тренировок с гантелями.
+   Данные программы, упражнений и теории — ниже. Правятся в одном месте.
+   ======================================================================= */
+
+const PROGRAM = {
+  title: 'Сила и тонус с гантелями',
+  goal: '12 занятий · 3 в неделю · полное тело',
+  startNote: 'Гантели 2×(6–12 кг), скамья или стул, коврик.',
+  workouts: [
+    { n:1,  block:'Неделя 1', title:'Всё тело A', minutes:45, focus:'приседания · жим · тяга' },
+    { n:2,  block:'Неделя 1', title:'Всё тело B', minutes:45, focus:'румынская тяга · выпады · плечи' },
+    { n:3,  block:'Неделя 1', title:'Всё тело C', minutes:45, focus:'жим лёжа · тяга · руки' },
+    { n:4,  block:'Неделя 2', title:'Всё тело A', minutes:47, focus:'приседания · жим · тяга' },
+    { n:5,  block:'Неделя 2', title:'Всё тело B', minutes:47, focus:'румынская тяга · выпады · плечи' },
+    { n:6,  block:'Неделя 2', title:'Всё тело C', minutes:47, focus:'жим лёжа · тяга · руки' },
+    { n:7,  block:'Неделя 3', title:'Всё тело A', minutes:50, focus:'приседания · жим · тяга' },
+    { n:8,  block:'Неделя 3', title:'Всё тело B', minutes:50, focus:'румынская тяга · выпады · плечи' },
+    { n:9,  block:'Неделя 3', title:'Всё тело C', minutes:50, focus:'жим лёжа · тяга · руки' },
+    { n:10, block:'Неделя 4', title:'Всё тело A', minutes:50, focus:'приседания · жим · тяга' },
+    { n:11, block:'Неделя 4', title:'Всё тело B', minutes:50, focus:'румынская тяга · выпады · плечи' },
+    { n:12, block:'Неделя 4', title:'Всё тело C', minutes:50, focus:'жим лёжа · тяга · руки' }
+  ]
+};
+
+/* Упражнения: id, название, группа, описание, техника */
+const EXERCISES = [
+  { id:'goblet', name:'Приседание с гантелью у груди', group:'Ноги', about:'Базовое движение для ног и ягодиц. Гантель держим вертикально у груди — так проще держать спину.', how:['Стопы на ширине плеч, носки чуть наружу','Опускаемся до параллели бёдер с полом','Колени идут по направлению носков','Вверх — на выдохе'] },
+  { id:'rdl', name:'Румынская тяга с гантелями', group:'Спина · ноги', about:'Тяга на бицепс бедра. Спина всё время прямая, движение идёт от таза.', how:['Гантели перед бёдрами, колени чуть согнуты','Отводим таз назад, гантели скользят по ногам','Останавливаемся, когда тянет под коленом','Вверх — за счёт ягодиц'] },
+  { id:'lunge', name:'Выпады с гантелями', group:'Ноги', about:'Одноопорное движение: тренирует равновесие и ягодицы. Делаем попеременно.', how:['Шаг вперёд, колено над стопой','Колено сзади почти касается пола','Толчок передней ногой — назад','Корпус вертикально'] },
+  { id:'bench', name:'Жим гантелей лёжа', group:'Грудь', about:'Основное движение на грудь. Лопатки сведены, гантели идут по дуге.', how:['Лёжа на скамье, стопы на полу','Локти под 45° к корпусу','Опускаем до уровня груди','Выжимаем, не выпрямляя локти до щелчка'] },
+  { id:'row', name:'Тяга гантели в наклоне', group:'Спина', about:'Тяга к поясу: широчайшие и середина спины.', how:['Наклон 45°, спина прямая','Тянем гантель к поясу','Локоть идёт вдоль тела','Опускаем медленно'] },
+  { id:'ohp', name:'Жим гантелей стоя', group:'Плечи', about:'Вертикальный жим. Пресс держим в тонусе, поясницу не прогибаем.', how:['Гантели у плеч','Выжимаем вверх, чуть вперёд','Вверху — не стучим гантелями','Опускаем подконтрольно'] },
+  { id:'pullover', name:'Пуловер с гантелью', group:'Грудь · спина', about:'Растягивает грудную клетку, включает широчайшие.', how:['Лёжа, гантель над грудью','Заводим за голову на вдохе','Возвращаем по дуге','Поясница прижата'] },
+  { id:'lateral', name:'Разведения гантелей в стороны', group:'Плечи', about:'Средний пучок плеча. Работаем лёгким весом и чисто.', how:['Руки чуть согнуты','Поднимаем до уровня плеч','Не раскачиваем корпусом','Вниз — медленно'] },
+  { id:'curl', name:'Сгибания на бицепс', group:'Руки', about:'Классика на бицепс. Локти закреплены у корпуса.', how:['Локти прижаты','Поднимаем до полного сгиба','Опускаем медленно','Без раскачки'] },
+  { id:'triceps', name:'Французский жим с гантелью', group:'Руки', about:'Разгибание на трицепс из-за головы.', how:['Гантель в двух руках за головой','Локти смотрят вверх','Разгибаем до конца','Опускаем подконтрольно'] },
+  { id:'shrug', name:'Шраги с гантелями', group:'Спина', about:'Трапеция: поднимаем плечи строго вверх.', how:['Гантели по бокам','Плечи вверх к ушам','Задержка на секунду','Вниз медленно'] },
+  { id:'plank', name:'Планка', group:'Кор', about:'Статика на кор. Тело — прямая линия.', how:['Локти под плечами','Живот подтянут','Дыхание ровное','Держим заданное время'] },
+  { id:'sideplank', name:'Боковая планка', group:'Кор', about:'Косые мышцы живота.', how:['На предплечье, стопы друг на друге','Таз не проваливается','По 30 секунд на сторону'] },
+  { id:'crunch', name:'Скручивания с гантелью', group:'Кор', about:'Прямая мышца живота, движение короткое.', how:['Гантель у груди','Отрываем лопатки от пола','Выдох на подъёме','Шею не тянем'] },
+  { id:'warmup', name:'Разминка', group:'Служебное', about:'5 минут: суставная гимнастика, наклоны, вращения плеч, лёгкая кардио-разминка.', how:['Круговые движения плечами и локтями','Наклоны и повороты корпуса','Приседания без веса','Марш на месте'] },
+  { id:'cooldown', name:'Заминка и растяжка', group:'Служебное', about:'3–5 минут: растяжка ног, спины, груди и плеч.', how:['Наклон к ногам — 30 с','Растяжка квадрицепса — по 20 с','Растяжка груди в дверном проёме — 30 с','Дыхание восстанавливаем'] }
+];
+
+/* Состав занятий: фрагменты по порядку */
+const PLANS = {
+  A: [
+    { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
+    { ex:'goblet', sets:3, reps:'10–12', rest:75 },
+    { ex:'bench', sets:3, reps:'8–10', rest:75 },
+    { ex:'row', sets:3, reps:'10–12', rest:75 },
+    { ex:'ohp', sets:3, reps:'8–10', rest:60 },
+    { ex:'plank', sets:3, reps:'30–45 с', rest:45 },
+    { ex:'cooldown', sets:1, reps:'4 мин', rest:0 }
+  ],
+  B: [
+    { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
+    { ex:'rdl', sets:3, reps:'8–10', rest:75 },
+    { ex:'lunge', sets:3, reps:'10 на ногу', rest:75 },
+    { ex:'pullover', sets:3, reps:'10–12', rest:60 },
+    { ex:'lateral', sets:3, reps:'12–15', rest:45 },
+    { ex:'shrug', sets:3, reps:'12–15', rest:45 },
+    { ex:'sideplank', sets:2, reps:'30 с', rest:40 },
+    { ex:'cooldown', sets:1, reps:'4 мин', rest:0 }
+  ],
+  C: [
+    { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
+    { ex:'bench', sets:3, reps:'8–10', rest:75 },
+    { ex:'goblet', sets:3, reps:'12', rest:75 },
+    { ex:'row', sets:3, reps:'12', rest:60 },
+    { ex:'curl', sets:3, reps:'10–12', rest:45 },
+    { ex:'triceps', sets:3, reps:'10–12', rest:45 },
+    { ex:'crunch', sets:3, reps:'15', rest:40 },
+    { ex:'cooldown', sets:1, reps:'4 мин', rest:0 }
+  ]
+};
+PROGRAM.workouts.forEach(w => { w.plan = PLANS[(w.n - 1) % 3 === 0 ? 'A' : ((w.n - 1) % 3 === 1 ? 'B' : 'C')]; });
+
+const THEORY = [
+  { id:'how', title:'Как заниматься по программе', text:'Три занятия в неделю с днём отдыха между ними: например понедельник, среда, пятница. Каждое занятие — 45–50 минут с разминкой и заминкой.\n\nПорядок один: разминка, базовые движения на крупные группы, затем более мелкие, в конце кор и растяжка. Между занятиями тело должно восстановиться — если мышцы сильно болят, сдвинь тренировку на день.' },
+  { id:'tech', title:'Техника и дыхание', text:'Главное правило — движение важнее веса. Если техника «плывёт», вес снижаем.\n\nДыхание: усилие — выдох, возврат — вдох. Не задерживаем дыхание на подъёме.\n\nСпина остаётся нейтральной во всех наклонах и тягах: не округляем поясницу, взгляд чуть вперёд.' },
+  { id:'progress', title:'Прогрессия и рабочий вес', text:'Прогрессия простая: сначала добавляем повторения до верхней границы диапазона (например с 8 до 12), только потом вес.\n\nОриентир по весу: последние 2 повторения в подходе должны даваться тяжело, но без потери техники.\n\nКаждую четвёртую неделю можно сделать легче — это не откат, а восстановление.' },
+  { id:'safety', title:'Безопасность', text:'Разминка обязательна: холодные плечи и поясница — главная причина травм.\n\nОстанавливаемся, если появилась острая боль, головокружение или нехватка воздуха. Тянущая боль в мышце после подхода — норма, боль в суставе — нет.\n\nПри проблемах с давлением или спиной сначала согласуй нагрузку с врачом.' }
+];
+
+const STORE_KEY = 'taichi_v1';
+function state(){
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch(e){ return {}; }
+}
+function save(patch){
+  const s = Object.assign(state(), patch);
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch(e){}
+  return s;
+}
+function historyList(){ return state().history || []; }
+function settings(){
+  return Object.assign({ days:[1,3,5], time:'19:00', bodyweight:'', weight:'10' }, state().settings || {});
+}
+function doneSet(){ return new Set(historyList().map(h => h.n)); }
+function currentWorkout(){
+  const done = doneSet();
+  return PROGRAM.workouts.find(w => !done.has(w.n)) || null;
+}
+function ex(id){ return EXERCISES.find(e => e.id === id) || { id, name:id, group:'', about:'', how:[] }; }
+
+/* ---------- маршрут ---------- */
+function routeHtml(selected, opts){
+  const o = opts || {};
+  const done = doneSet();
+  const cur = currentWorkout();
+  const items = PROGRAM.workouts.map(w => {
+    const isDone = done.has(w.n);
+    const isCur = cur && cur.n === w.n;
+    const cls = isDone ? 'done' : (isCur ? 'current' : 'next');
+    const sel = selected === w.n ? ' sel' : '';
+    const glyph = isDone ? '✓' : '';
+    return `<button class="marker ${cls}${sel}" data-open="${w.n}" aria-label="Занятие ${w.n}: ${w.title}">
+      <span class="dot">${glyph}</span><span class="cap">${w.n}. ${w.title}</span></button>`;
+  }).join('');
+  const vertical = (o.vertical === undefined) ? (window.innerWidth < 721) : !!o.vertical;
+  const curId = (cur && selected === cur.n) || !selected ? ' id="routeCur"' : '';
+  return `<div class="route-scroll"><div class="route ${vertical ? 'route-v' : ''}"><div class="route-line"></div><div class="markers">${items.replace('class="marker current', 'id="routeCur" class="marker current')}</div></div></div>`;
+}
+
+/* ---------- экраны ---------- */
+let VIEW = 'home';
+
+function render(){
+  const v = document.getElementById('view');
+  const s = state();
+  if (s.running && VIEW === 'workout') { renderWorkout(); paintNav(); return; }
+  const map = {
+    home: renderHome, program: renderProgram, exercises: renderExercises,
+    workout: renderWorkout, theory: renderTheory, progress: renderProgress,
+    settings: renderSettings, sections: renderSections, exercise: renderExerciseCard
+  };
+  (map[VIEW] || renderHome)(v);
+  paintNav();
+  window.scrollTo(0, 0);
+  const rc = document.getElementById('routeCur');
+  if (rc && window.innerWidth < 721) {
+    const box = rc.closest('.route-scroll');
+    if (box) box.scrollTop = Math.max(0, rc.offsetTop - box.clientHeight / 2);
+  }
+}
+
+function paintNav(){
+  const tabOf = { home:'home', program:'program', workout:'program', exercises:'sections',
+    sections:'sections', theory:'sections', progress:'sections', settings:'sections', exercise:'sections' };
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.go === VIEW));
+  document.querySelectorAll('#tabs .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === (tabOf[VIEW] || 'home')));
+}
+
+function header(title, sub){
+  return `<h1>${title}</h1>${sub ? `<p class="sub">${sub}</p>` : ''}`;
+}
+
+function renderHome(v){
+  const cur = currentWorkout();
+  const s = state();
+  const running = s.running;
+  const hist = historyList();
+  const lastDone = hist.length ? `Последнее: занятие ${hist[hist.length-1].n} · ${fmtDate(hist[hist.length-1].at)}` : 'Ещё нет завершённых занятий';
+  v.innerHTML = `
+    ${header('Тайчи', 'Карта программы: где вы сейчас и что дальше')}
+    <div class="grid cols-main">
+      <section class="card">
+        <div class="small">Карта программы</div>
+        ${routeHtml(cur ? cur.n : null, {})}
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+          ${cur ? `<button class="btn" data-start="${cur.n}">${running ? 'Продолжить тренировку' : 'Начать тренировку'}</button>` : ''}
+          <button class="btn ghost" data-go="progress">Прогресс</button>
+        </div>
+        <p class="small" style="margin-top:14px">${lastDone}</p>
+      </section>
+      <aside class="card">
+        <h2>Текущее занятие</h2>
+        ${cur ? `
+          <div class="pill">${cur.block}</div>
+          <h3 style="margin-top:10px">${cur.n}. ${cur.title}</h3>
+          <p class="small">${cur.focus} · ${cur.minutes} мин · ${cur.plan.length} фрагментов</p>
+          <p class="small">${PROGRAM.startNote}</p>
+          <button class="btn soft" data-open="${cur.n}">Открыть занятие</button>
+        ` : `<p class="small">Программа пройдена. Можно начать заново — история останется.</p>
+             <button class="btn ghost" data-reset="1">Начать программу заново</button>`}
+      </aside>
+    </div>`;
+}
+
+function renderProgram(v){
+  const cur = currentWorkout();
+  const byBlock = {};
+  PROGRAM.workouts.forEach(w => { (byBlock[w.block] = byBlock[w.block] || []).push(w); });
+  const done = doneSet();
+  v.innerHTML = `
+    ${header('Программа', PROGRAM.title + ' · ' + PROGRAM.goal)}
+    <div class="grid cols-main">
+      <section class="card">
+        <div class="small">Маршрут</div>
+        ${routeHtml(cur ? cur.n : null, {})}
+      </section>
+      <aside class="card">
+        <h2>Расписание</h2>
+        ${Object.keys(byBlock).map(b => `
+          <div class="small" style="margin:10px 0 6px">${b}</div>
+          <div class="list">
+            ${byBlock[b].map(w => `
+              <div class="row ${done.has(w.n) ? '' : ''}" data-open="${w.n}">
+                <div style="flex:1">
+                  <div class="name">${w.n}. ${w.title}</div>
+                  <div class="meta">${w.focus} · ${w.minutes} мин</div>
+                </div>
+                <span class="pill ${done.has(w.n) ? '' : 'next'}">${done.has(w.n) ? 'пройдено' : (cur && cur.n === w.n ? 'текущее' : 'следующее')}</span>
+              </div>`).join('')}
+          </div>`).join('')}
+      </aside>
+    </div>`;
+}
+
+function renderExercises(v, selectedId){
+  const q = (state().exSearch || '').toLowerCase();
+  const list = EXERCISES.filter(e => !q || e.name.toLowerCase().includes(q) || e.group.toLowerCase().includes(q));
+  v.innerHTML = `
+    ${header('Упражнения', 'Материалы программы: техника и описание')}
+    <div class="grid" style="grid-template-columns:minmax(0,1fr);gap:14px">
+      <input type="text" id="exSearch" placeholder="Поиск упражнений" value="${esc(state().exSearch || '')}" />
+      <div class="grid" style="grid-template-columns:minmax(0,360px) minmax(0,1fr)">
+        <div class="list">
+          ${list.length ? list.map(e => `<div class="row ${selectedId === e.id ? 'on' : ''}" data-ex="${e.id}">
+              <div style="flex:1"><div class="name">${e.name}</div><div class="meta">${e.group}</div></div>
+            </div>`).join('') : '<div class="empty">Ничего не найдено</div>'}
+        </div>
+        <div class="card" id="exCard">${selectedId ? exCardHtml(ex(selectedId)) : '<p class="small">Выберите упражнение в списке.</p>'}</div>
+      </div>
+    </div>`;
+}
+
+function exCardHtml(e){
+  return `<div class="frag-title">${e.name}</div>
+    <div class="pill">${e.group}</div>
+    <p style="margin-top:12px">${e.about}</p>
+    <h3 style="margin-top:16px">Техника</h3>
+    <ol style="margin:0;padding-left:20px">${(e.how||[]).map(x => `<li>${x}</li>`).join('')}</ol>
+    <div style="margin-top:16px;border-radius:12px;overflow:hidden;background:var(--sel)">
+      <img src="assets/illustrations/exercise-card-relief.png" alt="" style="width:100%;display:block;opacity:.9" />
+    </div>`;
+}
+
+function renderExerciseCard(v, id){
+  v.innerHTML = `${header('Упражнение', '')}
+    <div class="card">${exCardHtml(ex(id))}</div>
+    <div style="margin-top:14px"><button class="btn ghost" data-go="exercises">К упражнениям</button></div>`;
+}
+
+function renderTheory(v, openId){
+  const first = openId || (state().theoryOpen) || THEORY[0].id;
+  const t = THEORY.find(x => x.id === first) || THEORY[0];
+  v.innerHTML = `
+    ${header('Теория', 'Как тренироваться: техника, прогрессия, безопасность')}
+    <div class="grid cols-main">
+      <section class="card">
+        <h2>Оглавление</h2>
+        <div class="list">
+          ${THEORY.map(x => `<div class="row ${x.id === t.id ? 'on' : ''}" data-theory="${x.id}">
+            <div class="name">${x.title}</div></div>`).join('')}
+        </div>
+      </section>
+      <aside class="card">
+        <h2>${t.title}</h2>
+        ${t.text.split('\n\n').map(p => `<p>${p}</p>`).join('')}
+      </aside>
+    </div>`;
+}
+
+function renderProgress(v){
+  const hist = historyList();
+  const total = hist.length;
+  const minutes = hist.reduce((s,h) => s + (h.min || 0), 0);
+  const streak = calcStreak(hist);
+  v.innerHTML = `
+    ${header('Прогресс', 'История занятий, статистика и достижения')}
+    <div class="grid cols-main">
+      <section class="card">
+        <h2>История занятий</h2>
+        ${total ? `<div class="list">${hist.slice().reverse().map(h => `
+          <div class="row"><div style="flex:1">
+            <div class="name">Занятие ${h.n} · ${h.title || ''}</div>
+            <div class="meta">${fmtDate(h.at)} · ${h.min || 0} мин</div>
+          </div><span class="pill">завершено</span></div>`).join('')}</div>`
+        : '<div class="empty">Пока нет завершённых занятий. Начните первое — оно появится здесь.</div>'}
+      </section>
+      <aside class="card">
+        <h2>Статистика</h2>
+        <div class="fields" style="grid-template-columns:1fr 1fr">
+          <div><b>${total}</b><span>занятий</span></div>
+          <div><b>${minutes}</b><span>минут</span></div>
+          <div><b>${streak}</b><span>недель подряд</span></div>
+          <div><b>${Math.round(total / PROGRAM.workouts.length * 100)}%</b><span>программы</span></div>
+        </div>
+        <h2 style="margin-top:18px">Достижения</h2>
+        ${achievementsHtml(hist)}
+      </aside>
+    </div>`;
+}
+
+function achievementsHtml(hist){
+  const total = hist.length;
+  const badges = [
+    { at:1,  text:'Первое занятие' },
+    { at:3,  text:'Три занятия' },
+    { at:6,  text:'Половина программы' },
+    { at:12, text:'Программа пройдена' }
+  ];
+  return `<div class="list">${badges.map(b => `<div class="row">
+    <span class="pill ${total >= b.at ? '' : 'next'}">${total >= b.at ? '✓' : '—'}</span>
+    <div style="flex:1"><div class="name">${b.text}</div></div></div>`).join('')}</div>`;
+}
+
+function calcStreak(hist){
+  if (!hist.length) return 0;
+  const weeks = new Set(hist.map(h => { const d = new Date(h.at); const onejan = new Date(d.getFullYear(),0,1);
+    return d.getFullYear() + '-' + Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7); }));
+  return weeks.size;
+}
+
+function renderSettings(v){
+  const st = settings();
+  const DAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  v.innerHTML = `
+    ${header('Настройки', 'Расписание, напоминания и личные параметры')}
+    <div class="grid" style="grid-template-columns:minmax(0,1fr);gap:16px">
+      <section class="card">
+        <h2>Расписание</h2>
+        <div class="small">Дни занятий</div>
+        <div class="days" id="days">${DAYS.map((d,i) => `<button class="day ${st.days.includes(i+1) ? 'on' : ''}" data-day="${i+1}">${d}</button>`).join('')}</div>
+      </section>
+      <section class="card">
+        <h2>Уведомления</h2>
+        <label class="field"><span>Время напоминания</span><input type="time" id="setTime" value="${st.time || '19:00'}" /></label>
+        <p class="small">Напоминание показывается на этом устройстве, когда открыто приложение.</p>
+      </section>
+      <section class="card">
+        <h2>Персональные параметры</h2>
+        <label class="field"><span>Вес тела, кг</span><input type="number" id="setBW" value="${st.bodyweight || ''}" placeholder="например 82" /></label>
+        <label class="field"><span>Рабочий вес гантелей, кг</span><input type="number" id="setW" value="${st.weight || ''}" placeholder="например 10" /></label>
+      </section>
+      <div><button class="btn" id="setSave">Сохранить</button></div>
+    </div>`;
+}
+
+function renderSections(v){
+  const items = [
+    { go:'exercises', icon:'nav-exercises.png', t:'Упражнения', d:'Техника и описания' },
+    { go:'workout',   icon:'nav-workout.png',   t:'Тренировка',   d:'Текущее занятие' },
+    { go:'theory',    icon:'nav-theory.png',    t:'Теория',       d:'Как тренироваться' },
+    { go:'progress',  icon:'nav-progress.png',  t:'Прогресс',     d:'История и достижения' },
+    { go:'settings',  icon:'nav-settings.png',  t:'Настройки',    d:'Расписание и параметры' }
+  ];
+  v.innerHTML = `${header('Разделы', '')}
+    <div class="list">${items.map(i => `<div class="row" data-go="${i.go}">
+      <img src="assets/icons/${i.icon}" alt="" style="width:26px;height:26px" />
+      <div style="flex:1"><div class="name">${i.t}</div><div class="meta">${i.d}</div></div>
+    </div>`).join('')}</div>`;
+}
+
+/* ---------- тренировка ---------- */
+let timerId = null;
+function fmt(sec){
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+function renderWorkout(){
+  const v = document.getElementById('view');
+  const s = state();
+  const cur = s.running || null;
+  if (!cur) {
+    const w = currentWorkout();
+    if (!w) { v.innerHTML = header('Тренировка','Программа пройдена') + '<div class="empty">Все занятия завершены.</div>'; return; }
+    startWorkout(w.n);
+    return;
+  }
+  const w = PROGRAM.workouts.find(x => x.n === cur.n);
+  const idx = Math.min(cur.idx || 0, w.plan.length - 1);
+  const frag = w.plan[idx];
+  const e = ex(frag.ex);
+  const paused = !!cur.paused;
+  const steps = w.plan.map((f, i) => {
+    const fe = ex(f.ex);
+    const cls = i < idx ? 'done' : (i === idx ? 'cur' : '');
+    return `<li class="step ${cls}"><span class="num">${i+1}</span><span>${fe.name}<br><span class="small">${f.sets} × ${f.reps}</span></span></li>`;
+  }).join('');
+  const left = cur.left != null ? cur.left : (frag.rest || 0);
+  v.innerHTML = `
+    <div class="topbar desk-only" style="position:static;border:none;padding-bottom:0">
+      <button class="btn ghost" data-exit="1">← Назад</button>
+      <div style="margin-left:auto" class="small">Занятие ${w.n} · ${w.title}</div>
+    </div>
+    ${header('Тренировка', `Занятие ${w.n} · ${w.title} · фрагмент ${idx+1} из ${w.plan.length}`)}
+    <div class="workout">
+      <section class="card"><h2>Порядок</h2><ul class="steps">${steps}</ul></section>
+      <section class="card">
+        <div class="frag-title">${e.name}</div>
+        <div class="pill">${e.group}</div>
+        <p style="margin:10px 0 0">${e.about}</p>
+        <div class="fields">
+          <div><b>${frag.sets}</b><span>подход</span></div>
+          <div><b>${frag.reps}</b><span>повторения</span></div>
+          <div><b>${frag.rest || 0} с</b><span>отдых</span></div>
+        </div>
+        ${frag.rest ? `<div class="timer" id="timer">${fmt(left)}</div>
+          <div class="controls">
+            <button class="btn" id="timerBtn">${paused ? 'Продолжить' : (cur.runningTimer ? 'Пауза' : 'Запустить')}</button>
+            <button class="btn ghost" id="pauseBtn">${paused ? 'Выйти из паузы' : 'Пауза'}</button>
+          </div>` : `<div class="controls"><button class="btn ghost" id="pauseBtn">${paused ? 'Выйти из паузы' : 'Пауза'}</button></div>`}
+        <div class="controls" style="margin-top:16px">
+          <button class="btn" id="nextBtn">${idx === w.plan.length - 1 ? 'Завершить занятие' : 'Далее'}</button>
+        </div>
+        ${paused ? '<p class="small" style="margin-top:12px">Пауза: позиция в занятии сохранена. Можно выйти и вернуться позже.</p>' : ''}
+      </section>
+    </div>`;
+  wireWorkout(w, idx);
+}
+
+function wireWorkout(w, idx){
+  const s = state();
+  const get = () => state().running;
+  const set = (patch) => save({ running: Object.assign({}, get(), patch) });
+
+  const btn = document.getElementById('timerBtn');
+  if (btn) btn.onclick = () => {
+    const r = get();
+    if (r.runningTimer) { stopTimer(); set({ runningTimer:false, paused:true }); writeTimer(get().left); }
+    else { startTimer(); set({ runningTimer:true, paused:false }); }
+    renderWorkout();
+  };
+  const pb = document.getElementById('pauseBtn');
+  if (pb) pb.onclick = () => {
+    const r = get();
+    if (r.paused) set({ paused:false }); else { stopTimer(); set({ paused:true, runningTimer:false }); }
+    renderWorkout();
+  };
+  document.getElementById('nextBtn').onclick = () => {
+    stopTimer();
+    const r = get();
+    if (idx === w.plan.length - 1) { finishWorkout(w); return; }
+    set({ idx: idx + 1, left: w.plan[idx+1].rest || 0, runningTimer:false, paused:false });
+    renderWorkout();
+  };
+  const back = document.querySelector('[data-exit]');
+  if (back) back.onclick = () => { stopTimer(); set({ paused:true, runningTimer:false }); VIEW = 'home'; render(); };
+  document.querySelectorAll('#nav button').forEach(b => b.classList.remove('on'));
+}
+
+function writeTimer(v){
+  const el = document.getElementById('timer');
+  if (el) el.textContent = fmt(Math.max(0, v || 0));
+}
+function startTimer(){
+  stopTimer();
+  timerId = setInterval(() => {
+    const r = state().running; if (!r) { stopTimer(); return; }
+    const left = Math.max(0, (r.left || 0) - 1);
+    save({ running: Object.assign({}, r, { left }) });
+    writeTimer(left);
+    if (left === 0) { stopTimer(); const rr = state().running; if (rr) save({ running: Object.assign({}, rr, { runningTimer:false }) }); }
+  }, 1000);
+}
+function stopTimer(){ if (timerId) { clearInterval(timerId); timerId = null; } }
+
+function startWorkout(n){
+  const w = PROGRAM.workouts.find(x => x.n === n);
+  if (!w) return;
+  save({ running: { n, idx:0, startedAt: Date.now(), left: w.plan[0].rest || 0, runningTimer:false, paused:false } });
+  VIEW = 'workout';
+  render();
+}
+
+function finishWorkout(w){
+  stopTimer();
+  const r = state().running || {};
+  const min = Math.max(1, Math.round((Date.now() - (r.startedAt || Date.now())) / 60000));
+  const hist = historyList().filter(h => h.n !== w.n);
+  hist.push({ n: w.n, title: w.title, at: Date.now(), min });
+  save({ history: hist, running: null });
+  const v = document.getElementById('view');
+  v.innerHTML = `
+    ${header('Занятие завершено', `Занятие ${w.n} · ${w.title}`)}
+    <div class="card">
+      <div class="fields">
+        <div><b>${min}</b><span>минут</span></div>
+        <div><b>${historyList().length}</b><span>всего занятий</span></div>
+        <div><b>${Math.round(historyList().length / PROGRAM.workouts.length * 100)}%</b><span>программы</span></div>
+      </div>
+      <div class="controls">
+        <button class="btn" data-go="progress">Перейти в прогресс</button>
+        <button class="btn ghost" data-go="home">На главную</button>
+      </div>
+    </div>`;
+  paintNav();
+}
+
+/* ---------- мелочи ---------- */
+function fmtDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('ru-RU', { day:'2-digit', month:'short' }) + ', ' +
+         d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+}
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------- навигация ---------- */
+const NAV = [
+  ['home','Главная'], ['program','Программа'], ['exercises','Упражнения'],
+  ['workout','Тренировка'], ['theory','Теория'], ['progress','Прогресс'], ['settings','Настройки']
+];
+document.getElementById('nav').innerHTML = NAV.map(([go,t]) => `<button data-go="${go}">${t}</button>`).join('');
+document.querySelectorAll('#tabs .tab').forEach(b => b.onclick = () => {
+  const t = b.dataset.tab;
+  if (t === 'sections') { VIEW = 'sections'; render(); return; }
+  VIEW = t; render();
+});
+
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-go],[data-open],[data-start],[data-ex],[data-theory],[data-reset],[data-day]');
+  if (!t) return;
+  if (t.dataset.open) { VIEW = 'workout'; return showWorkoutInfo(Number(t.dataset.open)); }
+  if (t.dataset.start) { VIEW = 'workout'; return startWorkout(Number(t.dataset.start)); }
+  if (t.dataset.ex) { VIEW = 'exercises'; save({}); return renderExercises(document.getElementById('view'), t.dataset.ex); }
+  if (t.dataset.theory) { save({ theoryOpen: t.dataset.theory }); VIEW = 'theory'; return render(); }
+  if (t.dataset.reset) { if (confirm('Начать программу заново? История останется.')) { save({ running:null }); return; } }
+  if (t.dataset.day) {
+    const st = settings();
+    const d = Number(t.dataset.day);
+    const days = st.days.includes(d) ? st.days.filter(x => x !== d) : st.days.concat([d]).sort();
+    save({ settings: Object.assign({}, st, { days }) });
+    renderSettings(document.getElementById('view'));
+    return;
+  }
+  const go = t.dataset.go;
+  if (go) { VIEW = go; render(); }
+});
+
+/* карточка занятия без старта */
+function showWorkoutInfo(n){
+  const w = PROGRAM.workouts.find(x => x.n === n);
+  if (!w) return;
+  const done = doneSet();
+  const v = document.getElementById('view');
+  v.innerHTML = `
+    ${header(`Занятие ${w.n}`, `${w.title} · ${w.focus}`)}
+    <div class="grid cols-main">
+      <section class="card">
+        <h2>Состав</h2>
+        <div class="list">${w.plan.map((f,i) => {
+          const e = ex(f.ex);
+          return `<div class="row"><span class="pill">${i+1}</span><div style="flex:1">
+            <div class="name">${e.name}</div><div class="meta">${f.sets} × ${f.reps}${f.rest ? ' · отдых ' + f.rest + ' с' : ''}</div>
+          </div></div>`;
+        }).join('')}</div>
+      </section>
+      <aside class="card">
+        <div class="pill">${w.block}</div>
+        <h3 style="margin-top:10px">${w.minutes} минут</h3>
+        <p class="small">${done.has(w.n) ? 'Это занятие уже пройдено. Можно пройти снова — в истории останется последняя запись.' : 'Занятие ещё не пройдено.'}</p>
+        <div class="controls">
+          <button class="btn" data-start="${w.n}">${done.has(w.n) ? 'Пройти снова' : 'Начать тренировку'}</button>
+          <button class="btn ghost" data-go="program">К программе</button>
+        </div>
+      </aside>
+    </div>`;
+  paintNav();
+}
+
+/* поиск упражнений */
+document.addEventListener('input', (e) => {
+  if (e.target && e.target.id === 'exSearch') {
+    save({ exSearch: e.target.value });
+    const sel = document.querySelector('.row.on[data-ex]');
+    renderExercises(document.getElementById('view'), sel ? sel.dataset.ex : null);
+    const inp = document.getElementById('exSearch');
+    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  }
+});
+
+/* сохранение настроек */
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'setSave') {
+    const st = settings();
+    st.time = document.getElementById('setTime').value || st.time;
+    st.bodyweight = document.getElementById('setBW').value;
+    st.weight = document.getElementById('setW').value;
+    save({ settings: st });
+    e.target.textContent = 'Сохранено';
+    setTimeout(() => { e.target.textContent = 'Сохранить'; }, 1400);
+  }
+});
+
+/* старт */
+render();
+</script>
+</body>
+</html>
