@@ -21,6 +21,8 @@ body{
 }
 button{font:inherit;color:inherit}
 a{color:var(--primary)}
+.bg{position:fixed;inset:0;z-index:-1;pointer-events:none;background:url('assets/backgrounds/route-relief-desktop.png') center/cover no-repeat;opacity:.55}
+@media (max-width:720px){.bg{background-image:url('assets/backgrounds/route-relief-mobile.png');opacity:.5}}
 .app{min-height:100vh;display:flex;flex-direction:column}
 .shell{flex:1;width:100%;max-width:1440px;margin:0 auto;padding:0 32px 96px}
 /* ---------- шапка (компьютер) ---------- */
@@ -56,11 +58,9 @@ h3{font-size:16px;margin:0 0 6px}
 .route-v .markers{flex-direction:column;gap:22px}
 .marker{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;padding:6px 4px;min-width:44px;min-height:44px}
 .route-v .marker{flex-direction:row;align-items:center;gap:12px}
-.marker .dot{width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:50%}
-.marker.done .dot{background:var(--primary);color:#fff;font-size:14px}
-.marker.current .dot{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--primary);background:var(--bg)}
-.marker.current .dot::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary)}
-.marker.next .dot{box-shadow:inset 0 0 0 2px var(--next)}
+.marker .dot{width:28px;height:28px;flex:none;display:block}
+.marker .dot img{width:28px;height:28px;object-fit:contain;display:block}
+
 .marker .cap{font-size:13px;color:var(--muted);max-width:132px;text-align:center;line-height:1.25}
 .route-v .marker .cap{text-align:left;max-width:none}
 .route-scroll{max-height:46vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
@@ -127,6 +127,7 @@ input[type=text],input[type=number],input[type=time],select{
 </style>
 </head>
 <body>
+<div class="bg"></div>
 <div class="app">
   <div class="shell">
     <!-- компьютер: верхняя навигация -->
@@ -156,84 +157,67 @@ input[type=text],input[type=number],input[type=time],select{
 
 const PROGRAM = {
   title: 'Сила и тонус с гантелями',
-  goal: '12 занятий · 3 в неделю · полное тело',
-  startNote: 'Гантели 2×(6–12 кг), скамья или стул, коврик.',
+  goal: '3 тренировки в неделю · 25–35 минут · гантели 3 кг',
+  startNote: 'Нужно: две гантели по 3 кг, устойчивый стул, коврик.',
   workouts: [
-    { n:1,  block:'Неделя 1', title:'Всё тело A', minutes:45, focus:'приседания · жим · тяга' },
-    { n:2,  block:'Неделя 1', title:'Всё тело B', minutes:45, focus:'румынская тяга · выпады · плечи' },
-    { n:3,  block:'Неделя 1', title:'Всё тело C', minutes:45, focus:'жим лёжа · тяга · руки' },
-    { n:4,  block:'Неделя 2', title:'Всё тело A', minutes:47, focus:'приседания · жим · тяга' },
-    { n:5,  block:'Неделя 2', title:'Всё тело B', minutes:47, focus:'румынская тяга · выпады · плечи' },
-    { n:6,  block:'Неделя 2', title:'Всё тело C', minutes:47, focus:'жим лёжа · тяга · руки' },
-    { n:7,  block:'Неделя 3', title:'Всё тело A', minutes:50, focus:'приседания · жим · тяга' },
-    { n:8,  block:'Неделя 3', title:'Всё тело B', minutes:50, focus:'румынская тяга · выпады · плечи' },
-    { n:9,  block:'Неделя 3', title:'Всё тело C', minutes:50, focus:'жим лёжа · тяга · руки' },
-    { n:10, block:'Неделя 4', title:'Всё тело A', minutes:50, focus:'приседания · жим · тяга' },
-    { n:11, block:'Неделя 4', title:'Всё тело B', minutes:50, focus:'румынская тяга · выпады · плечи' },
-    { n:12, block:'Неделя 4', title:'Всё тело C', minutes:50, focus:'жим лёжа · тяга · руки' }
+    { n:1, block:'Тренировка А', title:'Руки и грудь', minutes:30, focus:'бицепс · трицепс · грудь', plan:[
+      { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
+      { ex:'curl', sets:1, reps:'10–15', rest:75 },
+      { ex:'hammer', sets:1, reps:'10–15', rest:75 },
+      { ex:'floorpress', sets:1, reps:'10–15', rest:75 },
+      { ex:'wallpush', sets:1, reps:'8–12', rest:60 },
+      { ex:'kickback', sets:1, reps:'10–12', rest:60 },
+      { ex:'cooldown', sets:1, reps:'3 мин', rest:0 }
+    ]},
+    { n:2, block:'Тренировка Б', title:'Ягодицы и ноги', minutes:30, focus:'ягодицы · бёдра · икры', plan:[
+      { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
+      { ex:'chairstand', sets:1, reps:'10–15', rest:75 },
+      { ex:'bridge', sets:1, reps:'12–15', rest:75 },
+      { ex:'rdl', sets:1, reps:'10–12', rest:75 },
+      { ex:'backkick', sets:1, reps:'12–15 на ногу', rest:60 },
+      { ex:'calfraise', sets:1, reps:'15–20', rest:60 },
+      { ex:'cooldown', sets:1, reps:'3 мин', rest:0 }
+    ]},
+    { n:3, block:'Тренировка В', title:'Спина, плечи и руки', minutes:30, focus:'спина · плечи · руки', plan:[
+      { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
+      { ex:'onearmrow', sets:1, reps:'10–12 на руку', rest:75 },
+      { ex:'lateral', sets:1, reps:'10–12 без веса', rest:60 },
+      { ex:'scapula', sets:1, reps:'12–15', rest:60 },
+      { ex:'curl', sets:1, reps:'10–15', rest:60 },
+      { ex:'kickback', sets:1, reps:'10–12', rest:60 },
+      { ex:'cooldown', sets:1, reps:'3 мин', rest:0 }
+    ]}
   ]
 };
 
-/* Упражнения: id, название, группа, описание, техника */
 const EXERCISES = [
-  { id:'goblet', name:'Приседание с гантелью у груди', group:'Ноги', about:'Базовое движение для ног и ягодиц. Гантель держим вертикально у груди — так проще держать спину.', how:['Стопы на ширине плеч, носки чуть наружу','Опускаемся до параллели бёдер с полом','Колени идут по направлению носков','Вверх — на выдохе'] },
-  { id:'rdl', name:'Румынская тяга с гантелями', group:'Спина · ноги', about:'Тяга на бицепс бедра. Спина всё время прямая, движение идёт от таза.', how:['Гантели перед бёдрами, колени чуть согнуты','Отводим таз назад, гантели скользят по ногам','Останавливаемся, когда тянет под коленом','Вверх — за счёт ягодиц'] },
-  { id:'lunge', name:'Выпады с гантелями', group:'Ноги', about:'Одноопорное движение: тренирует равновесие и ягодицы. Делаем попеременно.', how:['Шаг вперёд, колено над стопой','Колено сзади почти касается пола','Толчок передней ногой — назад','Корпус вертикально'] },
-  { id:'bench', name:'Жим гантелей лёжа', group:'Грудь', about:'Основное движение на грудь. Лопатки сведены, гантели идут по дуге.', how:['Лёжа на скамье, стопы на полу','Локти под 45° к корпусу','Опускаем до уровня груди','Выжимаем, не выпрямляя локти до щелчка'] },
-  { id:'row', name:'Тяга гантели в наклоне', group:'Спина', about:'Тяга к поясу: широчайшие и середина спины.', how:['Наклон 45°, спина прямая','Тянем гантель к поясу','Локоть идёт вдоль тела','Опускаем медленно'] },
-  { id:'ohp', name:'Жим гантелей стоя', group:'Плечи', about:'Вертикальный жим. Пресс держим в тонусе, поясницу не прогибаем.', how:['Гантели у плеч','Выжимаем вверх, чуть вперёд','Вверху — не стучим гантелями','Опускаем подконтрольно'] },
-  { id:'pullover', name:'Пуловер с гантелью', group:'Грудь · спина', about:'Растягивает грудную клетку, включает широчайшие.', how:['Лёжа, гантель над грудью','Заводим за голову на вдохе','Возвращаем по дуге','Поясница прижата'] },
-  { id:'lateral', name:'Разведения гантелей в стороны', group:'Плечи', about:'Средний пучок плеча. Работаем лёгким весом и чисто.', how:['Руки чуть согнуты','Поднимаем до уровня плеч','Не раскачиваем корпусом','Вниз — медленно'] },
-  { id:'curl', name:'Сгибания на бицепс', group:'Руки', about:'Классика на бицепс. Локти закреплены у корпуса.', how:['Локти прижаты','Поднимаем до полного сгиба','Опускаем медленно','Без раскачки'] },
-  { id:'triceps', name:'Французский жим с гантелью', group:'Руки', about:'Разгибание на трицепс из-за головы.', how:['Гантель в двух руках за головой','Локти смотрят вверх','Разгибаем до конца','Опускаем подконтрольно'] },
-  { id:'shrug', name:'Шраги с гантелями', group:'Спина', about:'Трапеция: поднимаем плечи строго вверх.', how:['Гантели по бокам','Плечи вверх к ушам','Задержка на секунду','Вниз медленно'] },
-  { id:'plank', name:'Планка', group:'Кор', about:'Статика на кор. Тело — прямая линия.', how:['Локти под плечами','Живот подтянут','Дыхание ровное','Держим заданное время'] },
-  { id:'sideplank', name:'Боковая планка', group:'Кор', about:'Косые мышцы живота.', how:['На предплечье, стопы друг на друге','Таз не проваливается','По 30 секунд на сторону'] },
-  { id:'crunch', name:'Скручивания с гантелью', group:'Кор', about:'Прямая мышца живота, движение короткое.', how:['Гантель у груди','Отрываем лопатки от пола','Выдох на подъёме','Шею не тянем'] },
-  { id:'warmup', name:'Разминка', group:'Служебное', about:'5 минут: суставная гимнастика, наклоны, вращения плеч, лёгкая кардио-разминка.', how:['Круговые движения плечами и локтями','Наклоны и повороты корпуса','Приседания без веса','Марш на месте'] },
-  { id:'cooldown', name:'Заминка и растяжка', group:'Служебное', about:'3–5 минут: растяжка ног, спины, груди и плеч.', how:['Наклон к ногам — 30 с','Растяжка квадрицепса — по 20 с','Растяжка груди в дверном проёме — 30 с','Дыхание восстанавливаем'] }
+  { id:'curl', name:'Сгибание рук с гантелями', group:'Бицепс', about:'Базовое упражнение на бицепс. Локти держим у корпуса, работаем без раскачки.', how:['Встать прямо, гантели в опущенных руках','Локти прижаты к корпусу','Сгибаем руки до полного сокращения бицепса','Опускаем медленно, на 2 счёта'] },
+  { id:'hammer', name:'Сгибание рук «молот»', group:'Бицепс, плечевая мышца', about:'Хват нейтральный, ладони смотрят друг на друга — включает плечевую мышцу и предплечье.', how:['Гантели держим вертикально','Локти не выводим вперёд','Поднимаем до уровня плеча и выше не нужно','Вниз — подконтрольно'] },
+  { id:'floorpress', name:'Жим гантелей лёжа на полу', group:'Грудь, трицепс', about:'Безопасная замена жима на скамье: пол ограничивает амплитуду и защищает плечо.', how:['Лечь на спину, колени согнуты, стопы на полу','Гантели над грудью, локти под 45°','Опускаем до касания пола локтями','Выжимаем вверх, не блокируя локти жёстко'] },
+  { id:'wallpush', name:'Отжимания от стены', group:'Грудь, трицепс', about:'Щадящий вариант отжиманий: нагрузка регулируется расстоянием до стены.', how:['Ладони на стене на уровне плеч','Тело — прямая линия, корпус не прогибается','Сгибаем руки, приближаясь к стене','Отталкиваемся и возвращаемся'] },
+  { id:'kickback', name:'Разгибание руки назад', group:'Трицепс', about:'Изолирует трицепс. Работаем с гантелью или без веса, корпус держим неподвижно.', how:['Наклон вперёд, спина прямая','Локоть прижат к корпусу','Разгибаем руку назад до прямого угла','Возвращаем медленно'] },
+  { id:'chairstand', name:'Приседания со стула', group:'Ягодицы, бёдра', about:'Вставание со стула — контролируемая глубина приседа и безопасная техника.', how:['Сесть на край стула, стопы на ширине плеч','Наклоняемся чуть вперёд и встаём через ягодицы','Садимся медленно, без падения','Колени идут по направлению носков'] },
+  { id:'bridge', name:'Ягодичный мостик', group:'Ягодицы', about:'Подъём таза лёжа. Основная работа — ягодицы, поясница не переразгибается.', how:['Лечь на спину, стопы на полу, колени согнуты','Поднимаем таз до прямой линии корпус–бёдра','Сжимаем ягодицы в верхней точке','Опускаемся медленно'] },
+  { id:'rdl', name:'Наклоны с гантелями (румынская тяга)', group:'Ягодицы, задняя поверхность бедра', about:'Тяга на бицепс бедра. Спина всё время прямая, движение идёт от таза.', how:['Гантели перед бёдрами, колени чуть согнуты','Отводим таз назад, гантели скользят по ногам','Останавливаемся, когда тянет под коленом','Вверх — за счёт ягодиц'] },
+  { id:'backkick', name:'Отведение ноги назад стоя', group:'Ягодицы', about:'Изолирующее движение на ягодицы. Корпус не раскачивается.', how:['Стоим с опорой на стул','Отводим прямую ногу назад','Держим 1 секунду в верхней точке','Возвращаем медленно, не ставим ногу на пол'] },
+  { id:'calfraise', name:'Подъёмы на носки', group:'Икры', about:'Икры любят много повторений и полную амплитуду.', how:['Стоим прямо, можно придерживаться за стул','Поднимаемся на носки максимально высоко','Задержка на секунду','Опускаемся медленно, до полной растяжки'] },
+  { id:'onearmrow', name:'Тяга гантели одной рукой с опорой', group:'Спина', about:'Тяга с опорой на стул разгружает поясницу. Пока есть боль в левой руке — выполняем осторожно.', how:['Опора на стул одной рукой','Спина прямая, наклон около 45°','Тянем гантель к поясу, локоть вдоль тела','Опускаем медленно; сначала без веса, чтобы проверить ощущения'] },
+  { id:'lateral', name:'Разведение рук в стороны', group:'Плечи', about:'Средний пучок плеча. Пока сохраняется боль — только без веса и в безболезненном диапазоне.', how:['Руки чуть согнуты в локтях','Поднимаем до уровня плеч, не выше','Не раскачиваем корпусом','При боли — уменьшить амплитуду или отложить'] },
+  { id:'scapula', name:'Сведение лопаток стоя', group:'Верх спины', about:'Работает на осанку и середину спины, безопасно для плеча.', how:['Стоим прямо, руки вдоль тела','Сводим лопатки к позвоночнику','Держим 2 секунды','Расслабляем медленно'] },
+  { id:'warmup', name:'Разминка', group:'Служебное', about:'5 минут спокойной разминки: ходьба на месте, движения ногами и плечами — без боли.', how:['Ходьба на месте 2 минуты','Круговые движения плечами','Наклоны и повороты корпуса','Приседания без веса в комфортной амплитуде'] },
+  { id:'cooldown', name:'Заминка и растяжка', group:'Служебное', about:'3 минуты: спокойная растяжка ног, спины, груди и плеч.', how:['Наклон к ногам — 30 с','Растяжка квадрицепса — по 20 с','Растяжка груди у стены — 30 с','Дыхание восстанавливаем'] }
 ];
-
-/* Состав занятий: фрагменты по порядку */
-const PLANS = {
-  A: [
-    { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
-    { ex:'goblet', sets:3, reps:'10–12', rest:75 },
-    { ex:'bench', sets:3, reps:'8–10', rest:75 },
-    { ex:'row', sets:3, reps:'10–12', rest:75 },
-    { ex:'ohp', sets:3, reps:'8–10', rest:60 },
-    { ex:'plank', sets:3, reps:'30–45 с', rest:45 },
-    { ex:'cooldown', sets:1, reps:'4 мин', rest:0 }
-  ],
-  B: [
-    { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
-    { ex:'rdl', sets:3, reps:'8–10', rest:75 },
-    { ex:'lunge', sets:3, reps:'10 на ногу', rest:75 },
-    { ex:'pullover', sets:3, reps:'10–12', rest:60 },
-    { ex:'lateral', sets:3, reps:'12–15', rest:45 },
-    { ex:'shrug', sets:3, reps:'12–15', rest:45 },
-    { ex:'sideplank', sets:2, reps:'30 с', rest:40 },
-    { ex:'cooldown', sets:1, reps:'4 мин', rest:0 }
-  ],
-  C: [
-    { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
-    { ex:'bench', sets:3, reps:'8–10', rest:75 },
-    { ex:'goblet', sets:3, reps:'12', rest:75 },
-    { ex:'row', sets:3, reps:'12', rest:60 },
-    { ex:'curl', sets:3, reps:'10–12', rest:45 },
-    { ex:'triceps', sets:3, reps:'10–12', rest:45 },
-    { ex:'crunch', sets:3, reps:'15', rest:40 },
-    { ex:'cooldown', sets:1, reps:'4 мин', rest:0 }
-  ]
-};
-PROGRAM.workouts.forEach(w => { w.plan = PLANS[(w.n - 1) % 3 === 0 ? 'A' : ((w.n - 1) % 3 === 1 ? 'B' : 'C')]; });
 
 const THEORY = [
-  { id:'how', title:'Как заниматься по программе', text:'Три занятия в неделю с днём отдыха между ними: например понедельник, среда, пятница. Каждое занятие — 45–50 минут с разминкой и заминкой.\n\nПорядок один: разминка, базовые движения на крупные группы, затем более мелкие, в конце кор и растяжка. Между занятиями тело должно восстановиться — если мышцы сильно болят, сдвинь тренировку на день.' },
-  { id:'tech', title:'Техника и дыхание', text:'Главное правило — движение важнее веса. Если техника «плывёт», вес снижаем.\n\nДыхание: усилие — выдох, возврат — вдох. Не задерживаем дыхание на подъёме.\n\nСпина остаётся нейтральной во всех наклонах и тягах: не округляем поясницу, взгляд чуть вперёд.' },
-  { id:'progress', title:'Прогрессия и рабочий вес', text:'Прогрессия простая: сначала добавляем повторения до верхней границы диапазона (например с 8 до 12), только потом вес.\n\nОриентир по весу: последние 2 повторения в подходе должны даваться тяжело, но без потери техники.\n\nКаждую четвёртую неделю можно сделать легче — это не откат, а восстановление.' },
-  { id:'safety', title:'Безопасность', text:'Разминка обязательна: холодные плечи и поясница — главная причина травм.\n\nОстанавливаемся, если появилась острая боль, головокружение или нехватка воздуха. Тянущая боль в мышце после подхода — норма, боль в суставе — нет.\n\nПри проблемах с давлением или спиной сначала согласуй нагрузку с врачом.' }
+  { id:'how', title:'Как выполнять программу', text:'Три тренировки в неделю: понедельник, среда, суббота. Продолжительность 25–35 минут.\n\nПервые две недели — по одному подходу каждого упражнения. Затем, если всё переносится нормально, можно перейти к двум подходам.\n\nПеред каждой тренировкой — 5 минут спокойной разминки: ходьба на месте, движения ногами и плечами без боли.' },
+  { id:'rest', title:'Отдых и интенсивность', text:'Между подходами отдыхай 60–90 секунд.\n\nНе нужно работать до полного мышечного отказа: заканчивай подход, когда чувствуешь, что смог бы выполнить ещё 2–3 повторения с правильной техникой.' },
+  { id:'progress', title:'Как расти дальше', text:'Главное для роста мышц — постепенное увеличение нагрузки.\n\nКогда 15 повторений становятся лёгкими, сначала добавляй повторения или подход, а затем увеличивай сопротивление. Бесконечно увеличивать число повторений с гантелями по 3 кг неэффективно.\n\nДля ягодиц 3-килограммовые гантели довольно быстро станут лёгкими — тогда можно увеличить сопротивление, например с помощью эластичной ленты.' },
+  { id:'shoulder', title:'Левое плечо: важное ограничение', text:'Если жим или отжимания усиливают боль в левом плече либо вызывают отдачу в кисть, прекращай именно это упражнение.\n\nПока сохраняется боль с иррадиацией в кисть, упражнения для плечевого пояса выполняй только в безболезненном диапазоне. Если даже без веса симптомы усиливаются, эту часть тренировки следует отложить.' },
+  { id:'muscles', title:'Особенности групп мышц', text:'Руки: тренируй и бицепс, и трицепс — трицепс составляет значительную часть мышечной массы плеча.\n\nГрудь: жим и отжимания укрепляют грудные мышцы, но не позволяют избирательно убрать жир или изменить свойства кожи.\n\nСпина: тяги полезны, однако их пока нужно выполнять осторожно из-за симптомов в левой руке.\n\nЯгодицы: приседания, мостик и румынская тяга дают хорошую основу.' },
+  { id:'when', title:'Когда ждать результатов', text:'2–3 недели — улучшение техники и переносимости нагрузки.\n\n4–6 недель — увеличение количества повторений, улучшение силы.\n\n8–12 недель — возможные заметные изменения мышц при достаточной нагрузке и восстановлении.' }
 ];
+
+function setsNow(){ return cycleWeek() <= 2 ? 1 : 2; }
 
 const STORE_KEY = 'taichi_v1';
 function state(){
@@ -248,10 +232,21 @@ function historyList(){ return state().history || []; }
 function settings(){
   return Object.assign({ days:[1,3,5], time:'19:00', bodyweight:'', weight:'10' }, state().settings || {});
 }
-function doneSet(){ return new Set(historyList().map(h => h.n)); }
+function weekStart(){
+  const d = new Date(); const day = (d.getDay() + 6) % 7;
+  const s = new Date(d); s.setHours(0,0,0,0); s.setDate(d.getDate() - day);
+  return s.getTime();
+}
+function doneSet(){ return new Set(historyList().filter(h => h.at >= weekStart()).map(h => h.n)); }
 function currentWorkout(){
   const done = doneSet();
   return PROGRAM.workouts.find(w => !done.has(w.n)) || null;
+}
+function programPercent(){ return Math.min(100, Math.round(historyList().length / 12 * 100)); }
+function cycleWeek(){                                    // какая неделя программы идёт
+  const h = historyList();
+  if (!h.length) return 1;
+  return Math.floor((Date.now() - h[0].at) / (7*86400000)) + 1;
 }
 function ex(id){ return EXERCISES.find(e => e.id === id) || { id, name:id, group:'', about:'', how:[] }; }
 
@@ -265,9 +260,9 @@ function routeHtml(selected, opts){
     const isCur = cur && cur.n === w.n;
     const cls = isDone ? 'done' : (isCur ? 'current' : 'next');
     const sel = selected === w.n ? ' sel' : '';
-    const glyph = isDone ? '✓' : '';
-    return `<button class="marker ${cls}${sel}" data-open="${w.n}" aria-label="Занятие ${w.n}: ${w.title}">
-      <span class="dot">${glyph}</span><span class="cap">${w.n}. ${w.title}</span></button>`;
+    const icon = isDone ? 'route-complete.png' : (isCur ? 'route-current.png' : 'route-next.png');
+    return `<button class="marker ${cls}${sel}" data-open="${w.n}" aria-label="${w.title}">
+      <span class="dot"><img src="assets/icons/${icon}" alt=""></span><span class="cap">${w.title}</span></button>`;
   }).join('');
   const vertical = (o.vertical === undefined) ? (window.innerWidth < 721) : !!o.vertical;
   const curId = (cur && selected === cur.n) || !selected ? ' id="routeCur"' : '';
@@ -314,7 +309,7 @@ function renderHome(v){
   const hist = historyList();
   const lastDone = hist.length ? `Последнее: занятие ${hist[hist.length-1].n} · ${fmtDate(hist[hist.length-1].at)}` : 'Ещё нет завершённых занятий';
   v.innerHTML = `
-    ${header('Тайчи', 'Карта программы: где вы сейчас и что дальше')}
+    ${header('Тайчи', `${PROGRAM.goal} · понедельник, среда, суббота`)}
     <div class="grid cols-main">
       <section class="card">
         <div class="small">Карта программы</div>
@@ -333,7 +328,8 @@ function renderHome(v){
           <p class="small">${cur.focus} · ${cur.minutes} мин · ${cur.plan.length} фрагментов</p>
           <p class="small">${PROGRAM.startNote}</p>
           <button class="btn soft" data-open="${cur.n}">Открыть занятие</button>
-        ` : `<p class="small">Программа пройдена. Можно начать заново — история останется.</p>
+        ` : `<p class="small">Все три тренировки этой недели выполнены. Следующая — в понедельник; можно пройти ещё раз, если есть силы.</p>
+             <button class="btn soft" data-start="1">Пройти тренировку А ещё раз</button>
              <button class="btn ghost" data-reset="1">Начать программу заново</button>`}
       </aside>
     </div>`;
@@ -447,7 +443,7 @@ function renderProgress(v){
           <div><b>${total}</b><span>занятий</span></div>
           <div><b>${minutes}</b><span>минут</span></div>
           <div><b>${streak}</b><span>недель подряд</span></div>
-          <div><b>${Math.round(total / PROGRAM.workouts.length * 100)}%</b><span>программы</span></div>
+          <div><b>${programPercent()}%</b><span>программы</span></div>
         </div>
         <h2 style="margin-top:18px">Достижения</h2>
         ${achievementsHtml(hist)}
@@ -547,7 +543,7 @@ function renderWorkout(){
       <button class="btn ghost" data-exit="1">← Назад</button>
       <div style="margin-left:auto" class="small">Занятие ${w.n} · ${w.title}</div>
     </div>
-    ${header('Тренировка', `Занятие ${w.n} · ${w.title} · фрагмент ${idx+1} из ${w.plan.length}`)}
+    ${header('Тренировка', `${w.title} · неделя ${cycleWeek()} · подходов ${setsNow()} · фрагмент ${idx+1} из ${w.plan.length}`)}
     <div class="workout">
       <section class="card"><h2>Порядок</h2><ul class="steps">${steps}</ul></section>
       <section class="card">
@@ -555,7 +551,7 @@ function renderWorkout(){
         <div class="pill">${e.group}</div>
         <p style="margin:10px 0 0">${e.about}</p>
         <div class="fields">
-          <div><b>${frag.sets}</b><span>подход</span></div>
+          <div><b>${frag.ex === 'warmup' || frag.ex === 'cooldown' ? frag.sets : setsNow()}</b><span>подход</span></div>
           <div><b>${frag.reps}</b><span>повторения</span></div>
           <div><b>${frag.rest || 0} с</b><span>отдых</span></div>
         </div>
@@ -641,7 +637,7 @@ function finishWorkout(w){
       <div class="fields">
         <div><b>${min}</b><span>минут</span></div>
         <div><b>${historyList().length}</b><span>всего занятий</span></div>
-        <div><b>${Math.round(historyList().length / PROGRAM.workouts.length * 100)}%</b><span>программы</span></div>
+        <div><b>${programPercent()}%</b><span>программы</span></div>
       </div>
       <div class="controls">
         <button class="btn" data-go="progress">Перейти в прогресс</button>
