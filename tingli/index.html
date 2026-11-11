@@ -23841,6 +23841,49 @@ const IDV_UNITS = [
    ],
    "id": 0
   },
+   {
+    "kind": "words",
+    "title": "Слова 2 · новые",
+    "titleZh": "生词 2",
+    "audio": null,
+    "words": [
+     {
+      "zh": "羡慕",
+      "py": "xiànmù",
+      "ru": "завидовать"
+     },
+     {
+      "zh": "难受",
+      "py": "nánshòu",
+      "ru": "плохо (физически или на душе)"
+     }
+    ],
+    "id": 9
+   },
+   {
+    "kind": "words",
+    "title": "Фразы · 表达",
+    "titleZh": "常用表达",
+    "audio": null,
+    "words": [
+     {
+      "zh": "伤心的事情",
+      "py": "shāngxīn de shìqing",
+      "ru": "печальное дело, грустная история"
+     },
+     {
+      "zh": "细心的照顾",
+      "py": "xìxīn de zhàogù",
+      "ru": "заботливый уход, внимательная забота"
+     },
+     {
+      "zh": "没有活下来",
+      "py": "méiyǒu huó xiàlái",
+      "ru": "не выжил"
+     }
+    ],
+    "id": 10
+   },
   {
    "kind": "listen",
    "title": "先听 · Первое аудирование без текста",
@@ -33609,7 +33652,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.11.1';
+const APP_VER = '6.11.2';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
