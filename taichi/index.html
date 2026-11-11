@@ -4,13 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FBFCF9" />
+<meta name="app-version" content="1.1.0" />
 <title>Тайчи · программа тренировок с гантелями</title>
 <link rel="icon" href="assets/brand/app-mark.png" />
 <style>
 :root{
   --bg:#FBFCF9; --surface:#FFFFFF; --ink:#172820; --primary:#285444;
   --sel:#E5EFE6; --line:#C2D8C5; --next:#AE7A30; --div:#D4DDD5;
-  --muted:#5b6a62; --radius:12px; --panel:16px;
+  --muted:#5b6a62; --r-btn:12px; --r-panel:16px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -21,133 +22,201 @@ body{
 }
 button{font:inherit;color:inherit}
 a{color:var(--primary)}
-.bg{position:fixed;inset:0;z-index:-1;pointer-events:none;background:url('assets/backgrounds/route-relief-desktop.png') center/cover no-repeat;opacity:.55}
-@media (max-width:720px){.bg{background-image:url('assets/backgrounds/route-relief-mobile.png');opacity:.5}}
-.app{min-height:100vh;display:flex;flex-direction:column}
-.shell{flex:1;width:100%;max-width:1440px;margin:0 auto;padding:0 32px 96px}
-/* ---------- шапка (компьютер) ---------- */
-.topbar{display:flex;align-items:center;gap:28px;padding:18px 0 10px;border-bottom:1px solid var(--div);position:sticky;top:0;background:var(--bg);z-index:20}
-.brand{display:flex;align-items:center;gap:10px;flex:none}
+.bg{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+  background:url('assets/backgrounds/route-relief-desktop.png?v=1.1.0') center/cover no-repeat}
+
+/* ---------- шапка компьютера ---------- */
+.topbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--div)}
+.topbar .inner{max-width:1440px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;gap:26px}
 .brand img{height:34px;width:auto;display:block}
-.nav{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
-.nav button{
-  border:none;background:transparent;padding:9px 14px;border-radius:10px;cursor:pointer;
-  color:var(--muted);font-size:15px
-}
+.nav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+.nav button{display:flex;align-items:center;gap:8px;border:0;background:none;padding:9px 12px;
+  border-radius:10px;cursor:pointer;color:var(--muted);font-size:15px;min-height:44px}
+.nav button img{width:18px;height:18px;object-fit:contain;opacity:.8}
 .nav button.on{background:var(--sel);color:var(--ink);font-weight:600}
-.nav button:focus-visible,.btn:focus-visible,.marker:focus-visible,.tab:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-/* ---------- типографика ---------- */
-h1{font-size:30px;line-height:1.2;margin:22px 0 6px;letter-spacing:-.4px}
-h2{font-size:20px;margin:0 0 10px}
+
+/* ---------- оболочка ---------- */
+.shell{max-width:1440px;margin:0 auto;padding:0 32px 96px}
+h1{font-size:30px;line-height:1.2;letter-spacing:-.4px;margin:26px 0 6px}
+h2{font-size:20px;margin:0 0 12px}
 h3{font-size:16px;margin:0 0 6px}
 .sub{color:var(--muted);font-size:15px;margin:0 0 18px}
 .small{font-size:14px;color:var(--muted)}
+.card{background:var(--surface);border-radius:var(--r-panel);padding:18px;box-shadow:0 1px 2px rgba(23,40,32,.05)}
+.cols{display:grid;gap:18px;grid-template-columns:minmax(0,1fr) 340px;align-items:start}
+
 /* ---------- кнопки ---------- */
-.btn{
-  border:none;border-radius:var(--radius);background:var(--primary);color:#fff;
-  padding:12px 20px;font-weight:600;cursor:pointer;min-height:44px
-}
+.btn{border:0;border-radius:var(--r-btn);background:var(--primary);color:#fff;padding:12px 20px;
+  font-weight:600;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
 .btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--div)}
 .btn.soft{background:var(--sel);color:var(--ink)}
 .btn:disabled{opacity:.45;cursor:default}
-/* ---------- дорожка ---------- */
-.route{position:relative;margin:8px 0 6px;padding:6px 0}
-.route-line{position:absolute;left:0;right:0;top:50%;height:2px;background:var(--line);border-radius:2px}
-.route-v .route-line{left:50%;right:auto;top:0;bottom:0;width:2px;height:auto}
-.markers{position:relative;display:flex;justify-content:space-between;gap:12px}
-.route-v .markers{flex-direction:column;gap:22px}
-.marker{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;padding:6px 4px;min-width:44px;min-height:44px}
-.route-v .marker{flex-direction:row;align-items:center;gap:12px}
-.marker .dot{width:28px;height:28px;flex:none;display:block}
-.marker .dot img{width:28px;height:28px;object-fit:contain;display:block}
+:where(button,.btn,a,input,select,[tabindex]):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 
-.marker .cap{font-size:13px;color:var(--muted);max-width:132px;text-align:center;line-height:1.25}
-.route-v .marker .cap{text-align:left;max-width:none}
-.route-scroll{max-height:46vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-@media (min-width:721px){.route-scroll{max-height:none;overflow:visible}}
-.marker.sel .cap{color:var(--ink);font-weight:600}
-/* ---------- карточки ---------- */
-.card{background:var(--surface);border-radius:var(--panel);padding:18px;box-shadow:0 1px 2px rgba(23,40,32,.05)}
-.grid{display:grid;gap:18px}
-.cols-main{grid-template-columns:minmax(0,1fr) 340px}
-@media (max-width:1080px){.cols-main{grid-template-columns:1fr}}
-.list{display:flex;flex-direction:column;gap:10px}
-.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius);background:var(--surface);cursor:pointer;border:1px solid transparent}
-.row:hover{border-color:var(--div)}
-.row.on{background:var(--sel);border-color:var(--line)}
-.row .name{font-weight:600}
-.row .meta{font-size:14px;color:var(--muted)}
-.pill{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--sel);color:var(--primary);font-weight:600}
+/* ---------- карта маршрута ---------- */
+.map-card{padding:18px 18px 22px}
+.map-cap{font-size:13px;color:var(--muted);letter-spacing:.02em;margin:0 0 10px}
+.map{position:relative;width:100%;max-width:720px;margin:0 auto;aspect-ratio:660/400;
+  background:url('assets/routes/program-route-desktop.png?v=1.1.0') 0 0/100% 100% no-repeat}
+.mk{position:absolute;transform:translate(-50%,-50%);padding:0;border:0;background:none;
+  aspect-ratio:1;cursor:pointer;border-radius:50%}
+.mk img{width:100%;height:100%;display:block;object-fit:contain}
+.mk.sel img{filter:drop-shadow(0 0 0 rgba(0,0,0,0))}
+.cap{position:absolute;transform:translateY(-50%);right:2.5%;padding-left:6px;font-size:13px;line-height:1.25;
+  color:var(--muted);pointer-events:none}
+.cap b{display:block;font-weight:600;color:var(--ink);font-size:13.5px}
+.cap i{font-style:normal;font-size:12px;color:var(--muted)}
+.mk.sel ~ .cap{} /* оставляем как есть: подпись относится к своей точке */
+.map-start{display:none}
+
+/* ---------- список занятий ---------- */
+.panel-list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;
+  background:var(--surface);border:1px solid transparent;cursor:pointer;min-height:56px;text-align:left;width:100%}
+.item:hover{border-color:var(--div)}
+.item.on{background:var(--sel);border-color:var(--line)}
+.item .name{font-weight:600}
+.item .meta{font-size:13.5px;color:var(--muted)}
+.thumb{width:128px;height:72px;flex:none;border-radius:10px;object-fit:cover;background:var(--sel)}
+.pill{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--sel);color:var(--primary);
+  font-weight:600;display:inline-block;white-space:nowrap}
 .pill.next{background:#F6EEDF;color:#8a5f1f}
-/* ---------- формы ---------- */
-.field{display:block;margin-bottom:14px}
-.field span{display:block;font-size:14px;color:var(--muted);margin-bottom:6px}
+.ill{display:block;width:100%;max-width:260px;height:auto;max-height:180px;object-fit:cover;
+  border-radius:12px;background:var(--sel)}
+
+/* ---------- теория ---------- */
+.theory{display:grid;gap:18px;grid-template-columns:30% minmax(0,1fr);align-items:start}
+.theory .read p{max-width:68ch}
+
+/* ---------- прогресс ---------- */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
+.stats div{background:var(--sel);border-radius:12px;padding:10px 12px}
+.stats b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.stats span{font-size:12px;color:var(--muted)}
+.empty{padding:22px;border:1px dashed var(--div);border-radius:12px;color:var(--muted);text-align:center}
+
+/* ---------- настройки ---------- */
+.set-card{background:var(--surface);border-radius:var(--r-panel);padding:4px 22px 18px;box-shadow:0 1px 2px rgba(23,40,32,.05)}
+.set-group{padding:18px 0;border-top:1px solid var(--div)}
+.set-group:first-child{border-top:0}
+.set-group h2{margin:0 0 6px}
+.set-row{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:16px;align-items:center;padding:10px 0;min-height:56px}
+.set-row > span{color:var(--ink)}
+.set-row small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
 input[type=text],input[type=number],input[type=time],select{
-  width:100%;padding:11px 12px;border:1px solid var(--div);border-radius:10px;background:var(--surface);color:var(--ink)
-}
+  width:100%;padding:11px 12px;border:1px solid var(--div);border-radius:10px;
+  background:var(--surface);color:var(--ink);min-height:44px;font:inherit}
 .days{display:flex;gap:8px;flex-wrap:wrap}
-.day{border:1px solid var(--div);background:var(--surface);border-radius:10px;padding:9px 12px;cursor:pointer;min-width:44px}
+.day{border:1px solid var(--div);background:var(--surface);border-radius:10px;padding:9px 12px;
+  cursor:pointer;min-width:44px;min-height:44px}
 .day.on{background:var(--sel);border-color:var(--line);font-weight:600}
+
 /* ---------- тренировка ---------- */
-.workout{display:grid;gap:18px;grid-template-columns:300px minmax(0,1fr)}
-@media (max-width:900px){.workout{grid-template-columns:1fr}}
-.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.step{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;background:var(--surface);font-size:15px;color:var(--muted)}
-.step.done{background:var(--sel);color:var(--primary)}
-.step.cur{background:var(--sel);color:var(--ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--line)}
-.step .num{font-variant-numeric:tabular-nums;font-weight:600;min-width:22px}
-.frag-title{font-size:22px;font-weight:700;margin:0 0 4px}
-.timer{font-variant-numeric:tabular-nums;font-size:44px;font-weight:700;letter-spacing:-1px;margin:14px 0}
-.fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0}
-.fields div{background:var(--sel);border-radius:12px;padding:10px 12px}
-.fields b{display:block;font-size:20px}
-.fields span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.workout{display:grid;gap:26px;grid-template-columns:minmax(0,420px) minmax(0,1fr);align-items:start}
+.frag{max-width:640px}
+.steps{list-style:none;margin:0;padding:0;position:relative}
+.steps::before{content:'';position:absolute;left:13px;top:24px;bottom:24px;width:2px;
+  background:var(--line);border-radius:2px}
+.step{position:relative;display:flex;gap:12px;align-items:flex-start;padding:8px 8px 8px 0;border-radius:12px}
+.step .dot{width:28px;height:28px;flex:none;position:relative;z-index:1}
+.step .dot img{width:100%;height:100%;display:block}
+.step .t{font-size:14.5px;line-height:1.3;padding-top:4px}
+.step .t em{display:block;font-style:normal;font-size:12.5px;color:var(--muted)}
+.step.cur{background:var(--sel)}
+.step.cur .t{font-weight:600}
+.step.next .t{font-weight:400}
+.frag h2{font-size:22px;line-height:1.25;margin:0 0 8px}
+.fields{display:flex;flex-direction:column;margin:14px 0;background:var(--sel);border-radius:12px;padding:2px 14px}
+.fields .f{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;border-top:1px solid rgba(23,40,32,.08)}
+.fields .f:first-child{border-top:0}
+.fields .f span{font-size:14px;color:var(--muted)}
+.fields .f b{font-size:16px;font-variant-numeric:tabular-nums;letter-spacing:0}
+.timer{font-variant-numeric:tabular-nums;font-size:19px;font-weight:700}
+.pause{background:var(--sel);border-radius:12px;padding:12px 14px;margin:12px 0}
+.pause b{font-size:17px}
+.pause p{margin:4px 0 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.tech{margin:12px 0 0;padding-left:20px}
+.tech li{margin-bottom:6px}
+
+/* ---------- завершение ---------- */
+.done-card{text-align:center}
+.done-card .controls{justify-content:center}
+
 /* ---------- телефон ---------- */
+.m-head{display:none}
 .tabs{display:none}
+.workbar{display:none}
+@media (max-width:1080px){
+  .cols{grid-template-columns:1fr}
+  .workout{grid-template-columns:1fr}
+  .theory{grid-template-columns:1fr}
+}
 @media (max-width:720px){
-  .shell{padding:0 16px 108px}
+  .bg{background-image:url('assets/backgrounds/route-relief-mobile.png?v=1.1.0');opacity:.45}
+  .shell{padding:0 16px calc(84px + env(safe-area-inset-bottom))}
   .topbar{display:none}
-  .m-head{display:flex;align-items:center;gap:10px;padding:14px 0 8px}
-  .m-head img{height:28px}
-  h1{font-size:25px;margin-top:14px}
-  .tabs{
-    display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--surface);
-    border-top:1px solid var(--div);padding-bottom:env(safe-area-inset-bottom);z-index:30
-  }
-  .tab{flex:1;border:none;background:transparent;padding:10px 6px 12px;font-size:12px;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px}
+  .m-head{display:flex;align-items:center;padding:14px 0 8px}
+  .m-head img{height:30px}
+  h1{font-size:25px;margin:10px 0 4px}
+  .sub{font-size:14px}
+  .card{padding:16px;border-radius:16px}
+  .map-card{padding:14px 12px 16px}
+  .map{max-width:340px;aspect-ratio:300/405;
+    background-image:url('assets/routes/program-route-mobile.png?v=1.1.0')}
+  .mk{min-width:44px;min-height:44px}
+  .cap b{font-size:13px}
+  .map-start{display:flex;position:absolute;left:18.667%;top:55.802%;width:79.333%;height:10.864%;
+    align-items:center;justify-content:center;border:0;border-radius:10px;background:var(--primary);
+    color:#fff;font-weight:600;font-size:14px;cursor:pointer;padding:0 6px;line-height:1.15}
+  .thumb{width:80px;height:64px}
+  .set-card{padding:2px 16px 16px}
+  .set-row{grid-template-columns:1fr;gap:6px}
+  .fields{grid-template-columns:1fr 1fr}
+  .timer{font-size:36px}
+  .tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);
+    border-top:1px solid var(--div);padding-bottom:env(safe-area-inset-bottom)}
+  .tab{flex:1;border:0;background:none;padding:8px 6px 10px;font-size:12px;color:var(--muted);
+    cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px}
   .tab img{width:22px;height:22px;object-fit:contain;opacity:.75}
   .tab.on{color:var(--ink);font-weight:600}
   .tab.on img{opacity:1}
-  .desk-only{display:none!important}
+  body.in-workout .tabs{display:none}
+  .workbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);
+    border-top:1px solid var(--div);padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    gap:10px;align-items:center}
+  body.in-workout .workbar{display:flex}
+  .workbar .btn{flex:1}
+  .save-bar{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:29;
+    background:var(--bg);border-top:1px solid var(--div);padding:10px 16px}
+  .save-bar .btn{width:100%}
+  .frag #nextBtn{display:none}
 }
 @media (min-width:721px){ .mob-only{display:none!important} }
-.m-head{display:none}
-.empty{padding:22px;border:1px dashed var(--div);border-radius:var(--radius);color:var(--muted);text-align:center}
 </style>
 </head>
 <body>
 <div class="bg"></div>
-<div class="app">
-  <div class="shell">
-    <!-- компьютер: верхняя навигация -->
-    <div class="topbar desk-only">
-      <div class="brand"><img src="assets/brand/wordmark-horizontal.png" alt="Тайчи" /></div>
-      <nav class="nav" id="nav"></nav>
-    </div>
-    <!-- телефон: шапка -->
-    <div class="m-head mob-only"><img src="assets/brand/wordmark-horizontal.png" alt="Тайчи" /></div>
 
-    <main id="view"></main>
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="#" data-go="home" aria-label="Тайчи — на главную"><img src="assets/brand/wordmark-horizontal.png" alt="Тайчи" /></a>
+    <nav class="nav" id="nav"></nav>
   </div>
+</header>
 
-  <!-- телефон: нижние вкладки -->
-  <nav class="tabs mob-only" id="tabs">
-    <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png" alt=""><span>Главная</span></button>
-    <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png" alt=""><span>Программа</span></button>
-    <button class="tab" data-tab="sections"><img src="assets/icons/nav-sections.png" alt=""><span>Разделы</span></button>
-  </nav>
+<div class="shell">
+  <div class="m-head mob-only"><img src="assets/brand/wordmark-horizontal.png" alt="Тайчи" /></div>
+  <main id="view"></main>
 </div>
+
+<nav class="tabs mob-only" id="tabs">
+  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png" alt=""><span>Главная</span></button>
+  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png" alt=""><span>Программа</span></button>
+  <button class="tab" data-tab="sections"><img src="assets/icons/nav-sections.png" alt=""><span>Разделы</span></button>
+</nav>
+
+<div class="workbar" id="workbar"></div>
 
 <script>
 /* =======================================================================
@@ -217,8 +286,8 @@ const THEORY = [
   { id:'when', title:'Когда ждать результатов', text:'2–3 недели — улучшение техники и переносимости нагрузки.\n\n4–6 недель — увеличение количества повторений, улучшение силы.\n\n8–12 недель — возможные заметные изменения мышц при достаточной нагрузке и восстановлении.' }
 ];
 
-function setsNow(){ return cycleWeek() <= 2 ? 1 : 2; }
-
+/* ---------- состояние ---------- */
+const APP_VER = '1.1.0';   // поднимать вмете с ?v= в CSS (там номер захардкожен)
 const STORE_KEY = 'taichi_v1';
 function state(){
   try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch(e){ return {}; }
@@ -243,30 +312,65 @@ function currentWorkout(){
   return PROGRAM.workouts.find(w => !done.has(w.n)) || null;
 }
 function programPercent(){ return Math.min(100, Math.round(historyList().length / 12 * 100)); }
-function cycleWeek(){                                    // какая неделя программы идёт
+function cycleWeek(){
   const h = historyList();
   if (!h.length) return 1;
   return Math.floor((Date.now() - h[0].at) / (7*86400000)) + 1;
 }
 function ex(id){ return EXERCISES.find(e => e.id === id) || { id, name:id, group:'', about:'', how:[] }; }
+function setsNow(){ return cycleWeek() <= 2 ? 1 : 2; }
+function isMob(){ return window.innerWidth <= 720; }
 
-/* ---------- маршрут ---------- */
-function routeHtml(selected, opts){
-  const o = opts || {};
-  const done = doneSet();
-  const cur = currentWorkout();
-  const items = PROGRAM.workouts.map(w => {
-    const isDone = done.has(w.n);
-    const isCur = cur && cur.n === w.n;
-    const cls = isDone ? 'done' : (isCur ? 'current' : 'next');
+/* ---------- маршрут: координаты из ASSET-MAP.md ---------- */
+const MAP_DESK = {
+  w:660, h:400, sizes:{ complete:80, current:116, next:84 },
+  pts:[{x:35,y:41,lx:80},{x:290,y:205,lx:352},{x:437,y:359,lx:495}]
+};
+const MAP_MOB = {
+  w:300, h:405, sizes:{ complete:56, current:84, next:56 },
+  pts:[{x:70,y:32,lx:103},{x:78,y:178,lx:126},{x:71,y:363,lx:117}],
+  btn:{ x:56, y:226, w:238, h:44 }
+};
+
+function pct(v, total){ return (v / total * 100).toFixed(3) + '%'; }
+
+/* все картинки получают ?v=APP_VER — иначе после выпуска браузер и чужой
+   service worker держат старый файл по прежнему адресу */
+function stampAssets(root){
+  (root || document).querySelectorAll('img[src^="assets/"]').forEach(i => {
+    const s = i.getAttribute('src');
+    if (s && s.indexOf('?v=') < 0) i.setAttribute('src', s + '?v=' + APP_VER);
+  });
+}
+
+function routeState(w, done, cur){
+  if (done.has(w.n)) return 'complete';
+  if (cur && cur.n === w.n) return 'current';
+  return 'next';
+}
+
+function routeHtml(selected){
+  const g = isMob() ? MAP_MOB : MAP_DESK;
+  const done = doneSet(), cur = currentWorkout();
+  const s = state();
+  const parts = PROGRAM.workouts.map((w, i) => {
+    const p = g.pts[i] || g.pts[g.pts.length - 1];
+    const st = routeState(w, done, cur);
+    const size = g.sizes[st];
     const sel = selected === w.n ? ' sel' : '';
-    const icon = isDone ? 'route-complete.png' : (isCur ? 'route-current.png' : 'route-next.png');
-    return `<button class="marker ${cls}${sel}" data-open="${w.n}" aria-label="${w.title}">
-      <span class="dot"><img src="assets/icons/${icon}" alt=""></span><span class="cap">${w.title}</span></button>`;
+    const isCur = st === 'current' ? ' aria-current="step"' : '';
+    const stName = st === 'complete' ? 'Пройдено' : (st === 'current' ? 'Текущее занятие' : 'Следующее занятие');
+    return `<button class="mk${sel}" data-open="${w.n}"${isCur}
+        aria-label="${esc(w.block)}: ${esc(w.title)}, ${w.minutes} минут, ${stName.toLowerCase()}"
+        style="left:${pct(p.x, g.w)};top:${pct(p.y, g.h)};width:${pct(size, g.w)}">
+        <img src="assets/icons/route-${st}.png" alt="" width="${size}" height="${size}"></button>
+      <span class="cap" style="left:${pct(p.lx, g.w)};top:${pct(p.y, g.h)}">
+        <b>${esc(w.title)}</b><i>${stName}</i></span>`;
   }).join('');
-  const vertical = (o.vertical === undefined) ? (window.innerWidth < 721) : !!o.vertical;
-  const curId = (cur && selected === cur.n) || !selected ? ' id="routeCur"' : '';
-  return `<div class="route-scroll"><div class="route ${vertical ? 'route-v' : ''}"><div class="route-line"></div><div class="markers">${items.replace('class="marker current', 'id="routeCur" class="marker current')}</div></div></div>`;
+  const btn = (isMob() && cur)
+    ? `<button class="map-start" data-start="${cur.n}">${s.running ? 'Продолжить тренировку' : 'Начать тренировку'}</button>`
+    : '';
+  return `<div class="map">${parts}${btn}</div>`;
 }
 
 /* ---------- экраны ---------- */
@@ -275,92 +379,88 @@ let VIEW = 'home';
 function render(){
   const v = document.getElementById('view');
   const s = state();
-  if (s.running && VIEW === 'workout') { renderWorkout(); paintNav(); return; }
+  document.body.classList.toggle('in-workout', VIEW === 'workout' && !!s.running);
   const map = {
     home: renderHome, program: renderProgram, exercises: renderExercises,
     workout: renderWorkout, theory: renderTheory, progress: renderProgress,
-    settings: renderSettings, sections: renderSections, exercise: renderExerciseCard
+    settings: renderSettings, sections: renderSections, exercise: renderExerciseCard,
+    done: renderDone
   };
   (map[VIEW] || renderHome)(v);
+  stampAssets();
   paintNav();
   window.scrollTo(0, 0);
-  const rc = document.getElementById('routeCur');
-  if (rc && window.innerWidth < 721) {
-    const box = rc.closest('.route-scroll');
-    if (box) box.scrollTop = Math.max(0, rc.offsetTop - box.clientHeight / 2);
-  }
 }
 
 function paintNav(){
   const tabOf = { home:'home', program:'program', workout:'program', exercises:'sections',
-    sections:'sections', theory:'sections', progress:'sections', settings:'sections', exercise:'sections' };
+    sections:'sections', theory:'sections', progress:'sections', settings:'sections',
+    exercise:'sections', done:'program' };
   document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.go === VIEW));
   document.querySelectorAll('#tabs .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === (tabOf[VIEW] || 'home')));
 }
 
-function header(title, sub){
-  return `<h1>${title}</h1>${sub ? `<p class="sub">${sub}</p>` : ''}`;
-}
+function head(title, sub){ return `<h1>${title}</h1>${sub ? `<p class="sub">${sub}</p>` : ''}`; }
 
 function renderHome(v){
   const cur = currentWorkout();
   const s = state();
-  const running = s.running;
   const hist = historyList();
-  const lastDone = hist.length ? `Последнее: занятие ${hist[hist.length-1].n} · ${fmtDate(hist[hist.length-1].at)}` : 'Ещё нет завершённых занятий';
+  const last = hist.length ? hist.slice().sort((a,b) => a.at - b.at).slice(-1)[0] : null;
   v.innerHTML = `
-    ${header('Тайчи', `${PROGRAM.goal} · понедельник, среда, суббота`)}
-    <div class="grid cols-main">
-      <section class="card">
-        <div class="small">Карта программы</div>
-        ${routeHtml(cur ? cur.n : null, {})}
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-          ${cur ? `<button class="btn" data-start="${cur.n}">${running ? 'Продолжить тренировку' : 'Начать тренировку'}</button>` : ''}
-          <button class="btn ghost" data-go="progress">Прогресс</button>
-        </div>
-        <p class="small" style="margin-top:14px">${lastDone}</p>
+    ${head('Карта программы', PROGRAM.title + ' · ' + PROGRAM.goal)}
+    <div class="cols">
+      <section class="card map-card">
+        <div class="map-cap">Понедельник · среда · суббота</div>
+        ${routeHtml(cur ? cur.n : null)}
       </section>
       <aside class="card">
         <h2>Текущее занятие</h2>
         ${cur ? `
-          <div class="pill">${cur.block}</div>
-          <h3 style="margin-top:10px">${cur.n}. ${cur.title}</h3>
-          <p class="small">${cur.focus} · ${cur.minutes} мин · ${cur.plan.length} фрагментов</p>
-          <p class="small">${PROGRAM.startNote}</p>
-          <button class="btn soft" data-open="${cur.n}">Открыть занятие</button>
+          <span class="pill">${esc(cur.block)}</span>
+          <h3 style="margin-top:10px">${cur.n}. ${esc(cur.title)}</h3>
+          <p class="small" style="margin:6px 0 14px">${esc(cur.focus)} · ${cur.minutes} мин · ${cur.plan.length} фрагментов</p>
+          <img class="ill" src="assets/illustrations/exercise-card-relief.png" alt="Рельеф тренировки" width="260" height="180" />
+          <div class="controls" style="margin-top:14px"><button class="btn" data-start="${cur.n}">${s.running ? 'Продолжить тренировку' : 'Начать тренировку'}</button>
+            <button class="btn ghost" data-go="progress">Прогресс</button></div>
+          <p class="small" style="margin:12px 0 0">${esc(PROGRAM.startNote)}</p>
+          <div style="margin-top:10px"><button class="btn ghost" data-open="${cur.n}">Открыть занятие</button></div>
         ` : `<p class="small">Все три тренировки этой недели выполнены. Следующая — в понедельник; можно пройти ещё раз, если есть силы.</p>
-             <button class="btn soft" data-start="1">Пройти тренировку А ещё раз</button>
-             <button class="btn ghost" data-reset="1">Начать программу заново</button>`}
+             <div class="controls"><button class="btn" data-start="1">Пройти тренировку А ещё раз</button>
+               <button class="btn ghost" data-go="progress">Прогресс</button></div>`}
+        <p class="small" style="margin:14px 0 0">${last ? `Последнее: занятие ${last.n} · ${fmtDate(last.at)}` : 'Ещё нет завершённых занятий'}</p>
       </aside>
     </div>`;
 }
 
 function renderProgram(v){
   const cur = currentWorkout();
+  const done = doneSet();
   const byBlock = {};
   PROGRAM.workouts.forEach(w => { (byBlock[w.block] = byBlock[w.block] || []).push(w); });
-  const done = doneSet();
   v.innerHTML = `
-    ${header('Программа', PROGRAM.title + ' · ' + PROGRAM.goal)}
-    <div class="grid cols-main">
-      <section class="card">
-        <div class="small">Маршрут</div>
-        ${routeHtml(cur ? cur.n : null, {})}
+    ${head('Программа', PROGRAM.title + ' · ' + PROGRAM.goal)}
+    <div class="cols">
+      <section class="card map-card">
+        <div class="map-cap">Маршрут программы</div>
+        ${routeHtml(cur ? cur.n : null)}
       </section>
       <aside class="card">
         <h2>Расписание</h2>
         ${Object.keys(byBlock).map(b => `
           <div class="small" style="margin:10px 0 6px">${b}</div>
-          <div class="list">
+          <div class="panel-list">
             ${byBlock[b].map(w => `
-              <div class="row ${done.has(w.n) ? '' : ''}" data-open="${w.n}">
-                <div style="flex:1">
-                  <div class="name">${w.n}. ${w.title}</div>
-                  <div class="meta">${w.focus} · ${w.minutes} мин</div>
-                </div>
-                <span class="pill ${done.has(w.n) ? '' : 'next'}">${done.has(w.n) ? 'пройдено' : (cur && cur.n === w.n ? 'текущее' : 'следующее')}</span>
-              </div>`).join('')}
+              <button class="item" data-open="${w.n}">
+                <span style="flex:1">
+                  <span class="name" style="display:block">${w.n}. ${esc(w.title)}</span>
+                  <span class="meta">${esc(w.focus)} · ${w.minutes} мин</span>
+                </span>
+                <span class="pill ${done.has(w.n) ? '' : 'next'}">${done.has(w.n) ? 'пройдено' : (cur && cur.n === w.n ? 'сегодня' : 'следующее')}</span>
+                <span aria-hidden="true">→</span>
+              </button>`).join('')}
           </div>`).join('')}
+        ${cur ? `<div class="controls" style="margin-top:14px"><button class="btn" data-open="${cur.n}">Открыть занятие</button></div>` : ''}
       </aside>
     </div>`;
 }
@@ -368,78 +468,114 @@ function renderProgram(v){
 function renderExercises(v, selectedId){
   const q = (state().exSearch || '').toLowerCase();
   const list = EXERCISES.filter(e => !q || e.name.toLowerCase().includes(q) || e.group.toLowerCase().includes(q));
-  v.innerHTML = `
-    ${header('Упражнения', 'Материалы программы: техника и описание')}
-    <div class="grid" style="grid-template-columns:minmax(0,1fr);gap:14px">
+  if (isMob()) {
+    v.innerHTML = `
+      ${head('Упражнения', 'Техника и описание')}
       <input type="text" id="exSearch" placeholder="Поиск упражнений" value="${esc(state().exSearch || '')}" />
-      <div class="grid" style="grid-template-columns:minmax(0,360px) minmax(0,1fr)">
-        <div class="list">
-          ${list.length ? list.map(e => `<div class="row ${selectedId === e.id ? 'on' : ''}" data-ex="${e.id}">
-              <div style="flex:1"><div class="name">${e.name}</div><div class="meta">${e.group}</div></div>
-            </div>`).join('') : '<div class="empty">Ничего не найдено</div>'}
+      <div class="panel-list" style="margin-top:14px">
+        ${list.length ? list.map(e => `<button class="item" data-ex="${e.id}">
+            <img class="thumb" src="assets/illustrations/exercise-card-relief.png" alt="" />
+            <span style="flex:1"><span class="name" style="display:block">${esc(e.name)}</span>
+            <span class="meta">${esc(e.group)}</span></span>
+            <span aria-hidden="true">›</span></button>`).join('') : '<div class="empty">Ничего не найдено</div>'}
+      </div>`;
+    return;
+  }
+  v.innerHTML = `
+    ${head('Упражнения', 'Материалы программы: техника и описание')}
+    <div class="cols">
+      <section>
+        <div style="max-width:360px"><input type="text" id="exSearch" placeholder="Поиск упражнений" value="${esc(state().exSearch || '')}" /></div>
+        <div class="panel-list" style="margin-top:14px">
+          ${list.length ? list.map(e => `<button class="item${selectedId === e.id ? ' on' : ''}" data-ex="${e.id}">
+              <img class="thumb" src="assets/illustrations/exercise-card-relief.png" alt="" />
+              <span style="flex:1"><span class="name" style="display:block">${esc(e.name)}</span>
+              <span class="meta">${esc(e.group)}</span></span></button>`).join('') : '<div class="empty">Ничего не найдено</div>'}
         </div>
-        <div class="card" id="exCard">${selectedId ? exCardHtml(ex(selectedId)) : '<p class="small">Выберите упражнение в списке.</p>'}</div>
-      </div>
+      </section>
+      <aside class="card" id="exCard">${selectedId ? exCardHtml(ex(selectedId)) : '<p class="small">Выберите упражнение в списке.</p>'}</aside>
     </div>`;
 }
 
 function exCardHtml(e){
-  return `<div class="frag-title">${e.name}</div>
-    <div class="pill">${e.group}</div>
-    <p style="margin-top:12px">${e.about}</p>
+  return `<img class="ill" src="assets/illustrations/exercise-card-relief.png" alt="Рельеф упражнения" width="260" height="180" />
+    <h2 style="margin-top:14px">${esc(e.name)}</h2>
+    <span class="pill">${esc(e.group)}</span>
+    <p style="margin:12px 0 0">${esc(e.about)}</p>
     <h3 style="margin-top:16px">Техника</h3>
-    <ol style="margin:0;padding-left:20px">${(e.how||[]).map(x => `<li>${x}</li>`).join('')}</ol>
-    <div style="margin-top:16px;border-radius:12px;overflow:hidden;background:var(--sel)">
-      <img src="assets/illustrations/exercise-card-relief.png" alt="" style="width:100%;display:block;opacity:.9" />
-    </div>`;
+    <ol class="tech">${(e.how || []).map(x => `<li>${esc(x)}</li>`).join('')}</ol>`;
 }
 
 function renderExerciseCard(v, id){
-  v.innerHTML = `${header('Упражнение', '')}
-    <div class="card">${exCardHtml(ex(id))}</div>
-    <div style="margin-top:14px"><button class="btn ghost" data-go="exercises">К упражнениям</button></div>`;
+  v.innerHTML = `<div style="margin:8px 0 0"><button class="btn ghost" data-go="exercises">← Упражнения</button></div>
+    <div class="card" style="margin-top:14px">${exCardHtml(ex(id))}</div>`;
 }
 
 function renderTheory(v, openId){
   const first = openId || (state().theoryOpen) || THEORY[0].id;
   const t = THEORY.find(x => x.id === first) || THEORY[0];
+  if (isMob()) {
+    v.innerHTML = `
+      ${head('Теория', 'Как тренироваться: техника, прогрессия, безопасность')}
+      <button class="btn ghost" id="tocBtn" style="margin-bottom:14px">Оглавление</button>
+      <div class="card read" id="toc" hidden>
+        <h2>Оглавление</h2>
+        <div class="panel-list">
+          ${THEORY.map(x => `<button class="item${x.id === t.id ? ' on' : ''}" data-theory="${x.id}"><span class="name">${esc(x.title)}</span></button>`).join('')}
+        </div>
+      </div>
+      <article class="card read" style="margin-top:14px">
+        <h2>${esc(t.title)}</h2>
+        ${t.text.split('\n\n').map(p => `<p>${esc(p)}</p>`).join('')}
+      </article>`;
+    const tb = document.getElementById('tocBtn');
+    if (tb) tb.onclick = () => {
+      const toc = document.getElementById('toc');
+      toc.hidden = !toc.hidden;
+      tb.textContent = toc.hidden ? 'Оглавление' : 'Скрыть оглавление';
+    };
+    return;
+  }
   v.innerHTML = `
-    ${header('Теория', 'Как тренироваться: техника, прогрессия, безопасность')}
-    <div class="grid cols-main">
+    ${head('Теория', 'Как тренироваться: техника, прогрессия, безопасность')}
+    <div class="theory">
       <section class="card">
         <h2>Оглавление</h2>
-        <div class="list">
-          ${THEORY.map(x => `<div class="row ${x.id === t.id ? 'on' : ''}" data-theory="${x.id}">
-            <div class="name">${x.title}</div></div>`).join('')}
+        <div class="panel-list">
+          ${THEORY.map(x => `<button class="item${x.id === t.id ? ' on' : ''}" data-theory="${x.id}"><span class="name">${esc(x.title)}</span></button>`).join('')}
         </div>
       </section>
-      <aside class="card">
-        <h2>${t.title}</h2>
-        ${t.text.split('\n\n').map(p => `<p>${p}</p>`).join('')}
-      </aside>
+      <article class="card read">
+        <h2>${esc(t.title)}</h2>
+        ${t.text.split('\n\n').map(p => `<p>${esc(p)}</p>`).join('')}
+        <img class="ill" style="margin-top:18px" src="assets/illustrations/exercise-card-relief.png" alt="Рельеф" width="260" height="180" />
+      </article>
     </div>`;
 }
 
 function renderProgress(v){
-  const hist = historyList();
+  const hist = historyList().slice().sort((a,b) => b.at - a.at);
   const total = hist.length;
   const minutes = hist.reduce((s,h) => s + (h.min || 0), 0);
   const streak = calcStreak(hist);
   v.innerHTML = `
-    ${header('Прогресс', 'История занятий, статистика и достижения')}
-    <div class="grid cols-main">
+    ${head('Прогресс', 'История занятий, статистика и достижения')}
+    <div class="cols">
       <section class="card">
         <h2>История занятий</h2>
-        ${total ? `<div class="list">${hist.slice().reverse().map(h => `
-          <div class="row"><div style="flex:1">
-            <div class="name">Занятие ${h.n} · ${h.title || ''}</div>
-            <div class="meta">${fmtDate(h.at)} · ${h.min || 0} мин</div>
-          </div><span class="pill">завершено</span></div>`).join('')}</div>`
+        ${total ? `<div class="panel-list">${hist.map(h => `
+          <div class="item" style="cursor:default">
+            <span style="flex:1">
+              <span class="name" style="display:block">Занятие ${h.n} · ${esc(h.title || '')}</span>
+              <span class="meta">${fmtDate(h.at)} · ${h.min || 0} мин</span>
+            </span>
+            <span class="pill">завершено</span>
+          </div>`).join('')}</div>`
         : '<div class="empty">Пока нет завершённых занятий. Начните первое — оно появится здесь.</div>'}
       </section>
       <aside class="card">
         <h2>Статистика</h2>
-        <div class="fields" style="grid-template-columns:1fr 1fr">
+        <div class="stats">
           <div><b>${total}</b><span>занятий</span></div>
           <div><b>${minutes}</b><span>минут</span></div>
           <div><b>${streak}</b><span>недель подряд</span></div>
@@ -459,15 +595,17 @@ function achievementsHtml(hist){
     { at:6,  text:'Половина программы' },
     { at:12, text:'Программа пройдена' }
   ];
-  return `<div class="list">${badges.map(b => `<div class="row">
+  return `<div class="panel-list">${badges.map(b => `<div class="item" style="cursor:default">
     <span class="pill ${total >= b.at ? '' : 'next'}">${total >= b.at ? '✓' : '—'}</span>
-    <div style="flex:1"><div class="name">${b.text}</div></div></div>`).join('')}</div>`;
+    <span style="flex:1"><span class="name">${b.text}</span></span></div>`).join('')}</div>`;
 }
 
 function calcStreak(hist){
   if (!hist.length) return 0;
-  const weeks = new Set(hist.map(h => { const d = new Date(h.at); const onejan = new Date(d.getFullYear(),0,1);
-    return d.getFullYear() + '-' + Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7); }));
+  const weeks = new Set(hist.map(h => {
+    const d = new Date(h.at); const onejan = new Date(d.getFullYear(), 0, 1);
+    return d.getFullYear() + '-' + Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+  }));
   return weeks.size;
 }
 
@@ -475,25 +613,35 @@ function renderSettings(v){
   const st = settings();
   const DAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
   v.innerHTML = `
-    ${header('Настройки', 'Расписание, напоминания и личные параметры')}
-    <div class="grid" style="grid-template-columns:minmax(0,1fr);gap:16px">
-      <section class="card">
+    ${head('Настройки', 'Расписание, напоминания и личные параметры')}
+    <div class="set-card">
+      <section class="set-group">
         <h2>Расписание</h2>
-        <div class="small">Дни занятий</div>
-        <div class="days" id="days">${DAYS.map((d,i) => `<button class="day ${st.days.includes(i+1) ? 'on' : ''}" data-day="${i+1}">${d}</button>`).join('')}</div>
+        <div class="set-row">
+          <span>Дни занятий<small>Три тренировки в неделю</small></span>
+          <div class="days" id="days">${DAYS.map((d,i) => `<button class="day ${st.days.includes(i+1) ? 'on' : ''}" data-day="${i+1}" aria-pressed="${st.days.includes(i+1)}">${d}</button>`).join('')}</div>
+        </div>
       </section>
-      <section class="card">
+      <section class="set-group">
         <h2>Уведомления</h2>
-        <label class="field"><span>Время напоминания</span><input type="time" id="setTime" value="${st.time || '19:00'}" /></label>
-        <p class="small">Напоминание показывается на этом устройстве, когда открыто приложение.</p>
+        <div class="set-row">
+          <span>Время напоминания<small>Показывается, когда приложение открыто</small></span>
+          <input type="time" id="setTime" value="${st.time || '19:00'}" />
+        </div>
       </section>
-      <section class="card">
+      <section class="set-group">
         <h2>Персональные параметры</h2>
-        <label class="field"><span>Вес тела, кг</span><input type="number" id="setBW" value="${st.bodyweight || ''}" placeholder="например 82" /></label>
-        <label class="field"><span>Рабочий вес гантелей, кг</span><input type="number" id="setW" value="${st.weight || ''}" placeholder="например 10" /></label>
+        <div class="set-row">
+          <span>Вес тела, кг</span>
+          <input type="number" id="setBW" value="${esc(st.bodyweight || '')}" placeholder="82" />
+        </div>
+        <div class="set-row">
+          <span>Рабочий вес гантелей, кг</span>
+          <input type="number" id="setW" value="${esc(st.weight || '')}" placeholder="3" />
+        </div>
       </section>
-      <div><button class="btn" id="setSave">Сохранить</button></div>
-    </div>`;
+    </div>
+    <div style="margin-top:16px"><button class="btn" id="setSave">Сохранить</button></div>`;
 }
 
 function renderSections(v){
@@ -504,11 +652,11 @@ function renderSections(v){
     { go:'progress',  icon:'nav-progress.png',  t:'Прогресс',     d:'История и достижения' },
     { go:'settings',  icon:'nav-settings.png',  t:'Настройки',    d:'Расписание и параметры' }
   ];
-  v.innerHTML = `${header('Разделы', '')}
-    <div class="list">${items.map(i => `<div class="row" data-go="${i.go}">
+  v.innerHTML = `${head('Разделы', '')}
+    <div class="panel-list">${items.map(i => `<button class="item" data-go="${i.go}">
       <img src="assets/icons/${i.icon}" alt="" style="width:26px;height:26px" />
-      <div style="flex:1"><div class="name">${i.t}</div><div class="meta">${i.d}</div></div>
-    </div>`).join('')}</div>`;
+      <span style="flex:1"><span class="name" style="display:block">${i.t}</span><span class="meta">${i.d}</span></span>
+      <span aria-hidden="true">›</span></button>`).join('')}</div>`;
 }
 
 /* ---------- тренировка ---------- */
@@ -517,86 +665,129 @@ function fmt(sec){
   const m = Math.floor(sec / 60), s = sec % 60;
   return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
 }
-function renderWorkout(){
-  const v = document.getElementById('view');
+function paramLabel(reps){ return /мин|сек/.test(reps) ? 'Время' : 'Повторения'; }
+
+function stepsHtml(w, idx){
+  const items = w.plan.map((f, i) => {
+    const e = ex(f.ex);
+    const cls = i < idx ? 'done' : (i === idx ? 'cur' : 'next');
+    const icon = i < idx ? 'route-complete.png' : (i === idx ? 'route-current.png' : 'route-next.png');
+    return `<li class="step ${cls}"><span class="dot"><img src="assets/icons/${icon}" alt=""></span>
+      <span class="t">${esc(e.name)}<em>${f.sets} × ${esc(f.reps)}</em></span></li>`;
+  }).join('');
+  return `<ol class="steps">${items}</ol>`;
+}
+
+function fragPanel(w, idx){
+  const cur = state().running || {};
+  const frag = w.plan[idx];
+  const e = ex(frag.ex);
+  const paused = !!cur.paused;
+  const left = cur.left != null ? cur.left : (frag.rest || 0);
+  const last = idx === w.plan.length - 1;
+  return `<div class="frag">
+    <h2>${esc(e.name)}</h2>
+    <span class="pill">${esc(e.group)}</span>
+    <p style="margin:12px 0 0">${esc(e.about)}</p>
+    <div class="fields">
+      <div class="f"><span>Подход</span><b>${frag.sets}</b></div>
+      <div class="f"><span>${paramLabel(frag.reps)}</span><b>${esc(frag.reps)}</b></div>
+      ${frag.rest ? `<div class="f"><span>Таймер</span><b class="timer" id="timer">${fmt(left)}</b></div>` : ''}
+    </div>
+    ${paused ? `<div class="pause"><b>Пауза</b><p class="small">Позиция в занятии сохранена — можно продолжить или выйти.</p></div>` : ''}
+    <div class="controls">
+      ${paused
+        ? `<button class="btn" id="resumeBtn">Продолжить</button><button class="btn ghost" data-exit="1">Выйти</button>`
+        : `${frag.rest ? `<button class="btn" id="timerBtn">${cur.runningTimer ? 'Пауза' : 'Запустить'}</button>` : ''}<button class="btn ghost" id="pauseBtn">Пауза</button>`}
+      <button class="btn" id="nextBtn">${last ? 'Завершить занятие' : 'Далее'}</button>
+    </div>
+    <h3 style="margin-top:18px">Техника</h3>
+    <ol class="tech">${(e.how || []).map(x => `<li>${esc(x)}</li>`).join('')}</ol>
+  </div>`;
+}
+
+function renderWorkout(v){
   const s = state();
   const cur = s.running || null;
   if (!cur) {
     const w = currentWorkout();
-    if (!w) { v.innerHTML = header('Тренировка','Программа пройдена') + '<div class="empty">Все занятия завершены.</div>'; return; }
+    if (!w) { v.innerHTML = head('Тренировка','Программа пройдена') + '<div class="empty">Все занятия завершены.</div>'; return; }
     startWorkout(w.n);
     return;
   }
   const w = PROGRAM.workouts.find(x => x.n === cur.n);
+  if (!w) { save({ running:null }); VIEW = 'home'; render(); return; }
   const idx = Math.min(cur.idx || 0, w.plan.length - 1);
-  const frag = w.plan[idx];
-  const e = ex(frag.ex);
-  const paused = !!cur.paused;
-  const steps = w.plan.map((f, i) => {
-    const fe = ex(f.ex);
-    const cls = i < idx ? 'done' : (i === idx ? 'cur' : '');
-    return `<li class="step ${cls}"><span class="num">${i+1}</span><span>${fe.name}<br><span class="small">${f.sets} × ${f.reps}</span></span></li>`;
-  }).join('');
-  const left = cur.left != null ? cur.left : (frag.rest || 0);
-  v.innerHTML = `
-    <div class="topbar desk-only" style="position:static;border:none;padding-bottom:0">
-      <button class="btn ghost" data-exit="1">← Назад</button>
-      <div style="margin-left:auto" class="small">Занятие ${w.n} · ${w.title}</div>
-    </div>
-    ${header('Тренировка', `${w.title} · неделя ${cycleWeek()} · подходов ${setsNow()} · фрагмент ${idx+1} из ${w.plan.length}`)}
-    <div class="workout">
-      <section class="card"><h2>Порядок</h2><ul class="steps">${steps}</ul></section>
-      <section class="card">
-        <div class="frag-title">${e.name}</div>
-        <div class="pill">${e.group}</div>
-        <p style="margin:10px 0 0">${e.about}</p>
-        <div class="fields">
-          <div><b>${frag.ex === 'warmup' || frag.ex === 'cooldown' ? frag.sets : setsNow()}</b><span>подход</span></div>
-          <div><b>${frag.reps}</b><span>повторения</span></div>
-          <div><b>${frag.rest || 0} с</b><span>отдых</span></div>
-        </div>
-        ${frag.rest ? `<div class="timer" id="timer">${fmt(left)}</div>
-          <div class="controls">
-            <button class="btn" id="timerBtn">${paused ? 'Продолжить' : (cur.runningTimer ? 'Пауза' : 'Запустить')}</button>
-            <button class="btn ghost" id="pauseBtn">${paused ? 'Выйти из паузы' : 'Пауза'}</button>
-          </div>` : `<div class="controls"><button class="btn ghost" id="pauseBtn">${paused ? 'Выйти из паузы' : 'Пауза'}</button></div>`}
-        <div class="controls" style="margin-top:16px">
-          <button class="btn" id="nextBtn">${idx === w.plan.length - 1 ? 'Завершить занятие' : 'Далее'}</button>
-        </div>
-        ${paused ? '<p class="small" style="margin-top:12px">Пауза: позиция в занятии сохранена. Можно выйти и вернуться позже.</p>' : ''}
-      </section>
-    </div>`;
+  const last = idx === w.plan.length - 1;
+
+  if (isMob()) {
+    v.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin:10px 0 4px">
+        <button class="btn ghost" data-exit="1">←</button>
+        <div><div style="font-weight:600">Тренировка</div><div class="small">${esc(w.title)} · ${idx+1} из ${w.plan.length}</div></div>
+      </div>
+      <section class="card" style="margin-top:12px">
+        ${stepsHtml(w, idx)}
+        <div style="margin:16px 0 0 -8px">${fragPanel(w, idx)}</div>
+      </section>`;
+  } else {
+    v.innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px;margin:26px 0 0">
+        <button class="btn ghost" data-exit="1" style="padding:8px 12px">←</button>
+        <h1 style="margin:0">Тренировка</h1>
+      </div>
+      <p class="sub" style="margin:6px 0 18px">${esc(w.title)} · неделя ${cycleWeek()} · подходов ${setsNow()} · занятие ${w.n}, фрагмент ${idx+1} из ${w.plan.length}</p>
+      <div class="workout">
+        <section class="card"><h2>Порядок</h2>${stepsHtml(w, idx)}</section>
+        <section class="card">${fragPanel(w, idx)}</section>
+      </div>`;
+  }
   wireWorkout(w, idx);
+  renderWorkbar(w, idx, last);
+}
+
+function renderWorkbar(w, idx, last){
+  const bar = document.getElementById('workbar');
+  if (!bar) return;
+  if (document.body.classList.contains('in-workout')) {
+    bar.innerHTML = `<button class="btn" id="wbNext">${last ? 'Завершить занятие' : 'Далее'}</button>`;
+    const nb = document.getElementById('wbNext');
+    if (nb) nb.onclick = () => nextFrag(w, idx, last);
+  } else bar.innerHTML = '';
+}
+
+function nextFrag(w, idx, last){
+  stopTimer();
+  if (last) { finishWorkout(w); return; }
+  save({ running: Object.assign({}, state().running, { idx: idx + 1, left: w.plan[idx+1].rest || 0, runningTimer:false, paused:false }) });
+  renderWorkout(document.getElementById('view'));
+  renderWorkbar(w, idx + 1, idx + 1 === w.plan.length - 1);
 }
 
 function wireWorkout(w, idx){
-  const s = state();
   const get = () => state().running;
   const set = (patch) => save({ running: Object.assign({}, get(), patch) });
-
   const btn = document.getElementById('timerBtn');
   if (btn) btn.onclick = () => {
     const r = get();
-    if (r.runningTimer) { stopTimer(); set({ runningTimer:false, paused:true }); writeTimer(get().left); }
+    if (r.runningTimer) { stopTimer(); set({ runningTimer:false, paused:true }); }
     else { startTimer(); set({ runningTimer:true, paused:false }); }
-    renderWorkout();
+    renderWorkout(document.getElementById('view'));
   };
   const pb = document.getElementById('pauseBtn');
   if (pb) pb.onclick = () => {
-    const r = get();
-    if (r.paused) set({ paused:false }); else { stopTimer(); set({ paused:true, runningTimer:false }); }
-    renderWorkout();
-  };
-  document.getElementById('nextBtn').onclick = () => {
     stopTimer();
-    const r = get();
-    if (idx === w.plan.length - 1) { finishWorkout(w); return; }
-    set({ idx: idx + 1, left: w.plan[idx+1].rest || 0, runningTimer:false, paused:false });
-    renderWorkout();
+    set({ paused:true, runningTimer:false });
+    renderWorkout(document.getElementById('view'));
   };
-  const back = document.querySelector('[data-exit]');
-  if (back) back.onclick = () => { stopTimer(); set({ paused:true, runningTimer:false }); VIEW = 'home'; render(); };
-  document.querySelectorAll('#nav button').forEach(b => b.classList.remove('on'));
+  const rb = document.getElementById('resumeBtn');
+  if (rb) rb.onclick = () => {
+    set({ paused:false });
+    if (w.plan[idx].rest) startTimer();
+    renderWorkout(document.getElementById('view'));
+  };
+  const nb = document.getElementById('nextBtn');
+  if (nb) nb.onclick = () => nextFrag(w, idx, idx === w.plan.length - 1);
 }
 
 function writeTimer(v){
@@ -610,7 +801,11 @@ function startTimer(){
     const left = Math.max(0, (r.left || 0) - 1);
     save({ running: Object.assign({}, r, { left }) });
     writeTimer(left);
-    if (left === 0) { stopTimer(); const rr = state().running; if (rr) save({ running: Object.assign({}, rr, { runningTimer:false }) }); }
+    if (left === 0) {
+      stopTimer();
+      const rr = state().running;
+      if (rr) save({ running: Object.assign({}, rr, { runningTimer:false }) });
+    }
   }, 1000);
 }
 function stopTimer(){ if (timerId) { clearInterval(timerId); timerId = null; } }
@@ -630,12 +825,19 @@ function finishWorkout(w){
   const hist = historyList().filter(h => h.n !== w.n);
   hist.push({ n: w.n, title: w.title, at: Date.now(), min });
   save({ history: hist, running: null });
-  const v = document.getElementById('view');
+  DONE = { n: w.n, title: w.title, min };
+  VIEW = 'done';
+  render();
+}
+
+let DONE = null;
+function renderDone(v){
+  const d = DONE || { n: '', title: '', min: 0 };
   v.innerHTML = `
-    ${header('Занятие завершено', `Занятие ${w.n} · ${w.title}`)}
-    <div class="card">
-      <div class="fields">
-        <div><b>${min}</b><span>минут</span></div>
+    ${head('Занятие завершено', `${d.n ? 'Занятие ' + d.n + ' · ' : ''}${esc(d.title)}`)}
+    <div class="card done-card">
+      <div class="stats" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+        <div><b>${d.min}</b><span>минут</span></div>
         <div><b>${historyList().length}</b><span>всего занятий</span></div>
         <div><b>${programPercent()}%</b><span>программы</span></div>
       </div>
@@ -644,7 +846,6 @@ function finishWorkout(w){
         <button class="btn ghost" data-go="home">На главную</button>
       </div>
     </div>`;
-  paintNav();
 }
 
 /* ---------- мелочи ---------- */
@@ -657,24 +858,36 @@ function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&'
 
 /* ---------- навигация ---------- */
 const NAV = [
-  ['home','Главная'], ['program','Программа'], ['exercises','Упражнения'],
-  ['workout','Тренировка'], ['theory','Теория'], ['progress','Прогресс'], ['settings','Настройки']
+  ['home','Главная','nav-home.png'], ['program','Программа','nav-program.png'],
+  ['exercises','Упражнения','nav-exercises.png'], ['workout','Тренировка','nav-workout.png'],
+  ['theory','Теория','nav-theory.png'], ['progress','Прогресс','nav-progress.png'],
+  ['settings','Настройки','nav-settings.png']
 ];
-document.getElementById('nav').innerHTML = NAV.map(([go,t]) => `<button data-go="${go}">${t}</button>`).join('');
+document.getElementById('nav').innerHTML = NAV.map(([go,t,ic]) =>
+  `<button data-go="${go}"><img src="assets/icons/${ic}" alt="">${t}</button>`).join('');
+stampAssets();
 document.querySelectorAll('#tabs .tab').forEach(b => b.onclick = () => {
-  const t = b.dataset.tab;
-  if (t === 'sections') { VIEW = 'sections'; render(); return; }
-  VIEW = t; render();
+  VIEW = b.dataset.tab; render();
 });
 
 document.addEventListener('click', (e) => {
-  const t = e.target.closest('[data-go],[data-open],[data-start],[data-ex],[data-theory],[data-reset],[data-day]');
+  const exit = e.target.closest('[data-exit]');
+  if (exit) {
+    stopTimer();
+    const r = state().running;
+    if (r) save({ running: Object.assign({}, r, { paused:true, runningTimer:false }) });
+    VIEW = 'home'; render(); return;
+  }
+  const t = e.target.closest('[data-go],[data-open],[data-start],[data-ex],[data-theory],[data-day]');
   if (!t) return;
-  if (t.dataset.open) { VIEW = 'workout'; return showWorkoutInfo(Number(t.dataset.open)); }
-  if (t.dataset.start) { VIEW = 'workout'; return startWorkout(Number(t.dataset.start)); }
-  if (t.dataset.ex) { VIEW = 'exercises'; save({}); return renderExercises(document.getElementById('view'), t.dataset.ex); }
-  if (t.dataset.theory) { save({ theoryOpen: t.dataset.theory }); VIEW = 'theory'; return render(); }
-  if (t.dataset.reset) { if (confirm('Начать программу заново? История останется.')) { save({ running:null }); return; } }
+  if (t.dataset.open) { showWorkoutInfo(Number(t.dataset.open)); return; }
+  if (t.dataset.start) { startWorkout(Number(t.dataset.start)); return; }
+  if (t.dataset.ex) {
+    if (isMob()) { VIEW = 'exercise'; EX_OPEN = t.dataset.ex; renderExerciseCard(document.getElementById('view'), t.dataset.ex); paintNav(); }
+    else renderExercises(document.getElementById('view'), t.dataset.ex);
+    return;
+  }
+  if (t.dataset.theory) { save({ theoryOpen: t.dataset.theory }); VIEW = 'theory'; render(); return; }
   if (t.dataset.day) {
     const st = settings();
     const d = Number(t.dataset.day);
@@ -686,28 +899,28 @@ document.addEventListener('click', (e) => {
   const go = t.dataset.go;
   if (go) { VIEW = go; render(); }
 });
+let EX_OPEN = null;
 
-/* карточка занятия без старта */
 function showWorkoutInfo(n){
   const w = PROGRAM.workouts.find(x => x.n === n);
   if (!w) return;
   const done = doneSet();
   const v = document.getElementById('view');
   v.innerHTML = `
-    ${header(`Занятие ${w.n}`, `${w.title} · ${w.focus}`)}
-    <div class="grid cols-main">
+    ${head(`Занятие ${w.n}`, `${esc(w.title)} · ${esc(w.focus)}`)}
+    <div class="cols">
       <section class="card">
         <h2>Состав</h2>
-        <div class="list">${w.plan.map((f,i) => {
+        <div class="panel-list">${w.plan.map((f,i) => {
           const e = ex(f.ex);
-          return `<div class="row"><span class="pill">${i+1}</span><div style="flex:1">
-            <div class="name">${e.name}</div><div class="meta">${f.sets} × ${f.reps}${f.rest ? ' · отдых ' + f.rest + ' с' : ''}</div>
-          </div></div>`;
+          return `<div class="item" style="cursor:default"><span class="pill">${i+1}</span>
+            <span style="flex:1"><span class="name" style="display:block">${esc(e.name)}</span>
+            <span class="meta">${f.sets} × ${esc(f.reps)}${f.rest ? ' · отдых ' + f.rest + ' с' : ''}</span></span></div>`;
         }).join('')}</div>
       </section>
       <aside class="card">
-        <div class="pill">${w.block}</div>
-        <h3 style="margin-top:10px">${w.minutes} минут</h3>
+        <img class="ill" src="assets/illustrations/exercise-card-relief.png" alt="Рельеф занятия" width="260" height="180" />
+        <h3 style="margin-top:12px">${w.minutes} минут</h3>
         <p class="small">${done.has(w.n) ? 'Это занятие уже пройдено. Можно пройти снова — в истории останется последняя запись.' : 'Занятие ещё не пройдено.'}</p>
         <div class="controls">
           <button class="btn" data-start="${w.n}">${done.has(w.n) ? 'Пройти снова' : 'Начать тренировку'}</button>
@@ -722,10 +935,12 @@ function showWorkoutInfo(n){
 document.addEventListener('input', (e) => {
   if (e.target && e.target.id === 'exSearch') {
     save({ exSearch: e.target.value });
-    const sel = document.querySelector('.row.on[data-ex]');
-    renderExercises(document.getElementById('view'), sel ? sel.dataset.ex : null);
+    const sel = document.querySelector('.item.on[data-ex]');
+    const pos = e.target.selectionStart;
+    if (isMob()) renderExercises(document.getElementById('view'), null);
+    else renderExercises(document.getElementById('view'), sel ? sel.dataset.ex : null);
     const inp = document.getElementById('exSearch');
-    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+    if (inp) { inp.focus(); try { inp.setSelectionRange(pos, pos); } catch(err){} }
   }
 });
 
@@ -742,7 +957,13 @@ document.addEventListener('click', (e) => {
   }
 });
 
-/* старт */
+/* перерисовка при смене ширины (маршрут: компьютер / телефон) */
+let rt = null;
+window.addEventListener('resize', () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => { if (!document.body.classList.contains('in-workout')) render(); }, 220);
+});
+
 render();
 </script>
 </body>
