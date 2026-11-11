@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FBFCF9" />
-<meta name="app-version" content="1.2.0" />
+<meta name="app-version" content="1.2.1" />
 <title>Тайчи · программа тренировок с гантелями</title>
 <link rel="icon" href="assets/brand/app-mark.png" />
 <style>
@@ -23,7 +23,7 @@ body{
 button{font:inherit;color:inherit}
 a{color:var(--primary)}
 .bg{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
-  background:url('assets/backgrounds/route-relief-desktop.png?v=1.2.0') center/cover no-repeat}
+  background:url('assets/backgrounds/route-relief-desktop.png?v=1.2.1') center/cover no-repeat}
 
 /* ---------- шапка компьютера ---------- */
 .topbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--div)}
@@ -57,7 +57,7 @@ h3{font-size:16px;margin:0 0 6px}
 .map-card{padding:18px 18px 22px}
 .map-cap{font-size:13px;color:var(--muted);letter-spacing:.02em;margin:0 0 10px}
 .map{position:relative;width:100%;max-width:720px;margin:0 auto;aspect-ratio:660/400;
-  background:url('assets/routes/program-route-desktop.png?v=1.2.0') 0 0/100% 100% no-repeat}
+  background:url('assets/routes/program-route-desktop.png?v=1.2.1') 0 0/100% 100% no-repeat}
 .mk{position:absolute;transform:translate(-50%,-50%);padding:0;border:0;background:none;
   aspect-ratio:1;cursor:pointer;border-radius:50%}
 .mk img{width:100%;height:100%;display:block;object-fit:contain}
@@ -155,7 +155,7 @@ input[type=text],input[type=number],input[type=time],select{
   .theory{grid-template-columns:1fr}
 }
 @media (max-width:720px){
-  .bg{background-image:url('assets/backgrounds/route-relief-mobile.png?v=1.2.0');opacity:.45}
+  .bg{background-image:url('assets/backgrounds/route-relief-mobile.png?v=1.2.1');opacity:.45}
   .shell{padding:0 16px calc(84px + env(safe-area-inset-bottom))}
   .topbar{display:none}
   .m-head{display:flex;align-items:center;padding:14px 0 8px}
@@ -165,7 +165,7 @@ input[type=text],input[type=number],input[type=time],select{
   .card{padding:16px;border-radius:16px}
   .map-card{padding:14px 12px 16px}
   .map{max-width:340px;aspect-ratio:300/405;
-    background-image:url('assets/routes/program-route-mobile.png?v=1.2.0')}
+    background-image:url('assets/routes/program-route-mobile.png?v=1.2.1')}
   .mk{min-width:44px;min-height:44px}
   .cap b{font-size:13px}
   .map-start{display:flex;position:absolute;left:18.667%;top:55.802%;width:79.333%;height:10.864%;
@@ -203,20 +203,20 @@ input[type=text],input[type=number],input[type=time],select{
 
 <header class="topbar">
   <div class="inner">
-    <a class="brand" href="#" data-go="home" aria-label="Тайчи — на главную"><img src="assets/brand/wordmark-horizontal.png?v=1.2.0" alt="Тайчи" /></a>
+    <a class="brand" href="#" data-go="home" aria-label="Тайчи — на главную"><img src="assets/brand/wordmark-horizontal.png?v=1.2.1" alt="Тайчи" /></a>
     <nav class="nav" id="nav"></nav>
   </div>
 </header>
 
 <div class="shell">
-  <div class="m-head mob-only"><img src="assets/brand/wordmark-horizontal.png?v=1.2.0" alt="Тайчи" /></div>
+  <div class="m-head mob-only"><img src="assets/brand/wordmark-horizontal.png?v=1.2.1" alt="Тайчи" /></div>
   <main id="view"></main>
 </div>
 
 <nav class="tabs mob-only" id="tabs">
-  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=1.2.0" alt=""><span>Главная</span></button>
-  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=1.2.0" alt=""><span>Программа</span></button>
-  <button class="tab" data-tab="sections"><img src="assets/icons/nav-sections.png?v=1.2.0" alt=""><span>Разделы</span></button>
+  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=1.2.1" alt=""><span>Главная</span></button>
+  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=1.2.1" alt=""><span>Программа</span></button>
+  <button class="tab" data-tab="sections"><img src="assets/icons/nav-sections.png?v=1.2.1" alt=""><span>Разделы</span></button>
 </nav>
 
 <div class="workbar" id="workbar"></div>
@@ -290,7 +290,7 @@ const THEORY = [
 ];
 
 /* ---------- состояние ---------- */
-const APP_VER = '1.2.0';   // поднимать вместе с ?v= в CSS и в статических <img>
+const APP_VER = '1.2.1';   // поднимать вместе с ?v= в CSS и в статических <img>
 const AV = '?v=' + APP_VER;
 const STORE_KEY = 'taichi_v1';
 function state(){
