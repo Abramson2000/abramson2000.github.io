@@ -153,6 +153,9 @@
   .part-head { display: flex; align-items: center; gap: 13px; padding: 14px 15px; }
   .part-num { width: 31px; height: 31px; border-radius: 12px; font-weight: 700; font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-size: 16.5px; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--surface); background: var(--red); box-shadow: 0 2px 6px rgba(198,55,23,.28); }
   .part-title { font-weight: 650; font-size: 15.5px; flex: 1; min-width: 0; letter-spacing: -.2px; line-height: 1.28; }
+  .part-main { flex: 1; min-width: 0; }
+  .part-due { margin-top: 5px; }
+  .part-due .due-badge { margin-left: 0; }
   .part-zh { font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .2px; }
   .part-arrow { color: var(--line); font-size: 22px; font-weight: 600; }
   .lesson-img { width: 100%; border-radius: 16px; box-shadow: 0 6px 20px rgba(29,29,33,.14); margin: 2px 0 14px; display: block; }
@@ -34033,7 +34036,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.12.0';
+const APP_VER = '6.13.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -37390,12 +37393,11 @@ function openUnit(n) {
         <div class="part-head">
           ${isHw ? crsHwDoneButton(crsHwKey(u.unit,part.id), true) : `<div class="part-check ${pMark ? 'on' : ''}" onclick="manTogglePart(${u.unit},${part.id},event)" title="${pMark ? 'Снять отметку части' : 'Отметить часть пройденной'}">✓</div>`}
           <div class="part-num">${num}</div>
-          <div style="flex:1">
+          <div class="part-main">
             <div class="part-title">${esc(part.title)}</div>
             ${part.titleZh ? `<div class="part-zh">${esc(part.titleZh)}</div>` : ''}
+            ${(part.kind === 'hw' || part.kind === 'record_hw') ? `<div class="part-due">${dueBadge(u.unit, part.id, partDone(u, part))}</div>` : ''}
           </div>
-          ${(part.kind === 'hw' || part.kind === 'record_hw') ? dueBadge(u.unit, part.id, partDone(u, part)) : ''}
-          ${partDone(u, part) ? '<span class="part-done">готово</span>' : ''}
           <span class="part-arrow">›</span>
         </div>
       </div>`;
@@ -38161,13 +38163,14 @@ function hwAllDone(u, part) {
 function dueBadge(unitN, partId, done) {
   const d = dueGet(unitN, partId); if (!d) return '';
   const n = dueDays(d);
-  let cls = '', txt = '⏰ до ' + dueFmt(d);
-  if (done) { cls = 'done'; txt = '✅ ' + dueFmt(d); }
-  else if (n === null) { txt = '⏰ до ' + dueFmt(d); }
+  const short = (() => { const p = String(d).split('-'); if (p.length !== 3) return dueFmt(d); const now = new Date(); const sameYear = Number(p[0]) === now.getFullYear(); return p[2] + '.' + p[1] + (sameYear ? '' : '.' + p[0].slice(2)); })();
+  let cls = '', txt = '⏰ до ' + short;
+  if (done) { cls = 'done'; txt = '✅ до ' + short; }
+  else if (n === null) { txt = '⏰ до ' + short; }
   else if (n < 0) { cls = 'over'; txt = '⌛ ' + (-n) + ' ' + dayWord(-n) + ' просрочки'; }
   else if (n === 0) { cls = 'soon'; txt = '⏰ сегодня!'; }
-  else if (n === 1) { cls = 'soon'; txt = '⏰ 1 день · до ' + dueFmt(d); }
-  else { txt = '⏰ ' + n + ' ' + dayWord(n) + ' · до ' + dueFmt(d); }
+  else if (n === 1) { cls = 'soon'; txt = '⏰ завтра'; }
+  else { txt = '⏰ ' + n + ' ' + dayWord(n) + ' · до ' + short; }
   return '<span class="due-badge ' + cls + '">' + txt + '</span>';
 }
 function dueBarHtml(u, part) {
