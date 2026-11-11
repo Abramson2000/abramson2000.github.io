@@ -23869,17 +23869,20 @@ const IDV_UNITS = [
      {
       "zh": "伤心的事情",
       "py": "shāngxīn de shìqing",
-      "ru": "печальное дело, грустная история"
+      "ru": "печальное дело, грустная история",
+      "ph": true
      },
      {
       "zh": "细心的照顾",
       "py": "xìxīn de zhàogù",
-      "ru": "заботливый уход, внимательная забота"
+      "ru": "заботливый уход, внимательная забота",
+      "ph": true
      },
      {
       "zh": "没有活下来",
       "py": "méiyǒu huó xiàlái",
-      "ru": "не выжил"
+      "ru": "не выжил",
+      "ph": true
      }
     ],
     "id": 10
@@ -33652,7 +33655,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.11.2';
+const APP_VER = '6.11.3';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
