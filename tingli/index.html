@@ -150,12 +150,16 @@
   /* Список частей */
   .part { background: var(--card); border-radius: 16px; margin-bottom: 11px; overflow: hidden; box-shadow: var(--shadow-card); cursor: pointer; transition: transform .12s ease; }
   .part:active { transform: scale(.985); }
-  .part-head { display: flex; align-items: center; gap: 13px; padding: 14px 15px; }
+  .part-head { display: flex; align-items: center; gap: 10px; padding: 14px 13px; }
   .part-num { width: 31px; height: 31px; border-radius: 12px; font-weight: 700; font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-size: 16.5px; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--surface); background: var(--red); box-shadow: 0 2px 6px rgba(198,55,23,.28); }
   .part-title { font-weight: 650; font-size: 15.5px; flex: 1; min-width: 0; letter-spacing: -.2px; line-height: 1.28; }
   .part-main { flex: 1; min-width: 0; }
-  .part-due { margin-top: 5px; }
-  .part-due .due-badge { margin-left: 0; }
+  .part-due { margin-top: 4px; }
+  .part-due .due-badge { margin-left: 0; background: none; padding: 0; font-family: inherit; font-weight: 400;
+    font-size: 13.5px; letter-spacing: 0; color: var(--ink-3); }
+  .part-due .due-badge.over { color: var(--danger); }
+  .part-due .due-badge.soon { color: var(--ochre-ink); }
+  .part-due .due-badge.done { color: var(--jade); }
   .part-zh { font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .2px; }
   .part-arrow { color: var(--line); font-size: 22px; font-weight: 600; }
   .lesson-img { width: 100%; border-radius: 16px; box-shadow: 0 6px 20px rgba(29,29,33,.14); margin: 2px 0 14px; display: block; }
@@ -19078,7 +19082,7 @@ const EXTRA_UNITS = [
    {
     "id": 6,
     "kind": "hw",
-    "title": "ДЗ 1 · Выбор слова (园 / 整)",
+    "title": "ДЗ 1 · Выбор слова",
     "titleZh": "选词填空",
     "text": "Выбери подходящее слово: для пунктов 1–6 — слова с 园, для 7–8 — слова с 整.",
     "questions": [
@@ -19212,7 +19216,7 @@ const EXTRA_UNITS = [
    {
     "id": 7,
     "kind": "hw",
-    "title": "ДЗ 2 · Слова урока в предложении",
+    "title": "ДЗ 2 · Слова в предложении",
     "titleZh": "词语填空",
     "text": "Выбери из списка слово, подходящее к пропуску. Одно слово может понадобиться дважды — в третьем пункте два пропуска.",
     "questions": [
@@ -19351,7 +19355,7 @@ const EXTRA_UNITS = [
    {
     "id": 8,
     "kind": "hw",
-    "title": "ДЗ 3 · Близкие по смыслу слова",
+    "title": "ДЗ 3 · Синонимы",
     "titleZh": "近义词",
     "text": "Выбери из пары подходящее слово. В каждом пункте — своя пара.",
     "questions": [
@@ -19454,7 +19458,7 @@ const EXTRA_UNITS = [
    {
     "id": 9,
     "kind": "hw",
-    "title": "ДЗ 4 · Соедини половинки",
+    "title": "ДЗ 4 · Половинки",
     "titleZh": "连句成句",
     "text": "Соедини начало с подходящим продолжением — выбери один вариант.",
     "questions": [
@@ -19609,7 +19613,7 @@ const EXTRA_UNITS = [
    {
     "id": 10,
     "kind": "hw",
-    "title": "ДЗ 5 · Перепиши предложение",
+    "title": "ДЗ 5 · Перепиши",
     "titleZh": "改写句子",
     "text": "Перепиши предложение так, чтобы в нём было слово из скобок. Смысл сохраняется, форма меняется.",
     "questions": [
@@ -34037,7 +34041,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.14.0';
+const APP_VER = '6.14.1';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -37143,6 +37147,12 @@ function dictAdd(items,label){
   items.forEach(w=>{const zh=String(w.zh||'').trim();if(!zh)return;if(d.some(x=>x.zh===zh)){dup++;return;}d.push({zh,py:w.py||'',ru:w.ru||'',src:label||'',added:Date.now()});added++;});
   dictSave(d);return {added,dup};
 }
+function toastPlain(msg){
+  const old=document.getElementById('tlToast');if(old)old.remove();
+  const d=document.createElement('div');d.id='tlToast';d.className='tl-toast';
+  const text=document.createElement('div');text.textContent=msg;d.appendChild(text);
+  document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
+}
 function dictToast(msg){
   const old=document.getElementById('tlToast');if(old)old.remove();
   const d=document.createElement('div');d.id='tlToast';d.className='tl-toast';
@@ -38305,7 +38315,7 @@ function unitCopyAllHw() {
   if (!curUnit) return;
   const txt = hwTextAll(curUnit);
   if (!txt) { dictToast('Ответов пока нет'); return; }
-  copyTextToClipboard(txt, () => dictToast('Все ответы ДЗ скопированы одним текстом'));
+  copyTextToClipboard(txt, () => toastPlain('Все ответы ДЗ скопированы'));
 }
 
 function hwOutCopy() {
