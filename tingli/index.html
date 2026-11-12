@@ -18,7 +18,7 @@
   @font-face { font-family: "Zhi Mang Xing"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/zhimang-course.ttf?v=6.8.24") format("truetype"); }
   @font-face { font-family: 'XSHand'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/xiaoshan-title.woff2?v=5.59.1') format('woff2'); }
   /* общий иероглифический шрифт: подхватывает ТОЛЬКО китайские диапазоны, кириллица/латиница остаются системными */
-  @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
+  @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=6.17.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     /* 6.16.0: китайские шрифты — 黑体 для слов и заданий, 楷体 для текстов */
@@ -72,6 +72,8 @@
   .zh, .zh-opt, .fill, .word .zh, .task-q, .opt, .hw-q-text, .hw-bank, .hw-opt, .hw-ans-btn, .part-zh, .unit-zh, .unit-zh-sub { font-family: var(--f-hei); }
   /* тексты урока, разборы, шэдоуинг — 楷体 */
   .lesson-text, .script, .word-ex, .rik-ex-zh, .rik-glyph { font-family: var(--f-kai); }
+  /* экран чтения: заголовок, подпись и текст — одна гарнитура (楷体) */
+  body.reading .u-title, body.reading .u-sub, body.reading .lesson-text, body.reading .lesson-text p { font-family: var(--f-kai); }
   .app { max-width: 720px; margin: 0 auto; padding: 16px 16px 130px; }
   body.has-player .app { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 
@@ -34047,7 +34049,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.16.0';
+const APP_VER = '6.17.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -37383,6 +37385,7 @@ function openUnit(n) {
   const u = ALL_UNITS.find(x => x.unit === n); if (!u) return;
   const fromList = !curUnit;
   curUnit = u; curPart = null;
+  document.body.classList.remove('reading');
   if (fromList) originTab = tab || 'lessons';
   showTabbar(false);
   const audioPrefix = audioUnitKey(u) + ':';
@@ -37427,6 +37430,7 @@ function openPart(unitN, partId) {
   const u = ALL_UNITS.find(x => x.unit === unitN); if (!u) return;
   const part = u.parts.find(p => p.id === partId); if (!part) return;
   curUnit = u; curPart = part;
+  document.body.classList.toggle('reading', part.kind === 'text' || part.kind === 'listen' || part.kind === 'shadow');
   if (part.audio) { setPartAudio(u, part); showPlayer(true); }
   else if ((u.src === 'idv' || u.src === 'team')) ensureLessonAudio(u);
   else { partAudioKey = null; showPlayer(false); }
