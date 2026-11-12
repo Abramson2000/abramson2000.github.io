@@ -34041,7 +34041,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.14.1';
+const APP_VER = '6.14.2';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -37392,7 +37392,7 @@ function openUnit(n) {
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div><div class="u-title">${esc(unitName(u))}</div><div class="u-sub">${esc(u.zh)}</div></div></div>
     <div class="unit-bar">
-      <button class="unit-done-btn ${uMan ? 'on' : ''}" onclick="manToggleUnit(${u.unit}, event)">${uMan ? '✓ Пройдено' : 'Отметить пройденным'}</button>
+      <button class="unit-done-btn${uMan ? ' on' : ''}" onclick="manToggleUnit(${u.unit}, event)" aria-pressed="${uMan ? 'true' : 'false'}">Пройдено</button>
       <span class="unit-bar-info">${uStat.done}/${uStat.total}</span>
       ${(u.parts || []).some(p => p && (p.kind === 'hw' || p.kind === 'record_hw')) ? `<button class="unit-done-btn hw-copy-all-unit" onclick="unitCopyAllHw()">📋 Все ответы ДЗ</button>` : ''}
     </div>
