@@ -164,7 +164,7 @@ function cloudHtml(m) {
 const SUPABASE_URL = 'https://mkehzkobjxnjobkqeiwt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 let LS_KEY = 'spin-lab-v1';
-const APP_VER = '4.6.1';
+const APP_VER = '4.6.2';
 
 // 4.3.0: видимые номера версии берём из APP_VER, чтобы больше не расходились
 (function () {
@@ -247,6 +247,7 @@ function loadState() {
     S.spPracticed = r.spPracticed || []; S.medPracticed = r.medPracticed || []; S.proPracticed = r.proPracticed || [];
     S.medDone = r.medDone || []; S.spicedDone = r.spicedDone || []; S.proDone = r.proDone || [];
     S.xp = r.xp || 0; S.correct = r.correct || 0; S.attempts = r.attempts || 0;
+    pruneDone();
     S.cDone = r.cDone || [];
     if (r.scs && typeof r.scs === 'object') S.scStat = r.scs;
     if (r.trn && typeof r.trn === 'object') S.trn = r.trn;
@@ -609,6 +610,18 @@ function mergeTrn(x, y) { // прогресс тренажёра: берём б�
   return canonTrn(out);
 }
 function uniArr(a, b) { return Array.from(new Set([].concat(a || [], b || []).map(Number))).sort((x, y) => x - y); }
+// 4.6.2: «пройдено» считаем только по урокам текущей программы.
+// Раньше брали длину массива целиком: старые индексы от прежней версии курса
+// давали «58 из 48» — больше, чем уроков в программе.
+function doneArrValid(arr, n) { return (Array.isArray(arr) ? arr : []).filter(i => Number.isInteger(i) && i >= 0 && i < n); }
+function doneCountValid(arr, n) { return doneArrValid(arr, n).length; }
+function doneNValid() { return doneCountValid(S.done, L.length); }
+function pruneDone() {
+  S.done = doneArrValid(S.done, L.length);
+  S.spicedDone = doneArrValid(S.spicedDone, SPICED.length);
+  S.medDone = doneArrValid(S.medDone, MED.length);
+  S.proDone = doneArrValid(S.proDone, PRO.length);
+}
 // ============ сессия не активна: прогресс копится только на устройстве ============
 // Случай Бебишевой (29.09.2026): курс проходится локально, а на сервер ничего не уходит,
 // потому что вход давно истёк. Раньше об этом говорила только тихая плашка — её не замечают.
@@ -796,7 +809,7 @@ const XP_LEGACY = { 'abramson@crm.ru': 2270 };
 function xpFromState() {
   try {
     let xp = 0;
-    xp += 30 * ((S.done || []).length + (S.spicedDone || []).length + (S.medDone || []).length
+    xp += 30 * (doneNValid() + doneCountValid(S.spicedDone, SPICED.length) + doneCountValid(S.medDone, MED.length)
       + (S.proDone || []).length + (S.cDone || []).length + (S.extraDone || []).length);
     xp += 5 * (Number(S.correct) || 0);                       // верные ответы в квизах/практиках
     xp += 5 * ((S.practiced || []).length + (S.spPracticed || []).length + (S.medPracticed || []).length + (S.proPracticed || []).length);
@@ -1290,7 +1303,7 @@ function startHeroRotation() {
 function renderProgram() {
   refreshExtra();
   // 4.0: main page must not reset the last opened lesson when switching tabs.
-  const doneN = S.done.length;
+  const doneN = doneNValid();
   const spicedN = SPICED.filter((x, k) => S.spicedDone.includes(k)).length; // курс 1а входит в общий счёт
   const medN = MED.filter((x, k) => S.medDone.includes(k)).length; // курс 1B MEDDPICC — тоже в общем счёте
   const proN = PRO.filter((x, k) => S.proDone.includes(k)).length; // курс 5 ProActive — в общем счёте
@@ -2580,10 +2593,10 @@ async function loadTeam() {
     el.innerHTML = res.team.map((m) => {
       const rawNm = (m.name || (m.email ? m.email.split('@')[0] : '') || 'Участник');
       const nm = rawNm.charAt(0).toUpperCase() + rawNm.slice(1);
-      const doneN = (m.done || []).length;
-      const spicedN = (m.spicedDone || []).length;
-      const medN = (m.medDone || []).length;
-      const proN = (m.proDone || []).length;
+      const doneN = doneCountValid(m.done, L.length);
+      const spicedN = doneCountValid(m.spicedDone, SPICED.length);
+      const medN = doneCountValid(m.medDone, MED.length);
+      const proN = doneCountValid(m.proDone, PRO.length);
       const pracN = (m.practiced || []).length;
       const lvl = levelFromXp(m.xp || 0);
       const totalN = L.length + SPICED.length + MED.length + PRO.length; // программа: основные + 1а SPICED + 1B MEDDPICC + 5 ProActive
@@ -2678,7 +2691,7 @@ function pmCardsHtml() {
 }
 
 function renderProgress() {
-  const doneN = S.done.length;
+  const doneN = doneNValid();
   const spicedN = SPICED.filter((x, k) => S.spicedDone.includes(k)).length; // курс 1а входит в общий счёт
   const medN = MED.filter((x, k) => S.medDone.includes(k)).length; // курс 1B MEDDPICC — тоже в общем счёте
   const proN = PRO.filter((x, k) => S.proDone.includes(k)).length; // курс 5 ProActive — в общем счёте
