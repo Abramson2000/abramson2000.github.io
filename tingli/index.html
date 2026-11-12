@@ -21,6 +21,10 @@
   @font-face { font-family: 'TLKai'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/kai-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
+    /* 6.16.0: китайские шрифты — 黑体 для слов и заданий, 楷体 для текстов */
+    --f-hei: "PingFang SC", "Heiti SC", "Noto Sans SC", "Source Han Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    --f-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "PingFang SC", "Heiti SC", "Noto Sans SC", sans-serif;
+    --f-kai: "Kaiti SC", "STKaiti", "KaiTi", "TLKai", serif;
     /* ===== палитра Tingli (5.0.0) ===== */
     --paper:       #F5F4F1;
     --surface:     #FFFFFF;
@@ -64,8 +68,10 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html { scrollbar-gutter: stable; }
-  body { font-family: "TLKai", "TLCJK", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; letter-spacing: 0; }
-  .zh, .zh-opt, .fill, .script, .word .zh { font-family: "TLKai", "TLCJK", "Kaiti SC", "STKaiti", "Songti SC", "STSong", "Noto Serif SC", serif; }
+  body { font-family: var(--f-ui); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; letter-spacing: 0; }
+  .zh, .zh-opt, .fill, .word .zh, .task-q, .opt, .hw-q-text, .hw-bank, .hw-opt, .hw-ans-btn, .part-zh, .unit-zh, .unit-zh-sub { font-family: var(--f-hei); }
+  /* тексты урока, разборы, шэдоуинг — 楷体 */
+  .lesson-text, .script, .word-ex, .rik-ex-zh, .rik-glyph { font-family: var(--f-kai); }
   .app { max-width: 720px; margin: 0 auto; padding: 16px 16px 130px; }
   body.has-player .app { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 
@@ -34041,7 +34047,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.15.0';
+const APP_VER = '6.16.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
