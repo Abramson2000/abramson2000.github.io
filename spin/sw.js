@@ -1,5 +1,5 @@
 // Offline shell: immutable release files, complete installation, no network wait.
-const VERSION = '4.6.5';
+const VERSION = '4.6.6';
 const CACHE = 'spin-cache-' + VERSION + '-offline';
 const ENTRY = './index.4.6.0.html';
 const DATA_FILES = ['data','management-data','meddicc-data','spiced-data','proactive-data','boss-gate','remote-sales-data','channel-sales-data','prolapse-data','negotiations-data'].map(n => './'+n+'.3.3.0.js');
