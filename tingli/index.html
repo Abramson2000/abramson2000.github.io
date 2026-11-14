@@ -142,6 +142,10 @@
   .pbar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--red-deep), var(--red)); transition: width .4s ease; }
   .unit-progress { font-size: 12px; color: var(--muted); white-space: nowrap; font-weight: 600; }
   .done-badge { font-size: 11px; font-weight: 700; color: var(--done); background: var(--done-soft); border-radius: 99px; padding: 3px 10px; white-space: nowrap; flex-shrink: 0; }
+  .badge-done { color: #1F7A45; background: var(--done-soft); }
+  .badge-reviewed { color: #2C5F94; background: #E6EFF8; }
+  .badge-due { color: var(--ochre-ink); background: var(--ochre-soft); }
+  .badge-err { color: var(--danger); background: var(--danger-soft); }
   .unit-dl-ph { width: 32px; height: 32px; flex-shrink: 0; }
   .unit-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
   .unit-arrow { color: var(--line); font-size: 22px; font-weight: 600; flex-shrink: 0; line-height: 1; width: 12px; text-align: right; font-family: "TLKai", "TLCJK", -apple-system, sans-serif; }
@@ -34049,7 +34053,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.17.0';
+const APP_VER = '6.18.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -36864,9 +36868,9 @@ function renderRik() {
     const due = ok && !newToday && !okRevToday && !errToday && rikNextDay(rec) <= todayKey;
     const leftDays = ok ? Math.max(0, Math.round((rikNextDay(rec) - todayKey) / 86400000)) : 0;
     const status = ok ? (newToday ? 'пройден сегодня'
-      : (okRevToday ? 'повторено сегодня'
-      : (errToday ? 'ошибка · повтор завтра'
-      : (due ? 'на повтор' : 'повтор через ' + leftDays + ' дн.'))))
+      : (okRevToday ? 'сегодня'
+      : (errToday ? 'ошибка · завтра'
+      : (due ? 'срок сегодня' : 'через ' + leftDays + ' дн.'))))
       : (can ? (RIK_BETA ? 'открыт' : 'сегодня') : 'закрыт');
     const cls = ok ? ('unit-done rik-passed' + (due ? ' rik-review' : '')) : (can ? 'rik-today' : 'rik-locked');
     const click = ok ? `onclick="openRik(${u.n},true)"` : (can ? `onclick="openRik(${u.n})"` : '');
@@ -36878,7 +36882,7 @@ function renderRik() {
         <div class="unit-meta">
           <div class="pbar"><i style="width:${ok ? 100 : 0}%"></i></div>
           <span class="unit-progress">${status}</span>
-          ${ok ? (due ? '<span class="done-badge rik-badge-review">к повтору</span>' : (okRevToday ? '<span class="done-badge rik-badge-review">повторено</span>' : '<span class="done-badge">готово</span>')) : ''}
+          ${ok ? (due ? '<span class="done-badge badge-due">↻ к повтору</span>' : (okRevToday ? '<span class="done-badge badge-reviewed">✓ повторено</span>' : (errToday ? '<span class="done-badge badge-err">ошибка</span>' : '<span class="done-badge badge-done">готово</span>'))) : ''}
           ${(!can && !ok && limitHit) ? '<span class="rik-when">лимит дня</span>' : ''}
         </div>
       </div>
