@@ -34316,7 +34316,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.20.0';
+const APP_VER = '6.21.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -40001,7 +40001,7 @@ function crsLessonCard(ev) {
   const flags = [];
   if (ev.movedFrom) flags.push('перенесено с ' + crsDayShort(ev.movedFrom));
   if (state === 'canceled') flags.push('отменено');
-  return '<div class="crs-card' + (state === 'canceled' ? ' off' : '') + (state === 'done' ? ' done' : '') + '" onclick="crsOpenLesson(event,\'' + ev.evId + '\')">' +
+  return '<div class="crs-card' + (state === 'canceled' ? ' off' : '') + (state === 'done' ? ' done' : '') + '" onclick="crsCardTap(event,\'' + ev.evId + '\')">' +
     '<div class="crs-c-head">' +
       '<div class="crs-c-time">' + esc(ev.time) + (t2 ? '<em>' + esc(t2) + '</em>' : '') + '</div>' +
       '<div class="crs-c-prog">' + esc(crsProgTitle(ev.program)) +
@@ -40048,6 +40048,15 @@ function crsOpenLesson(e, evId) {
   const ev = crsFindEv(evId); if (!ev) return;
   const lessonsId = ev.evId.indexOf('l:') === 0 ? ev.evId.slice(2) : '';
   crsForm(lessonsId, null, evId);
+}
+/* 6.21.0: тап по карточке открывает сам урок (как раньше).
+   Форма занятия — через ⋯ → «Изменить»; если материал ещё не выбран, тап ведёт в форму. */
+function crsCardTap(e, evId) {
+  if (e && e.target && e.target.closest && (e.target.closest('button') || e.target.closest('a'))) return;
+  const ev = crsFindEv(evId); if (!ev) return;
+  const mat = crsMatOf(ev);
+  if (mat && mat.unit !== undefined && mat.unit !== null && mat.unit !== '') { crsLessonOpen(ev); return; }
+  crsOpenLesson(e, evId);
 }
 function crsStateWord(s) { return s === 'done' ? '✓ Выполнено' : (s === 'doing' ? 'В работе' : 'Не начато'); }
 function crsHwStateBtn(key) {
