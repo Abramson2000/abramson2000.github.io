@@ -642,6 +642,7 @@
 .crs-b.done { background: var(--jade-soft); color: var(--jade); cursor: default; }
 .crs-chip.hw.done { background:var(--jade-soft); border-color:var(--jade-soft); color:var(--jade); }
 .crs-mat-link { color: var(--red); font-weight: 650; cursor: pointer; }
+.crs-chip.auto { background: transparent; color: var(--faint); border-color: rgba(29,29,33,.14); font-weight: 600; margin-left: 6px; }
 .crs-mat-link:active { opacity: .72; }
 .crs-hw-link { cursor: pointer; width: fit-content; }
 .crs-hw-link:active { opacity: .72; }
@@ -19830,46 +19831,47 @@ const EXTRA_UNITS = [
   },
   {
    "id": 4,
-   "kind": "quiz",
-   "title": "ДЗ 作业",
-   "titleZh": "作业",
-   "text": "Вставь пропущенное слово из новых слов урока. Проверка сразу — жми «Проверить».",
-   "tasks": [
+   "kind": "hw",
+   "title": "ДЗ 作业 · Вставь слово",
+   "titleZh": "选词填空",
+   "text": "Вставь пропущенное слово из новых слов урока. Выбери слово и жми «Проверить».",
+   "bank": ["使", "各种各样", "受不了", "满足", "温柔", "祝福"],
+   "questions": [
     {
-     "type": "fill",
-     "q": "爬台阶能（____）我减肥。",
-     "qRu": "Подъём по ступенькам помогает мне худеть.",
-     "answer": "使"
+     "q": "爬台阶能（ ）我减肥。",
+     "ex": "Ответ: 使 — Подъём по ступенькам помогает мне худеть.",
+     "opts": ["使", "各种各样", "受不了", "满足", "温柔", "祝福"],
+     "a": ["使"]
     },
     {
-     "type": "fill",
-     "q": "回答是（____）的：每个人都有自己的理由。",
-     "qRu": "Ответы самые разные: у каждого своя причина.",
-     "answer": "各种各样"
+     "q": "回答是（ ）的：每个人都有自己的理由。",
+     "ex": "Ответ: 各种各样 — Ответы самые разные: у каждого своя причина.",
+     "opts": ["使", "各种各样", "受不了", "满足", "温柔", "祝福"],
+     "a": ["各种各样"]
     },
     {
-     "type": "fill",
-     "q": "不让我工作，我可（____）。",
-     "qRu": "Если не дадут работать, я этого не вынесу.",
-     "answer": "受不了"
+     "q": "不让我工作，我可（ ）。",
+     "ex": "Ответ: 受不了 — Если не дадут работать, я этого не вынесу.",
+     "opts": ["使", "各种各样", "受不了", "满足", "温柔", "祝福"],
+     "a": ["受不了"]
     },
     {
-     "type": "fill",
-     "q": "看着孩子们的生活一天比一天好，让我特别（____）。",
-     "qRu": "Видеть, как жизнь детей день ото дня лучше, приносит мне особое удовлетворение.",
-     "answer": "满足"
+     "q": "看着孩子们的生活一天比一天好，让我特别（ ）。",
+     "ex": "Ответ: 满足 — Видеть, как жизнь детей день ото дня лучше, приносит мне особое удовлетворение.",
+     "opts": ["使", "各种各样", "受不了", "满足", "温柔", "祝福"],
+     "a": ["满足"]
     },
     {
-     "type": "fill",
-     "q": "一句（____）的话，就会使我们高兴一阵子。",
-     "qRu": "Одно нежное слово заставит нас радоваться какое-то время.",
-     "answer": "温柔"
+     "q": "一句（ ）的话，就会使我们高兴一阵子。",
+     "ex": "Ответ: 温柔 — Одно нежное слово заставит нас радоваться какое-то время.",
+     "opts": ["使", "各种各样", "受不了", "满足", "温柔", "祝福"],
+     "a": ["温柔"]
     },
     {
-     "type": "fill",
-     "q": "一个善良的（____），就会使我们回到快乐的童年。",
-     "qRu": "Одно доброе пожелание вернёт нас в счастливое детство.",
-     "answer": "祝福"
+     "q": "一个善良的（ ），就会使我们回到快乐的童年。",
+     "ex": "Ответ: 祝福 — Одно доброе пожелание вернёт нас в счастливое детство.",
+     "opts": ["使", "各种各样", "受不了", "满足", "温柔", "祝福"],
+     "a": ["祝福"]
     }
    ]
   }
@@ -34181,7 +34183,7 @@ function crsAutoDoneForUnit(n) {
     const evs = crsLessonList(from, today).filter(function (ev) {
       return ev.status !== 'canceled'
         && crsPayIsPaidProgram(ev.program)
-        && ev.material && +ev.material.unit === +n
+        && crsMatOf(ev) && +(crsMatOf(ev).unit) === +n
         && crsLessonState(ev) !== 'done';
     }).sort(function (a, b) { return (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')); });
     if (!evs.length) return;
@@ -34264,7 +34266,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.19.1';
+const APP_VER = '6.20.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -39251,6 +39253,51 @@ function crsUnitTitle(n) {
   return t + (u.ru ? ' · ' + u.ru : '');
 }
 
+/* ---------- материал занятия по программе (6.20.0) ----------
+   Правило: предстоящее занятие всегда стоит на ближайшем непройденном уроке
+   своей программы. Если непройденных нет — на последнем пройденном.
+   Урок считается пройденным, когда отмечен вручную или пройдены все его
+   учебные части (ДЗ ход курса не держит). Явный выбор материала в форме
+   занятия (matManual) главнее авто-правила. */
+function crsUnitPassed(u) {
+  if (!u) return true;
+  try { if (typeof manUnit === 'function' && manUnit(u)) return true; } catch (e) {}
+  // Учебные части с заданиями: текст и разбор без заданий курс не держат.
+  const parts = (u.parts || []).filter(function (p) {
+    return p && p.kind !== 'hw' && p.kind !== 'record_hw' && ((p.tasks && p.tasks.length) || p.kind === 'match');
+  });
+  if (!parts.length) return false;
+  return parts.every(function (p) { try { return partDone(u, p); } catch (e) { return false; } });
+}
+function crsAutoUnitForProgram(program) {
+  let list = [];
+  try { list = crsUnitsOf(String(program || '')) || []; } catch (e) { list = []; }
+  if (!list.length) return '';
+  // Идём от последнего пройденного вперёд: цель — ближайший непройденный после него.
+  // Пропуски раньше последнего пройденного курс назад не откатывают.
+  let last = -1;
+  for (let i = 0; i < list.length; i++) if (crsUnitPassed(list[i])) last = i;
+  for (let i = last + 1; i < list.length; i++) if (!crsUnitPassed(list[i])) return list[i].unit;
+  return last >= 0 ? list[last].unit : list[0].unit;
+}
+function crsAutoMaterial(ev) {
+  if (!ev || ev.status === 'canceled') return null;
+  if (ev.evId && crsLessonState(ev) === 'done') return null;
+  if (ev.date && ev.time) {
+    let inst = 0;
+    try { inst = crsInstant(ev.date, ev.time, ev.tz || CRS_TZ_DEF); } catch (e) { inst = 0; }
+    if (inst && inst <= Date.now()) return null;   // занятие уже началось — материал не переписываем
+  }
+  const n = crsAutoUnitForProgram(ev.program);
+  return (n === '' || n === undefined || n === null) ? null : { unit: n, part: '' };
+}
+function crsMatOf(ev) {
+  if (!ev) return null;
+  const own = (ev.material && ev.material.unit !== undefined && ev.material.unit !== null && ev.material.unit !== '') ? ev.material : null;
+  if (ev.matManual && own) return own;
+  return crsAutoMaterial(ev) || own;
+}
+
 /* Занятия: серии + исключения разворачиваются в конкретные события */
 function crsLessonList(fromYmd, toYmd) {
   const st = crsStore(), out = [];
@@ -39639,13 +39686,14 @@ function crsHwOpen(key) {
   if (typeof openPart === 'function') openPart(+m[1], +m[2]);
 }
 function crsLessonOpen(ev) {
-  if (!ev || !ev.material || ev.material.unit === undefined) { crsToast('У занятия не выбран материал'); return; }
-  const u = crsUnit(+ev.material.unit);
+  const mat = crsMatOf(ev);
+  if (!mat || mat.unit === undefined) { crsToast('У занятия не выбран материал'); return; }
+  const u = crsUnit(+mat.unit);
   closeCrsSheets();
   if (!u) return;
-  if (ev.material.part !== undefined && ev.material.part !== null && ev.material.part !== '') {
-    if (typeof openPart === 'function') openPart(+ev.material.unit, +ev.material.part);
-  } else if (typeof openUnit === 'function') openUnit(+ev.material.unit);
+  if (mat.part !== undefined && mat.part !== null && mat.part !== '') {
+    if (typeof openPart === 'function') openPart(+mat.unit, +mat.part);
+  } else if (typeof openUnit === 'function') openUnit(+mat.unit);
 }
 function crsLessonOpenEv(evId) {
   const ev = crsFindEv(evId);
@@ -39670,8 +39718,9 @@ function crsReminderQueue() {
     if (ev.status === 'canceled' || crsIsDone(ev)) return;
     const inst = crsInstant(ev.date, ev.time, ev.tz);
     const offs = (st.rem.lessons.offsets || []).slice().sort(function (a, b) { return a - b; });
-    const unit = ev.material && ev.material.unit;
-    const part = ev.material && ev.material.part;
+    const em = crsMatOf(ev);
+    const unit = em && em.unit;
+    const part = em && em.part;
     const url = unit !== undefined && unit !== null && unit !== '' ? crsPushDeepLink(unit, part) : crsPushDeepLink();
     offs.forEach(function (m) { q.push({ at: inst - m * 60000, kind: 'lesson', key: ev.evId, id: ev.evId, when: m, title: crsProgTitle(ev.program), sub: crsLessonWhen(ev), url: url }); });
   });
@@ -39855,11 +39904,14 @@ function crsLessonCard(ev) {
   const t2 = (ev.tz && ev.tz !== CRS_LOCAL_TZ) ? crsTimeIn(ev.date, ev.time, ev.tz, CRS_LOCAL_TZ) + ' у тебя · ' : '';
   const moved = ev.movedFrom ? '<span class="crs-chip mv">перенесено с ' + crsDayShort(ev.movedFrom) + '</span>' : '';
   const hw = crsLessonHwBlock(ev);
-  const hasMaterial = !!(ev.material && ev.material.unit !== undefined && ev.material.unit !== null && ev.material.unit !== '');
+  const em = crsMatOf(ev);
+  const hasMaterial = !!(em && em.unit !== undefined && em.unit !== null && em.unit !== '');
+  const isAuto = hasMaterial && !(ev.matManual && ev.material && ev.material.unit !== undefined && ev.material.unit !== '');
   const mat = hasMaterial
     ? '<div class="crs-mat crs-mat-link" onclick="event.stopPropagation();crsLessonOpenEv(\'' + ev.evId + '\')" title="Открыть материал урока">' +
-        esc(crsUnitTitle(ev.material.unit)) +
-        (ev.material.part !== undefined && ev.material.part !== '' ? ' · ' + esc(crsPartTitle(ev.material.unit, ev.material.part)) : '') +
+        esc(crsUnitTitle(em.unit)) +
+        (em.part !== undefined && em.part !== '' ? ' · ' + esc(crsPartTitle(em.unit, em.part)) : '') +
+        (isAuto ? '<span class="crs-chip auto">по программе</span>' : '') +
       '</div>'
     : '<div class="crs-mat muted">Материал ещё не выбран</div>';
   const statusChips = moved +
@@ -39905,7 +39957,8 @@ function crsLessonHwBlock(ev) {
   const list = crsHwForLesson(ev);
   if (!list.length) return '';
   const un = list.filter(function (h) { return h.state !== 'done'; }).length;
-  const canOpen = !!(ev.material && ev.material.unit !== undefined && ev.material.unit !== null && ev.material.unit !== '');
+  const em2 = crsMatOf(ev);
+  const canOpen = !!(em2 && em2.unit !== undefined && em2.unit !== null && em2.unit !== '');
   const click = canOpen ? ' onclick="event.stopPropagation();crsLessonOpenEv(\'' + ev.evId + '\')" title="Открыть урок с этим ДЗ"' : '';
   return '<div class="crs-hw-in compact crs-hw-link"' + click + '><span class="crs-chip hw' + (un ? '' : ' done') + '">ДЗ: ' + list.length + (un ? '' : ' ✓') + '</span>' +
     (un ? '<span class="crs-chip">не сдано: ' + un + '</span>' : '<span class="crs-chip">ДЗ выполнено</span>') + '' + '</div>';
@@ -40415,7 +40468,21 @@ function crsForm(id, preset, evId) {
   const f = {
     program: s.program, teacher: s.teacher || '', date: s.date, time: s.time, dur: s.dur || 60, tz: s.tz || CRS_TZ_DEF,
     link: s.link || '', place: s.place || '', pass: s.pass || '', note: s.note || '',
-    unit: (s.material && s.material.unit !== undefined) ? s.material.unit : '', part: (s.material && s.material.part !== undefined) ? s.material.part : '',
+    unit: (function () {
+      const own = (s.material && s.material.unit !== undefined && s.material.unit !== null && s.material.unit !== '') ? s.material : null;
+      if (s.matManual && own) return own.unit;
+      if (!evId) { const n = crsAutoUnitForProgram(s.program); return (n === '' || n === undefined) ? (own ? own.unit : '') : n; }
+      const auto = crsAutoMaterial({ program: s.program, date: s.date, time: s.time, dur: s.dur || 60, tz: s.tz || CRS_TZ_DEF, evId: evId || '' });
+      return auto ? auto.unit : (own ? own.unit : '');
+    })(),
+    part: (function () {
+      const own = (s.material && s.material.unit !== undefined && s.material.unit !== null && s.material.unit !== '') ? s.material : null;
+      if (s.matManual && own) return (own.part !== undefined ? own.part : '');
+      if (!evId) return '';
+      const auto = crsAutoMaterial({ program: s.program, date: s.date, time: s.time, dur: s.dur || 60, tz: s.tz || CRS_TZ_DEF, evId: evId || '' });
+      if (auto) return '';
+      return (own && own.part !== undefined) ? own.part : '';
+    })(),
     repeatOn: !!(s.repeat && s.repeat.on), days: (s.repeat && s.repeat.days) || [], every: (s.repeat && s.repeat.every) || 1, toDate: (s.repeat && s.repeat.to) || '',
     remOn: s.rem === null ? (st.rem.lessons.on !== false) : (!!s.rem && s.rem.length > 0),
     remOffsets: (Array.isArray(s.rem) ? s.rem : (st.rem.lessons.offsets || [])).slice()
@@ -40533,10 +40600,16 @@ function crsHwToggleIn(el) {
 function crsFormSave(id, f, sheet) {
   const st = crsStore();
   const rem = f.remOn ? f.remOffsets.slice() : [];
+  const matVal = (f.unit === null || f.unit === undefined) ? '' : String(f.unit);
+  const autoEv = crsAutoMaterial({ program: f.program, date: f.date, time: f.time, dur: f.dur, tz: f.tz });
+  const autoU = (autoEv && autoEv.unit !== undefined) ? String(autoEv.unit) : '';
+  const matManual = matVal !== '' && matVal !== autoU;
+  const autoProg = String(crsAutoUnitForProgram(f.program) || '');
   const base = {
     program: f.program, teacher: f.teacher.trim(), dur: 60, tz: f.tz,
     link: f.link.trim(), place: f.place.trim(), pass: (f.pass || '').trim(), note: f.note.trim(),
     material: (f.unit !== '' ? { unit: +f.unit, part: (f.part === '' ? '' : +f.part) } : null),
+    matManual: matManual,
     rem: rem, upd: Date.now()
   };
   if (f.repeatOn && f.days.length) {
@@ -40546,6 +40619,7 @@ function crsFormSave(id, f, sheet) {
     const editingSeries = !!(id && st.series[id]);
     const sId = editingSeries ? id : crsUid('s');
     const ser = Object.assign({}, base, {
+      matManual: (matVal !== '' && matVal !== autoProg),
       id: sId, days: f.days.slice().sort(), every: f.every, from: f.date, to: f.toDate || '',
       time: f.time, except: (editingSeries ? st.series[id].except : {}) || {}
     });
@@ -40585,6 +40659,7 @@ function crsEditOccurrence(evId) {
       id: key, program: ev.program, teacher: ev.teacher || '', date: ev.date, time: ev.time,
       dur: 60, tz: ev.tz || CRS_TZ_DEF, link: ev.link || '', place: ev.place || '', pass: ev.pass || '',
       note: ev.note || '', material: ev.material ? Object.assign({}, ev.material) : null,
+      matManual: !!ev.matManual,
       rem: Array.isArray(ev.rem) ? ev.rem.slice() : [], status: ev.status === 'canceled' ? 'canceled' : 'plan',
       movedFrom: ev.movedFrom || null, hwKeys: (ev.hwKeys || []).slice(), done: wasDone, detachedFrom: sid, upd: Date.now()
     };
@@ -40734,8 +40809,9 @@ function crsRestore(evId) {
 }
 /* ---------- ДЗ: срок и свои задания ---------- */
 function crsHwForLesson(ev) {
-  const unit = ev.material && ev.material.unit;
-  const part = ev.material ? ev.material.part : '';
+  const em = crsMatOf(ev) || ev.material || null;
+  const unit = em && em.unit;
+  const part = em ? em.part : '';
   const list = crsHwVisible().filter(function (h) {
     if (h.existing && unit !== undefined && unit !== '' && h.unit === +unit) return true;
     if (h.lessonId && h.lessonId === ev.id) return true;
