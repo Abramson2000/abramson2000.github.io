@@ -34053,7 +34053,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.18.0';
+const APP_VER = '6.19.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -36871,7 +36871,7 @@ function renderRik() {
       : (okRevToday ? 'сегодня'
       : (errToday ? 'ошибка · завтра'
       : (due ? 'срок сегодня' : 'через ' + leftDays + ' дн.'))))
-      : (can ? (RIK_BETA ? 'открыт' : 'сегодня') : 'закрыт');
+      : (can ? (RIK_BETA ? 'открыт' : 'сегодня') : (limitHit ? 'закрыт · лимит дня' : 'закрыт'));
     const cls = ok ? ('unit-done rik-passed' + (due ? ' rik-review' : '')) : (can ? 'rik-today' : 'rik-locked');
     const click = ok ? `onclick="openRik(${u.n},true)"` : (can ? `onclick="openRik(${u.n})"` : '');
     const card = `<div class="unit-card ${cls}" ${click}>
@@ -36883,7 +36883,6 @@ function renderRik() {
           <div class="pbar"><i style="width:${ok ? 100 : 0}%"></i></div>
           <span class="unit-progress">${status}</span>
           ${ok ? (due ? '<span class="done-badge badge-due">↻ к повтору</span>' : (okRevToday ? '<span class="done-badge badge-reviewed">✓ повторено</span>' : (errToday ? '<span class="done-badge badge-err">ошибка</span>' : '<span class="done-badge badge-done">готово</span>'))) : ''}
-          ${(!can && !ok && limitHit) ? '<span class="rik-when">лимит дня</span>' : ''}
         </div>
       </div>
       <div class="unit-right">${ok ? (due ? '<div class="unit-arrow rik-arrow-review">›</div>' : '<span class="rik-check" aria-hidden="true">✓</span>') : (can ? '<div class="unit-arrow">›</div>' : '<span class="rik-lock">🔒</span>')}</div>
