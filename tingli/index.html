@@ -34302,6 +34302,7 @@ function refreshAfterMan() {
   else if (tab === 'biz') renderBiz();
   else if (tab === 'favs') renderFavs();
   else if (tab === 'dict') renderDict();
+  else if (tab === 'rik') renderRik();
   else renderUnits();
 }
 const POS_KEY = 'tingli-pos-v1';
@@ -34326,7 +34327,11 @@ const RIK_BETA = (function () {
     return on;
   } catch (e) { return false; }
 })();
-const RIK_PKEY = RIK_BETA ? 'rik_progress_beta' : 'rik_progress_v2';
+/* 6.20.0: прогресс «Ежедневной грамматики» лежит в облачном ключе tingli-rik-v1.
+   Прежний rik_progress_v2 сервер не принимал (он берёт только ключи tingli-…),
+   поэтому прогресс жил в одном браузере и не синхронизировался. */
+const RIK_SKEY = 'tingli-rik-v1';
+const RIK_PKEY = RIK_BETA ? 'rik_progress_beta' : RIK_SKEY;
 // crmuro.ru снова на GitHub Pages (static), поэтому API — на своём поддомене api.crmuro.ru (D1-воркер)
 const API_HOSTS = CrmSyncTransport.HOSTS;
 const syncTransport = CrmSyncTransport.create();
@@ -36336,6 +36341,7 @@ function saveLocal(k,v) { localStorage.setItem(k,v); scheduleBackup(k); }
 function scheduleBackup(key) { if (!key || tingliSyncKey(key)) tingliSync.mark(); }
 function initialTingliMerge(k, local, remote) {
   if (k === 'tingli-schedule-v1') return JSON.stringify(CrmSyncCore.mergeSchedule(JSON.parse(remote), JSON.parse(local)));
+  if (k === 'tingli-rik-v1') return JSON.stringify(rikMergeMap(JSON.parse(local || '{}'), JSON.parse(remote || '{}')));
   if (k === 'tingli-manual-v1') return JSON.stringify(mergeMan(JSON.parse(local), JSON.parse(remote)));
   if (k === 'tingli-progress-v1') return JSON.stringify(mergeProgress(JSON.parse(local), JSON.parse(remote)));
   if (k === LS_FAV || k === DICT_KEY || k === 'tingli-cidian-outbox-v3') {
@@ -37037,6 +37043,36 @@ function rikAvailable(n, pr) {
   }, { passive: true });
 })();
 function rikProgress() { try { return JSON.parse(localStorage.getItem(RIK_PKEY) || '{}'); } catch (e) { return {}; } }
+/* слияние прогресса грамматики: зачёт не отбираем, дата берётся по последней попытке */
+function rikMergeMap(a, b) {
+  const out = {};
+  const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+  keys.forEach(function (k) {
+    const x = (a || {})[k], y = (b || {})[k];
+    if (!x) { out[k] = y; return; }
+    if (!y) { out[k] = x; return; }
+    const tx = Math.max(+x.last || 0, +x.at || 0, +x.tried || 0);
+    const ty = Math.max(+y.last || 0, +y.at || 0, +y.tried || 0);
+    const win = ty > tx ? y : x, lose = ty > tx ? x : y;
+    const r = Object.assign({}, lose, win);
+    r.ok = !!(win.ok || lose.ok);
+    r.rv = Math.max(+x.rv || 0, +y.rv || 0);
+    r.miss = Math.max(+x.miss || 0, +y.miss || 0);
+    out[k] = r;
+  });
+  return out;
+}
+/* переносим прогресс из старого ключа в облачный (один раз, без потерь) */
+(function rikMigrateCloudKey(){
+  try {
+    if (RIK_BETA || RIK_PKEY === 'rik_progress_v2') return;
+    const old = localStorage.getItem('rik_progress_v2');
+    if (!old) return;
+    const cur = JSON.parse(localStorage.getItem(RIK_PKEY) || '{}') || {};
+    const merged = rikMergeMap(JSON.parse(old) || {}, cur);
+    if (JSON.stringify(merged) !== JSON.stringify(cur)) localStorage.setItem(RIK_PKEY, JSON.stringify(merged));
+  } catch (e) {}
+})();
 /* 6.8.22 — возвращаем прогресс, сделанный до 6.6.0: старые номера уроков -> новые (+3) */
 (function rikMigrateV1(){
   try{
