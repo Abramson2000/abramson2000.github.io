@@ -642,10 +642,10 @@
 .crs-b.done { background: var(--jade-soft); color: var(--jade); cursor: default; }
 .crs-chip.hw.done { background:var(--jade-soft); border-color:var(--jade-soft); color:var(--jade); }
 .crs-mat-link { color: var(--red); font-weight: 650; cursor: pointer; }
-.crs-chip.auto { background: transparent; color: var(--faint); border-color: rgba(29,29,33,.14); font-weight: 600; margin-left: 6px; }
 .crs-mat-link:active { opacity: .72; }
 .crs-hw-link { cursor: pointer; width: fit-content; }
 .crs-hw-link:active { opacity: .72; }
+
 .crs-add-big { width: 100%; border: 1px dashed rgba(29,29,33,.18); background: transparent; color: var(--muted);
   font: inherit; font-size: 14px; font-weight: 700; padding: 14px; border-radius: 16px; cursor: pointer; margin-top: 6px; }
 .crs-add-big:hover { border-color: var(--red); color: var(--red); background: var(--red-soft); }
@@ -1105,6 +1105,37 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   /* 5.97.0: ТОЛЬКО текст урока — крупнее. Заголовки (XSHand) не трогаем вообще. */
   .lesson-text p, .lesson-text li, .dlg-zh { font-family: "TLKai", "TLCJK", "KaiTi", "Kaiti SC", "STKaiti", serif; }
   .lesson-text p { font-size: 21px; line-height: 1.85; }
+</style>
+<style id="crs-card-621">
+/* 6.20.0 — карточка занятия: один шрифт, один акцент.
+   Блок стоит последним, чтобы общий сброс кнопок не растягивал шрифт. */
+.crs-card { padding: 14px 15px 13px; }
+.crs-card .crs-c-head { display: flex; align-items: baseline; gap: 9px; }
+.crs-card .crs-c-time { font-size: 15.5px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums;
+  letter-spacing: 0; line-height: 1.2; flex-shrink: 0; }
+.crs-card .crs-c-time em { font-style: normal; font-size: 11.5px; font-weight: 500; color: var(--faint); margin-left: 5px; }
+.crs-card .crs-c-prog { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 500; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crs-card .crs-c-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.32; margin-top: 7px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.crs-card .crs-c-title.muted { color: var(--faint); font-weight: 500; font-size: 14px; }
+.crs-card.done .crs-c-title { color: var(--ink-2); font-weight: 600; }
+.crs-card.off .crs-c-title { color: var(--faint); }
+.crs-card .crs-c-meta { display: flex; flex-wrap: wrap; align-items: baseline; font-size: 12.5px;
+  color: var(--muted); line-height: 1.4; margin-top: 6px; }
+.crs-card .crs-c-meta i { font-style: normal; color: rgba(29,29,33,.22); padding: 0 6px; }
+.crs-card .crs-c-meta > span, .crs-card .crs-c-join { white-space: nowrap; }
+.crs-card .crs-c-join { color: var(--ink-2); text-decoration: none; font-weight: 600; }
+.crs-card .crs-c-join:active { opacity: .6; }
+.crs-card .crs-c-copy { color: var(--ink-2); font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
+.crs-card .crs-c-copy:active { opacity: .6; }
+.crs-card .crs-c-note { font-size: 12.5px; color: var(--muted); line-height: 1.4; margin-top: 5px; }
+.crs-card .crs-c-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.crs-card .crs-c-actions .crs-b { font: inherit; font-size: 13px; font-weight: 700; line-height: 1;
+  min-height: 34px; padding: 0 14px; border-radius: 11px; }
+.crs-card .crs-c-actions .crs-b.p { flex: 1 1 auto; }
+.crs-card .crs-c-actions .crs-b.s { flex: 0 0 auto; }
+.crs-card .crs-c-done { font-size: 13px; font-weight: 600; color: var(--ok); }
 </style>
 </head>
 <body>
@@ -39900,40 +39931,37 @@ function crsScrollToToday() {
 function crsAnyWeekLesson(from, to) { return crsLessonList(from, to).length > 0; }
 function crsLessonCard(ev) {
   const state = crsLessonState(ev);
-  const t = ev.time;
-  const t2 = (ev.tz && ev.tz !== CRS_LOCAL_TZ) ? crsTimeIn(ev.date, ev.time, ev.tz, CRS_LOCAL_TZ) + ' у тебя · ' : '';
-  const moved = ev.movedFrom ? '<span class="crs-chip mv">перенесено с ' + crsDayShort(ev.movedFrom) + '</span>' : '';
-  const hw = crsLessonHwBlock(ev);
+  const t2 = (ev.tz && ev.tz !== CRS_LOCAL_TZ) ? 'у тебя ' + crsTimeIn(ev.date, ev.time, ev.tz, CRS_LOCAL_TZ) : '';
   const em = crsMatOf(ev);
   const hasMaterial = !!(em && em.unit !== undefined && em.unit !== null && em.unit !== '');
-  const isAuto = hasMaterial && !(ev.matManual && ev.material && ev.material.unit !== undefined && ev.material.unit !== '');
-  const mat = hasMaterial
-    ? '<div class="crs-mat crs-mat-link" onclick="event.stopPropagation();crsLessonOpenEv(\'' + ev.evId + '\')" title="Открыть материал урока">' +
-        esc(crsUnitTitle(em.unit)) +
-        (em.part !== undefined && em.part !== '' ? ' · ' + esc(crsPartTitle(em.unit, em.part)) : '') +
-        (isAuto ? '<span class="crs-chip auto">по программе</span>' : '') +
-      '</div>'
-    : '<div class="crs-mat muted">Материал ещё не выбран</div>';
-  const statusChips = moved +
-    (state === 'canceled' ? '<span class="crs-chip off">отменено</span>' : '');
+  const title = hasMaterial
+    ? crsUnitTitle(em.unit) + (em.part !== undefined && em.part !== '' ? ' · ' + crsPartTitle(em.unit, em.part) : '')
+    : 'Материал не выбран';
+  const meta = [];
+  const joinUrl = ev.link || crsZoomFor(ev);
+  if (ev.place) meta.push((joinUrl && state !== 'canceled')
+    ? '<a class="crs-c-join" href="' + esc(joinUrl) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + esc(ev.place) + ' →</a>'
+    : '<span>' + esc(ev.place) + '</span>');
+  const hwx = crsLessonHwText(ev);
+  if (hwx) meta.push('<span>' + esc(hwx) + '</span>');
+  if (ev.pass && state !== 'canceled') meta.push('<span class="crs-c-copy" onclick="event.stopPropagation();crsCopy(\'' + esc(ev.pass) + '\',\'Код\')">код ' + esc(ev.pass) + '</span>');
+  if (ev.movedFrom) meta.push('<span>перенесено с ' + esc(crsDayShort(ev.movedFrom)) + '</span>');
+  if (state === 'canceled') meta.push('<span>отменено</span>');
   return '<div class="crs-card' + (state === 'canceled' ? ' off' : '') + (state === 'done' ? ' done' : '') + '" onclick="crsOpenLesson(event,\'' + ev.evId + '\')">' +
-    '<div class="crs-card-top">' +
-      '<div class="crs-c-time">' + esc(t) + (t2 ? '<span>' + esc(t2) + '</span>' : '') + '</div>' +
-      '<div class="crs-c-tag">' + esc(crsProgTitle(ev.program)) + (ev.teacher ? '<span>' + esc(ev.teacher) + '</span>' : '') + '</div>' +
+    '<div class="crs-c-head">' +
+      '<div class="crs-c-time">' + esc(ev.time) + (t2 ? '<em>' + esc(t2) + '</em>' : '') + '</div>' +
+      '<div class="crs-c-prog">' + esc(crsProgTitle(ev.program)) +
+        ((ev.teacher && crsProgTitle(ev.program).toLowerCase().indexOf(String(ev.teacher).toLowerCase()) < 0) ? ' · ' + esc(ev.teacher) : '') + '</div>' +
       '<button class="crs-more" onclick="event.stopPropagation();crsMenu(\'' + ev.evId + '\')" title="Действия">⋯</button>' +
     '</div>' +
-    mat +
-    (ev.place || ev.pass ? '<div class="crs-place">' + (ev.place ? ((ev.link || crsZoomFor(ev)) && state !== 'canceled'
-        ? '<a class="crs-join" href="' + esc(ev.link || crsZoomFor(ev)) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">📍 ' + esc(ev.place) + ' →</a>'
-        : '📍 ' + esc(ev.place)) : '') + (ev.pass ? (ev.place ? ' · ' : '') + '<span class="crs-pass" onclick="event.stopPropagation();crsCopy(\'' + esc(ev.pass) + '\',\'Код\')">код ' + esc(ev.pass) + ' ⧉</span>' : '') + '</div>' : '') +
-    (ev.note ? '<div class="crs-note">' + esc(ev.note) + '</div>' : '') +
-    (statusChips ? '<div class="crs-chips">' + statusChips + '</div>' : '') +
-    hw +
-    '<div class="crs-actions">' +
+    '<div class="crs-c-title' + (hasMaterial ? '' : ' muted') + '">' + esc(title) + '</div>' +
+    (meta.length ? '<div class="crs-c-meta">' + meta.join('<i>·</i>') + '</div>' : '') +
+    (ev.note ? '<div class="crs-c-note">' + esc(ev.note) + '</div>' : '') +
+    '<div class="crs-c-actions">' +
       (hasMaterial && state !== 'canceled' ? '<button class="crs-b p" onclick="event.stopPropagation();crsLessonOpenEv(\'' + ev.evId + '\')">Открыть урок</button>' : '') +
       (state === 'canceled' ? '' :
         (state === 'done'
-          ? '<span class="crs-b done">Пройден</span>'
+          ? '<span class="crs-c-done">✓ Пройден</span>'
           : '<button class="crs-b s" onclick="event.stopPropagation();crsSetDone(\'' + ev.evId + '\',true)">Завершить</button>')) +
     '</div></div>';
 }
@@ -39953,15 +39981,11 @@ function crsPartTitle(unit, partId) {
   const p = (u.parts || []).filter(function (x) { return x.id === +partId; })[0];
   return p ? (p.title || '') : '';
 }
-function crsLessonHwBlock(ev) {
+function crsLessonHwText(ev) {
   const list = crsHwForLesson(ev);
   if (!list.length) return '';
   const un = list.filter(function (h) { return h.state !== 'done'; }).length;
-  const em2 = crsMatOf(ev);
-  const canOpen = !!(em2 && em2.unit !== undefined && em2.unit !== null && em2.unit !== '');
-  const click = canOpen ? ' onclick="event.stopPropagation();crsLessonOpenEv(\'' + ev.evId + '\')" title="Открыть урок с этим ДЗ"' : '';
-  return '<div class="crs-hw-in compact crs-hw-link"' + click + '><span class="crs-chip hw' + (un ? '' : ' done') + '">ДЗ: ' + list.length + (un ? '' : ' ✓') + '</span>' +
-    (un ? '<span class="crs-chip">не сдано: ' + un + '</span>' : '<span class="crs-chip">ДЗ выполнено</span>') + '' + '</div>';
+  return un ? 'ДЗ не сдано' : 'ДЗ сдано';
 }
 function crsOpenLesson(e, evId) {
   if (e && e.target && e.target.closest && (e.target.closest('button') || e.target.closest('a'))) return;
