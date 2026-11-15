@@ -1109,33 +1109,51 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 <style id="crs-card-621">
 /* 6.20.0 — карточка занятия: один шрифт, один акцент.
    Блок стоит последним, чтобы общий сброс кнопок не растягивал шрифт. */
-.crs-card { padding: 14px 15px 13px; }
-.crs-card .crs-c-head { display: flex; align-items: baseline; gap: 9px; }
-.crs-card .crs-c-time { font-size: 15.5px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums;
-  letter-spacing: 0; line-height: 1.2; flex-shrink: 0; }
-.crs-card .crs-c-time em { font-style: normal; font-size: 11.5px; font-weight: 500; color: var(--faint); margin-left: 5px; }
-.crs-card .crs-c-prog { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 500; color: var(--muted);
+.crs-card { padding: 16px 16px 15px; border-radius: 18px; }
+.crs-card .crs-c-head { display: flex; align-items: baseline; gap: 10px; }
+.crs-card .crs-c-time { font-size: 17px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums;
+  letter-spacing: -.2px; line-height: 1.15; flex-shrink: 0; }
+.crs-card .crs-c-time em { font-style: normal; font-size: 12px; font-weight: 500; color: var(--faint); margin-left: 6px; letter-spacing: 0; }
+.crs-card .crs-c-prog { flex: 1; min-width: 0; text-align: right; font-size: 13px; font-weight: 500; color: var(--muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.crs-card .crs-c-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.32; margin-top: 7px;
+.crs-card .crs-more { margin-left: 2px; }
+.crs-card .crs-c-title { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.34; margin-top: 9px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
-.crs-card .crs-c-title.muted { color: var(--faint); font-weight: 500; font-size: 14px; }
+.crs-card .crs-c-title.muted { color: var(--faint); font-weight: 500; font-size: 15px; }
 .crs-card.done .crs-c-title { color: var(--ink-2); font-weight: 600; }
 .crs-card.off .crs-c-title { color: var(--faint); }
-.crs-card .crs-c-meta { display: flex; flex-wrap: wrap; align-items: baseline; font-size: 12.5px;
-  color: var(--muted); line-height: 1.4; margin-top: 6px; }
-.crs-card .crs-c-meta i { font-style: normal; color: rgba(29,29,33,.22); padding: 0 6px; }
-.crs-card .crs-c-meta > span, .crs-card .crs-c-join { white-space: nowrap; }
+.crs-card .crs-c-line { display: flex; flex-wrap: wrap; align-items: baseline; font-size: 13px;
+  color: var(--muted); line-height: 1.45; margin-top: 7px; }
+.crs-card .crs-c-line.muted { color: var(--faint); font-size: 12.5px; }
+.crs-card .crs-c-line i { font-style: normal; color: rgba(29,29,33,.2); padding: 0 7px; }
+.crs-card .crs-c-line > span, .crs-card .crs-c-join { white-space: nowrap; }
 .crs-card .crs-c-join { color: var(--ink-2); text-decoration: none; font-weight: 600; }
 .crs-card .crs-c-join:active { opacity: .6; }
-.crs-card .crs-c-copy { color: var(--ink-2); font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
-.crs-card .crs-c-copy:active { opacity: .6; }
-.crs-card .crs-c-note { font-size: 12.5px; color: var(--muted); line-height: 1.4; margin-top: 5px; }
-.crs-card .crs-c-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
-.crs-card .crs-c-actions .crs-b { font: inherit; font-size: 13px; font-weight: 700; line-height: 1;
-  min-height: 34px; padding: 0 14px; border-radius: 11px; }
+.crs-card .crs-c-code { color: var(--ink-2); font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
+.crs-card .crs-c-code:active { opacity: .6; }
+.crs-card .crs-c-hw { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-top: 6px; line-height: 1.45; }
+.crs-card .crs-c-hw.ok { color: var(--ok); font-weight: 500; }
+.crs-card .crs-c-note { font-size: 13px; color: var(--muted); line-height: 1.45; margin-top: 6px; }
+.crs-card .crs-c-actions { display: flex; align-items: center; gap: 9px; margin-top: 14px; }
+.crs-card .crs-c-actions .crs-b { font: inherit; font-size: 14px; font-weight: 700; line-height: 1;
+  min-height: 38px; padding: 0 16px; border-radius: 12px; }
 .crs-card .crs-c-actions .crs-b.p { flex: 1 1 auto; }
 .crs-card .crs-c-actions .crs-b.s { flex: 0 0 auto; }
-.crs-card .crs-c-done { font-size: 13px; font-weight: 600; color: var(--ok); }
+.crs-card .crs-c-done { font-size: 14px; font-weight: 600; color: var(--ok); }
+
+/* 6.20.0 — окно занятия по центру экрана, а не приклеено к низу */
+.crs-sheet { top: 50%; bottom: auto; left: 50%; transform: translate(-50%, -50%);
+  width: calc(100% - 28px); max-width: 520px; height: auto; max-height: min(86vh, 780px);
+  border-radius: 22px; box-shadow: 0 24px 70px rgba(29,29,33,.3); animation: crsPop .18s ease; }
+.crs-sheet.crs-lock { height: auto; max-height: min(86vh, 780px); }
+.crs-sheet:not(.crs-lock) { height: auto !important; max-height: min(86vh, 780px) !important; }
+@media (max-width: 899px) {
+  .crs-sheet, .crs-sheet.crs-lock { max-width: 520px; max-height: 86vh; border-radius: 22px; }
+}
+@keyframes crsPop { from { opacity: 0; transform: translate(-50%, calc(-50% + 16px)) } to { opacity: 1; transform: translate(-50%, -50%) } }
+.crs-sheet .crs-grab { display: none; }
+.crs-sheet .crs-sheet-h { padding: 14px 16px 12px; }
+.crs-sheet .crs-sheet-b { padding: 12px 16px 16px; }
 </style>
 </head>
 <body>
@@ -39937,16 +39955,16 @@ function crsLessonCard(ev) {
   const title = hasMaterial
     ? crsUnitTitle(em.unit) + (em.part !== undefined && em.part !== '' ? ' · ' + crsPartTitle(em.unit, em.part) : '')
     : 'Материал не выбран';
-  const meta = [];
   const joinUrl = ev.link || crsZoomFor(ev);
-  if (ev.place) meta.push((joinUrl && state !== 'canceled')
+  const place = [];
+  if (ev.place) place.push((joinUrl && state !== 'canceled')
     ? '<a class="crs-c-join" href="' + esc(joinUrl) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + esc(ev.place) + ' →</a>'
     : '<span>' + esc(ev.place) + '</span>');
+  if (ev.pass && state !== 'canceled') place.push('<span class="crs-c-code" onclick="event.stopPropagation();crsCopy(\'' + esc(ev.pass) + '\',\'Код\')">' + esc(ev.pass) + '</span>');
   const hwx = crsLessonHwText(ev);
-  if (hwx) meta.push('<span>' + esc(hwx) + '</span>');
-  if (ev.pass && state !== 'canceled') meta.push('<span class="crs-c-copy" onclick="event.stopPropagation();crsCopy(\'' + esc(ev.pass) + '\',\'Код\')">код ' + esc(ev.pass) + '</span>');
-  if (ev.movedFrom) meta.push('<span>перенесено с ' + esc(crsDayShort(ev.movedFrom)) + '</span>');
-  if (state === 'canceled') meta.push('<span>отменено</span>');
+  const flags = [];
+  if (ev.movedFrom) flags.push('перенесено с ' + crsDayShort(ev.movedFrom));
+  if (state === 'canceled') flags.push('отменено');
   return '<div class="crs-card' + (state === 'canceled' ? ' off' : '') + (state === 'done' ? ' done' : '') + '" onclick="crsOpenLesson(event,\'' + ev.evId + '\')">' +
     '<div class="crs-c-head">' +
       '<div class="crs-c-time">' + esc(ev.time) + (t2 ? '<em>' + esc(t2) + '</em>' : '') + '</div>' +
@@ -39955,7 +39973,9 @@ function crsLessonCard(ev) {
       '<button class="crs-more" onclick="event.stopPropagation();crsMenu(\'' + ev.evId + '\')" title="Действия">⋯</button>' +
     '</div>' +
     '<div class="crs-c-title' + (hasMaterial ? '' : ' muted') + '">' + esc(title) + '</div>' +
-    (meta.length ? '<div class="crs-c-meta">' + meta.join('<i>·</i>') + '</div>' : '') +
+    (place.length ? '<div class="crs-c-line">' + place.join('<i>·</i>') + '</div>' : '') +
+    (hwx ? '<div class="crs-c-hw' + (hwx.indexOf('не сдано') >= 0 ? '' : ' ok') + '">' + esc(hwx) + '</div>' : '') +
+    (flags.length ? '<div class="crs-c-line muted">' + esc(flags.join(' · ')) + '</div>' : '') +
     (ev.note ? '<div class="crs-c-note">' + esc(ev.note) + '</div>' : '') +
     '<div class="crs-c-actions">' +
       (hasMaterial && state !== 'canceled' ? '<button class="crs-b p" onclick="event.stopPropagation();crsLessonOpenEv(\'' + ev.evId + '\')">Открыть урок</button>' : '') +
@@ -40438,32 +40458,7 @@ function crsSheet(title, html, opts) {
   document.body.appendChild(scrim); document.body.appendChild(sheet);
   const esc0 = function (e) { if (e.key === 'Escape') { closeCrsSheets(); document.removeEventListener('keydown', esc0); } };
   document.addEventListener('keydown', esc0);
-  let y0 = null;
-  const sbody = sheet.querySelector('.crs-sheet-b');
-  const fromHead = function (t) { return !!(t && t.closest && (t.closest('.crs-grab') || t.closest('.crs-sheet-h'))); };
-  const fromBodyTop = function (t) { return !!(t && t.closest && t.closest('.crs-sheet-b') && sbody && sbody.scrollTop <= 0); };
-  sheet.addEventListener('touchstart', function (e) {
-    const t = e.target;
-    y0 = (fromHead(t) || fromBodyTop(t)) ? e.touches[0].clientY : null;
-  }, { passive: true });
-  sheet.addEventListener('touchmove', function (e) {
-    if (y0 === null) return;
-    const dy = e.touches[0].clientY - y0;
-    if (dy <= 0) { sheet.style.transform = ''; return; }
-    if (e.cancelable) e.preventDefault();
-    sheet.style.transform = 'translate(-50%,' + dy + 'px)';
-  }, { passive: false });
-  const endDrag = function (e) {
-    if (y0 === null) return;
-    const dy = (e.changedTouches[0].clientY - y0);
-    sheet.style.transition = 'transform .18s ease';
-    sheet.style.transform = '';
-    setTimeout(function () { if (sheet && sheet.style) sheet.style.transition = ''; }, 190);
-    if (dy > 110) closeCrsSheets();
-    y0 = null;
-  };
-  sheet.addEventListener('touchend', endDrag);
-  sheet.addEventListener('touchcancel', endDrag);
+  /* 6.20.0: окно по центру — свайп вниз для закрытия больше не нужен. */
   document.body.style.overflow = 'hidden';
   if (opts.after) opts.after(sheet);
   return sheet;
