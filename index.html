@@ -2610,7 +2610,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.66.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.67.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4505,7 +4505,10 @@ async function renderCns(prod) {
   const view = document.getElementById('view');
   const s = state.search;
   let clinics = await listClinics();
-  clinics = clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes(prod) && matchFilters(state.filters, c));
+  // 5.67.0: у EMS часть клиник живёт справочными записями (ref_gos/ref_priv) и в отбор не попадала
+  const kinds = prod === 'EMS' ? ['hospital', 'ref_gos', 'ref_priv'] : ['hospital'];
+  clinics = clinics.filter(c => kinds.includes(c.kind || 'hospital') && cardProducts(c).includes(prod)
+    && !isRefLinkedToWorking(c) && matchFilters(state.filters, c));
   if (s) clinics = clinics.filter(c =>
     (c.name || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
     (c.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
