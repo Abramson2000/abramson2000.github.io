@@ -1480,6 +1480,10 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
         <img src="cns.png" class="cns-drawer-ico" alt="" />
         <span>Цисто</span><em class="cnt" data-cnt="cns"></em>
       </button>
+      <button class="tab d-item" data-view="litho">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
+        <span>Литокласт</span><em class="cnt" data-cnt="litho"></em>
+      </button>
       <button class="tab d-item" data-view="air">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M5.8 12h2.6l1.6-3.4 2.2 6.6 1.7-3.2h3.3"/></svg>
         <span>АиР</span>
@@ -1565,6 +1569,10 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
       <button class="tab" data-view="cns">
         <img src="cns.png" class="cns-nav-ico" alt="" />
         <span>Цисто <em class="cnt" data-cnt="cns"></em></span>
+      </button>
+      <button class="tab" data-view="litho">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
+        <span>Литокласт <em class="cnt" data-cnt="litho"></em></span>
       </button>
       <button class="tab" data-view="air">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M5.8 12h2.6l1.6-3.4 2.2 6.6 1.7-3.2h3.3"/></svg>
@@ -2602,7 +2610,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.65.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.66.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2661,6 +2669,7 @@ async function refreshCounts() {
         MONEY_YEARS.some(y => yearTotal(c, y) != null)
       ).length,
       cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС')).length,
+      litho: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('EMS')).length,
       refgos: clinics.filter(c => c.kind === 'ref_gos' && !c.markedDel).length,
       refpriv: clinics.filter(c => c.kind === 'ref_priv' && !c.markedDel).length
     };
@@ -2711,10 +2720,10 @@ function ownershipLabel(o) { return o === 'private' ? 'Частная' : (o === 
 // v3.29.0: единая короткая метка клиники для всех списков — «ЛПУ» / «ЧК»
 // ===== v3.30.0: МЕТКИ ПО ГРУППАМ — тип (ЛПУ/ЧК) · продукты · источники · служебные =====
 const TYPE_VALS = ['ЛПУ', 'ЧК'];
-const PRODUCT_VALS = ['ЦНС', 'BS', 'ХМ', 'АиР', 'Эндо'];
+const PRODUCT_VALS = ['ЦНС', 'BS', 'ХМ', 'АиР', 'Эндо', 'EMS'];
 const SOURCE_VALS = ['База', 'MDPro', 'Сафайр', 'РОУ26', 'OLD'];
 const SERVICE_VALS = ['ТЕСТ'];
-const PROD_ALIAS = { 'цнс': 'ЦНС', 'cns': 'ЦНС', 'bs': 'BS', 'boston': 'BS', 'хм': 'ХМ', 'hm': 'ХМ', 'hugemed': 'ХМ', 'аир': 'АиР', 'air': 'АиР', 'эндо': 'Эндо', 'endo': 'Эндо' };
+const PROD_ALIAS = { 'цнс': 'ЦНС', 'cns': 'ЦНС', 'bs': 'BS', 'boston': 'BS', 'хм': 'ХМ', 'hm': 'ХМ', 'hugemed': 'ХМ', 'аир': 'АиР', 'air': 'АиР', 'эндо': 'Эндо', 'endo': 'Эндо', 'ems': 'EMS' };
 const SRC_ALIAS = { 'база': 'База', 'base': 'База', 'mdpro': 'MDPro', 'сафайр': 'Сафайр', 'safair': 'Сафайр', 'роу26': 'РОУ26', 'rou26': 'РОУ26', 'old': 'OLD' };
 const SVC_ALIAS = { 'тест': 'ТЕСТ', 'test': 'ТЕСТ' };
 function aliasOf(map, t) { return map[String(t || '').trim().toLowerCase()] || ''; }
@@ -3304,7 +3313,7 @@ async function bootstrap(preferredUser) {
   let savedView = '';
   try { savedView = localStorage.getItem('crm-last-view') || ''; } catch (_) {}
   const KNOWN_VIEWS = ['myday', 'clinics', 'distributors', 'people', 'plan', 'money', 'calls', 'visits',
-    'cns', 'air', 'endo', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'analysis', 'sasha', 'nastya', 'galya'];
+    'cns', 'litho', 'air', 'endo', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'analysis', 'sasha', 'nastya', 'galya'];
   state.view = (savedView && KNOWN_VIEWS.includes(savedView)) ? savedView : 'myday';
   state.mydayMgr = myDayDefaultManager();
   Object.keys(WORKLISTS).forEach(k => {
@@ -3656,7 +3665,7 @@ Object.keys(FILTER_CFG).forEach(v => {
   VIEW_FILTER_KEYS[v] = keys;
 });
 // v3.28.0: виды, где кнопка «＋» не показывается (кнопку синхронизируем и в render())
-const FAB_HIDDEN_VIEWS = ['analysis', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
+const FAB_HIDDEN_VIEWS = ['analysis', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'litho', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
 const EMPTY_FILTERS = { region: '', city: '', manager: '', type: '', tag: '', tags: [], prods: [], srcs: [] };
 const viewFilters = {};
 const viewSearch = {};
@@ -3973,8 +3982,8 @@ async function filterRowsFor(view) {
   if (view === 'distributors') return all.filter(c => (c.kind || 'hospital') === 'distributor');
   if (view === 'clinics') return all.filter(c => (c.kind || 'hospital') === 'hospital' || (isRefClinicCard(c) && String(c.manager || '').trim() !== ''));
   if (view === 'money') return all.filter(c => (c.kind || 'hospital') === 'hospital');
-  if (view === 'cns' || view === 'air' || view === 'endo') {
-    const prod = view === 'cns' ? 'ЦНС' : (view === 'air' ? 'АиР' : 'Эндо');
+  if (view === 'cns' || view === 'litho' || view === 'air' || view === 'endo') {
+    const prod = view === 'cns' ? 'ЦНС' : (view === 'litho' ? 'EMS' : (view === 'air' ? 'АиР' : 'Эндо'));
     // v3.37.0: минус справочные записи, связанные с рабочей карточкой (иначе клиника попадёт дважды)
     return all.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital')
       && cardProducts(c).includes(prod) && !isRefLinkedToWorking(c));
@@ -4442,6 +4451,7 @@ async function render() {
     else if (state.view === 'analysis') renderAnalysis();
     else if (state.view === 'calls') renderCalls();
     else if (state.view === 'cns') await renderCns();
+    else if (state.view === 'litho') await renderCns('EMS');
     else if (state.view === 'refgos') await renderRefOrgs('ref_gos');
     else if (state.view === 'refpriv') await renderRefOrgs('ref_priv');
     else if (state.view === 'refdoc') await renderRefDoctors();
@@ -4489,21 +4499,23 @@ async function renderProductList(product, title) {
     : `<div class="empty">${s ? 'Ничего не найдено' : 'Нет клиник с продуктом «' + esc(product) + '» — отметь продукт в карточке клиники'}</div>`);
   restorePanelSelection();
 }
-async function renderCns() {
+async function renderCns(prod) {
+  prod = prod || 'ЦНС';
+  const label = prod === 'EMS' ? 'Литокласт' : 'Цисто';
   const view = document.getElementById('view');
   const s = state.search;
   let clinics = await listClinics();
-  clinics = clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС') && matchFilters(state.filters, c));
+  clinics = clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes(prod) && matchFilters(state.filters, c));
   if (s) clinics = clinics.filter(c =>
     (c.name || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
     (c.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
     (c.region || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
     (c.manager || '').toLowerCase().replace(/ё/g,'е').includes(s));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
-  const cnsHead = `<div class="cns-head"><span>Цисто · <b>${clinics.length}</b> ${clinics.length === 1 ? 'клиника' : clinics.length < 5 ? 'клиники' : 'клиник'} в отборе</span><button class="cns-add" id="cnsAddBtn">＋ Добавить</button></div>`;
+  const cnsHead = `<div class="cns-head"><span>${label} · <b>${clinics.length}</b> ${clinics.length === 1 ? 'клиника' : clinics.length < 5 ? 'клиники' : 'клиник'} в отборе</span><button class="cns-add" id="cnsAddBtn">＋ Добавить</button></div>`;
   if (!clinics.length) {
     view.innerHTML = cnsHead + `<div class="empty">${s ? 'Ничего не найдено' : 'Отбор пуст — добавляй клиники кнопкой «＋ Добавить»'}</div>`;
-    bindCnsAdd(view);
+    bindCnsAdd(view, prod);
     return;
   }
   view.innerHTML = cnsHead
@@ -4517,32 +4529,34 @@ async function renderCns() {
         ${subMarks(c, (loc ? esc(loc) : '—') + (m ? ' · ' + esc(m) : ''))}
       </div>`;
     }).join('') + '</div>';
-  bindCnsAdd(view);
+  bindCnsAdd(view, prod);
 }
-async function bindCnsAdd(view) {
+async function bindCnsAdd(view, prod) {
+  prod = prod || 'ЦНС';
+  const label = prod === 'EMS' ? 'Литокласт' : 'Цисто';
   const btn = view.querySelector('#cnsAddBtn');
   if (!btn) return;
   btn.addEventListener('click', async () => {
     const all = await listClinics();
-    const pool = all.filter(c => (c.kind || 'hospital') === 'hospital' && !cardProducts(c).includes('ЦНС'))
+    const pool = all.filter(c => (c.kind || 'hospital') === 'hospital' && !cardProducts(c).includes(prod))
       .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
     if (!pool.length) { toast('Все клиники уже в отборе'); return; }
-    openModal('Добавить в отбор ЦНС',
+    openModal('Добавить в отбор ' + label,
       '<div class="list" id="cnsPool">' + pool.map(c =>
         `<div class="card list-row cns-pool-row" data-id="${c.id}" style="cursor:pointer"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span>${ownBadge(c)}${productChips(c)}</span></div>`
       ).join('') + '</div>');
     document.querySelectorAll('#cnsPool .cns-pool-row').forEach(row => row.addEventListener('click', async () => {
       const c = all.find(x => x.id === Number(row.dataset.id));
       if (!c) return;
-      const tags = setTagInGroup(c.tags, PROD_ALIAS, 'ЦНС', true);
+      const tags = setTagInGroup(c.tags, PROD_ALIAS, prod, true);
       const { error } = await withTimeout(sb.from('clinics').update({ tags }).eq('id', c.id), 10000, 'cns-add');
       if (error) { toast('Ошибка: ' + (error.message || error)); return; }
       c.tags = tags;
       row.remove();
       refreshCounts();
-      renderCns();
+      renderCns(prod);
       closeModal();
-      toast('Добавлено в отбор ЦНС');
+      toast('Добавлено в отбор ' + label);
     }));
   });
 }
