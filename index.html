@@ -2610,7 +2610,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.68.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.73.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5617,15 +5617,14 @@ async function renderVisits() {
     const daysInMonth = new Date(yy, mm, 0).getDate();
     const monthStart = curMonth + '-01';
     const monthEnd = curMonth + '-' + String(daysInMonth).padStart(2, '0');
-    const shortTitle = (t) => { const v = String(t || '').trim(); return v.length > 18 ? v.slice(0, 18) + '…' : v; };
+    const shortTitle = (t) => { const v = String(t || '').trim(); return v.length > 26 ? v.slice(0, 26) + '…' : v; };
     const stripKind = (v) => String(v || '').replace(/^(встреча|апробация|мастер[- ]?класс|конференция)\s*[·:\-–]?\s*/i, '').trim();
     const labelOf = (p) => {
       const city = String(p.city || cityById[p.clinic_id] || '').trim();
+      const clinic = String(byId[p.clinic_id] || '').trim();
+      if (clinic) return shortTitle((city ? city + ' · ' : '') + clinic);
       const raw = visitTitleOf(p) || p.goal || '';
-      const name = shortTitle(stripKind(raw) || String(p.goal || '').trim() || raw);
-      const isMoscow = /москва/i.test(city);
-      if (city && !isMoscow) return city + ' · ' + name;
-      return ((byId[p.clinic_id] || '') + (city ? (byId[p.clinic_id] ? ' · ' + city : city) : '') || 'Визит') + ' · ' + name;
+      return shortTitle(stripKind(raw) || String(p.goal || '').trim() || 'Визит') + (city ? ' · ' + city : '');
     };
     const evs = [];
     visitRows.forEach(p => {
@@ -5642,9 +5641,10 @@ async function renderVisits() {
       const a = a0 < monthStart ? monthStart : a0;
       const b = b0 > monthEnd ? monthEnd : b0;
       if (a > b) return;
-      const city = String(cityById[i.clinic_id] || '').trim();
-      const nm = shortTitle(i.goal || 'идея');
-      evs.push({ a, b, noteId: i.noteId, idea: true, cls: 'idea', title: (city && !/москва/i.test(city) ? city + ' · ' : '') + nm });
+      const city = String(i.city || cityById[i.clinic_id] || '').trim();
+      const clinic = String(byId[i.clinic_id] || '').trim();
+      const nm = clinic ? clinic : shortTitle(i.goal || i.title || 'идея');
+      evs.push({ a, b, noteId: i.noteId, idea: true, cls: 'idea', title: 'идея · ' + (city ? city + ' · ' : '') + nm });
     });
 
     // разбиваем месяц на недели по понедельникам
@@ -5715,42 +5715,29 @@ async function renderVisits() {
     : '';
   const listHtml = (VISITS_UI.mode === 'cal') ? '' :
     hiddenHtml + `<div class="md-gap">
-      <div class="md-sec">Предстоящие · <b>${future.length}</b></div>
-      ${future.length ? `<div class="list visits-list">${future.map(p => rowHtml(p, false)).join('')}</div>` : '<div class="empty">Предстоящих визитов нет.</div>'}
+      <div class="md-sec">Планы · предстоящие поездки · <b>${future.length}</b></div>
+      ${future.length ? `<div class="list visits-list">${future.map(p => rowHtml(p, false)).join('')}</div>` : '<div class="empty">Предстоящих поездок нет.</div>'}
       ${past.length ? `<div class="visits-sep"><span>сегодня · ${fmtDate(today)}</span></div>
         <div class="md-sec" style="margin-top:6px">Прошедшие · <b>${past.length}</b></div>
         <div class="list visits-list">${past.slice().reverse().map(p => rowHtml(p, true)).join('')}</div>` : ''}
     </div>`;
 
-  // идеи
-  // 5.9.0: идеи визитов — той же формы, что и визиты
-  const monthIdeas = ideaRows.filter(i => i.month && !i.from);
-  const planIdeas = ideaRows.filter(i => !(i.month && !i.from));
-  const ideasMonthHtml = monthIdeas.length ? `<div class="md-sec">Идеи визитов · <b>${monthIdeas.length}</b></div>
-    <div class="list visits-list">${monthIdeas.map(i => {
-      const m = String(i.month || '').slice(0, 7);
-      const label = m ? monthLabel(m) : 'месяц не задан';
-      const city = String(i.city || '').trim() || 'без города';
-      return `<div class="card list-row idea-month" data-idea-month="${i.noteId}">
-        <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(city)}</span></span>
-          <span class="row-next">${esc(label)}</span></div>
-        <div class="row-why">${esc(i.note || '—')}</div>
-      </div>`;
-    }).join('')}</div>` : '';
-  const ideasHtml = planIdeas.length ? `<div class="md-sec">Планы визитов · <b>${planIdeas.length}</b></div>
-    <div class="list visits-list">${planIdeas.map(i => {
-      const a = String(i.from || '').slice(0, 10);
-      const b = String(i.to || i.from || '').slice(0, 10);
-      const win = !a ? 'окно не задано' : ((!b || b === a) ? fmtDate(a) : fmtDate(a) + ' - ' + fmtDate(b));
-      const title = String(i.title || i.goal || i.kind || 'визит').trim() || 'визит';
+  // идеи визитов — одна сущность: месяц, точные даты не обязательны
+  const ideasHtml = ideaRows.length ? `<div class="md-sec">Идеи визита · <b>${ideaRows.length}</b></div>
+    <div class="list visits-list">${ideaRows.map(i => {
+      const a0 = String(i.from || '').slice(0, 10);
+      const b0 = String(i.to || i.from || '').slice(0, 10);
+      const m = String(i.month || a0.slice(0, 7) || '').slice(0, 7);
+      const label = a0 ? ((!b0 || b0 === a0) ? fmtDate(a0) : fmtDate(a0) + ' - ' + fmtDate(b0))
+                       : (m ? monthLabel(m) : 'срок не задан');
+      const title = String(i.title || i.note || i.goal || i.kind || 'визит').trim() || 'визит';
       const city = String(i.city || '').trim();
       const clinic = byId[i.clinic_id] || '';
       const who = [...new Set((i.participants || []).map(canonManager).filter(Boolean))];
       const remind = i.remind ? `<span class="remind-com">Напоминание ${esc(fmtDate(i.remind))}</span>` : '';
-      return `<div class="card list-row" data-id="${i.clinic_id}" data-kind="clinic" data-idea="${i.noteId}">
-        <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(title)}</span></span><span class="row-next">${esc(win)}</span></div>
-        <div class="row-why"><b>${esc(city || 'без города')}</b></div>
-        <div class="row-why">${clinic ? esc(clinic) : '&nbsp;'}</div>
+      return `<div class="card list-row idea-month" data-idea-month="${i.noteId}">
+        <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(title)}</span></span><span class="row-next">${esc(label)}</span></div>
+        <div class="row-why"><b>${esc(city || 'без города')}</b>${clinic ? ' · ' + esc(clinic) : ''}</div>
         <div class="row-why">${who.length ? 'Участники: ' + esc(who.join(', ')) : 'Участники: —'}${remind}</div>
       </div>`;
     }).join('')}</div>` : '';
@@ -5759,28 +5746,25 @@ async function renderVisits() {
   view.innerHTML = `
     <div class="plan-bar visits-bar">
       <button class="btn ghost mini" id="visitsModeBtn">${VISITS_UI.mode === 'cal' ? 'Список' : 'Календарь'}</button>
-      <button class="btn ghost mini" id="newIdeaMonthBtn">＋ Идея</button>
-      <button class="btn primary mini" id="newIdeaBtn">＋ План визита</button>
+      <button class="btn primary mini" id="newIdeaBtn">＋ Идея визита</button>
     </div>
     <div class="plan-filters" style="display:flex">
       ${chip('', 'Все')}${MGR_LIST.map(m => chip(m, m)).join('')}
     </div>
     ${calHtml}
-    ${VISITS_UI.mode === 'cal' ? '' : ideasMonthHtml + ideasHtml}
-    ${listHtml}
+    ${VISITS_UI.mode === 'cal' ? '' : listHtml}
+    ${VISITS_UI.mode === 'cal' ? '' : ideasHtml}
     ${VISITS_UI.mode === 'cal' ? statsHtml : ''}`;
 
   // 5.30.0: идея визита открывается на редактирование по клику
   view.querySelectorAll('[data-idea-month]').forEach(el => el.addEventListener('click', (e) => {
     if (e.target.closest('button')) return;
-    const idea = monthIdeas.find(x => Number(x.noteId) === Number(el.dataset.ideaMonth));
-    if (idea) openIdeaMonthModal(idea.clinic_id || null, idea);
+    const idea = ideaRows.find(x => Number(x.noteId) === Number(el.dataset.ideaMonth));
+    if (idea) openIdeaModal(idea.clinic_id || null, idea);
   }));
 
   const nb = document.getElementById('newIdeaBtn');
   if (nb) nb.addEventListener('click', () => openIdeaModal());
-  const nm = document.getElementById('newIdeaMonthBtn');
-  if (nm) nm.addEventListener('click', () => openIdeaMonthModal());
 
 
   const shAll = document.getElementById('visitsShowAll');
@@ -6752,8 +6736,11 @@ async function openIdeaModal(presetClinicId, idea) {
       </div>
     </div>
     <div class="field"><label>Комментарий</label><input type="text" id="viGoal" value="${esc((idea && idea.goal) || '')}" placeholder="апробация Литокласт" /></div>
+    <div class="field"><label>Месяц (если точная дата ещё не известна)</label>
+      <input type="month" id="viMonth" value="${esc((idea && idea.month) || '')}" />
+    </div>
     <div class="vm-dates-row">
-      <span class="vm-dates-lbl">Ориентир</span>
+      <span class="vm-dates-lbl">или даты</span>
       <input type="date" id="viFrom" value="${esc((idea && idea.from) || '')}" aria-label="С какого числа" />
       <span class="vm-dates-dash">—</span>
       <input type="date" id="viTo" value="${esc((idea && idea.to) || '')}" aria-label="По какое число" />
@@ -6839,17 +6826,19 @@ async function openIdeaModal(presetClinicId, idea) {
         }
       }
       const cityNow = (document.getElementById('viCity').value || '').trim();
+      const monthNow = document.getElementById('viMonth').value || '';
       const fromNow = document.getElementById('viFrom').value || '';
+      const toNow = document.getElementById('viTo').value || '';
       if (!c && !cityNow) { showErr('Укажи город или выбери клинику из подсказки'); btn.disabled = false; return; }
-      if (!fromNow) { showErr('Нужна дата «с какого числа»'); btn.disabled = false; return; }
       const days = Math.max(1, Math.min(90, Number(document.getElementById('viRemind').value) || 4));
       const payload = {
         title: (document.getElementById('viTitle').value || '').trim(),
         kind: (document.getElementById('viKind').value || 'Встреча'),
         city: (document.getElementById('viCity').value || '').trim(),
         goal: (document.getElementById('viGoal').value || '').trim(),
-        from: document.getElementById('viFrom').value || null,
-        to: document.getElementById('viTo').value || null,
+        month: monthNow,
+        from: fromNow || null,
+        to: toNow || null,
         participants: [...document.querySelectorAll('.vmPart:checked')].map(x => canonManager(x.value)),
         remind: (idea && idea.remind) ? idea.remind : addDaysISO(todayISO(), days),
         status: 'idea'
