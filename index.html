@@ -74,10 +74,11 @@ body {
 .brand {
   font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px;
   letter-spacing: -.3px; white-space: nowrap; min-width: 0;
+  flex: 1 1 auto; overflow: hidden;
 }
 .brand-logo { height: 24px; width: 24px; border-radius: 6px; object-fit: cover; }
-.brand-name { font-weight: 800; font-size: 18px; letter-spacing: -.3px; white-space: nowrap; }
-.brand-version { font-size: 11px; color: var(--muted); font-weight: 600; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; flex: none; }
+.brand-name { font-weight: 800; font-size: 18px; letter-spacing: -.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.brand-version { font-size: 11px; color: var(--muted); font-weight: 600; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; flex: 0 0 auto; margin-left: 8px; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .search-wrap { margin-top: 10px; }
 .search-wrap input {
   width: 100%; padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px;
@@ -352,7 +353,9 @@ body.plan-mode .view, body.plan-mode .work > #view { max-width: none; padding-le
 .visit-past .visit-title-sm { color: #4f565a; }
 .visit-past .row-next { color: #6f767b; }
 .visit-past .row-why { color: #5d6468; }
-.cal-bar { height: 40px; line-height: 40px; border-radius: 9px; padding: 0 10px; font-size: 13px; font-weight: 600; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.cal-bar { height: 40px; max-height: 40px; border-radius: 9px; padding: 3px 7px; font-size: 11.5px; font-weight: 600; text-align: left; overflow: hidden; cursor: pointer;
+  box-sizing: border-box; display: flex; align-items: center; justify-content: flex-start; }
+.cal-bar > span { display: block; width: 100%; max-height: 28px; overflow: hidden; line-height: 14px; word-break: break-word; }
 .cal-bar.past { background: #e6f0fb; color: #2c6fb0; }
 .cal-bar.now { background: #e8f6ec; color: #1f7a45; }
 .cal-bar.idea { background: #fff6d9; color: #8a6d00; border: 1px dashed #e0cd7a; }
@@ -1407,6 +1410,12 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
   #modal.modal-full textarea#neModalTa{ flex:1 1 auto; min-height:0 !important; height:calc(100dvh - 190px) !important; box-sizing:border-box; resize:none; }
   #modal.modal-full .btn-row{ flex:0 0 auto; }
 }
+  /* 5.77.0: на телефоне версия остаётся, но уезжает на свою строку — название не перекрывает */
+  @media (max-width: 760px) {
+    .topbar-row { flex-wrap: wrap; }
+    .topbar-row .brand { flex: 1 1 100%; }
+    .topbar-row .brand-version { order: 9; margin: 4px 0 0 auto; max-width: none; }
+  }
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2610,7 +2619,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.73.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '5.77.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5622,9 +5631,9 @@ async function renderVisits() {
     const labelOf = (p) => {
       const city = String(p.city || cityById[p.clinic_id] || '').trim();
       const clinic = String(byId[p.clinic_id] || '').trim();
-      if (clinic) return shortTitle((city ? city + ' · ' : '') + clinic);
+      if (clinic) return (city ? city + ' · ' : '') + clinic;
       const raw = visitTitleOf(p) || p.goal || '';
-      return shortTitle(stripKind(raw) || String(p.goal || '').trim() || 'Визит') + (city ? ' · ' + city : '');
+      return (stripKind(raw) || String(p.goal || '').trim() || 'Визит') + (city ? ' · ' + city : '');
     };
     const evs = [];
     visitRows.forEach(p => {
@@ -5643,7 +5652,7 @@ async function renderVisits() {
       if (a > b) return;
       const city = String(i.city || cityById[i.clinic_id] || '').trim();
       const clinic = String(byId[i.clinic_id] || '').trim();
-      const nm = clinic ? clinic : shortTitle(i.goal || i.title || 'идея');
+      const nm = clinic ? clinic : (i.goal || i.title || 'идея');
       evs.push({ a, b, noteId: i.noteId, idea: true, cls: 'idea', title: 'идея · ' + (city ? city + ' · ' : '') + nm });
     });
 
@@ -5679,7 +5688,7 @@ async function renderVisits() {
       });
       return `<div class="cal-week">
         ${wk.cells.map(c => `<div class="cal-dnum" style="grid-column:${c.col};grid-row:1">${c.day}</div>`).join('')}
-        ${bars.map(b => `<div class="cal-bar ${b.cls}" style="grid-column:${b.col}/${b.col + b.span};grid-row:${b.row}" ${b.idea ? `data-idea="${b.noteId}"` : `data-visit="${b.noteId}"`} title="${esc(b.title)}">${esc(b.title)}</div>`).join('')}
+        ${bars.map(b => `<div class="cal-bar ${b.cls}" style="grid-column:${b.col}/${b.col + b.span};grid-row:${b.row}" ${b.idea ? `data-idea="${b.noteId}"` : `data-visit="${b.noteId}"`} title="${esc(b.title)}"><span>${esc(b.title)}</span></div>`).join('')}
       </div>`;
     }).join('');
 
