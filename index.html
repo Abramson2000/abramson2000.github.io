@@ -11,9 +11,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Абрамовская база" />
-  <meta name="description" content="Абрамовская база — рабочий кабинет: клиники, дистрибьюторы, деньги, звонки и визиты." />
-  <title>Абрамовская база</title>
+  <meta name="apple-mobile-web-app-title" content="Атлас" />
+  <meta name="description" content="Атлас — рабочий кабинет: клиники, дистрибьюторы, деньги, звонки и визиты." />
+  <title>Атлас</title>
   <link rel="icon" type="image/png" href="logo-192.png" />
   <link rel="apple-touch-icon" href="logo-180.png" />
   <link rel="manifest" href="manifest.json?v=21" />
@@ -76,9 +76,10 @@ body {
   letter-spacing: -.3px; white-space: nowrap; min-width: 0;
   flex: 1 1 auto; overflow: hidden;
 }
-.brand-logo { height: 24px; width: 24px; border-radius: 6px; object-fit: cover; }
-.brand-name { font-weight: 800; font-size: 18px; letter-spacing: -.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.brand-version { font-size: 11px; color: var(--muted); font-weight: 600; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; flex: 0 0 auto; margin-left: 8px; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@font-face { font-family: 'AtlasScript'; src: url('fonts/marck-title.woff2?v=6.0.0') format('woff2'); font-display: swap; font-weight: 400; }
+.brand-logo { height: clamp(34px, 12.3vw, 48px); width: clamp(34px, 12.3vw, 48px); border-radius: 12px; object-fit: cover; }
+.brand-name { font-family: 'AtlasScript', 'Marck Script', cursive; font-weight: 400; font-size: clamp(42px, 17.4vw, 68px); line-height: .92; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; padding-bottom: 2px; }
+.brand-version { font-size: 11px; color: var(--muted); font-weight: 600; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; flex: 0 0 auto; margin-left: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .search-wrap { margin-top: 10px; }
 .search-wrap input {
   width: 100%; padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px;
@@ -804,6 +805,8 @@ body.logged-out .toast { display: none !important; }
 .drawer .d-sec { padding: 14px 16px 4px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
 .sidebar-nav .d-sec { padding: 14px 6px 4px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
 .drawer .d-foot { padding: 12px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.drawer .d-foot .df-name { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.drawer .d-foot .df-ver { font-size: 11px; color: var(--muted); }
 @media (min-width: 900px) { .drawer, .drawer-overlay { display: none; } }
 
 /* Sidebar (desktop only) */
@@ -1440,7 +1443,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
     <div class="topbar-inner">
       <div class="topbar-row">
         <button class="burger" id="burgerBtn" aria-label="Меню"><span></span><span></span><span></span></button>
-        <span class="brand"><img src="logo.jpg" class="brand-logo" alt="" /><span class="brand-name">Абрамовская база</span></span>
+        <span class="brand"><img src="logo.jpg" class="brand-logo" alt="" /><span class="brand-name">Атлас</span></span>
         <span id="brandVersion" class="brand-version">© Abramson</span>
       </div>
       <div id="diag" style="display:none;font-size:10px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%"></div>
@@ -1449,7 +1452,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
 
   <div class="drawer-overlay" id="drawerOverlay"></div>
   <aside class="drawer" id="drawerMenu" aria-hidden="true">
-    <div class="d-head"><img src="logo.jpg" class="d-logo" alt="" /><div><div class="d-title">Абрамовская база</div><div class="d-sub" id="drawerUser"></div></div></div>
+    <div class="d-head"><img src="logo.jpg" class="d-logo" alt="" /><div><div class="d-title">Атлас</div><div class="d-sub" id="drawerUser"></div></div></div>
     <nav>
       <div class="d-sec">Основное</div>
       <button class="tab d-item active" data-view="myday">
@@ -1532,13 +1535,13 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
         <span>Настройки</span>
       </button>
     </nav>
-    <div class="d-foot" id="drawerFoot">Абрамовская база</div>
+    <div class="d-foot" id="drawerFoot"><div class="df-name">Атлас Абрамова</div><div class="df-ver" id="drawerVer">v. 6.0.0 © Abramson</div></div>
   </aside>
 
   <aside class="sidebar">
     <div class="sidebar-brand">
       <img src="logo.jpg" class="brand-logo" alt="" />
-      <span class="brand-name">Абрамовская база</span>
+      <span class="brand-name">Атлас</span>
     </div>
     <nav class="sidebar-nav">
       <div class="d-sec">Основное</div>
@@ -2619,7 +2622,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '5.77.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.0.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3194,9 +3197,15 @@ const WORKLISTS = {
 
 function showLogin() {
   document.body.classList.add('logged-out');
-  // приветствие показывается сразу, форма раскрывается чуть позже — «когда подгрузится остальное»
+  // форма раскрывается сразу: раньше depended от setTimeout и при ранней ошибке скрипта
+  // экран входа оставался без полей — «не зайти».
   const f = document.getElementById('loginForm');
-  if (f) setTimeout(function () { f.classList.add('shown'); }, 150);
+  if (f) { f.classList.add('shown'); setTimeout(function () { f.classList.add('shown'); }, 150); }
+  try {
+    const em = document.getElementById('loginEmail');
+    const last = localStorage.getItem('crm-last-email') || '';
+    if (em && !em.value && last) em.value = last.split('@')[0];
+  } catch (e) {}
 }
 function showApp() {
   document.body.classList.remove('logged-out');
@@ -3227,8 +3236,8 @@ async function healSession(silent) {
     const s2 = r && r.data && r.data.session;
     if (s2 && s2.user && (s2.user.email || '').toLowerCase() === (CURRENT_EMAIL || '').toLowerCase()) { SESSION_FROM_STORAGE = false; hideReLogin(false); offFlush(); offReloadData(); return; }
   } catch (e) {}
-  if (reloginSnoozed()) return;        // уже просили недавно
-  showReLogin();
+  showReLogin();   // 5.78.0: «Позже» больше не глушит напоминание на 6 часов — иначе приложение
+                   // оставалось с пустыми списками, и это выглядело как поломка базы
 }
 
 function showReLogin() {
@@ -3256,10 +3265,17 @@ function hideReLogin(snooze) {
 }
 
 async function crmReLogin() {
-  try { if (sb && sb.auth) await sb.auth.signOut(); } catch (e) {}
+  hideReLogin(false);
+  SESSION_FROM_STORAGE = false;
+  try { if (sb && sb.auth) await withTimeout(sb.auth.signOut(), 4000, 'relogin-signout'); } catch (e) {}
   clearUserCaches();
   try { localStorage.removeItem('crm-offline-user'); } catch (e) {}
-  location.reload();
+  try { localStorage.removeItem(RELOGIN_SNOOZE_KEY); } catch (e) {}
+  try { localStorage.removeItem('crm-last-view'); } catch (e) {}
+  // без перезагрузки: на iOS PWA reload возвращал тот же экран из кэша
+  showLogin();
+  const em = document.getElementById('loginEmail');
+  if (em) { try { em.value = (localStorage.getItem('crm-last-email') || '').split('@')[0]; } catch (e) {} em.focus(); }
 }
 
 async function bootstrap(preferredUser) {
@@ -3353,10 +3369,22 @@ async function bootstrap(preferredUser) {
   if (isGuest && state.view === 'money') state.view = 'clinics';
   showApp();
   try { healSession(true); } catch (e) {}
+  // 5.78.0: вернулись в приложение (PWA из фона) или появилась сеть — пробуем восстановить
+  // сессию ещё раз, чтобы не сидеть с пустыми списками
+  try {
+    if (!window.__healHooked) {
+      window.__healHooked = 1;
+      const retry = () => { try { if (document.body.classList.contains('logged-out')) return; healSession(true); } catch (e) {} };
+      window.addEventListener('online', retry);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') retry(); });
+    }
+  } catch (e) {}
   applyAccent();
-  const verLine = 'v' + APP_VER + ' · © Abramson';
-  document.getElementById('brandVersion').textContent = verLine;
-  document.getElementById('footerVersion').textContent = verLine;
+  document.getElementById('brandVersion').textContent = APP_VER;
+  const dv = document.getElementById('drawerVer');
+  if (dv) dv.textContent = 'v. ' + APP_VER + ' © Abramson';
+  const fv = document.getElementById('footerVersion');
+  if (fv) { fv.textContent = ''; fv.style.display = 'none'; }
   updateFiltersUI();
   render();
   refreshCounts();
@@ -3418,6 +3446,8 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = 'Вход…'; err.textContent = '';
   try {
     const user = await signIn(email, password);
+    try { localStorage.setItem('crm-last-email', email); } catch (e) {}
+    try { localStorage.removeItem(RELOGIN_SNOOZE_KEY); } catch (e) {}
     await bootstrap(user);
   } catch (e) {
     // При отсутствии сети разрешаем вход только ранее подтверждённому на этом устройстве пользователю
