@@ -72,13 +72,13 @@ body {
 }
 .topbar-inner { max-width: 720px; margin: 0 auto; padding: 4px 16px; }
 .brand {
-  font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 6px;
+  font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 12px;
   letter-spacing: -.3px; white-space: nowrap; min-width: 0;
   flex: 1 1 auto; overflow: hidden;
 }
-@font-face { font-family: 'AtlasScript'; src: url('fonts/marck-title.woff2?v=6.2.0') format('woff2'); font-display: swap; font-weight: 400; }
-.brand-logo { height: clamp(18px, 6.2vw, 24px); width: clamp(18px, 6.2vw, 24px); border-radius: 6px; object-fit: cover; }
-.brand-name { font-family: 'AtlasScript', 'Marck Script', cursive; font-weight: 400; font-size: clamp(21px, 8.7vw, 34px); line-height: .95; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; padding-bottom: 0; }
+@font-face { font-family: 'AtlasScript'; src: url('fonts/marck-title.woff2?v=6.3.0') format('woff2'); font-display: swap; font-weight: 400; }
+.brand-logo { height: clamp(26px, 8.9vw, 35px); width: clamp(26px, 8.9vw, 35px); border-radius: 8px; object-fit: cover; }
+.brand-name { font-family: 'AtlasScript', 'Marck Script', cursive; font-weight: 400; font-size: clamp(17px, 7vw, 27.5px); line-height: .95; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; padding-bottom: 0; }
 .brand-version { font-size: 11px; color: var(--muted); font-weight: 600; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; flex: 0 0 auto; margin-left: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .search-wrap { margin-top: 10px; }
 .search-wrap input {
@@ -154,7 +154,7 @@ body {
 .own-badge { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; border-radius: 6px; padding: 0 5px; line-height: 15px; flex: none; }
 .own-badge.own-lpu { color: var(--brand-dark); background: #e6f4f4; }
 .own-badge.own-chk { color: #8a5a00; background: #fdf3e3; }
-.rn-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.rn-wrap { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .rn-wrap .list-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .list-row-sub .own-badge, .ac-sub .own-badge { margin-right: 5px; }
 /* ===== v3.30.0: группы меток (продукты/источники/служебные) + фильтры-панель ===== */
@@ -194,7 +194,7 @@ body {
   .filters { padding: 10px 12px 0; }
   /* v3.31.5: на телефоне полоса фильтров — ОДНА строка, листается вправо-влево */
   .f-ctl, #fChips { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: thin; padding-bottom: 2px; }
-  #fPanel > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--brand-dark); font-weight: 700; padding: 4px 0; }
+  #fPanel > summary { display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 13px; color: var(--brand-dark); font-weight: 700; padding: 4px 0; }
   #fPanel:not([open]) .f-ctl { display: none; }
   .pchip { font-size: 9.5px; line-height: 14px; padding: 0 4px; }
 }
@@ -276,7 +276,7 @@ body {
 .md-idea-row { display: flex; align-items: center; gap: 10px; }
 .md-idea-row .grow { flex: 1; min-width: 0; }
 .vm-chks { display: flex; flex-wrap: wrap; gap: 10px 16px; }
-.vm-chk { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.vm-chk { display: flex; align-items: center; gap: 12px; font-size: 14px; }
 .vm-docs { max-height: 220px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
 .form-err { margin: 4px 0 10px; padding: 8px 10px; border-radius: 10px; background: #fdecea; color: #b91c1c; font-size: 13px; font-weight: 600; }
 .form-err.hidden { display: none; }
@@ -663,7 +663,7 @@ body.logged-out .off-chip { display: none !important; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .chip {
-  display: flex; align-items: center; gap: 6px; background: var(--card);
+  display: flex; align-items: center; gap: 12px; background: var(--card);
   border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; font-size: 13px;
 }
 .chip .x { cursor: pointer; color: var(--muted); font-weight: 700; }
@@ -1016,7 +1016,7 @@ input[type=search]::-webkit-search-cancel-button { display: none; }
 .search-count:empty { display: none; }
 .search-count.bad { color: var(--danger); }
 /* v3.27.0: сайт — компактной ссылкой в шапке карточки (вместо отдельной плашки) */
-.card-head-acts { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.card-head-acts { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
 .site-chip {
   display: inline-flex; align-items: center; gap: 5px; max-width: 190px;
   padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
@@ -1070,7 +1070,7 @@ input[type=search]::-webkit-search-cancel-button { display: none; }
   .plan-tbl.money-tbl th, .plan-tbl.money-tbl td { padding: 7px 8px; font-size: 12px; }
   .plan-tbl.money-tbl th:first-child, .plan-tbl.money-tbl td:first-child { min-width: 132px; width: auto; }
 }
-.mny-gran { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); margin: 2px 0 6px; }
+.mny-gran { display: flex; align-items: center; gap: 12px; font-size: 11.5px; color: var(--muted); margin: 2px 0 6px; }
 .mny-g { font: inherit; font-size: 11.5px; line-height: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); cursor: pointer; }
 .mny-g.on { color: var(--brand); border-color: var(--brand); }
 /* v3.25.0: «Продажи» в карточке — ОДНОЙ строкой; всё остальное — на отдельной странице */
@@ -2618,7 +2618,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.2.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.3.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
