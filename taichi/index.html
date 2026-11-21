@@ -426,7 +426,7 @@ function renderDone(v){
 }
 function renderSettings(v){
   const st=settings();
-  v.innerHTML=head('Настройки','Только то, что влияет на тренировку')+'<div class="settings"><div class="set-card"><div class="set-group"><h2>Режим</h2><div class="set-row"><div><b>Тренировок в неделю</b><div class="small">Оптимально 3; четвёртая — только если восстановился и нет боли.</div></div><select id="freq"><option value="3" '+(st.frequency===3?'selected':'')+'>3 раза</option><option value="4" '+(st.frequency===4?'selected':'')+'>4 раза</option></select></div></div><div class="set-group"><h2>Во время тренировки</h2><div class="set-row"><div><b>Не гасить экран</b><div class="small">Если браузер поддерживает Wake Lock, экран останется включён. Если нет — таймер всё равно восстановится по реальному времени.</div></div><label class="toggle"><input type="checkbox" id="wake" '+(st.wake?'checked':'')+'> Включено</label></div><div class="set-row"><div><b>Вибрация после отдыха</b></div><label class="toggle"><input type="checkbox" id="vib" '+(st.vibrate?'checked':'')+'> Включено</label></div></div><div class="set-group"><h2>Прогресс</h2><p class="small">Сброс удалит историю, оценки нагрузки и вернёт программу на круг 1, занятие 1.</p><button class="btn danger" id="reset">Сбросить программу</button></div><div class="controls"><button class="btn" id="saveSettings">Сохранить</button></div></div></div>';
+  v.innerHTML=head('Настройки','Только то, что влияет на тренировку')+'<div class="settings"><div class="set-card"><div class="set-group"><h2>Режим</h2><div class="set-row"><div><b>Тренировок в неделю</b><div class="small">Оптимально 3; четвёртая — только если восстановился и нет боли.</div></div><select id="freq"><option value="3" '+(st.frequency===3?'selected':'')+'>3 раза</option><option value="4" '+(st.frequency===4?'selected':'')+'>4 раза</option></select></div></div><div class="set-group"><h2>Во время тренировки</h2><div class="set-row"><div><b>Не гасить экран</b><div class="small">Если браузер поддерживает Wake Lock, экран останется включён. Если нет — таймер всё равно восстановится по реальному времени.</div></div><label class="toggle"><input type="checkbox" id="wake" '+(st.wake?'checked':'')+'> Включено</label></div><div class="set-row"><div><b>Вибрация после отдыха</b></div><label class="toggle"><input type="checkbox" id="vib" '+(st.vibrate?'checked':'')+'> Включено</label></div></div><div class="set-group"><h2>Прогресс</h2><p class="small">Сброс удалит историю, оценки нагрузки и вернёт программу на круг 1, занятие 1.</p><button class="btn danger" id="reset">Сбросить программу</button></div><div class="set-group"><h2>Резервная копия истории</h2><p class="small">Пока облачная синхронизация не подключена, историю можно безопасно перенести между телефоном и компьютером. Импорт объединяет занятия и не удаляет уже имеющиеся записи.</p><div class="controls"><button class="btn soft" id="exportHistory">Сохранить историю в файл</button><label class="btn ghost" style="cursor:pointer">Загрузить историю из файла<input id="importHistory" type="file" accept=".json,application/json" style="display:none"></label></div></div><div class="controls"><button class="btn" id="saveSettings">Сохранить</button></div></div></div>';
 }
 document.addEventListener('click',function(ev){
   const t=ev.target.closest('[data-go],[data-tab],[data-open],[data-start],[data-exit]');
@@ -443,6 +443,45 @@ document.addEventListener('click',function(ev){
   }
   if(ev.target&&ev.target.id==='reset'){
     if(confirm('Сбросить весь прогресс Тайчи?')){localStorage.removeItem(STORE);VIEW='home';render()}
+  }
+});
+function exportHistory(){
+  const data={app:'taichi',format:1,createdAt:new Date().toISOString(),data:state()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download='taichi-history-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},5000);
+}
+async function importHistory(file){
+  if(!file)return;
+  try{
+    if(file.size>2000000)throw new Error('Файл слишком большой');
+    const raw=JSON.parse(await file.text());
+    if(!raw||raw.app!=='taichi'||!raw.data||!Array.isArray(raw.data.history))throw new Error('Это не резервная копия Тайчи');
+    const source=raw.data, old=state();
+    const clean=function(h){return h&&Number.isFinite(Number(h.at))&&Number.isInteger(Number(h.n))&&Number(h.n)>=1&&Number(h.n)<=15&&Number.isFinite(Number(h.cycle))&&Number(h.cycle)>=1};
+    const seen=new Set(),history=[];
+    [...(old.history||[]),...source.history].forEach(function(h){
+      if(!clean(h))return;
+      const id=String(h.at)+'|'+String(h.cycle)+'|'+String(h.n);
+      if(!seen.has(id)){seen.add(id);history.push(h)}
+    });
+    history.sort(function(a,b){return a.at-b.at});
+    const score=function(x){const cycle=Math.max(1,Math.floor(Number(x.cycle)||1));const step=Math.max(0,Math.min(14,Math.floor(Number(x.step)||0)));return (cycle-1)*15+step};
+    const newer=score(source)>score(old)?source:old;
+    save({history:history,cycle:newer.cycle||1,step:newer.step||0,feedback:Object.assign({},source.feedback||{},old.feedback||{}),running:old.running});
+    alert('Импорт завершён. В истории '+history.length+' тренировок. Данные с обоих устройств объединены.');
+    render();
+  }catch(e){alert('Не удалось загрузить историю: '+(e&&e.message||e))}
+}
+document.addEventListener('click',function(ev){
+  if(ev.target&&ev.target.id==='exportHistory')exportHistory();
+});
+document.addEventListener('change',function(ev){
+  if(ev.target&&ev.target.id==='importHistory'){
+    const file=ev.target.files&&ev.target.files[0];
+    ev.target.value='';
+    importHistory(file);
   }
 });
 window.addEventListener('resize',function(){if(VIEW==='program')render()});
