@@ -1,5 +1,5 @@
 /* Tingli 5.95.2: pinned offline shell, durable media, resumable verified downloads. */
-const VERSION = '6.33.2';
+const VERSION = '6.33.3';
 const CACHE = 'tingli-shell-' + VERSION;
 const MEDIA_CACHE = 'tingli-media-v1';
 const MANIFEST = './offline-manifest.5.95.2.json';
@@ -17,7 +17,7 @@ const CORE_ASSETS = [
   "./sync-transport.5.67.0.js",
   "./manifest.json",
   "./sync-core.js?v=5.64.0",
-  "./word-sync.5.64.0.js",
+  "./data/history.js?v=6.33.3", "./word-sync.5.64.0.js",
   "./fonts/zhimang-course.ttf",
   "./fonts/simsun-subset.woff2",
   "./fonts/xiaoshan-title.woff2",

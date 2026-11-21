@@ -96,6 +96,7 @@
   .back:active { transform: scale(.94); }
 
   .section-title { font-size: 20px; font-weight: 800; letter-spacing: -.4px; margin: 8px 0 14px; display: flex; align-items: center; gap: 9px; }
+  .hist-src { font-size: 12.5px; color: var(--muted); font-weight: 600; margin: -6px 0 14px 2px; letter-spacing: .1px; }
   .section-title::before { content: ''; width: 4px; height: 19px; border-radius: 3px; background: var(--red); flex-shrink: 0; }
 
   /* Карточка урока */
@@ -1231,6 +1232,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 </div>
 <script src="offline.5.95.2.js"></script>
 <script src="writing.5.95.2.js?v=5.98.0"></script>
+<script src="data/history.js?v=6.33.3"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -36154,7 +36156,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.33.2';
+const APP_VER = '6.33.3';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -38762,6 +38764,7 @@ const YIN_UNITS = [
  }
 ];
 const IDV = (typeof IDV_UNITS !== 'undefined') ? IDV_UNITS : [];
+if (typeof HISTORY_UNITS !== 'undefined') IDV.push.apply(IDV, HISTORY_UNITS);
 const BIZ = (typeof BIZ_UNITS !== 'undefined') ? BIZ_UNITS : [];
 const YIN = (typeof YIN_UNITS !== 'undefined') ? YIN_UNITS : [];
 const ALL_UNITS = UNITS.concat(EXTRA, IDV, BIZ, YIN);
@@ -38824,16 +38827,33 @@ function renderTeam() {
 function renderLex() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
   curUnit = null; curPart = null;
-  const list = IDV.filter(u => u.src === 'lex');
+  const hist = (typeof HISTORY_UNITS !== 'undefined') ? HISTORY_UNITS : [];
+  const list = IDV.filter(u => u.src === 'lex' && !u.hist);
+  let body = '';
+  if (hist.length) {
+    const groups = [];
+    hist.forEach(function (u) {
+      const g = groups.find(function (x) { return x.name === u.hist; });
+      if (g) g.items.push(u); else groups.push({ name: u.hist, items: [u] });
+    });
+    body = groups.map(function (g) {
+      return '<div class="section-title">' + esc(g.name) +
+        ' <span style="font-size:12px;color:var(--muted);font-weight:600">' + g.items.length + ' уроков</span></div>' +
+        g.items.map(unitCard).join('');
+    }).join('');
+  }
+  if (list.length) body = list.map(unitCard).join('') + body;
   app.innerHTML = `
     <div class="topbar">
       <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
-      <div class="top-title">中国</div><div class="sub">Всё о Китае</div>
+      <div class="top-title">中国</div><div class="sub">Всё о Китае · История</div>
     </div>
-    ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Пришлёшь материалы — соберу уроки.</div>'}
+    ${hist.length ? '<div class="hist-src">По книге «中国历史常识» · 中俄对照 · ' + hist.length + ' уроков</div>' : ''}
+    ${body || '<div class="empty">Пока пусто.<br>Пришлёшь материалы — соберу уроки.</div>'}
 `;
   refreshUnitBadges();
 }
+
 function renderSm() {
   showTabbar(true); partAudioKey = null; showPlayer(false);
   curUnit = null; curPart = null;
