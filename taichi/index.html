@@ -4,964 +4,403 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FBFCF9" />
-<meta name="app-version" content="1.2.1" />
-<title>Тайчи · программа тренировок с гантелями</title>
+<meta name="app-version" content="2.0.0" />
+<title>Тайчи · программа тренировок</title>
 <link rel="icon" href="assets/brand/app-mark.png" />
 <style>
 :root{
-  --bg:#FBFCF9; --surface:#FFFFFF; --ink:#172820; --primary:#285444;
-  --sel:#E5EFE6; --line:#C2D8C5; --next:#AE7A30; --div:#D4DDD5;
-  --muted:#5b6a62; --r-btn:12px; --r-panel:16px;
+  --bg:#FBFCF9;--surface:#fff;--ink:#172820;--primary:#285444;--sel:#E5EFE6;
+  --line:#C2D8C5;--gold:#AE7A30;--div:#D4DDD5;--muted:#5b6a62;--danger:#9B4C46;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{
-  background:var(--bg); color:var(--ink);
-  font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  -webkit-font-smoothing:antialiased;
-}
-button{font:inherit;color:inherit}
-a{color:var(--primary)}
-.bg{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
-  background:url('assets/backgrounds/route-relief-desktop.png?v=1.2.1') center/cover no-repeat}
-
-/* ---------- шапка компьютера ---------- */
-.topbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--div)}
-.topbar .inner{max-width:1440px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;gap:26px}
-.brand img{height:34px;width:auto;display:block}
-.nav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
-.nav button{display:flex;align-items:center;gap:8px;border:0;background:none;padding:9px 12px;
-  border-radius:10px;cursor:pointer;color:var(--muted);font-size:15px;min-height:44px}
-.nav button img{width:18px;height:18px;object-fit:contain;opacity:.8}
-.nav button.on{background:var(--sel);color:var(--ink);font-weight:600}
-
-/* ---------- оболочка ---------- */
-.shell{max-width:1440px;margin:0 auto;padding:0 32px 96px}
-h1{font-size:30px;line-height:1.2;letter-spacing:-.4px;margin:26px 0 6px}
-h2{font-size:20px;margin:0 0 12px}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.bg{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.48;background:url("assets/backgrounds/route-relief-desktop.png?v=2.0.0") center/cover no-repeat}
+.bg::after{content:"";position:absolute;inset:0;background:rgba(251,252,249,.35)}
+.topbar{position:sticky;top:0;z-index:30;background:rgba(251,252,249,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--div)}
+.topbar .inner{max-width:1280px;margin:auto;padding:12px 28px;display:flex;align-items:center;gap:24px}
+.brand img{height:34px;display:block}
+.nav{margin-left:auto;display:flex;gap:6px}
+.nav button{border:0;background:none;border-radius:11px;padding:9px 12px;min-height:44px;display:flex;align-items:center;gap:8px;color:var(--muted)}
+.nav button img{width:19px;height:19px;object-fit:contain;opacity:.78}
+.nav button.on{background:var(--sel);color:var(--ink);font-weight:700}
+.shell{max-width:1280px;margin:auto;padding:0 28px 96px}
+h1{font-size:30px;line-height:1.15;letter-spacing:-.4px;margin:26px 0 6px}
+h2{font-size:21px;line-height:1.25;margin:0 0 12px}
 h3{font-size:16px;margin:0 0 6px}
-.sub{color:var(--muted);font-size:15px;margin:0 0 18px}
-.small{font-size:14px;color:var(--muted)}
-.card{background:var(--surface);border-radius:var(--r-panel);padding:18px;box-shadow:0 1px 2px rgba(23,40,32,.05)}
-.cols{display:grid;gap:18px;grid-template-columns:minmax(0,1fr) 340px;align-items:start}
-
-/* ---------- кнопки ---------- */
-.btn{border:0;border-radius:var(--r-btn);background:var(--primary);color:#fff;padding:12px 20px;
-  font-weight:600;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.sub,.small{color:var(--muted)}
+.sub{margin:0 0 18px;font-size:15px}
+.small{font-size:13px}
+.card{background:rgba(255,255,255,.94);border-radius:17px;padding:18px;box-shadow:0 1px 3px rgba(23,40,32,.07)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:start}
+.btn{border:0;border-radius:12px;background:var(--primary);color:#fff;padding:12px 18px;min-height:44px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--div)}
 .btn.soft{background:var(--sel);color:var(--ink)}
-.btn:disabled{opacity:.45;cursor:default}
-:where(button,.btn,a,input,select,[tabindex]):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-
-/* ---------- карта маршрута ---------- */
-.map-card{padding:18px 18px 22px}
-.map-cap{font-size:13px;color:var(--muted);letter-spacing:.02em;margin:0 0 10px}
-.map{position:relative;width:100%;max-width:720px;margin:0 auto;aspect-ratio:660/400;
-  background:url('assets/routes/program-route-desktop.png?v=1.2.1') 0 0/100% 100% no-repeat}
-.mk{position:absolute;transform:translate(-50%,-50%);padding:0;border:0;background:none;
-  aspect-ratio:1;cursor:pointer;border-radius:50%}
-.mk img{width:100%;height:100%;display:block;object-fit:contain}
-.mk.sel img{filter:drop-shadow(0 0 0 rgba(0,0,0,0))}
-.cap{position:absolute;transform:translateY(-50%);right:2.5%;padding-left:6px;font-size:13px;line-height:1.25;
-  color:var(--muted);pointer-events:none}
-.cap b{display:block;font-weight:600;color:var(--ink);font-size:13.5px}
-.cap i{font-style:normal;font-size:12px;color:var(--muted)}
-.mk.sel ~ .cap{} /* оставляем как есть: подпись относится к своей точке */
-.map-start{display:none}
-
-/* ---------- список занятий ---------- */
-.panel-list{display:flex;flex-direction:column;gap:8px}
-.item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;
-  background:var(--surface);border:1px solid transparent;cursor:pointer;min-height:56px;text-align:left;width:100%}
-.item:hover{border-color:var(--div)}
-.item.on{background:var(--sel);border-color:var(--line)}
-.item .name{font-weight:600}
-.item .meta{font-size:13.5px;color:var(--muted)}
-.thumb{width:72px;height:72px;flex:none;border-radius:10px;object-fit:cover;background:var(--sel)}
-.ex-fig{background:var(--sel);border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;aspect-ratio:1;max-height:280px;margin:0 0 14px}
-.ex-fig img{width:100%;height:100%;object-fit:contain;display:block}
-.pill{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--sel);color:var(--primary);
-  font-weight:600;display:inline-block;white-space:nowrap}
-.pill.next{background:#F6EEDF;color:#8a5f1f}
-.ill{display:block;width:100%;max-width:260px;height:auto;max-height:180px;object-fit:cover;
-  border-radius:12px;background:var(--sel)}
-
-/* ---------- теория ---------- */
-.theory{display:grid;gap:18px;grid-template-columns:30% minmax(0,1fr);align-items:start}
-.theory .read p{max-width:68ch}
-
-/* ---------- прогресс ---------- */
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
-.stats div{background:var(--sel);border-radius:12px;padding:10px 12px}
-.stats b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
-.stats span{font-size:12px;color:var(--muted)}
-.empty{padding:22px;border:1px dashed var(--div);border-radius:12px;color:var(--muted);text-align:center}
-
-/* ---------- настройки ---------- */
-.set-card{background:var(--surface);border-radius:var(--r-panel);padding:4px 22px 18px;box-shadow:0 1px 2px rgba(23,40,32,.05)}
-.set-group{padding:18px 0;border-top:1px solid var(--div)}
+.btn.gold{background:#F4EBDD;color:#80571e}
+.btn.danger{background:#f5e6e4;color:var(--danger)}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pill{display:inline-block;padding:4px 9px;border-radius:999px;background:var(--sel);color:var(--primary);font-size:12px;font-weight:700}
+.pill.gold{background:#F5EDDE;color:#865e22}
+.progress{height:9px;background:#E7ECE7;border-radius:999px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--primary);border-radius:999px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:stretch}
+.hero-main{padding:22px}
+.hero-main .big{font-size:35px;font-weight:800;letter-spacing:-1px;line-height:1}
+.hero-main .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}
+.hero-side{display:flex;flex-direction:column;justify-content:center}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--sel);border-radius:13px;padding:12px}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:12px;color:var(--muted)}
+.history{display:flex;flex-direction:column;gap:8px}
+.hist{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--div)}
+.hist:first-child{border-top:0}
+.route-card{overflow:hidden;position:relative}
+.route-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
+.route-wrap{position:relative;max-width:940px;height:460px;margin:auto;border-radius:16px;overflow:hidden;background:linear-gradient(rgba(251,252,249,.45),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-desktop.png?v=2.0.0") center/cover no-repeat}
+.route-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.route-svg polyline{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:2 1.8;stroke-linecap:round;stroke-linejoin:round}
+.node{position:absolute;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:0 2px 6px rgba(23,40,32,.08);z-index:2}
+.node.done{background:var(--primary);border-color:var(--primary);color:#fff}
+.node.current{background:#fff7e8;border-color:var(--gold);color:#80571e;box-shadow:0 0 0 5px rgba(174,122,48,.12)}
+.node.future{color:#89958f}
+.node-label{position:absolute;transform:translate(-50%,0);font-size:11px;color:var(--muted);width:115px;text-align:center;line-height:1.15;z-index:2;pointer-events:none}
+.node-label b{display:block;color:var(--ink);font-size:11.5px}
+.workout-list{display:flex;flex-direction:column;gap:10px}
+.ex-row{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px;border-radius:13px;background:#fff;border:1px solid var(--div)}
+.ex-row img{width:72px;height:72px;object-fit:contain;border-radius:10px;background:var(--sel)}
+.ex-row .name{font-weight:700}
+.ex-row .meta{font-size:13px;color:var(--muted);margin-top:2px}
+.ex-row .eff{font-size:12.5px;color:var(--primary);margin-top:5px}
+.detail-side{position:sticky;top:78px}
+.work-head{position:sticky;top:0;z-index:40;background:rgba(251,252,249,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--div);margin:0 -28px 18px;padding:10px 28px}
+.work-head .line{max-width:1280px;margin:auto;display:flex;align-items:center;gap:12px}
+.work-head .timer{margin-left:auto;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.work-head .wake{font-size:12px;color:var(--muted)}
+.exercise{max-width:760px;margin:auto}
+.exercise-card{padding:18px}
+.exercise-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.exercise-top h1{font-size:25px;margin:0 0 6px}
+.gif{background:var(--sel);border-radius:15px;display:flex;align-items:center;justify-content:center;min-height:280px;max-height:440px;margin:16px 0;overflow:hidden}
+.gif img{width:100%;height:100%;max-height:440px;object-fit:contain;display:block}
+.prescription{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}
+.prescription div{background:var(--sel);border-radius:12px;padding:10px 12px}
+.prescription span{display:block;font-size:12px;color:var(--muted)}
+.prescription b{font-size:17px}
+.effort{background:#F5F0E7;border-left:4px solid var(--gold);border-radius:11px;padding:12px 13px;margin:12px 0}
+.effort b{display:block;margin-bottom:3px}
+.tech{padding-left:20px;margin:8px 0 0}
+.tech li{margin:6px 0}
+.setbox{background:#F7F9F7;border:1px solid var(--div);border-radius:14px;padding:14px;margin-top:14px}
+.setbox .settitle{font-weight:800;font-size:18px}
+.restbox{background:#F4EBDD;border-radius:14px;padding:14px;text-align:center;margin-top:14px}
+.resttime{font-size:36px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.feedback{margin-top:14px}
+.feedback .choices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.feedback button{border:1px solid var(--div);background:#fff;border-radius:11px;padding:10px 6px}
+.feedback button.on{background:var(--sel);border-color:var(--primary);font-weight:800}
+.service-timer{font-size:44px;font-weight:800;font-variant-numeric:tabular-nums;text-align:center;margin:14px 0}
+.settings{max-width:820px}
+.set-card{background:#fff;border-radius:17px;padding:4px 20px 18px}
+.set-group{padding:16px 0;border-top:1px solid var(--div)}
 .set-group:first-child{border-top:0}
-.set-group h2{margin:0 0 6px}
-.set-row{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:16px;align-items:center;padding:10px 0;min-height:56px}
-.set-row > span{color:var(--ink)}
-.set-row small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
-input[type=text],input[type=number],input[type=time],select{
-  width:100%;padding:11px 12px;border:1px solid var(--div);border-radius:10px;
-  background:var(--surface);color:var(--ink);min-height:44px;font:inherit}
-.days{display:flex;gap:8px;flex-wrap:wrap}
-.day{border:1px solid var(--div);background:var(--surface);border-radius:10px;padding:9px 12px;
-  cursor:pointer;min-width:44px;min-height:44px}
-.day.on{background:var(--sel);border-color:var(--line);font-weight:600}
-
-/* ---------- тренировка ---------- */
-.workout{display:grid;gap:26px;grid-template-columns:minmax(0,420px) minmax(0,1fr);align-items:start}
-.frag{max-width:640px}
-.steps{list-style:none;margin:0;padding:0;position:relative}
-.steps::before{content:'';position:absolute;left:13px;top:24px;bottom:24px;width:2px;
-  background:var(--line);border-radius:2px}
-.step{position:relative;display:flex;gap:12px;align-items:flex-start;padding:8px 8px 8px 0;border-radius:12px}
-.step .dot{width:28px;height:28px;flex:none;position:relative;z-index:1}
-.step .dot img{width:100%;height:100%;display:block}
-.step .t{font-size:14.5px;line-height:1.3;padding-top:4px}
-.step .t em{display:block;font-style:normal;font-size:12.5px;color:var(--muted)}
-.step.cur{background:var(--sel)}
-.step.cur .t{font-weight:600}
-.step.next .t{font-weight:400}
-.frag h2{font-size:22px;line-height:1.25;margin:0 0 8px}
-.fields{display:flex;flex-direction:column;margin:14px 0;background:var(--sel);border-radius:12px;padding:2px 14px}
-.fields .f{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;border-top:1px solid rgba(23,40,32,.08)}
-.fields .f:first-child{border-top:0}
-.fields .f span{font-size:14px;color:var(--muted)}
-.fields .f b{font-size:16px;font-variant-numeric:tabular-nums;letter-spacing:0}
-.timer{font-variant-numeric:tabular-nums;font-size:19px;font-weight:700}
-.pause{background:var(--sel);border-radius:12px;padding:12px 14px;margin:12px 0}
-.pause b{font-size:17px}
-.pause p{margin:4px 0 0}
-.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-.tech{margin:12px 0 0;padding-left:20px}
-.tech li{margin-bottom:6px}
-
-/* ---------- завершение ---------- */
-.done-card{text-align:center}
-.done-card .controls{justify-content:center}
-
-/* ---------- телефон ---------- */
-.m-head{display:none}
-.tabs{display:none}
-.workbar{display:none}
-@media (max-width:1080px){
-  .cols{grid-template-columns:1fr}
-  .workout{grid-template-columns:1fr}
-  .theory{grid-template-columns:1fr}
+.set-row{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:16px;align-items:center;padding:9px 0}
+select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radius:10px;padding:9px 11px;background:#fff}
+.toggle{display:flex;align-items:center;gap:9px}
+.toggle input{width:20px;height:20px;min-height:0}
+.footer{text-align:center;color:var(--muted);font-size:12px;margin:24px 0}
+.m-head,.tabs{display:none}
+@media(max-width:900px){
+  .grid2,.hero{grid-template-columns:1fr}
+  .hero-side{min-height:0}
+  .detail-side{position:static}
 }
-@media (max-width:720px){
-  .bg{background-image:url('assets/backgrounds/route-relief-mobile.png?v=1.2.1');opacity:.45}
-  .shell{padding:0 16px calc(84px + env(safe-area-inset-bottom))}
+@media(max-width:720px){
+  .bg{background-image:url("assets/backgrounds/route-relief-mobile.png?v=2.0.0")}
   .topbar{display:none}
-  .m-head{display:flex;align-items:center;padding:14px 0 8px}
+  .shell{padding:0 14px calc(78px + env(safe-area-inset-bottom))}
+  .m-head{display:flex;padding:13px 0 7px}
   .m-head img{height:30px}
-  h1{font-size:25px;margin:10px 0 4px}
-  .sub{font-size:14px}
-  .card{padding:16px;border-radius:16px}
-  .map-card{padding:14px 12px 16px}
-  .map{max-width:340px;aspect-ratio:300/405;
-    background-image:url('assets/routes/program-route-mobile.png?v=1.2.1')}
-  .mk{min-width:44px;min-height:44px}
-  .cap b{font-size:13px}
-  .map-start{display:flex;position:absolute;left:18.667%;top:55.802%;width:79.333%;height:10.864%;
-    align-items:center;justify-content:center;border:0;border-radius:10px;background:var(--primary);
-    color:#fff;font-weight:600;font-size:14px;cursor:pointer;padding:0 6px;line-height:1.15}
-  .thumb{width:64px;height:64px}
-  .ex-fig{max-height:300px;padding:8px}
-  .set-card{padding:2px 16px 16px}
-  .set-row{grid-template-columns:1fr;gap:6px}
-  .fields{grid-template-columns:1fr 1fr}
-  .timer{font-size:36px}
-  .tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);
-    border-top:1px solid var(--div);padding-bottom:env(safe-area-inset-bottom)}
-  .tab{flex:1;border:0;background:none;padding:8px 6px 10px;font-size:12px;color:var(--muted);
-    cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px}
+  h1{font-size:25px;margin-top:12px}
+  .hero-main{padding:17px}
+  .hero-main .big{font-size:30px}
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .route-wrap{height:870px;background-image:linear-gradient(rgba(251,252,249,.38),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-mobile.png?v=2.0.0")}
+  .node{width:48px;height:48px}
+  .node-label{width:100px}
+  .ex-row{grid-template-columns:58px minmax(0,1fr)}
+  .ex-row img{width:58px;height:58px}
+  .ex-row .right{grid-column:2}
+  .work-head{top:0;margin:0 -14px 12px;padding:9px 14px}
+  .work-head .line{gap:8px}
+  .work-head .timer{font-size:18px}
+  .work-head .wake{display:none}
+  .exercise-card{padding:14px}
+  .gif{min-height:250px}
+  .prescription{grid-template-columns:repeat(3,1fr)}
+  .feedback .choices{grid-template-columns:1fr 1fr 1fr}
+  .set-row{grid-template-columns:1fr;gap:5px}
+  .tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-top:1px solid var(--div);padding-bottom:env(safe-area-inset-bottom)}
+  .tab{flex:1;border:0;background:none;padding:8px 5px 10px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;min-height:58px}
   .tab img{width:22px;height:22px;object-fit:contain;opacity:.75}
-  .tab.on{color:var(--ink);font-weight:600}
+  .tab.on{font-weight:800;color:var(--ink)}
   .tab.on img{opacity:1}
   body.in-workout .tabs{display:none}
-  .workbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);
-    border-top:1px solid var(--div);padding:10px 16px calc(10px + env(safe-area-inset-bottom));
-    gap:10px;align-items:center}
-  body.in-workout .workbar{display:flex}
-  .workbar .btn{flex:1}
-  .save-bar{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:29;
-    background:var(--bg);border-top:1px solid var(--div);padding:10px 16px}
-  .save-bar .btn{width:100%}
-  .frag #nextBtn{display:none}
 }
-@media (min-width:721px){ .mob-only{display:none!important} }
 </style>
 </head>
 <body>
 <div class="bg"></div>
-
 <header class="topbar">
   <div class="inner">
-    <a class="brand" href="#" data-go="home" aria-label="Тайчи — на главную"><img src="assets/brand/wordmark-horizontal.png?v=1.2.1" alt="Тайчи" /></a>
+    <a class="brand" href="#" data-go="home"><img src="assets/brand/wordmark-horizontal.png?v=2.0.0" alt="Тайчи"></a>
     <nav class="nav" id="nav"></nav>
   </div>
 </header>
-
 <div class="shell">
-  <div class="m-head mob-only"><img src="assets/brand/wordmark-horizontal.png?v=1.2.1" alt="Тайчи" /></div>
+  <div class="m-head"><img src="assets/brand/wordmark-horizontal.png?v=2.0.0" alt="Тайчи"></div>
   <main id="view"></main>
+  <div class="footer">v2.0.0 · Тайчи</div>
 </div>
-
-<nav class="tabs mob-only" id="tabs">
-  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=1.2.1" alt=""><span>Главная</span></button>
-  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=1.2.1" alt=""><span>Программа</span></button>
-  <button class="tab" data-tab="sections"><img src="assets/icons/nav-sections.png?v=1.2.1" alt=""><span>Разделы</span></button>
+<nav class="tabs" id="tabs">
+  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=2.0.0" alt=""><span>Главная</span></button>
+  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=2.0.0" alt=""><span>Программа</span></button>
+  <button class="tab" data-tab="settings"><img src="assets/icons/nav-settings.png?v=2.0.0" alt=""><span>Настройки</span></button>
 </nav>
-
-<div class="workbar" id="workbar"></div>
-
 <script>
-/* =======================================================================
-   Тайчи — программа тренировок с гантелями.
-   Данные программы, упражнений и теории — ниже. Правятся в одном месте.
-   ======================================================================= */
-
-const PROGRAM = {
-  title: 'Сила и тонус с гантелями',
-  goal: '3 тренировки в неделю · 25–35 минут · гантели 3 кг',
-  startNote: 'Нужно: две гантели по 3 кг, устойчивый стул, коврик.',
-  workouts: [
-    { n:1, block:'Тренировка А', title:'Руки и грудь', minutes:30, focus:'бицепс · трицепс · грудь', plan:[
-      { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
-      { ex:'curl', sets:1, reps:'10–15', rest:75 },
-      { ex:'hammer', sets:1, reps:'10–15', rest:75 },
-      { ex:'floorpress', sets:1, reps:'10–15', rest:75 },
-      { ex:'wallpush', sets:1, reps:'8–12', rest:60 },
-      { ex:'kickback', sets:1, reps:'10–12', rest:60 },
-      { ex:'cooldown', sets:1, reps:'3 мин', rest:0 }
-    ]},
-    { n:2, block:'Тренировка Б', title:'Ягодицы и ноги', minutes:30, focus:'ягодицы · бёдра · икры', plan:[
-      { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
-      { ex:'chairstand', sets:1, reps:'10–15', rest:75 },
-      { ex:'bridge', sets:1, reps:'12–15', rest:75 },
-      { ex:'rdl', sets:1, reps:'10–12', rest:75 },
-      { ex:'backkick', sets:1, reps:'12–15 на ногу', rest:60 },
-      { ex:'calfraise', sets:1, reps:'15–20', rest:60 },
-      { ex:'cooldown', sets:1, reps:'3 мин', rest:0 }
-    ]},
-    { n:3, block:'Тренировка В', title:'Спина, плечи и руки', minutes:30, focus:'спина · плечи · руки', plan:[
-      { ex:'warmup', sets:1, reps:'5 мин', rest:0 },
-      { ex:'onearmrow', sets:1, reps:'10–12 на руку', rest:75 },
-      { ex:'lateral', sets:1, reps:'10–12 без веса', rest:60 },
-      { ex:'scapula', sets:1, reps:'12–15', rest:60 },
-      { ex:'curl', sets:1, reps:'10–15', rest:60 },
-      { ex:'kickback', sets:1, reps:'10–12', rest:60 },
-      { ex:'cooldown', sets:1, reps:'3 мин', rest:0 }
-    ]}
-  ]
+const VERSION='2.0.0';
+const STORE='taichi-v2.0.0';
+const AV='?v='+VERSION;
+const REMOTE='https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/';
+const EX={
+  warmup:{name:'Разминка',group:'Подготовка',gif:'assets/exercises/warmup.gif'+AV,kind:'service',seconds:300,about:'Разогрей плечи, локти и верх спины без рывков.',how:['Круги плечами и руками в комфортной амплитуде','10–12 лёгких сведений лопаток','Несколько медленных жимовых и тяговых движений без усилия']},
+  cooldown:{name:'Заминка и растяжка',group:'Восстановление',gif:'assets/exercises/cooldown.gif'+AV,kind:'service',seconds:180,about:'Спокойно снизь темп после тренировки.',how:['Дыши ровно, не пружинь в растяжке','Мягко растяни грудь, спину и руки','Никакой боли — только лёгкое натяжение']},
+  floorpress:{name:'Жим гантелей лёжа на полу',group:'Грудь · трицепс',gif:'assets/exercises/floorpress.gif'+AV,kind:'main',reps:'10–15',rest:75,equip:'dumbbell',about:'Основное жимовое движение на грудь с гантелями 3 кг.',how:['Локти направлены примерно под 45° к корпусу','Опускай гантели спокойно до касания локтями пола','Выжимай вверх без рывка и без жёсткого удара локтями']},
+  bandpress:{name:'Жим резинки от груди',group:'Грудь · трицепс',gif:REMOTE+'pectorals/band-bench-press.gif',kind:'main',reps:'10–15',rest:75,equip:'band',about:'Резинка даёт возрастающее сопротивление и хорошо дополняет лёгкие гантели.',how:['Резинка проходит за верхней частью спины, не вокруг шеи','Локти не разводи строго в стороны','Выжимай вперёд и возвращай руки медленно']},
+  wallpush:{name:'Отжимания от стены',group:'Грудь · трицепс',gif:'assets/exercises/wallpush.gif'+AV,kind:'main',reps:'8–15',rest:75,equip:'body',about:'Нагрузка регулируется расстоянием до стены.',how:['Тело держи прямой линией','Опускай грудь к стене, а не голову','Если легко — отойди немного дальше от стены']},
+  bandlowrow:{name:'Тяга резинки одной рукой к поясу',group:'Спина',gif:REMOTE+'upper-back/band-one-arm-standing-low-row.gif',kind:'main',reps:'10–15 на руку',rest:75,equip:'band',about:'Горизонтальная тяга для верхней части спины.',how:['Используй только надёжное штатное крепление резинки','Тяни локоть назад к поясу, не поднимай плечо к уху','В конце на секунду сведи лопатку, затем медленно отпусти']},
+  onearmrow:{name:'Тяга гантели одной рукой с опорой',group:'Спина',gif:'assets/exercises/onearmrow.gif'+AV,kind:'main',reps:'10–15 на руку',rest:75,equip:'dumbbell',about:'Тяга с опорой позволяет спокойно контролировать спину.',how:['Спина ровная, корпус не вращай','Тяни локоть к тазу, а не гантель к плечу','Опускай гантель медленно, сохраняя контроль']},
+  bandpulldown:{name:'Тяга резинки сверху к груди',group:'Широчайшие · бицепс',gif:REMOTE+'lats/band-close-grip-pulldown.gif',kind:'main',reps:'10–15',rest:75,equip:'band',about:'Вертикальная тяга для широчайших.',how:['Только надёжная высокая точка крепления; не используй случайную мебель','Плечи держи опущенными, локти веди вниз','Не отклоняйся резко назад и не дёргай резинку']},
+  curl:{name:'Сгибание рук с гантелями',group:'Бицепс',gif:'assets/exercises/curl.gif'+AV,kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Бицепс без раскачки корпусом.',how:['Локти остаются рядом с корпусом','Поднимай гантели без рывка','Опускай за 2–3 секунды']},
+  bandcurl:{name:'Сгибание рук с резинкой',group:'Бицепс',gif:REMOTE+'biceps/band-alternating-biceps-curl.gif',kind:'accessory',reps:'10–15',rest:60,equip:'band',about:'Удобный способ постепенно увеличивать сопротивление для бицепса.',how:['Надёжно прижми резинку стопами','Локти не уводи вперёд','Сохраняй натяжение и опускай руки медленно']},
+  hammer:{name:'Сгибание рук «молот»',group:'Бицепс · предплечье',gif:'assets/exercises/hammer.gif'+AV,kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Нейтральный хват нагружает бицепс и плечевую мышцу.',how:['Ладони смотрят друг на друга','Локти не гуляют вперёд-назад','Не раскачивай корпус']},
+  bandtriceps:{name:'Разгибание руки с резинкой на трицепс',group:'Трицепс',gif:REMOTE+'triceps/band-side-triceps-extension.gif',kind:'accessory',reps:'10–15 на руку',rest:60,equip:'band',about:'Изолирующая работа на трицепс с регулируемым сопротивлением.',how:['Плечо держи неподвижно','Разгибай руку плавно до почти прямого положения','Возвращай медленно, не отпускай резинку резко']},
+  kickback:{name:'Разгибание руки назад с гантелью',group:'Трицепс',gif:'assets/exercises/kickback.gif'+AV,kind:'accessory',reps:'10–15 на руку',rest:60,equip:'dumbbell',about:'Дополнительное упражнение на трицепс.',how:['Спина ровная, корпус неподвижен','Локоть прижат к корпусу','Двигается только предплечье']},
+  lateral:{name:'Разведение рук в стороны',group:'Плечи',gif:'assets/exercises/lateral.gif'+AV,kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Средняя дельта. С 3 кг важнее контроль, чем высота подъёма.',how:['Локти слегка согнуты','Поднимай до комфортного уровня, обычно не выше плеч','Не раскачивайся и не бросай гантели вниз']},
+  bandshoulder:{name:'Жим резинки вверх',group:'Плечи · трицепс',gif:REMOTE+'delts/band-shoulder-press.gif',kind:'main',reps:'10–15',rest:75,equip:'band',about:'Жим вверх с постепенно растущим сопротивлением.',how:['Надёжно прижми резинку стопами','Не прогибай поясницу','Жми вверх плавно, затем контролируй обратное движение']},
+  bandreverse:{name:'Разведение рук с резинкой назад',group:'Задняя дельта · верх спины',gif:REMOTE+'delts/band-reverse-fly.gif',kind:'accessory',reps:'12–15',rest:60,equip:'band',about:'Работа на заднюю дельту и верх спины.',how:['Начинай с лёгкого натяжения','Разводи руки, сводя лопатки','Не задирай плечи к ушам']},
+  scapula:{name:'Сведение лопаток стоя',group:'Верх спины',gif:'assets/exercises/scapula.gif'+AV,kind:'accessory',reps:'12–15',rest:45,equip:'body',about:'Контроль лопаток и осанки.',how:['Плечи опущены','Своди лопатки без прогиба в пояснице','Задержись на секунду и расслабь']},
+  pallof:{name:'Удержание резинки перед собой',group:'Корпус',gif:REMOTE+'abs/band-horizontal-pallof-press.gif',kind:'accessory',reps:'10–12 на сторону',rest:60,equip:'band',about:'Стабилизация корпуса без скручиваний.',how:['Используй только надёжное штатное крепление','Держи корпус ровно и не разворачивайся к резинке','Выводи руки вперёд медленно и возвращай под контролем']}
 };
-
-const EXERCISES = [
-  { id:'curl', name:'Сгибание рук с гантелями', group:'Бицепс', about:'Базовое упражнение на бицепс. Локти держим у корпуса, работаем без раскачки.', how:['Встать прямо, гантели в опущенных руках','Локти прижаты к корпусу','Сгибаем руки до полного сокращения бицепса','Опускаем медленно, на 2 счёта'] },
-  { id:'hammer', name:'Сгибание рук «молот»', group:'Бицепс, плечевая мышца', about:'Хват нейтральный, ладони смотрят друг на друга — включает плечевую мышцу и предплечье.', how:['Гантели держим вертикально','Локти не выводим вперёд','Поднимаем до уровня плеча и выше не нужно','Вниз — подконтрольно'] },
-  { id:'floorpress', name:'Жим гантелей лёжа на полу', group:'Грудь, трицепс', about:'Безопасная замена жима на скамье: пол ограничивает амплитуду и защищает плечо.', how:['Лечь на спину, колени согнуты, стопы на полу','Гантели над грудью, локти под 45°','Опускаем до касания пола локтями','Выжимаем вверх, не блокируя локти жёстко'] },
-  { id:'wallpush', name:'Отжимания от стены', group:'Грудь, трицепс', about:'Щадящий вариант отжиманий: нагрузка регулируется расстоянием до стены.', how:['Ладони на стене на уровне плеч','Тело — прямая линия, корпус не прогибается','Сгибаем руки, приближаясь к стене','Отталкиваемся и возвращаемся'] },
-  { id:'kickback', name:'Разгибание руки назад', group:'Трицепс', about:'Изолирует трицепс. Работаем с гантелью или без веса, корпус держим неподвижно.', how:['Наклон вперёд, спина прямая','Локоть прижат к корпусу','Разгибаем руку назад до прямого угла','Возвращаем медленно'] },
-  { id:'chairstand', name:'Приседания со стула', group:'Ягодицы, бёдра', about:'Вставание со стула — контролируемая глубина приседа и безопасная техника.', how:['Сесть на край стула, стопы на ширине плеч','Наклоняемся чуть вперёд и встаём через ягодицы','Садимся медленно, без падения','Колени идут по направлению носков'] },
-  { id:'bridge', name:'Ягодичный мостик', group:'Ягодицы', about:'Подъём таза лёжа. Основная работа — ягодицы, поясница не переразгибается.', how:['Лечь на спину, стопы на полу, колени согнуты','Поднимаем таз до прямой линии корпус–бёдра','Сжимаем ягодицы в верхней точке','Опускаемся медленно'] },
-  { id:'rdl', name:'Наклоны с гантелями (румынская тяга)', group:'Ягодицы, задняя поверхность бедра', about:'Тяга на бицепс бедра. Спина всё время прямая, движение идёт от таза.', how:['Гантели перед бёдрами, колени чуть согнуты','Отводим таз назад, гантели скользят по ногам','Останавливаемся, когда тянет под коленом','Вверх — за счёт ягодиц'] },
-  { id:'backkick', name:'Отведение ноги назад стоя', group:'Ягодицы', about:'Изолирующее движение на ягодицы. Корпус не раскачивается.', how:['Стоим с опорой на стул','Отводим прямую ногу назад','Держим 1 секунду в верхней точке','Возвращаем медленно, не ставим ногу на пол'] },
-  { id:'calfraise', name:'Подъёмы на носки', group:'Икры', about:'Икры любят много повторений и полную амплитуду.', how:['Стоим прямо, можно придерживаться за стул','Поднимаемся на носки максимально высоко','Задержка на секунду','Опускаемся медленно, до полной растяжки'] },
-  { id:'onearmrow', name:'Тяга гантели одной рукой с опорой', group:'Спина', about:'Тяга с опорой на стул разгружает поясницу. Пока есть боль в левой руке — выполняем осторожно.', how:['Опора на стул одной рукой','Спина прямая, наклон около 45°','Тянем гантель к поясу, локоть вдоль тела','Опускаем медленно; сначала без веса, чтобы проверить ощущения'] },
-  { id:'lateral', name:'Разведение рук в стороны', group:'Плечи', about:'Средний пучок плеча. Пока сохраняется боль — только без веса и в безболезненном диапазоне.', how:['Руки чуть согнуты в локтях','Поднимаем до уровня плеч, не выше','Не раскачиваем корпусом','При боли — уменьшить амплитуду или отложить'] },
-  { id:'scapula', name:'Сведение лопаток стоя', group:'Верх спины', about:'Работает на осанку и середину спины, безопасно для плеча.', how:['Стоим прямо, руки вдоль тела','Сводим лопатки к позвоночнику','Держим 2 секунды','Расслабляем медленно'] },
-  { id:'warmup', name:'Разминка', group:'Служебное', about:'5 минут спокойной разминки: ходьба на месте, движения ногами и плечами — без боли.', how:['Ходьба на месте 2 минуты','Круговые движения плечами','Наклоны и повороты корпуса','Приседания без веса в комфортной амплитуде'] },
-  { id:'cooldown', name:'Заминка и растяжка', group:'Служебное', about:'3 минуты: спокойная растяжка ног, спины, груди и плеч.', how:['Наклон к ногам — 30 с','Растяжка квадрицепса — по 20 с','Растяжка груди у стены — 30 с','Дыхание восстанавливаем'] }
+const W=[
+ {n:1,title:'Грудь + трицепс',focus:'грудь · трицепс',ids:['warmup','floorpress','bandpress','wallpush','bandtriceps','kickback','cooldown']},
+ {n:2,title:'Спина + бицепс',focus:'спина · бицепс',ids:['warmup','bandlowrow','onearmrow','bandpulldown','curl','hammer','cooldown']},
+ {n:3,title:'Грудь + спина',focus:'грудь · спина',ids:['warmup','floorpress','bandlowrow','bandpress','onearmrow','scapula','cooldown']},
+ {n:4,title:'Руки + плечи',focus:'бицепс · трицепс · плечи',ids:['warmup','curl','hammer','bandtriceps','kickback','lateral','bandshoulder','cooldown']},
+ {n:5,title:'Грудь + корпус',focus:'грудь · корпус',ids:['warmup','bandpress','floorpress','wallpush','pallof','scapula','cooldown']},
+ {n:6,title:'Спина + бицепс',focus:'широчайшие · бицепс',ids:['warmup','bandpulldown','bandlowrow','onearmrow','bandcurl','hammer','cooldown']},
+ {n:7,title:'Грудь + трицепс',focus:'грудь · трицепс',ids:['warmup','floorpress','bandpress','wallpush','bandtriceps','kickback','cooldown']},
+ {n:8,title:'Спина + плечи',focus:'верх спины · плечи',ids:['warmup','bandlowrow','bandreverse','bandpulldown','lateral','scapula','cooldown']},
+ {n:9,title:'Руки',focus:'бицепс · трицепс',ids:['warmup','curl','bandcurl','hammer','bandtriceps','kickback','lateral','cooldown']},
+ {n:10,title:'Грудь + спина',focus:'грудь · спина',ids:['warmup','bandpress','onearmrow','floorpress','bandlowrow','bandreverse','cooldown']},
+ {n:11,title:'Грудь + трицепс',focus:'объём груди · трицепс',ids:['warmup','floorpress','bandpress','wallpush','bandtriceps','kickback','lateral','cooldown']},
+ {n:12,title:'Спина + бицепс',focus:'объём спины · бицепс',ids:['warmup','bandpulldown','bandlowrow','onearmrow','curl','hammer','bandcurl','cooldown']},
+ {n:13,title:'Верх тела',focus:'грудь · спина · руки',ids:['warmup','floorpress','bandlowrow','bandshoulder','bandpulldown','curl','bandtriceps','cooldown']},
+ {n:14,title:'Руки + плечи',focus:'контроль техники',ids:['warmup','curl','hammer','bandtriceps','kickback','bandshoulder','bandreverse','cooldown']},
+ {n:15,title:'Контрольная',focus:'весь верх тела',ids:['warmup','floorpress','bandpress','bandlowrow','onearmrow','bandshoulder','curl','bandtriceps','cooldown']}
 ];
-
-const THEORY = [
-  { id:'how', title:'Как выполнять программу', text:'Три тренировки в неделю: понедельник, среда, суббота. Продолжительность 25–35 минут.\n\nПервые две недели — по одному подходу каждого упражнения. Затем, если всё переносится нормально, можно перейти к двум подходам.\n\nПеред каждой тренировкой — 5 минут спокойной разминки: ходьба на месте, движения ногами и плечами без боли.' },
-  { id:'rest', title:'Отдых и интенсивность', text:'Между подходами отдыхай 60–90 секунд.\n\nНе нужно работать до полного мышечного отказа: заканчивай подход, когда чувствуешь, что смог бы выполнить ещё 2–3 повторения с правильной техникой.' },
-  { id:'progress', title:'Как расти дальше', text:'Главное для роста мышц — постепенное увеличение нагрузки.\n\nКогда 15 повторений становятся лёгкими, сначала добавляй повторения или подход, а затем увеличивай сопротивление. Бесконечно увеличивать число повторений с гантелями по 3 кг неэффективно.\n\nДля ягодиц 3-килограммовые гантели довольно быстро станут лёгкими — тогда можно увеличить сопротивление, например с помощью эластичной ленты.' },
-  { id:'shoulder', title:'Левое плечо: важное ограничение', text:'Если жим или отжимания усиливают боль в левом плече либо вызывают отдачу в кисть, прекращай именно это упражнение.\n\nПока сохраняется боль с иррадиацией в кисть, упражнения для плечевого пояса выполняй только в безболезненном диапазоне. Если даже без веса симптомы усиливаются, эту часть тренировки следует отложить.' },
-  { id:'muscles', title:'Особенности групп мышц', text:'Руки: тренируй и бицепс, и трицепс — трицепс составляет значительную часть мышечной массы плеча.\n\nГрудь: жим и отжимания укрепляют грудные мышцы, но не позволяют избирательно убрать жир или изменить свойства кожи.\n\nСпина: тяги полезны, однако их пока нужно выполнять осторожно из-за симптомов в левой руке.\n\nЯгодицы: приседания, мостик и румынская тяга дают хорошую основу.' },
-  { id:'when', title:'Когда ждать результатов', text:'2–3 недели — улучшение техники и переносимости нагрузки.\n\n4–6 недель — увеличение количества повторений, улучшение силы.\n\n8–12 недель — возможные заметные изменения мышц при достаточной нагрузке и восстановлении.' }
-];
-
-/* ---------- состояние ---------- */
-const APP_VER = '1.2.1';   // поднимать вместе с ?v= в CSS и в статических <img>
-const AV = '?v=' + APP_VER;
-const STORE_KEY = 'taichi_v1';
-function state(){
-  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch(e){ return {}; }
+const defaultState={cycle:1,step:0,history:[],feedback:{},running:null,settings:{frequency:3,wake:true,vibrate:true}};
+function state(){try{return Object.assign({},defaultState,JSON.parse(localStorage.getItem(STORE)||'{}'))}catch(e){return JSON.parse(JSON.stringify(defaultState))}}
+function save(p){const s=Object.assign({},state(),p);localStorage.setItem(STORE,JSON.stringify(s));return s}
+function settings(){return state().settings||defaultState.settings}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function currentN(){return Math.min(15,(state().step||0)+1)}
+function workout(n){return W.find(function(x){return x.n===Number(n)})}
+function weekCount(){const d=new Date();const day=(d.getDay()+6)%7;const start=new Date(d.getFullYear(),d.getMonth(),d.getDate()-day).getTime();return state().history.filter(function(h){return h.at>=start}).length}
+function prescription(e){
+  if(e.kind==='service')return {sets:1,reps:Math.round(e.seconds/60)+' мин',rest:0};
+  const c=state().cycle||1;
+  let sets=e.kind==='main'?(c===1?2:3):(c>=3?3:2);
+  return {sets:sets,reps:e.reps,rest:e.rest||60};
 }
-function save(patch){
-  const s = Object.assign(state(), patch);
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch(e){}
-  return s;
+function effortText(id){
+  const e=EX[id],c=state().cycle||1,last=(state().feedback||{})[id];
+  let t='Последние 2–3 повтора должны быть заметно тяжёлыми, но движение остаётся аккуратным. Если начинаются рывки или техника портится — подход закончен.';
+  if(c===2)t+=' Во втором круге основные упражнения уже идут по 3 подхода.';
+  if(c>=3)t+=' В этом круге делай обратную фазу медленнее — примерно 3 секунды.';
+  if(last==='easy'){
+    if(e.equip==='band')t+=' В прошлый раз было легко: увеличь натяжение резинки совсем немного.';
+    else if(e.equip==='dumbbell')t+=' В прошлый раз было легко: не ускоряйся — опускай вес 3 секунды и добавь короткую паузу.';
+    else if(id==='wallpush')t+=' В прошлый раз было легко: можно немного дальше отойти от стены.';
+  }
+  if(last==='hard')t+=' В прошлый раз было тяжело: сопротивление не увеличивай и работай ближе к нижней границе повторов.';
+  return t;
 }
-function historyList(){ return state().history || []; }
-function settings(){
-  return Object.assign({ days:[1,3,5], time:'19:00', bodyweight:'', weight:'10' }, state().settings || {});
+function feedbackHint(id){
+  const f=(state().feedback||{})[id];
+  if(f==='easy')return 'Прошлый раз: легко';
+  if(f==='hard')return 'Прошлый раз: тяжело';
+  if(f==='ok')return 'Прошлый раз: как надо';
+  return '';
 }
-function weekStart(){
-  const d = new Date(); const day = (d.getDay() + 6) % 7;
-  const s = new Date(d); s.setHours(0,0,0,0); s.setDate(d.getDate() - day);
-  return s.getTime();
+function cycleNote(){
+  const c=state().cycle||1;
+  if(c===1)return 'Круг 1: осваиваем технику. Основные упражнения — 2 подхода.';
+  if(c===2)return 'Круг 2: основные упражнения — 3 подхода. Если было легко, немного усиливаем резинку.';
+  return 'Круг '+c+': 3 подхода на основные упражнения, аксессуары тоже постепенно растут. Темп медленнее, сопротивление — только при чистой технике.';
 }
-function doneSet(){ return new Set(historyList().filter(h => h.at >= weekStart()).map(h => h.n)); }
-function currentWorkout(){
-  const done = doneSet();
-  return PROGRAM.workouts.find(w => !done.has(w.n)) || null;
+let VIEW='home',DETAIL=null,tickId=null,wakeLock=null,restBuzzed=false;
+function activeTab(){return VIEW==='home'?'home':(VIEW==='settings'?'settings':'program')}
+function renderNav(){
+  const items=[['home','Главная','nav-home.png'],['program','Программа','nav-program.png'],['settings','Настройки','nav-settings.png']];
+  document.getElementById('nav').innerHTML=items.map(function(i){return '<button class="'+(activeTab()===i[0]?'on':'')+'" data-go="'+i[0]+'"><img src="assets/icons/'+i[2]+AV+'" alt="">'+i[1]+'</button>'}).join('');
+  document.querySelectorAll('#tabs .tab').forEach(function(b){b.classList.toggle('on',b.dataset.tab===activeTab())});
 }
-function programPercent(){ return Math.min(100, Math.round(historyList().length / 12 * 100)); }
-function cycleWeek(){
-  const h = historyList();
-  if (!h.length) return 1;
-  return Math.floor((Date.now() - h[0].at) / (7*86400000)) + 1;
-}
-function ex(id){ return EXERCISES.find(e => e.id === id) || { id, name:id, group:'', about:'', how:[] }; }
-function exImg(e){ return 'assets/exercises/' + e.id + '.gif' + AV; }
-function exThumb(e){ return 'assets/exercises/' + e.id + '-thumb.webp' + AV; }
-function setsNow(){ return cycleWeek() <= 2 ? 1 : 2; }
-function isMob(){ return window.innerWidth <= 720; }
-
-/* ---------- маршрут: координаты из ASSET-MAP.md ---------- */
-const MAP_DESK = {
-  w:660, h:400, sizes:{ complete:80, current:116, next:84 },
-  pts:[{x:35,y:41,lx:80},{x:290,y:205,lx:352},{x:437,y:359,lx:495}]
-};
-const MAP_MOB = {
-  w:300, h:405, sizes:{ complete:56, current:84, next:56 },
-  pts:[{x:70,y:32,lx:103},{x:78,y:178,lx:126},{x:71,y:363,lx:117}],
-  btn:{ x:56, y:226, w:238, h:44 }
-};
-
-function pct(v, total){ return (v / total * 100).toFixed(3) + '%'; }
-
-function routeState(w, done, cur){
-  if (done.has(w.n)) return 'complete';
-  if (cur && cur.n === w.n) return 'current';
-  return 'next';
-}
-
-function routeHtml(selected){
-  const g = isMob() ? MAP_MOB : MAP_DESK;
-  const done = doneSet(), cur = currentWorkout();
-  const s = state();
-  const parts = PROGRAM.workouts.map((w, i) => {
-    const p = g.pts[i] || g.pts[g.pts.length - 1];
-    const st = routeState(w, done, cur);
-    const size = g.sizes[st];
-    const sel = selected === w.n ? ' sel' : '';
-    const isCur = st === 'current' ? ' aria-current="step"' : '';
-    const stName = st === 'complete' ? 'Пройдено' : (st === 'current' ? 'Текущее занятие' : 'Следующее занятие');
-    return `<button class="mk${sel}" data-open="${w.n}"${isCur}
-        aria-label="${esc(w.block)}: ${esc(w.title)}, ${w.minutes} минут, ${stName.toLowerCase()}"
-        style="left:${pct(p.x, g.w)};top:${pct(p.y, g.h)};width:${pct(size, g.w)}">
-        <img src="assets/icons/route-${st}.png${AV}" alt="" width="${size}" height="${size}"></button>
-      <span class="cap" style="left:${pct(p.lx, g.w)};top:${pct(p.y, g.h)}">
-        <b>${esc(w.title)}</b><i>${stName}</i></span>`;
-  }).join('');
-  const btn = (isMob() && cur)
-    ? `<button class="map-start" data-start="${cur.n}">${s.running ? 'Продолжить тренировку' : 'Начать тренировку'}</button>`
-    : '';
-  return `<div class="map">${parts}${btn}</div>`;
-}
-
-/* ---------- экраны ---------- */
-let VIEW = 'home';
-
+function head(t,s){return '<h1>'+esc(t)+'</h1>'+(s?'<p class="sub">'+esc(s)+'</p>':'')}
 function render(){
-  const v = document.getElementById('view');
-  const s = state();
-  document.body.classList.toggle('in-workout', VIEW === 'workout' && !!s.running);
-  const map = {
-    home: renderHome, program: renderProgram, exercises: renderExercises,
-    workout: renderWorkout, theory: renderTheory, progress: renderProgress,
-    settings: renderSettings, sections: renderSections, exercise: renderExerciseCard,
-    done: renderDone
-  };
-  (map[VIEW] || renderHome)(v);
-  paintNav();
-  window.scrollTo(0, 0);
+  document.body.classList.toggle('in-workout',VIEW==='workout');
+  renderNav();
+  const v=document.getElementById('view');
+  if(VIEW==='home')renderHome(v);
+  else if(VIEW==='program')renderProgram(v);
+  else if(VIEW==='settings')renderSettings(v);
+  else if(VIEW==='detail')renderDetail(v,DETAIL);
+  else if(VIEW==='workout')renderWorkout(v);
+  else if(VIEW==='done')renderDone(v);
 }
-
-function paintNav(){
-  const tabOf = { home:'home', program:'program', workout:'program', exercises:'sections',
-    sections:'sections', theory:'sections', progress:'sections', settings:'sections',
-    exercise:'sections', done:'program' };
-  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.go === VIEW));
-  document.querySelectorAll('#tabs .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === (tabOf[VIEW] || 'home')));
-}
-
-function head(title, sub){ return `<h1>${title}</h1>${sub ? `<p class="sub">${sub}</p>` : ''}`; }
-
 function renderHome(v){
-  const cur = currentWorkout();
-  const s = state();
-  const hist = historyList();
-  const last = hist.length ? hist.slice().sort((a,b) => a.at - b.at).slice(-1)[0] : null;
-  v.innerHTML = `
-    ${head('Карта программы', PROGRAM.title + ' · ' + PROGRAM.goal)}
-    <div class="cols">
-      <section class="card map-card">
-        <div class="map-cap">Понедельник · среда · суббота</div>
-        ${routeHtml(cur ? cur.n : null)}
-      </section>
-      <aside class="card">
-        <h2>Текущее занятие</h2>
-        ${cur ? `
-          <span class="pill">${esc(cur.block)}</span>
-          <h3 style="margin-top:10px">${cur.n}. ${esc(cur.title)}</h3>
-          <p class="small" style="margin:6px 0 14px">${esc(cur.focus)} · ${cur.minutes} мин · ${cur.plan.length} фрагментов</p>
-          <img class="ill" src="assets/illustrations/exercise-card-relief.png${AV}" alt="Рельеф тренировки" width="260" height="180" />
-          <div class="controls" style="margin-top:14px"><button class="btn" data-start="${cur.n}">${s.running ? 'Продолжить тренировку' : 'Начать тренировку'}</button>
-            <button class="btn ghost" data-go="progress">Прогресс</button></div>
-          <p class="small" style="margin:12px 0 0">${esc(PROGRAM.startNote)}</p>
-          <div style="margin-top:10px"><button class="btn ghost" data-open="${cur.n}">Открыть занятие</button></div>
-        ` : `<p class="small">Все три тренировки этой недели выполнены. Следующая — в понедельник; можно пройти ещё раз, если есть силы.</p>
-             <div class="controls"><button class="btn" data-start="1">Пройти тренировку А ещё раз</button>
-               <button class="btn ghost" data-go="progress">Прогресс</button></div>`}
-        <p class="small" style="margin:14px 0 0">${last ? `Последнее: занятие ${last.n} · ${fmtDate(last.at)}` : 'Ещё нет завершённых занятий'}</p>
-      </aside>
-    </div>`;
+  const s=state(),n=currentN(),w=workout(n),pct=Math.round((s.step/15)*100),hist=s.history.slice(-5).reverse();
+  v.innerHTML=head('Главная','Сила и мышечная выносливость верха тела · гантели 3 кг + резинки')+
+  '<div class="hero"><section class="card hero-main"><span class="pill gold">Круг '+s.cycle+'</span><div class="row"><div class="big">'+s.step+' / 15</div><div><b>шагов пройдено</b><div class="small">'+esc(cycleNote())+'</div></div></div><div class="progress"><span style="width:'+pct+'%"></span></div><div class="controls"><button class="btn" data-start="'+n+'">Продолжить · '+esc(w.title)+'</button><button class="btn ghost" data-go="program">Открыть маршрут</button></div></section>'+
+  '<aside class="card hero-side"><div class="stats"><div class="stat"><b>'+s.history.length+'</b><span>занятий всего</span></div><div class="stat"><b>'+weekCount()+'</b><span>за эту неделю</span></div><div class="stat"><b>'+s.cycle+'</b><span>текущий круг</span></div></div></aside></div>'+
+  '<div class="grid2" style="margin-top:18px"><section class="card"><h2>Следующая тренировка</h2><span class="pill">'+esc(w.focus)+'</span><h3 style="font-size:22px;margin-top:10px">№'+w.n+' · '+esc(w.title)+'</h3><p class="small">Около 30–40 минут. GIF техники, подходы, отдых и таймер находятся внутри тренировки.</p><div class="controls"><button class="btn" data-open="'+w.n+'">Посмотреть состав</button></div></section>'+
+  '<aside class="card"><h2>Последние занятия</h2><div class="history">'+(hist.length?hist.map(function(h){return '<div class="hist"><div><b>Круг '+h.cycle+' · №'+h.n+'</b><div class="small">'+esc(h.title)+'</div></div><div class="small">'+new Date(h.at).toLocaleDateString('ru-RU')+'</div></div>'}).join(''):'<div class="small">История появится после первой тренировки.</div>')+'</div></aside></div>';
 }
-
+const DESK=[[10,15],[30,15],[50,15],[70,15],[90,15],[90,50],[70,50],[50,50],[30,50],[10,50],[10,84],[30,84],[50,84],[70,84],[90,84]];
+const MOB=[[20,5],[52,11],[80,17],[80,24],[52,31],[20,38],[20,45],[52,52],[80,59],[80,66],[52,73],[20,80],[20,87],[52,93],[82,98]];
+function routePositions(){return window.innerWidth<=720?MOB:DESK}
+function renderRoute(){
+  const s=state(),p=routePositions(),pts=p.map(function(x){return x[0]+','+x[1]}).join(' ');
+  return '<div class="route-wrap"><svg class="route-svg" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="'+pts+'"></polyline></svg>'+
+  W.map(function(w,i){const status=w.n<=s.step?'done':(w.n===s.step+1?'current':'future');const y=p[i][1];const top=window.innerWidth<=720?Math.min(96,y+2.7):Math.min(92,y+7);return '<button class="node '+status+'" data-open="'+w.n+'" style="left:'+p[i][0]+'%;top:'+y+'%" aria-label="Занятие '+w.n+'">'+w.n+'</button><div class="node-label" style="left:'+p[i][0]+'%;top:'+top+'%"><b>'+esc(w.title)+'</b></div>'}).join('')+'</div>';
+}
 function renderProgram(v){
-  const cur = currentWorkout();
-  const done = doneSet();
-  const byBlock = {};
-  PROGRAM.workouts.forEach(w => { (byBlock[w.block] = byBlock[w.block] || []).push(w); });
-  v.innerHTML = `
-    ${head('Программа', PROGRAM.title + ' · ' + PROGRAM.goal)}
-    <div class="cols">
-      <section class="card map-card">
-        <div class="map-cap">Маршрут программы</div>
-        ${routeHtml(cur ? cur.n : null)}
-      </section>
-      <aside class="card">
-        <h2>Расписание</h2>
-        ${Object.keys(byBlock).map(b => `
-          <div class="small" style="margin:10px 0 6px">${b}</div>
-          <div class="panel-list">
-            ${byBlock[b].map(w => `
-              <button class="item" data-open="${w.n}">
-                <span style="flex:1">
-                  <span class="name" style="display:block">${w.n}. ${esc(w.title)}</span>
-                  <span class="meta">${esc(w.focus)} · ${w.minutes} мин</span>
-                </span>
-                <span class="pill ${done.has(w.n) ? '' : 'next'}">${done.has(w.n) ? 'пройдено' : (cur && cur.n === w.n ? 'сегодня' : 'следующее')}</span>
-                <span aria-hidden="true">→</span>
-              </button>`).join('')}
-          </div>`).join('')}
-        ${cur ? `<div class="controls" style="margin-top:14px"><button class="btn" data-open="${cur.n}">Открыть занятие</button></div>` : ''}
-      </aside>
-    </div>`;
+  const s=state();
+  v.innerHTML=head('Программа','15 тренировок → повтор маршрута с прогрессией')+
+  '<section class="card route-card"><div class="route-head"><div><span class="pill gold">Круг '+s.cycle+'</span><p class="small" style="margin:8px 0 0">'+esc(cycleNote())+'</p></div><div class="small"><b>'+s.step+'/15</b> пройдено</div></div>'+renderRoute()+'</section>';
 }
-
-function renderExercises(v, selectedId){
-  const q = (state().exSearch || '').toLowerCase();
-  const list = EXERCISES.filter(e => !q || e.name.toLowerCase().includes(q) || e.group.toLowerCase().includes(q));
-  if (isMob()) {
-    v.innerHTML = `
-      ${head('Упражнения', 'Техника и описание')}
-      <input type="text" id="exSearch" placeholder="Поиск упражнений" value="${esc(state().exSearch || '')}" />
-      <div class="panel-list" style="margin-top:14px">
-        ${list.length ? list.map(e => `<button class="item" data-ex="${e.id}">
-            <img class="thumb" src="${exThumb(e)}" alt="" loading="lazy" />
-            <span style="flex:1"><span class="name" style="display:block">${esc(e.name)}</span>
-            <span class="meta">${esc(e.group)}</span></span>
-            <span aria-hidden="true">›</span></button>`).join('') : '<div class="empty">Ничего не найдено</div>'}
-      </div>
-      <p class="small" style="margin-top:16px">Демонстрации упражнений: FitLib (fitlib.samzhang.net)</p>`;
-    return;
-  }
-  v.innerHTML = `
-    ${head('Упражнения', 'Материалы программы: техника и описание')}
-    <div class="cols">
-      <section>
-        <div style="max-width:360px"><input type="text" id="exSearch" placeholder="Поиск упражнений" value="${esc(state().exSearch || '')}" /></div>
-        <div class="panel-list" style="margin-top:14px">
-          ${list.length ? list.map(e => `<button class="item${selectedId === e.id ? ' on' : ''}" data-ex="${e.id}">
-              <img class="thumb" src="${exThumb(e)}" alt="" loading="lazy" />
-              <span style="flex:1"><span class="name" style="display:block">${esc(e.name)}</span>
-              <span class="meta">${esc(e.group)}</span></span></button>`).join('') : '<div class="empty">Ничего не найдено</div>'}
-        </div>
-        <p class="small" style="margin-top:16px">Демонстрации упражнений: FitLib (fitlib.samzhang.net)</p>
-      </section>
-      <aside class="card" id="exCard">${selectedId ? exCardHtml(ex(selectedId)) : '<p class="small">Выберите упражнение в списке.</p>'}</aside>
-    </div>`;
+function renderDetail(v,n){
+  const w=workout(n);if(!w){VIEW='program';render();return}
+  const s=state(),locked=w.n>s.step+1,done=w.n<=s.step;
+  v.innerHTML=head('Занятие '+w.n,w.title+' · '+w.focus)+
+  '<div class="grid2"><section class="card"><h2>Состав тренировки</h2><div class="workout-list">'+w.ids.map(function(id,i){const e=EX[id],p=prescription(e);return '<div class="ex-row"><img src="'+e.gif+'" alt=""><div><div class="name">'+(i+1)+'. '+esc(e.name)+'</div><div class="meta">'+p.sets+' × '+esc(p.reps)+(p.rest?' · отдых '+p.rest+' сек':'')+'</div>'+(e.kind!=='service'?'<div class="eff">'+esc(effortText(id))+'</div>':'')+'</div><div class="right"><span class="pill">'+esc(e.group)+'</span></div></div>'}).join('')+'</div></section>'+
+  '<aside class="card detail-side"><span class="pill gold">Круг '+s.cycle+'</span><h2 style="margin-top:10px">'+esc(w.title)+'</h2><p class="small">'+esc(cycleNote())+'</p>'+(locked?'<div class="effort"><b>Следующий шаг закрыт</b>Сначала пройди занятие '+(s.step+1)+'.</div>':'')+(done?'<p class="small">Это занятие уже пройдено в текущем круге. Его можно повторить, но маршрут от этого не сдвинется.</p>':'')+'<div class="controls">'+(!locked?'<button class="btn" data-start="'+w.n+'">'+(done?'Пройти ещё раз':'Начать тренировку')+'</button>':'')+'<button class="btn ghost" data-go="program">К маршруту</button></div></aside></div>';
 }
-
-function exCardHtml(e){
-  return `<div class="ex-fig"><img src="${exImg(e)}" alt="Демонстрация: ${esc(e.name)}" loading="lazy" /></div>
-    <h2 style="margin-top:2px">${esc(e.name)}</h2>
-    <span class="pill">${esc(e.group)}</span>
-    <p style="margin:12px 0 0">${esc(e.about)}</p>
-    <h3 style="margin-top:16px">Техника</h3>
-    <ol class="tech">${(e.how || []).map(x => `<li>${esc(x)}</li>`).join('')}</ol>`;
+function running(){return state().running}
+function setRunning(p){const r=Object.assign({},running()||{},p);save({running:r});return r}
+async function requestWake(){
+  if(!settings().wake||!running())return;
+  if(!('wakeLock' in navigator))return;
+  try{if(!wakeLock)wakeLock=await navigator.wakeLock.request('screen')}catch(e){}
 }
-
-function renderExerciseCard(v, id){
-  v.innerHTML = `<div style="margin:8px 0 0"><button class="btn ghost" data-go="exercises">← Упражнения</button></div>
-    <div class="card" style="margin-top:14px">${exCardHtml(ex(id))}</div>`;
-}
-
-function renderTheory(v, openId){
-  const first = openId || (state().theoryOpen) || THEORY[0].id;
-  const t = THEORY.find(x => x.id === first) || THEORY[0];
-  if (isMob()) {
-    v.innerHTML = `
-      ${head('Теория', 'Как тренироваться: техника, прогрессия, безопасность')}
-      <button class="btn ghost" id="tocBtn" style="margin-bottom:14px">Оглавление</button>
-      <div class="card read" id="toc" hidden>
-        <h2>Оглавление</h2>
-        <div class="panel-list">
-          ${THEORY.map(x => `<button class="item${x.id === t.id ? ' on' : ''}" data-theory="${x.id}"><span class="name">${esc(x.title)}</span></button>`).join('')}
-        </div>
-      </div>
-      <article class="card read" style="margin-top:14px">
-        <h2>${esc(t.title)}</h2>
-        ${t.text.split('\n\n').map(p => `<p>${esc(p)}</p>`).join('')}
-      </article>`;
-    const tb = document.getElementById('tocBtn');
-    if (tb) tb.onclick = () => {
-      const toc = document.getElementById('toc');
-      toc.hidden = !toc.hidden;
-      tb.textContent = toc.hidden ? 'Оглавление' : 'Скрыть оглавление';
-    };
-    return;
-  }
-  v.innerHTML = `
-    ${head('Теория', 'Как тренироваться: техника, прогрессия, безопасность')}
-    <div class="theory">
-      <section class="card">
-        <h2>Оглавление</h2>
-        <div class="panel-list">
-          ${THEORY.map(x => `<button class="item${x.id === t.id ? ' on' : ''}" data-theory="${x.id}"><span class="name">${esc(x.title)}</span></button>`).join('')}
-        </div>
-      </section>
-      <article class="card read">
-        <h2>${esc(t.title)}</h2>
-        ${t.text.split('\n\n').map(p => `<p>${esc(p)}</p>`).join('')}
-        <img class="ill" style="margin-top:18px" src="assets/illustrations/exercise-card-relief.png${AV}" alt="Рельеф" width="260" height="180" />
-      </article>
-    </div>`;
-}
-
-function renderProgress(v){
-  const hist = historyList().slice().sort((a,b) => b.at - a.at);
-  const total = hist.length;
-  const minutes = hist.reduce((s,h) => s + (h.min || 0), 0);
-  const streak = calcStreak(hist);
-  v.innerHTML = `
-    ${head('Прогресс', 'История занятий, статистика и достижения')}
-    <div class="cols">
-      <section class="card">
-        <h2>История занятий</h2>
-        ${total ? `<div class="panel-list">${hist.map(h => `
-          <div class="item" style="cursor:default">
-            <span style="flex:1">
-              <span class="name" style="display:block">Занятие ${h.n} · ${esc(h.title || '')}</span>
-              <span class="meta">${fmtDate(h.at)} · ${h.min || 0} мин</span>
-            </span>
-            <span class="pill">завершено</span>
-          </div>`).join('')}</div>`
-        : '<div class="empty">Пока нет завершённых занятий. Начните первое — оно появится здесь.</div>'}
-      </section>
-      <aside class="card">
-        <h2>Статистика</h2>
-        <div class="stats">
-          <div><b>${total}</b><span>занятий</span></div>
-          <div><b>${minutes}</b><span>минут</span></div>
-          <div><b>${streak}</b><span>недель подряд</span></div>
-          <div><b>${programPercent()}%</b><span>программы</span></div>
-        </div>
-        <h2 style="margin-top:18px">Достижения</h2>
-        ${achievementsHtml(hist)}
-      </aside>
-    </div>`;
-}
-
-function achievementsHtml(hist){
-  const total = hist.length;
-  const badges = [
-    { at:1,  text:'Первое занятие' },
-    { at:3,  text:'Три занятия' },
-    { at:6,  text:'Половина программы' },
-    { at:12, text:'Программа пройдена' }
-  ];
-  return `<div class="panel-list">${badges.map(b => `<div class="item" style="cursor:default">
-    <span class="pill ${total >= b.at ? '' : 'next'}">${total >= b.at ? '✓' : '—'}</span>
-    <span style="flex:1"><span class="name">${b.text}</span></span></div>`).join('')}</div>`;
-}
-
-function calcStreak(hist){
-  if (!hist.length) return 0;
-  const weeks = new Set(hist.map(h => {
-    const d = new Date(h.at); const onejan = new Date(d.getFullYear(), 0, 1);
-    return d.getFullYear() + '-' + Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
-  }));
-  return weeks.size;
-}
-
-function renderSettings(v){
-  const st = settings();
-  const DAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-  v.innerHTML = `
-    ${head('Настройки', 'Расписание, напоминания и личные параметры')}
-    <div class="set-card">
-      <section class="set-group">
-        <h2>Расписание</h2>
-        <div class="set-row">
-          <span>Дни занятий<small>Три тренировки в неделю</small></span>
-          <div class="days" id="days">${DAYS.map((d,i) => `<button class="day ${st.days.includes(i+1) ? 'on' : ''}" data-day="${i+1}" aria-pressed="${st.days.includes(i+1)}">${d}</button>`).join('')}</div>
-        </div>
-      </section>
-      <section class="set-group">
-        <h2>Уведомления</h2>
-        <div class="set-row">
-          <span>Время напоминания<small>Показывается, когда приложение открыто</small></span>
-          <input type="time" id="setTime" value="${st.time || '19:00'}" />
-        </div>
-      </section>
-      <section class="set-group">
-        <h2>Персональные параметры</h2>
-        <div class="set-row">
-          <span>Вес тела, кг</span>
-          <input type="number" id="setBW" value="${esc(st.bodyweight || '')}" placeholder="82" />
-        </div>
-        <div class="set-row">
-          <span>Рабочий вес гантелей, кг</span>
-          <input type="number" id="setW" value="${esc(st.weight || '')}" placeholder="3" />
-        </div>
-      </section>
-    </div>
-    <div style="margin-top:16px"><button class="btn" id="setSave">Сохранить</button></div>
-    <p class="small" style="margin-top:18px">Тайчи · версия ${APP_VER} · демонстрации: FitLib</p>`;
-}
-
-function renderSections(v){
-  const items = [
-    { go:'exercises', icon:'nav-exercises.png', t:'Упражнения', d:'Техника и описания' },
-    { go:'workout',   icon:'nav-workout.png',   t:'Тренировка',   d:'Текущее занятие' },
-    { go:'theory',    icon:'nav-theory.png',    t:'Теория',       d:'Как тренироваться' },
-    { go:'progress',  icon:'nav-progress.png',  t:'Прогресс',     d:'История и достижения' },
-    { go:'settings',  icon:'nav-settings.png',  t:'Настройки',    d:'Расписание и параметры' }
-  ];
-  v.innerHTML = `${head('Разделы', '')}
-    <div class="panel-list">${items.map(i => `<button class="item" data-go="${i.go}">
-      <img src="assets/icons/${i.icon}${AV}" alt="" style="width:26px;height:26px" />
-      <span style="flex:1"><span class="name" style="display:block">${i.t}</span><span class="meta">${i.d}</span></span>
-      <span aria-hidden="true">›</span></button>`).join('')}</div>`;
-}
-
-/* ---------- тренировка ---------- */
-let timerId = null;
-function fmt(sec){
-  const m = Math.floor(sec / 60), s = sec % 60;
-  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
-}
-function paramLabel(reps){ return /мин|сек/.test(reps) ? 'Время' : 'Повторения'; }
-
-function stepsHtml(w, idx){
-  const items = w.plan.map((f, i) => {
-    const e = ex(f.ex);
-    const cls = i < idx ? 'done' : (i === idx ? 'cur' : 'next');
-    const icon = i < idx ? 'route-complete.png' : (i === idx ? 'route-current.png' : 'route-next.png');
-    return `<li class="step ${cls}"><span class="dot"><img src="assets/icons/${icon}${AV}" alt=""></span>
-      <span class="t">${esc(e.name)}<em>${f.sets} × ${esc(f.reps)}</em></span></li>`;
-  }).join('');
-  return `<ol class="steps">${items}</ol>`;
-}
-
-function fragPanel(w, idx){
-  const cur = state().running || {};
-  const frag = w.plan[idx];
-  const e = ex(frag.ex);
-  const paused = !!cur.paused;
-  const left = cur.left != null ? cur.left : (frag.rest || 0);
-  const last = idx === w.plan.length - 1;
-  return `<div class="frag">
-    <h2>${esc(e.name)}</h2>
-    <span class="pill">${esc(e.group)}</span>
-    <p style="margin:12px 0 0">${esc(e.about)}</p>
-    <div class="fields">
-      <div class="f"><span>Подход</span><b>${frag.sets}</b></div>
-      <div class="f"><span>${paramLabel(frag.reps)}</span><b>${esc(frag.reps)}</b></div>
-      ${frag.rest ? `<div class="f"><span>Таймер</span><b class="timer" id="timer">${fmt(left)}</b></div>` : ''}
-    </div>
-    ${paused ? `<div class="pause"><b>Пауза</b><p class="small">Позиция в занятии сохранена — можно продолжить или выйти.</p></div>` : ''}
-    <div class="controls">
-      ${paused
-        ? `<button class="btn" id="resumeBtn">Продолжить</button><button class="btn ghost" data-exit="1">Выйти</button>`
-        : `${frag.rest ? `<button class="btn" id="timerBtn">${cur.runningTimer ? 'Пауза' : 'Запустить'}</button>` : ''}<button class="btn ghost" id="pauseBtn">Пауза</button>`}
-      <button class="btn" id="nextBtn">${last ? 'Завершить занятие' : 'Далее'}</button>
-    </div>
-    <h3 style="margin-top:18px">Техника</h3>
-    <ol class="tech">${(e.how || []).map(x => `<li>${esc(x)}</li>`).join('')}</ol>
-  </div>`;
-}
-
-function renderWorkout(v){
-  const s = state();
-  const cur = s.running || null;
-  if (!cur) {
-    const w = currentWorkout();
-    if (!w) { v.innerHTML = head('Тренировка','Программа пройдена') + '<div class="empty">Все занятия завершены.</div>'; return; }
-    startWorkout(w.n);
-    return;
-  }
-  const w = PROGRAM.workouts.find(x => x.n === cur.n);
-  if (!w) { save({ running:null }); VIEW = 'home'; render(); return; }
-  const idx = Math.min(cur.idx || 0, w.plan.length - 1);
-  const last = idx === w.plan.length - 1;
-
-  if (isMob()) {
-    v.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;margin:10px 0 4px">
-        <button class="btn ghost" data-exit="1">←</button>
-        <div><div style="font-weight:600">Тренировка</div><div class="small">${esc(w.title)} · ${idx+1} из ${w.plan.length}</div></div>
-      </div>
-      <section class="card" style="margin-top:12px">
-        ${stepsHtml(w, idx)}
-        <div style="margin:16px 0 0 -8px">${fragPanel(w, idx)}</div>
-      </section>`;
-  } else {
-    v.innerHTML = `
-      <div style="display:flex;align-items:center;gap:14px;margin:26px 0 0">
-        <button class="btn ghost" data-exit="1" style="padding:8px 12px">←</button>
-        <h1 style="margin:0">Тренировка</h1>
-      </div>
-      <p class="sub" style="margin:6px 0 18px">${esc(w.title)} · неделя ${cycleWeek()} · подходов ${setsNow()} · занятие ${w.n}, фрагмент ${idx+1} из ${w.plan.length}</p>
-      <div class="workout">
-        <section class="card"><h2>Порядок</h2>${stepsHtml(w, idx)}</section>
-        <section class="card">${fragPanel(w, idx)}</section>
-      </div>`;
-  }
-  wireWorkout(w, idx);
-  renderWorkbar(w, idx, last);
-}
-
-function renderWorkbar(w, idx, last){
-  const bar = document.getElementById('workbar');
-  if (!bar) return;
-  if (document.body.classList.contains('in-workout')) {
-    bar.innerHTML = `<button class="btn" id="wbNext">${last ? 'Завершить занятие' : 'Далее'}</button>`;
-    const nb = document.getElementById('wbNext');
-    if (nb) nb.onclick = () => nextFrag(w, idx, last);
-  } else bar.innerHTML = '';
-}
-
-function nextFrag(w, idx, last){
-  stopTimer();
-  if (last) { finishWorkout(w); return; }
-  save({ running: Object.assign({}, state().running, { idx: idx + 1, left: w.plan[idx+1].rest || 0, runningTimer:false, paused:false }) });
-  renderWorkout(document.getElementById('view'));
-  renderWorkbar(w, idx + 1, idx + 1 === w.plan.length - 1);
-}
-
-function wireWorkout(w, idx){
-  const get = () => state().running;
-  const set = (patch) => save({ running: Object.assign({}, get(), patch) });
-  const btn = document.getElementById('timerBtn');
-  if (btn) btn.onclick = () => {
-    const r = get();
-    if (r.runningTimer) { stopTimer(); set({ runningTimer:false, paused:true }); }
-    else { startTimer(); set({ runningTimer:true, paused:false }); }
-    renderWorkout(document.getElementById('view'));
-  };
-  const pb = document.getElementById('pauseBtn');
-  if (pb) pb.onclick = () => {
-    stopTimer();
-    set({ paused:true, runningTimer:false });
-    renderWorkout(document.getElementById('view'));
-  };
-  const rb = document.getElementById('resumeBtn');
-  if (rb) rb.onclick = () => {
-    set({ paused:false });
-    if (w.plan[idx].rest) startTimer();
-    renderWorkout(document.getElementById('view'));
-  };
-  const nb = document.getElementById('nextBtn');
-  if (nb) nb.onclick = () => nextFrag(w, idx, idx === w.plan.length - 1);
-}
-
-function writeTimer(v){
-  const el = document.getElementById('timer');
-  if (el) el.textContent = fmt(Math.max(0, v || 0));
-}
-function startTimer(){
-  stopTimer();
-  timerId = setInterval(() => {
-    const r = state().running; if (!r) { stopTimer(); return; }
-    const left = Math.max(0, (r.left || 0) - 1);
-    save({ running: Object.assign({}, r, { left }) });
-    writeTimer(left);
-    if (left === 0) {
-      stopTimer();
-      const rr = state().running;
-      if (rr) save({ running: Object.assign({}, rr, { runningTimer:false }) });
+async function releaseWake(){try{if(wakeLock){await wakeLock.release();wakeLock=null}}catch(e){}}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&running())requestWake()});
+function fmt(sec){sec=Math.max(0,Math.floor(sec||0));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+function elapsed(){const r=running();if(!r)return 0;return Math.max(0,Math.floor((Date.now()-r.startedAt)/1000))}
+function updateLive(){
+  if(VIEW!=='workout'||!running())return;
+  const wt=document.getElementById('workElapsed');if(wt)wt.textContent=fmt(elapsed());
+  const r=running();
+  if(r.restUntil){
+    const left=Math.ceil((r.restUntil-Date.now())/1000),el=document.getElementById('restTime');
+    if(el)el.textContent=fmt(left);
+    if(left<=0&&!restBuzzed){
+      restBuzzed=true;setRunning({restUntil:null});
+      if(settings().vibrate&&navigator.vibrate)navigator.vibrate(120);
+      render();
     }
-  }, 1000);
+  }
+  if(r.phaseUntil){
+    const left=Math.ceil((r.phaseUntil-Date.now())/1000),el=document.getElementById('phaseTime');
+    if(el)el.textContent=fmt(left);
+    if(left<=0){setRunning({phaseUntil:null,phaseDone:true});if(settings().vibrate&&navigator.vibrate)navigator.vibrate(120);render()}
+  }
 }
-function stopTimer(){ if (timerId) { clearInterval(timerId); timerId = null; } }
-
 function startWorkout(n){
-  const w = PROGRAM.workouts.find(x => x.n === n);
-  if (!w) return;
-  save({ running: { n, idx:0, startedAt: Date.now(), left: w.plan[0].rest || 0, runningTimer:false, paused:false } });
-  VIEW = 'workout';
-  render();
+  const w=workout(n);if(!w)return;
+  save({running:{n:w.n,idx:0,setIndex:1,startedAt:Date.now(),restUntil:null,phaseUntil:null,phaseDone:false}});
+  restBuzzed=false;VIEW='workout';requestWake();render();
 }
-
+function currentExercise(){
+  const r=running(),w=r?workout(r.n):null;if(!r||!w)return null;
+  const id=w.ids[Math.min(r.idx,w.ids.length-1)];return {w:w,id:id,e:EX[id],idx:r.idx};
+}
+function renderWorkout(v){
+  const cur=currentExercise();if(!cur){VIEW='home';render();return}
+  const r=running(),e=cur.e,p=prescription(e),last=cur.idx===cur.w.ids.length-1;
+  let body='<div class="work-head"><div class="line"><button class="btn ghost" data-exit="1">←</button><div><b>№'+cur.w.n+' · '+esc(cur.w.title)+'</b><div class="small">'+(cur.idx+1)+' из '+cur.w.ids.length+'</div></div><div class="timer" id="workElapsed">'+fmt(elapsed())+'</div><div class="wake">'+(settings().wake?'экран не гаснет':'таймер сохраняется')+'</div></div></div>';
+  body+='<div class="exercise"><section class="card exercise-card"><div class="exercise-top"><div><h1>'+esc(e.name)+'</h1><span class="pill">'+esc(e.group)+'</span></div><span class="pill gold">Круг '+state().cycle+'</span></div><div class="gif"><img src="'+e.gif+'" alt="Техника: '+esc(e.name)+'"></div><p>'+esc(e.about)+'</p>';
+  if(e.kind==='service'){
+    const left=r.phaseUntil?Math.ceil((r.phaseUntil-Date.now())/1000):e.seconds;
+    body+='<div class="service-timer" id="phaseTime">'+fmt(left)+'</div><ol class="tech">'+e.how.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ol><div class="controls">'+(!r.phaseUntil&&!r.phaseDone?'<button class="btn" id="startPhase">Запустить '+fmt(e.seconds)+'</button>':'')+(r.phaseDone?'<button class="btn" id="nextExercise">'+(last?'Завершить':'Далее')+'</button>':'')+'</div>';
+  }else{
+    body+='<div class="prescription"><div><span>Подходы</span><b>'+p.sets+'</b></div><div><span>Повторы</span><b>'+esc(p.reps)+'</b></div><div><span>Отдых</span><b>'+p.rest+' сек</b></div></div><div class="effort"><b>Как должно ощущаться</b>'+esc(effortText(cur.id))+(feedbackHint(cur.id)?'<div class="small" style="margin-top:6px">'+esc(feedbackHint(cur.id))+'</div>':'')+'</div><h3>Техника</h3><ol class="tech">'+e.how.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ol>';
+    if(r.restUntil){
+      body+='<div class="restbox"><div class="small">Отдых перед подходом '+r.setIndex+' из '+p.sets+'</div><div class="resttime" id="restTime">'+fmt(Math.ceil((r.restUntil-Date.now())/1000))+'</div></div>';
+    }else if(r.setIndex<=p.sets){
+      body+='<div class="setbox"><div class="settitle">Подход '+r.setIndex+' из '+p.sets+'</div><div class="small">'+esc(p.reps)+' · делай спокойно, без рывков</div><div class="controls"><button class="btn" id="setDone">Подход выполнен</button></div></div>';
+    }else{
+      const f=(state().feedback||{})[cur.id]||'';
+      body+='<div class="feedback"><b>Как было?</b><div class="small">Это помогает следующему кругу выбрать нагрузку.</div><div class="choices"><button data-fb="easy" class="'+(f==='easy'?'on':'')+'">Легко</button><button data-fb="ok" class="'+(f==='ok'?'on':'')+'">Как надо</button><button data-fb="hard" class="'+(f==='hard'?'on':'')+'">Тяжело</button></div></div><div class="controls"><button class="btn" id="nextExercise">'+(last?'Завершить тренировку':'Следующее упражнение')+'</button></div>';
+    }
+  }
+  body+='</section></div>';v.innerHTML=body;wireWorkout(cur,p,last);
+}
+function wireWorkout(cur,p,last){
+  const sp=document.getElementById('startPhase');if(sp)sp.onclick=function(){setRunning({phaseUntil:Date.now()+cur.e.seconds*1000,phaseDone:false});render()};
+  const sd=document.getElementById('setDone');if(sd)sd.onclick=function(){const r=running();if(r.setIndex<p.sets){restBuzzed=false;setRunning({setIndex:r.setIndex+1,restUntil:Date.now()+p.rest*1000});render()}else{setRunning({setIndex:p.sets+1});render()}};
+  document.querySelectorAll('[data-fb]').forEach(function(b){b.onclick=function(){const s=state(),fb=Object.assign({},s.feedback||{});fb[cur.id]=b.dataset.fb;save({feedback:fb});render()}});
+  const ne=document.getElementById('nextExercise');if(ne)ne.onclick=function(){if(last)finishWorkout(cur.w);else{setRunning({idx:cur.idx+1,setIndex:1,restUntil:null,phaseUntil:null,phaseDone:false});restBuzzed=false;render()}};
+}
 function finishWorkout(w){
-  stopTimer();
-  const r = state().running || {};
-  const min = Math.max(1, Math.round((Date.now() - (r.startedAt || Date.now())) / 60000));
-  const hist = historyList().filter(h => h.n !== w.n);
-  hist.push({ n: w.n, title: w.title, at: Date.now(), min });
-  save({ history: hist, running: null });
-  DONE = { n: w.n, title: w.title, min };
-  VIEW = 'done';
-  render();
+  const s=state(),wasCurrent=w.n===s.step+1;
+  let cycle=s.cycle,step=s.step,completedCycle=false;
+  if(wasCurrent){step++;if(step>=15){completedCycle=true;cycle++;step=0}}
+  const hist=s.history.concat([{n:w.n,title:w.title,cycle:s.cycle,at:Date.now(),min:Math.max(1,Math.round(elapsed()/60))}]);
+  save({cycle:cycle,step:step,history:hist,running:null});
+  releaseWake();DONE={w:w,completedCycle:completedCycle,newCycle:cycle};VIEW='done';render();
 }
-
-let DONE = null;
+let DONE=null;
 function renderDone(v){
-  const d = DONE || { n: '', title: '', min: 0 };
-  v.innerHTML = `
-    ${head('Занятие завершено', `${d.n ? 'Занятие ' + d.n + ' · ' : ''}${esc(d.title)}`)}
-    <div class="card done-card">
-      <div class="stats" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-        <div><b>${d.min}</b><span>минут</span></div>
-        <div><b>${historyList().length}</b><span>всего занятий</span></div>
-        <div><b>${programPercent()}%</b><span>программы</span></div>
-      </div>
-      <div class="controls">
-        <button class="btn" data-go="progress">Перейти в прогресс</button>
-        <button class="btn ghost" data-go="home">На главную</button>
-      </div>
-    </div>`;
+  const d=DONE||{},s=state();
+  v.innerHTML=head('Тренировка завершена',d.w?('№'+d.w.n+' · '+d.w.title):'')+'<section class="card" style="max-width:720px;text-align:center"><div class="stats"><div class="stat"><b>'+s.history.length+'</b><span>занятий всего</span></div><div class="stat"><b>'+s.step+'/15</b><span>текущий маршрут</span></div><div class="stat"><b>'+s.cycle+'</b><span>текущий круг</span></div></div>'+(d.completedCycle?'<div class="effort" style="text-align:left;margin-top:16px"><b>Круг завершён</b>Начинается круг '+d.newCycle+'. Нагрузка увеличится автоматически: больше подходов и, если предыдущая работа была лёгкой, чуть больше сопротивления.</div>':'')+'<div class="controls" style="justify-content:center"><button class="btn" data-go="home">На главную</button><button class="btn ghost" data-go="program">К маршруту</button></div></section>';
 }
-
-/* ---------- мелочи ---------- */
-function fmtDate(ts){
-  const d = new Date(ts);
-  return d.toLocaleDateString('ru-RU', { day:'2-digit', month:'short' }) + ', ' +
-         d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+function renderSettings(v){
+  const st=settings();
+  v.innerHTML=head('Настройки','Только то, что влияет на тренировку')+'<div class="settings"><div class="set-card"><div class="set-group"><h2>Режим</h2><div class="set-row"><div><b>Тренировок в неделю</b><div class="small">Оптимально 3; четвёртая — только если восстановился и нет боли.</div></div><select id="freq"><option value="3" '+(st.frequency===3?'selected':'')+'>3 раза</option><option value="4" '+(st.frequency===4?'selected':'')+'>4 раза</option></select></div></div><div class="set-group"><h2>Во время тренировки</h2><div class="set-row"><div><b>Не гасить экран</b><div class="small">Если браузер поддерживает Wake Lock, экран останется включён. Если нет — таймер всё равно восстановится по реальному времени.</div></div><label class="toggle"><input type="checkbox" id="wake" '+(st.wake?'checked':'')+'> Включено</label></div><div class="set-row"><div><b>Вибрация после отдыха</b></div><label class="toggle"><input type="checkbox" id="vib" '+(st.vibrate?'checked':'')+'> Включено</label></div></div><div class="set-group"><h2>Прогресс</h2><p class="small">Сброс удалит историю, оценки нагрузки и вернёт программу на круг 1, занятие 1.</p><button class="btn danger" id="reset">Сбросить программу</button></div><div class="controls"><button class="btn" id="saveSettings">Сохранить</button></div></div></div>';
 }
-function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-/* ---------- навигация ---------- */
-const NAV = [
-  ['home','Главная','nav-home.png'], ['program','Программа','nav-program.png'],
-  ['exercises','Упражнения','nav-exercises.png'], ['workout','Тренировка','nav-workout.png'],
-  ['theory','Теория','nav-theory.png'], ['progress','Прогресс','nav-progress.png'],
-  ['settings','Настройки','nav-settings.png']
-];
-document.getElementById('nav').innerHTML = NAV.map(([go,t,ic]) =>
-  `<button data-go="${go}"><img src="assets/icons/${ic}${AV}" alt="">${t}</button>`).join('');
-document.querySelectorAll('#tabs .tab').forEach(b => b.onclick = () => {
-  VIEW = b.dataset.tab; render();
+document.addEventListener('click',function(ev){
+  const t=ev.target.closest('[data-go],[data-tab],[data-open],[data-start],[data-exit]');
+  if(!t)return;
+  if(t.dataset.exit){releaseWake();VIEW='home';render();return}
+  if(t.dataset.open){DETAIL=Number(t.dataset.open);VIEW='detail';render();return}
+  if(t.dataset.start){startWorkout(Number(t.dataset.start));return}
+  const go=t.dataset.go||t.dataset.tab;if(go){VIEW=go;DETAIL=null;render()}
 });
-
-document.addEventListener('click', (e) => {
-  const exit = e.target.closest('[data-exit]');
-  if (exit) {
-    stopTimer();
-    const r = state().running;
-    if (r) save({ running: Object.assign({}, r, { paused:true, runningTimer:false }) });
-    VIEW = 'home'; render(); return;
+document.addEventListener('click',function(ev){
+  if(ev.target&&ev.target.id==='saveSettings'){
+    const st={frequency:Number(document.getElementById('freq').value)||3,wake:document.getElementById('wake').checked,vibrate:document.getElementById('vib').checked};
+    save({settings:st});ev.target.textContent='Сохранено';setTimeout(function(){render()},600);
   }
-  const t = e.target.closest('[data-go],[data-open],[data-start],[data-ex],[data-theory],[data-day]');
-  if (!t) return;
-  if (t.dataset.open) { showWorkoutInfo(Number(t.dataset.open)); return; }
-  if (t.dataset.start) { startWorkout(Number(t.dataset.start)); return; }
-  if (t.dataset.ex) {
-    if (isMob()) { VIEW = 'exercise'; EX_OPEN = t.dataset.ex; renderExerciseCard(document.getElementById('view'), t.dataset.ex); paintNav(); }
-    else renderExercises(document.getElementById('view'), t.dataset.ex);
-    return;
-  }
-  if (t.dataset.theory) { save({ theoryOpen: t.dataset.theory }); VIEW = 'theory'; render(); return; }
-  if (t.dataset.day) {
-    const st = settings();
-    const d = Number(t.dataset.day);
-    const days = st.days.includes(d) ? st.days.filter(x => x !== d) : st.days.concat([d]).sort();
-    save({ settings: Object.assign({}, st, { days }) });
-    renderSettings(document.getElementById('view'));
-    return;
-  }
-  const go = t.dataset.go;
-  if (go) { VIEW = go; render(); }
-});
-let EX_OPEN = null;
-
-function showWorkoutInfo(n){
-  const w = PROGRAM.workouts.find(x => x.n === n);
-  if (!w) return;
-  const done = doneSet();
-  const v = document.getElementById('view');
-  v.innerHTML = `
-    ${head(`Занятие ${w.n}`, `${esc(w.title)} · ${esc(w.focus)}`)}
-    <div class="cols">
-      <section class="card">
-        <h2>Состав</h2>
-        <div class="panel-list">${w.plan.map((f,i) => {
-          const e = ex(f.ex);
-          return `<div class="item" style="cursor:default"><span class="pill">${i+1}</span>
-            <span style="flex:1"><span class="name" style="display:block">${esc(e.name)}</span>
-            <span class="meta">${f.sets} × ${esc(f.reps)}${f.rest ? ' · отдых ' + f.rest + ' с' : ''}</span></span></div>`;
-        }).join('')}</div>
-      </section>
-      <aside class="card">
-        <img class="ill" src="assets/illustrations/exercise-card-relief.png${AV}" alt="Рельеф занятия" width="260" height="180" />
-        <h3 style="margin-top:12px">${w.minutes} минут</h3>
-        <p class="small">${done.has(w.n) ? 'Это занятие уже пройдено. Можно пройти снова — в истории останется последняя запись.' : 'Занятие ещё не пройдено.'}</p>
-        <div class="controls">
-          <button class="btn" data-start="${w.n}">${done.has(w.n) ? 'Пройти снова' : 'Начать тренировку'}</button>
-          <button class="btn ghost" data-go="program">К программе</button>
-        </div>
-      </aside>
-    </div>`;
-  paintNav();
-}
-
-/* поиск упражнений */
-document.addEventListener('input', (e) => {
-  if (e.target && e.target.id === 'exSearch') {
-    save({ exSearch: e.target.value });
-    const sel = document.querySelector('.item.on[data-ex]');
-    const pos = e.target.selectionStart;
-    if (isMob()) renderExercises(document.getElementById('view'), null);
-    else renderExercises(document.getElementById('view'), sel ? sel.dataset.ex : null);
-    const inp = document.getElementById('exSearch');
-    if (inp) { inp.focus(); try { inp.setSelectionRange(pos, pos); } catch(err){} }
+  if(ev.target&&ev.target.id==='reset'){
+    if(confirm('Сбросить весь прогресс Тайчи?')){localStorage.removeItem(STORE);VIEW='home';render()}
   }
 });
-
-/* сохранение настроек */
-document.addEventListener('click', (e) => {
-  if (e.target && e.target.id === 'setSave') {
-    const st = settings();
-    st.time = document.getElementById('setTime').value || st.time;
-    st.bodyweight = document.getElementById('setBW').value;
-    st.weight = document.getElementById('setW').value;
-    save({ settings: st });
-    e.target.textContent = 'Сохранено';
-    setTimeout(() => { e.target.textContent = 'Сохранить'; }, 1400);
-  }
-});
-
-/* перерисовка при смене ширины (маршрут: компьютер / телефон) */
-let rt = null;
-window.addEventListener('resize', () => {
-  clearTimeout(rt);
-  rt = setTimeout(() => { if (!document.body.classList.contains('in-workout')) render(); }, 220);
-});
-
+window.addEventListener('resize',function(){if(VIEW==='program')render()});
+tickId=setInterval(updateLive,250);
+if(running()){VIEW='workout';requestWake()}
 render();
 </script>
 </body>
