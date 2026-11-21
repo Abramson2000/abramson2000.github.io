@@ -34406,7 +34406,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.22.0';
+const APP_VER = '6.23.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -40216,15 +40216,14 @@ function crsPayLedger(program) {
       }).sort(function (a, b) { return (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')); });
     } catch (e) { events = []; }
   }
-  let spent = packs.reduce(function (a, p) { return a + p.usedAtEntry * p.price; }, 0);
-  let used = packs.reduce(function (a, p) { return a + p.usedAtEntry; }, 0), unpriced = 0;
+  let spent = 0, used = 0, unpriced = 0;
   const pricedEvents = [];
+  // 6.23.0: ручная отметка «проведено» (usedAtEntry) — это квота, а не запрет считать занятия.
+  // Раньше все занятия до usedThrough глушились, и отметка «проведено» не двигала счётчик.
+  packs.forEach(function (p) { p.manualLeft = p.usedAtEntry; });
   events.forEach(function (ev) {
-    // Если занятие уже учтено вручную (usedAtEntry + usedThrough), оно не должно
-    // списываться ещё раз — в том числе с нового пакета, добавленного позже.
-    // Иначе при внесении новой оплаты старый «проведённый» урок съедает урок из нового пакета.
-    const coveredByManual = packs.some(function (p) { return p.usedAtEntry > 0 && p.usedThrough && ev.date <= p.usedThrough; });
-    if (coveredByManual) return;
+    const manual = packs.find(function (p) { return p.manualLeft > 0 && p.usedThrough && p.date <= ev.date && ev.date <= p.usedThrough; });
+    if (manual) { manual.manualLeft--; used++; spent += manual.price; pricedEvents.push({ date: ev.date, price: manual.price, evId: ev.evId, manual: true }); return; }
     let pack = null;
     for (let i = 0; i < packs.length; i++) {
       const afterManual = !packs[i].usedThrough || ev.date > packs[i].usedThrough;
@@ -40234,6 +40233,8 @@ function crsPayLedger(program) {
     pack.left--; pack.allocated++; used++; spent += pack.price;
     pricedEvents.push({ date: ev.date, price: pack.price, evId: ev.evId });
   });
+  // остаток ручных квот — занятия, которых уже нет в расписании (до приложения), они тоже проведены
+  packs.forEach(function (p) { if (p.manualLeft > 0) { used += p.manualLeft; spent += p.manualLeft * p.price; p.manualLeft = 0; } });
   // Для старого аванса можно явно указать, что весь пакет уже выработан.
   // Недостающие старые занятия не обязаны существовать в нынешнем расписании.
   packs.forEach(function (p) {
