@@ -272,7 +272,7 @@ function render(){
 }
 function renderHome(v){
   const s=state(),n=currentN(),w=workout(n),pct=Math.round((s.step/15)*100),hist=s.history.slice(-5).reverse();
-  v.innerHTML=head('Главная','Сила и мышечная выносливость верха тела · гантели 3 кг + резинки')+
+  v.innerHTML=head('Главная','Моя программа тренировок')+
   '<div class="hero"><section class="card hero-main"><span class="pill gold">Круг '+s.cycle+'</span><div class="row"><div class="big">'+s.step+' / 15</div><div><b>шагов пройдено</b><div class="small">'+esc(cycleNote())+'</div></div></div><div class="progress"><span style="width:'+pct+'%"></span></div><div class="controls"><button class="btn" data-start="'+n+'">Продолжить · '+esc(w.title)+'</button><button class="btn ghost" data-go="program">Открыть маршрут</button></div></section>'+
   '<aside class="card hero-side"><div class="stats"><div class="stat"><b>'+s.history.length+'</b><span>занятий всего</span></div><div class="stat"><b>'+weekCount()+'</b><span>за эту неделю</span></div><div class="stat"><b>'+s.cycle+'</b><span>текущий круг</span></div></div></aside></div>'+
   '<div class="grid2" style="margin-top:18px"><section class="card"><h2>Следующая тренировка</h2><span class="pill">'+esc(w.focus)+'</span><h3 style="font-size:22px;margin-top:10px">№'+w.n+' · '+esc(w.title)+'</h3><p class="small">Около 30–40 минут. GIF техники, подходы, отдых и таймер находятся внутри тренировки.</p><div class="controls"><button class="btn" data-open="'+w.n+'">Посмотреть состав</button></div></section>'+
