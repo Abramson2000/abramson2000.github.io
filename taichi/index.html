@@ -145,7 +145,7 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
   .calendar{gap:4px}
   .cal-day{min-height:49px;padding:4px 2px}
   .cal-day span{font-size:9px}
-  .route-wrap{height:870px;background-image:linear-gradient(rgba(251,252,249,.38),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-mobile.png?v=2.0.0")}
+  .route-wrap{height:930px;background-image:linear-gradient(rgba(251,252,249,.38),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-mobile.png?v=2.0.0")}
   .node{width:48px;height:48px}
   .node-label{width:100px}
   .ex-row{grid-template-columns:58px minmax(0,1fr)}
@@ -306,7 +306,7 @@ function monthCalendarHtml(){
   for(let i=0;i<offset;i++)cells+='<div class="cal-day blank"></div>';
   for(let d=1;d<=days;d++){
     const x=byDay[d],isToday=d===now.getDate();
-    cells+='<div class="cal-day '+(x?'trained ':'')+(isToday?'today':'')+'"><b>'+d+'</b>'+(x?'<span>'+x.min+' мин'+(x.count>1?' · '+x.count+'×':'')+'</span>':'')+'</div>';
+    cells+='<div class="cal-day '+(x?'trained ':'')+(isToday?'today':'')+'"><b>'+d+'</b>'+(x?'<span>'+x.min+' мин</span>':'')+'</div>';
   }
   const month=now.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
   return '<div class="month-title"><h2>Календарь тренировок</h2><span class="small">'+month+'</span></div><div class="calendar">'+cells+'</div>';
@@ -321,7 +321,7 @@ function renderHome(v){
   '<section class="card" style="margin-top:18px"><h2>История тренировок</h2><div class="history">'+(hist.length?hist.map(function(h){return '<div class="hist"><div><b>'+new Date(h.at).toLocaleDateString('ru-RU',{day:'2-digit',month:'long'})+' · Круг '+h.cycle+' · №'+h.n+'</b><div class="small">'+esc(h.title)+'</div></div><div style="text-align:right"><b>'+h.min+' мин</b><div class="small">'+new Date(h.at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'</div></div></div>'}).join(''):'<div class="small">История появится после первой завершённой тренировки.</div>')+'</div></section>';
 }
 const DESK=[[10,15],[30,15],[50,15],[70,15],[90,15],[90,50],[70,50],[50,50],[30,50],[10,50],[10,84],[30,84],[50,84],[70,84],[90,84]];
-const MOB=[[20,5],[52,11],[80,17],[80,24],[52,31],[20,38],[20,45],[52,52],[80,59],[80,66],[52,73],[20,80],[20,87],[52,93],[82,98]];
+const MOB=[[20,4],[52,10.5],[80,17],[80,23.5],[52,30],[20,36.5],[20,43],[52,49.5],[80,56],[80,62.5],[52,69],[20,75.5],[20,82],[52,88.5],[82,94]];
 function routePositions(){return window.innerWidth<=720?MOB:DESK}
 function renderRoute(){
   const s=state(),p=routePositions(),pts=p.map(function(x){return x[0]+','+x[1]}).join(' ');
