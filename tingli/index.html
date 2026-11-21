@@ -280,6 +280,7 @@
   .task-q-ru { font-size: 18.5px; font-weight: 650; margin-bottom: 5px; line-height: 1.45; letter-spacing: -.2px; }
   .task-q-zh { font-size: 15.5px; color: var(--ink-2); margin-bottom: 15px; line-height: 1.55; font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; }
   .task-q { font-size: 17.5px; margin-bottom: 13px; line-height: 1.55; font-weight: 600; letter-spacing: -.1px; }
+  .task-q.ruq, .opt.ruq, .fill.ruq { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important; }
   .task-q .hl { background: var(--ochre-soft); color: var(--ochre-ink); font-weight: 700; border-radius: 5px; padding: 0 4px; }
   .task-qru { font-size: 13px; color: var(--muted); margin: -6px 0 13px; line-height: 1.55; font-weight: 400; }
   .app-ver { text-align: center; font-size: 11px; color: var(--line); padding: 18px 0 6px; letter-spacing: .3px; }
@@ -1213,6 +1214,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   <button class="tab" id="tab-mine" onclick="goTab('mine')" title="语法"><span class="ic"><img class="ic-img ic-img-on" src="tab-fa.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-fa-off.png?v=5.59.0" alt=""></span><span class="tab-label">语法<span class="tab-ru">Грамматика с Ли лаоши</span></span></button>
   <button class="tab" id="tab-idv" onclick="goTab('idv')" title="口语"><span class="ic"><img class="ic-img ic-img-on" src="tab-yu.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-yu-off.png?v=5.59.0" alt=""></span><span class="tab-label">口语<span class="tab-ru">Разговорный язык с Любой</span></span></button>
   <button class="tab" id="tab-team" onclick="goTab('team')" title="团队"><span class="ic"><img class="ic-img ic-img-on" src="tab-tuan.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-tuan-off.png?v=5.59.0" alt=""></span><span class="tab-label">团队<span class="tab-ru">Групповые уроки с Любой</span></span></button>
+  <button class="tab" id="tab-sm" onclick="goTab('sm')" title="СМ"><span class="ic"><img class="ic-img ic-img-on" src="tab-sm.png?v=6.24.2" alt=""><img class="ic-img ic-img-off" src="tab-sm-off.png?v=6.24.2" alt=""></span><span class="tab-label">СМ<span class="tab-ru">Сдвиг мышления · Макк</span></span></button>
   <button class="tab" id="tab-yin" onclick="goTab('yin')" title="声音"><span class="ic"><img class="ic-img ic-img-on" src="tab-yin.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-yin-off.png?v=5.59.0" alt=""></span><span class="tab-label">声音<span class="tab-ru">Аудио-уроки</span></span></button>
   <button class="tab" id="tab-biz" onclick="goTab('biz')" title="商务"><span class="ic"><img class="ic-img ic-img-on" src="tab-biz.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-biz-off.png?v=5.59.0" alt=""></span><span class="tab-label">商务<span class="tab-ru">Бизнес. Самоучеба</span></span></button>
   <button class="tab active" id="tab-lessons" onclick="goTab('lessons')" title="听力"><span class="ic"><img class="ic-img ic-img-on" src="tab-ting.png?v=5.59.0" alt=""><img class="ic-img ic-img-off" src="tab-ting-off.png?v=5.59.0" alt=""></span><span class="tab-label">听力<span class="tab-ru">Аудирование. Самоучеба</span></span></button>
@@ -25341,7 +25343,312 @@ const IDV_UNITS = [
     "text": "我九岁时来到了美国，那时，我每天都会遇到很多问题，这些问题主要来自两个方面：语言和文化。\n我刚来美国的时候，因为不懂英语，根本没有办法和别人交流，我感到十分沮丧。所以我下决心一定要学好英语。\n老师们都耐心地帮助我，后来我在班里交了一个朋友，她经常帮我练习口语。在老师和同学的帮助下，我进步得很快。\n随着英语的进步，我开始逐渐接触美国文化，并慢慢体会到了文化差异。美国人热情、开放：朋友见面时会相互拥抱，说话时会看着对方的眼睛。开始时我很不习惯，后来就慢慢习惯了。另外在美国，老师鼓励每个学生自由地表达自己的意见。在课堂上，无论与老师的想法是否一致，每个人都有表达自己意见的权利。慢慢地我也学会了表达自己的意见。现在的我开朗、热情，也比以前更加自信。\n这段生活让我明白：在这个世界上没有什么克服不了的困难，只有勇敢地面对新生活，适应新环境，你才会变得更加自信，生活才会更加美好。"
    }
   ]
- }
+ },
+
+  {
+   "unit": 900,
+   "label": "Урок 1",
+   "emoji": "🧠",
+   "zh": "Общие принципы",
+   "ru": "Сдвиг мышления: почему китайский устроен иначе",
+   "src": "sm",
+   "parts": [
+    {
+     "id": 1,
+     "kind": "text",
+     "title": "Теория простыми словами",
+     "titleZh": "理论",
+     "text": "Русский язык — флективный: слова меняются окончаниями, и поэтому в предложении можно двигать их как угодно: «Я люблю тебя» и «Я тебя люблю» — одно и то же.\nКитайский — изолирующий: у слов нет окончаний, падежей и спряжений. Слово не меняется никогда. Значит, порядок слов не «второстепенный», а единственный способ показать, кто что делает.\n我爱你 — я люблю тебя. 你爱我 — ты любишь меня. Поменяли слова местами — поменялся смысл. 我爱过你 — я тебя любил (过 показывает, что действие в прошлом).\nВторая особенность: в китайском у слова нет постоянной части речи. Один иероглиф может быть предлогом, глаголом, наречием — смотря где он стоит. 在: 在中国 — «в Китае» (предлог), 我在这儿 — «я здесь» (глагол), 他在看书 — «он читает» (наречие «сейчас»), 放在桌子上 — «положи на стол» (после глагола — результат).\nПоэтому части речи определяют не по слову, а по месту в предложении и соседям.\nОтсюда главная идея курса: в китайском предложении есть фиксированные места — «ячейки». В каждой ячейке стоит ровно один член предложения, но он может быть и одним словом, и целой фразой. Одна ячейка — одно место в очереди; переставил — сломал смысл.\nИ самое важное: русские «подлежащее и сказуемое» в китайском часто не совпадают с тем, что мы видим. Поэтому логику предложения разбирают через ТОПИК (о чём речь) и КОММЕНТАРИЙ (что об этом сказано) — об этом урок 3.\nПроще говоря: перестаньте искать «кто? что сделал?» по-русски. Сначала найдите, о чём предложение (топик), потом — что о нём сообщают (комментарий). Всё остальное — украшения внутри этих двух частей."
+    },
+    {
+     "id": 2,
+     "kind": "words",
+     "title": "Слова-ключи урока",
+     "titleZh": "生词",
+     "words": [
+      {
+       "zh": "语言",
+       "py": "yǔyán",
+       "ru": "язык (как система)"
+      },
+      {
+       "zh": "порядок слов",
+       "py": "",
+       "ru": "порядок слов — в китайском он и есть грамматика"
+      },
+      {
+       "zh": "在",
+       "py": "zài",
+       "ru": "в/на; находиться; сейчас; результат — зависит от места"
+      },
+      {
+       "zh": "爱",
+       "py": "ài",
+       "ru": "любить"
+      },
+      {
+       "zh": "过",
+       "py": "guò",
+       "ru": "показатель опыта: действие было"
+      },
+      {
+       "zh": "中国",
+       "py": "Zhōngguó",
+       "ru": "Китай"
+      },
+      {
+       "zh": "看书",
+       "py": "kàn shū",
+       "ru": "читать (книгу)"
+      },
+      {
+       "zh": "放在",
+       "py": "fàng zài",
+       "ru": "положить (куда-то)"
+      }
+     ]
+    },
+    {
+     "id": 3,
+     "kind": "quiz",
+     "title": "Проверка понимания",
+     "titleZh": "检查",
+     "tasks": [
+      {
+       "type": "choice",
+       "q": "Почему в китайском нельзя свободно менять порядок слов?",
+       "options": [
+        "A. Потому что нет окончаний, и порядок — единственный способ показать роли",
+        "B. Потому что так принято в вежливой речи",
+        "C. Потому что иероглифы нельзя переставлять"
+       ],
+       "answer": 0
+      },
+      {
+       "type": "choice",
+       "q": "在 в 他在看书 — это…",
+       "options": [
+        "A. предлог «в»",
+        "B. наречие «сейчас, в данный момент»",
+        "C. глагол «находиться»"
+       ],
+       "answer": 1
+      },
+      {
+       "type": "choice",
+       "q": "我爱你 и 你爱我 — в чём разница?",
+       "options": [
+        "A. Время действия",
+        "B. Кто кого любит",
+        "C. Никакой, это одно и то же"
+       ],
+       "answer": 1
+      }
+     ]
+    }
+   ]
+  },
+{
+  "unit": 901,
+  "label": "Урок 2",
+  "emoji": "🧩",
+  "zh": "Уточнённое существительное",
+  "ru": "Одно существительное — одна ячейка, но с уточнением",
+  "src": "sm",
+  "parts": [
+   {
+    "id": 1,
+    "kind": "text",
+    "title": "Теория простыми словами",
+    "titleZh": "理论",
+    "text": "Голая существительная в китайском — это не «книга», а «книги вообще», категория. 我看书 — «я читаю книги» в смысле «занимаюсь чтением», а не «читаю одну конкретную книгу».\nЧтобы появилось «одна книга», существительное надо уточнить: 我买了一本书 — «я купил одну книгу» (本书 — счётное слово).\nУточнённое существительное = существительное + уточнение. Всё вместе занимает ОДНУ ячейку в предложении: это фраза, а не отдельные слова.\nГлавный закон: уточнение всегда стоит ПЕРЕД существительным. По-китайски нельзя «книга интересная», только 有趣的书 — «интересная книга», уточнение впереди.\nУточнять можно тремя способами:\n1) определением: 漂亮的衣服 — красивая одежда; 我的书 — моя книга.\n2) счётным словом: 一本书 — одна книга, 三个人 — три человека.\n3) наречием: 很多人 — много людей.\nОтсюда масса вещей, которые в русском кажутся странными: 王老师 — «учитель Ван» (фамилия как уточнение перед должностью), 李先生 — «господин Ли», 中国银行 — «Банк Китая» (Китай уточняет банк).\nПрактический смысл: когда видишь длинную цепочку иероглифов, ищи последнее существительное — всё, что перед ним, его уточняет. Переводить надо с конца, а не с начала."
+   },
+   {
+    "id": 2,
+    "kind": "words",
+    "title": "Слова-ключи урока",
+    "titleZh": "生词",
+    "words": [
+     {
+      "zh": "书",
+      "py": "shū",
+      "ru": "книга"
+     },
+     {
+      "zh": "一本书",
+      "py": "yì běn shū",
+      "ru": "одна книга"
+     },
+     {
+      "zh": "漂亮的衣服",
+      "py": "piàoliang de yīfu",
+      "ru": "красивая одежда"
+     },
+     {
+      "zh": "我的",
+      "py": "wǒ de",
+      "ru": "мой (уточнение перед существительным)"
+     },
+     {
+      "zh": "老师",
+      "py": "lǎoshī",
+      "ru": "учитель"
+     },
+     {
+      "zh": "王老师",
+      "py": "Wáng lǎoshī",
+      "ru": "учитель Ван"
+     },
+     {
+      "zh": "很多人",
+      "py": "hěn duō rén",
+      "ru": "много людей"
+     },
+     {
+      "zh": "银行",
+      "py": "yínháng",
+      "ru": "банк"
+     }
+    ]
+   },
+   {
+    "id": 3,
+    "kind": "quiz",
+    "title": "Проверка понимания",
+    "titleZh": "检查",
+    "tasks": [
+     {
+      "type": "choice",
+      "q": "我看书 переводится как…",
+      "options": [
+       "A. Я читаю (одну конкретную) книгу",
+       "B. Я читаю книги (вообще, как занятие)",
+       "C. Я купил книгу"
+      ],
+      "answer": 1
+     },
+     {
+      "type": "choice",
+      "q": "Где стоит уточнение по отношению к существительному?",
+      "options": [
+       "A. Всегда перед ним",
+       "B. Всегда после него",
+       "C. Как захочется"
+      ],
+      "answer": 0
+     },
+     {
+      "type": "choice",
+      "q": "王老师 — это…",
+      "options": [
+       "A. Ван-учитель, то есть учитель по фамилии Ван",
+       "B. Учитель по имени Ван",
+       "C. Школа Вана"
+      ],
+      "answer": 0
+     }
+    ]
+   }
+  ]
+ },
+  {
+   "unit": 902,
+   "label": "Урок 3",
+   "emoji": "🎯",
+   "zh": "Топик и комментарий",
+   "ru": "Тема и то, что о ней сказано",
+   "src": "sm",
+   "parts": [
+    {
+     "id": 1,
+     "kind": "text",
+     "title": "Теория простыми словами",
+     "titleZh": "理论",
+     "text": "Топик — это то, о чём идёт речь: лицо, предмет, событие. Его легко найти вопросом «О чём тут вообще?».\nКомментарий — то, что об этом сообщают: новое, ради чего фраза сказана. Вопрос: «А что об этом сказано?».\nПорядок типичный: топик в начале, комментарий в конце. И основная мысль почти всегда ближе к концу — потому что топик собеседнику уже известен, а новость — нет.\nПример. 这些汉字我写了 — «эти иероглифы я написала». Вопрос: «Что я сделала с этими иероглифами?» Ответ: написала. Значит 这些汉字我 — топик, 写了 — комментарий, и мысль именно в «написала».\nДругой пример: 这些汉字是我写的 — «эти иероглифы написала я». Вопрос уже другой: «Кто написал эти иероглифы?» Ответ: я. Здесь новое — «я», хотя глагол «написала» был в вопросе и стал известным.\nВывод, который снимает половину мучений: одно и то же событие можно сказать по-разному, и смысл фразы определяется тем, какая часть новая. Меняется акцент — меняется и перевод.\nПрактика: увидел длинную китайскую фразу — не переводи с начала, а спроси «о чём это?». Нашёл топик — всё остальное читай как сообщение о нём. Так фраза собирается как ответ на вопрос, а не как набор слов."
+    },
+    {
+     "id": 2,
+     "kind": "words",
+     "title": "Слова-ключи урока",
+     "titleZh": "生词",
+     "words": [
+      {
+       "zh": "这些",
+       "py": "zhèxiē",
+       "ru": "эти"
+      },
+      {
+       "zh": "汉字",
+       "py": "Hànzì",
+       "ru": "иероглифы"
+      },
+      {
+       "zh": "写",
+       "py": "xiě",
+       "ru": "писать"
+      },
+      {
+       "zh": "是…的",
+       "py": "shì … de",
+       "ru": "выделение: именно так/именно кто"
+      },
+      {
+       "zh": "谁",
+       "py": "shéi",
+       "ru": "кто"
+      },
+      {
+       "zh": "топик",
+       "py": "",
+       "ru": "то, о чём речь"
+      },
+      {
+       "zh": "комментарий",
+       "py": "",
+       "ru": "то, что об этом сказано — новое"
+      }
+     ]
+    },
+    {
+     "id": 3,
+     "kind": "quiz",
+     "title": "Проверка понимания",
+     "titleZh": "检查",
+     "tasks": [
+      {
+       "type": "choice",
+       "q": "Где в китайской фразе обычно стоит основная мысль (новое)?",
+       "options": [
+        "A. В начале",
+        "B. В конце, в комментарии",
+        "C. В середине"
+       ],
+       "answer": 1
+      },
+      {
+       "type": "choice",
+       "q": "这些汉字是我写的 отвечает на вопрос…",
+       "options": [
+        "A. Что я сделала с иероглифами?",
+        "B. Кто написал эти иероглифы?",
+        "C. Когда я писала иероглифы?"
+       ],
+       "answer": 1
+      },
+      {
+       "type": "choice",
+       "q": "Что делать, если фраза длинная и непонятная?",
+       "options": [
+        "A. Переводить слово за словом с начала",
+        "B. Сначала найти топик: «о чём это?»",
+        "C. Искать подлежащее и сказуемое как в русском"
+       ],
+       "answer": 1
+      }
+     ]
+    }
+   ]
+  }
 ];
 
 const BIZ_UNITS = [
@@ -34406,7 +34713,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.23.0';
+const APP_VER = '6.24.2';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -36212,6 +36519,7 @@ function goTab(t) {
   document.getElementById('tab-team').classList.toggle('active', t === 'team');
   document.getElementById('tab-biz').classList.toggle('active', t === 'biz');
   const _yin = document.getElementById('tab-yin'); if (_yin) _yin.classList.toggle('active', t === 'yin');
+  const _sm = document.getElementById('tab-sm'); if (_sm) _sm.classList.toggle('active', t === 'sm');
   document.getElementById('tab-favs').classList.toggle('active', t === 'favs');
   document.getElementById('tab-dict').classList.toggle('active', t === 'dict');
 
@@ -36223,6 +36531,7 @@ function goTab(t) {
   else if (t === 'team') renderTeam();
   else if (t === 'biz') renderBiz();
   else if (t === 'yin') renderYin();
+  else if (t === 'sm') renderSm();
   else if (t === 'favs') renderFavs();
   else renderDict();
   window.scrollTo(0, 0);
@@ -37064,6 +37373,21 @@ function renderTeam() {
       <div class="top-title">团队</div><div class="sub">Для команды · урок 9 сен</div>
     </div>
     ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.<br>Скинь конспект урока — соберу его сюда.</div>'}
+`;
+  refreshUnitBadges();
+}
+
+
+function renderSm() {
+  showTabbar(true); partAudioKey = null; showPlayer(false);
+  curUnit = null; curPart = null;
+  const list = IDV.filter(u => u.src === 'sm');
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="logo"><img src="logo.png?v=5.35.0" alt="听"></div>
+      <div class="top-title">СМ</div><div class="sub">Сдвиг мышления · Елена Макк</div>
+    </div>
+    ${list.length ? list.map(unitCard).join('') : '<div class="empty">Пока пусто.</div>'}
 `;
   refreshUnitBadges();
 }
@@ -38192,6 +38516,8 @@ function prevTask() {
   }
   openUnit(u.unit);
 }
+/** 6.24.1: русский текст задания не должен набираться китайским шрифтом */
+function isRuText(x) { return /[А-Яа-яЁё]/.test(String(x || '')); }
 function taskHtml(u, part, t, ti) {
   let body = '';
   const qru = (!part.audio && t.qRu) ? `<div class="task-qru">${esc(t.qRu)}</div>` : '';
@@ -38200,19 +38526,19 @@ function taskHtml(u, part, t, ti) {
     for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const tmp = opts[i]; opts[i] = opts[j]; opts[j] = tmp; }
     const correctIdx = opts.findIndex(x => x.oi === t.answer);
     body = `
-      <div class="task-q">${esc(t.q)}</div>
+      <div class="task-q${isRuText(t.q) ? ' ruq' : ''}">${esc(t.q)}</div>
       ${qru}
       <div class="opts" data-correct="${correctIdx}">${opts.map((x, ni) => `
-        <div class="opt zh-opt" data-oi="${ni}" onclick="pick(this)">
+        <div class="opt zh-opt${isRuText(x.o) ? ' ruq' : ''}" data-oi="${ni}" onclick="pick(this)">
           <span class="letter">${String.fromCharCode(65 + ni)}</span><span>${esc(x.o)}</span></div>`).join('')}</div>`;
   } else if (t.type === 'fill') {
     body = `
       <div class="task-q">${esc(t.q).replace('____', '______')}</div>
       ${qru}
-      <input class="fill zh-opt" placeholder="Введи ответ иероглифами" data-ans="${esc(t.answer)}" data-ti="${ti}" value="${esc(fillLoad(u.unit, part.id, ti))}" oninput="fillSaveFrom(this)">`;
+      <input class="fill zh-opt${isRuText(t.q) ? ' ruq' : ''}" placeholder="Введи ответ иероглифами" data-ans="${esc(t.answer)}" data-ti="${ti}" value="${esc(fillLoad(u.unit, part.id, ti))}" oninput="fillSaveFrom(this)">`;
   } else if (t.type === 'tf') {
     body = `
-      <div class="task-q">${esc(t.q)}</div>
+      <div class="task-q${isRuText(t.q) ? ' ruq' : ''}">${esc(t.q)}</div>
       ${qru}
       <div class="tf-btns">
         <button class="tf-btn" data-v="1" onclick="pickTf(this)">✓ Верно</button>
