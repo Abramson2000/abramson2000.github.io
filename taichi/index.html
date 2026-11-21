@@ -187,9 +187,14 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
   <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=2.0.0" alt=""><span>Программа</span></button>
   <button class="tab" data-tab="settings"><img src="assets/icons/nav-settings.png?v=2.0.0" alt=""><span>Настройки</span></button>
 </nav>
+<script src="../supabase.v139.min.js?v=139"></script>
 <script>
 const VERSION='2.0.0';
 const STORE='taichi-v2.0.0';
+const TAICHI_SB_URL='https://mkehzkobjxnjobkqeiwt.supabase.co';
+const TAICHI_SB_KEY='sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
+const cloud=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(TAICHI_SB_URL,TAICHI_SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null;
+let cloudUser=null,cloudStatus='Локально',cloudBusy=null,cloudLast=0;
 const AV='?v='+VERSION;
 const REMOTE='https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/';
 const EX={
@@ -233,6 +238,144 @@ const defaultState={cycle:1,step:0,history:[],feedback:{},running:null,settings:
 function state(){try{return Object.assign({},defaultState,JSON.parse(localStorage.getItem(STORE)||'{}'))}catch(e){return JSON.parse(JSON.stringify(defaultState))}}
 function save(p){const s=Object.assign({},state(),p);localStorage.setItem(STORE,JSON.stringify(s));return s}
 function settings(){return state().settings||defaultState.settings}
+
+const historyId=h=>'workout-'+String(h.at)+'-'+String(h.cycle)+'-'+String(h.n);
+function validateWorkout(h){
+  return !!(h&&Number.isFinite(Number(h.at))&&Number(h.at)>0&&Number.isInteger(Number(h.n))&&Number(h.n)>=1&&Number(h.n)<=15&&Number.isInteger(Number(h.cycle))&&Number(h.cycle)>=1);
+}
+function mergeWorkoutHistory(a,b,resetAt){
+  const seen=new Set(),list=[];
+  [...(a||[]),...(b||[])].forEach(h=>{
+    if(!validateWorkout(h)||Number(h.at)<=resetAt)return;
+    const key=historyId(h);
+    if(seen.has(key))return;
+    seen.add(key);list.push(h);
+  });
+  return list.sort((x,y)=>Number(x.at)-Number(y.at));
+}
+function routeProgress(history){
+  let max=0;
+  (history||[]).forEach(h=>{if(validateWorkout(h))max=Math.max(max,(Number(h.cycle)-1)*15+Number(h.n));});
+  return {cycle:Math.floor(max/15)+1,step:max%15};
+}
+function nextFeedbackStamp(data,id){
+  const times=(data.feedbackAt||{});
+  return Number(times[id])||1;
+}
+async function signedIn(){
+  if(!cloud)return null;
+  const {data,error}=await cloud.auth.getUser();
+  if(error||!data||!data.user)return null;
+  return data.user;
+}
+function showCloudStatus(message){
+  cloudStatus=message;
+  const el=document.getElementById('cloudStatus');
+  if(el)el.textContent=message;
+}
+function cloudTable(){return cloud.from('taichi_events')}
+async function syncCloud(){
+  if(!cloud||!cloudUser||!navigator.onLine)return false;
+  if(cloudBusy)return cloudBusy;
+  cloudBusy=(async()=>{
+    showCloudStatus('Синхронизация…');
+    try{
+      const user=await signedIn();
+      if(!user||user.id!==cloudUser.id){cloudUser=null;showCloudStatus('Нужен вход');return false}
+      const local=state();
+      const owner=localStorage.getItem('taichi-cloud-owner-v1');
+      if(owner&&owner!==user.id){showCloudStatus('Данные относятся к другому аккаунту — экспортируй историю');return false}
+      // Load remote events BEFORE attempting writes, then upload only local-only events.
+      let rows=[],page=0;
+      while(true){
+        const {data,error}=await cloudTable().select('event_key,kind,client_ms,payload').eq('user_id',user.id).order('client_ms',{ascending:true}).range(page*500,page*500+499);
+        if(error)throw error;
+        rows.push(...(data||[]));
+        if(!data||data.length<500)break;
+        page++;if(page>40)throw Error('История превышает лимит синхронизации');
+      }
+      const remoteReset=Math.max(0,...rows.filter(x=>x.kind==='reset').map(x=>Number(x.client_ms)||0));
+      const resetAt=Math.max(Number(local.resetAt)||0,remoteReset);
+      const keys=new Set(rows.map(x=>x.event_key));
+      const outgoing=[];
+      if(Number(local.resetAt)>remoteReset){
+        const key='reset-'+local.resetAt;
+        if(!keys.has(key))outgoing.push({user_id:user.id,event_key:key,kind:'reset',client_ms:local.resetAt,payload:{}});
+      }
+      (local.history||[]).forEach(h=>{
+        if(!validateWorkout(h)||Number(h.at)<=resetAt)return;
+        const key=historyId(h);
+        if(!keys.has(key))outgoing.push({user_id:user.id,event_key:key,kind:'workout',client_ms:Number(h.at),payload:{n:h.n,title:h.title||'',cycle:h.cycle,at:h.at,min:h.min||0}});
+      });
+      Object.entries(local.feedback||{}).forEach(([id,value])=>{
+        if(!EX[id]||!['easy','ok','hard'].includes(value))return;
+        const at=nextFeedbackStamp(local,id);
+        if(at<=resetAt)return;
+        const key='feedback-'+id+'-'+at;
+        if(!keys.has(key))outgoing.push({user_id:user.id,event_key:key,kind:'feedback',client_ms:at,payload:{id,value}});
+      });
+      for(let i=0;i<outgoing.length;i+=100){
+        const batch=outgoing.slice(i,i+100);
+        const {error}=await cloudTable().upsert(batch,{onConflict:'user_id,event_key',ignoreDuplicates:true});
+        if(error)throw error;
+        rows.push(...batch);
+      }
+      // Merge, never replace local data with an older remote snapshot.
+      const remoteHistory=rows.filter(x=>x.kind==='workout').map(x=>x.payload);
+      const history=mergeWorkoutHistory(local.history,remoteHistory,resetAt);
+      const progress=routeProgress(history);
+      const feedback={},feedbackAt={};
+      rows.filter(x=>x.kind==='feedback'&&Number(x.client_ms)>resetAt)
+        .sort((a,b)=>Number(a.client_ms)-Number(b.client_ms)).forEach(row=>{
+          const id=row.payload&&row.payload.id, value=row.payload&&row.payload.value;
+          if(EX[id]&&['easy','ok','hard'].includes(value)){feedback[id]=value;feedbackAt[id]=Number(row.client_ms)}
+        });
+      const prior=state(),merged=mergeWorkoutHistory(prior.history,history,resetAt);
+      const latest=routeProgress(merged);
+      // The browser keeps its own active workout; never cancel it during sync.
+      save({history:merged,cycle:latest.cycle,step:latest.step,
+        resetAt:resetAt,feedback:feedback,feedbackAt:feedbackAt});
+      localStorage.setItem('taichi-cloud-owner-v1',user.id);
+      cloudLast=Date.now();
+      showCloudStatus('Облако ✓ · '+new Date(cloudLast).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}));
+      if(VIEW!=='workout')render();
+      return true;
+    }catch(e){showCloudStatus('Нет синхронизации: '+String(e.message||e).slice(0,110));return false}
+  })();
+  try{return await cloudBusy}finally{cloudBusy=null}
+}
+async function cloudLogin(){
+  if(!cloud){alert('Не загрузился модуль Supabase. Проверь интернет и обнови страницу.');return}
+  const el=document.getElementById('cloudEmail'),pw=document.getElementById('cloudPassword');
+  if(!el||!pw)return;
+  const raw=el.value.trim();
+  const email=(raw.includes('@')?raw:raw+'@crm.ru').toLowerCase();
+  const password=pw.value;
+  if(!raw||!password){showCloudStatus('Укажи логин и пароль от Базы');return}
+  showCloudStatus('Вход…');
+  const {data,error}=await cloud.auth.signInWithPassword({email,password});
+  pw.value='';
+  if(error){showCloudStatus('Вход не выполнен: '+error.message);return}
+  cloudUser=data.user;
+  await syncCloud();
+  if(VIEW==='settings')render();
+}
+async function cloudLogout(){
+  if(!cloud)return;
+  await cloud.auth.signOut();
+  cloudUser=null;cloudLast=0;
+  showCloudStatus('Локально — облако отключено');
+  render();
+}
+async function cloudInit(){
+  if(!cloud){showCloudStatus('Нет подключения к Supabase');return}
+  try{
+    cloudUser=await signedIn();
+    if(cloudUser)await syncCloud();
+    else showCloudStatus('Нужен вход');
+  }catch(e){showCloudStatus('Не удалось проверить авторизацию')}
+}
+
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function currentN(){return Math.min(15,(state().step||0)+1)}
 function workout(n){return W.find(function(x){return x.n===Number(n)})}
@@ -408,7 +551,7 @@ function renderWorkout(v){
 function wireWorkout(cur,p,last){
   const sp=document.getElementById('startPhase');if(sp)sp.onclick=function(){setRunning({phaseUntil:Date.now()+cur.e.seconds*1000,phaseDone:false});render()};
   const sd=document.getElementById('setDone');if(sd)sd.onclick=function(){const r=running();if(r.setIndex<p.sets){restBuzzed=false;setRunning({setIndex:r.setIndex+1,restUntil:Date.now()+p.rest*1000});render()}else{setRunning({setIndex:p.sets+1});render()}};
-  document.querySelectorAll('[data-fb]').forEach(function(b){b.onclick=function(){const s=state(),fb=Object.assign({},s.feedback||{});fb[cur.id]=b.dataset.fb;save({feedback:fb});render()}});
+  document.querySelectorAll('[data-fb]').forEach(function(b){b.onclick=function(){const s=state(),fb=Object.assign({},s.feedback||{});fb[cur.id]=b.dataset.fb;const at=Object.assign({},s.feedbackAt||{});at[cur.id]=Date.now();save({feedback:fb,feedbackAt:at});render();syncCloud()}});
   const ne=document.getElementById('nextExercise');if(ne)ne.onclick=function(){if(last)finishWorkout(cur.w);else{setRunning({idx:cur.idx+1,setIndex:1,restUntil:null,phaseUntil:null,phaseDone:false});restBuzzed=false;render()}};
 }
 function finishWorkout(w){
@@ -418,6 +561,7 @@ function finishWorkout(w){
   const hist=s.history.concat([{n:w.n,title:w.title,cycle:s.cycle,at:Date.now(),min:Math.max(1,Math.round(elapsed()/60))}]);
   save({cycle:cycle,step:step,history:hist,running:null});
   releaseWake();DONE={w:w,completedCycle:completedCycle,newCycle:cycle};VIEW='done';render();
+  syncCloud();
 }
 let DONE=null;
 function renderDone(v){
@@ -426,7 +570,11 @@ function renderDone(v){
 }
 function renderSettings(v){
   const st=settings();
-  v.innerHTML=head('Настройки','Только то, что влияет на тренировку')+'<div class="settings"><div class="set-card"><div class="set-group"><h2>Режим</h2><div class="set-row"><div><b>Тренировок в неделю</b><div class="small">Оптимально 3; четвёртая — только если восстановился и нет боли.</div></div><select id="freq"><option value="3" '+(st.frequency===3?'selected':'')+'>3 раза</option><option value="4" '+(st.frequency===4?'selected':'')+'>4 раза</option></select></div></div><div class="set-group"><h2>Во время тренировки</h2><div class="set-row"><div><b>Не гасить экран</b><div class="small">Если браузер поддерживает Wake Lock, экран останется включён. Если нет — таймер всё равно восстановится по реальному времени.</div></div><label class="toggle"><input type="checkbox" id="wake" '+(st.wake?'checked':'')+'> Включено</label></div><div class="set-row"><div><b>Вибрация после отдыха</b></div><label class="toggle"><input type="checkbox" id="vib" '+(st.vibrate?'checked':'')+'> Включено</label></div></div><div class="set-group"><h2>Прогресс</h2><p class="small">Сброс удалит историю, оценки нагрузки и вернёт программу на круг 1, занятие 1.</p><button class="btn danger" id="reset">Сбросить программу</button></div><div class="set-group"><h2>Резервная копия истории</h2><p class="small">Пока облачная синхронизация не подключена, историю можно безопасно перенести между телефоном и компьютером. Импорт объединяет занятия и не удаляет уже имеющиеся записи.</p><div class="controls"><button class="btn soft" id="exportHistory">Сохранить историю в файл</button><label class="btn ghost" style="cursor:pointer">Загрузить историю из файла<input id="importHistory" type="file" accept=".json,application/json" style="display:none"></label></div></div><div class="controls"><button class="btn" id="saveSettings">Сохранить</button></div></div></div>';
+  v.innerHTML=head('Настройки','Только то, что влияет на тренировку')+'<div class="settings"><div class="set-card">'+
+  '<div class="set-group"><h2>Синхронизация между устройствами</h2><div class="small" id="cloudStatus">'+esc(cloudStatus)+'</div>'+
+  (cloudUser?'<p class="small">Вход: '+esc(cloudUser.email||'')+'. История сохраняется в личном облаке Supabase.</p><div class="controls"><button class="btn soft" id="syncNow">Синхронизировать</button><button class="btn ghost" id="cloudLogout">Выйти из облака</button></div>':
+  '<p class="small">Войди с логином и паролем от Базы (CRM). На телефоне и компьютере должен быть один аккаунт. История на устройстве останется и после входа объединится с облачной.</p><input id="cloudEmail" placeholder="Логин Базы" autocomplete="username"><input id="cloudPassword" type="password" placeholder="Пароль" autocomplete="current-password" style="margin-top:8px"><div class="controls"><button class="btn" id="cloudLogin">Подключить облако</button></div>')+'</div>'+
+  '<div class="set-group"><h2>Режим</h2><div class="set-row"><div><b>Тренировок в неделю</b><div class="small">Оптимально 3; четвёртая — только если восстановился и нет боли.</div></div><select id="freq"><option value="3" '+(st.frequency===3?'selected':'')+'>3 раза</option><option value="4" '+(st.frequency===4?'selected':'')+'>4 раза</option></select></div></div><div class="set-group"><h2>Во время тренировки</h2><div class="set-row"><div><b>Не гасить экран</b><div class="small">Если браузер поддерживает Wake Lock, экран останется включён. Если нет — таймер всё равно восстановится по реальному времени.</div></div><label class="toggle"><input type="checkbox" id="wake" '+(st.wake?'checked':'')+'> Включено</label></div><div class="set-row"><div><b>Вибрация после отдыха</b></div><label class="toggle"><input type="checkbox" id="vib" '+(st.vibrate?'checked':'')+'> Включено</label></div></div><div class="set-group"><h2>Прогресс</h2><p class="small">Сброс удалит историю, оценки нагрузки и вернёт программу на круг 1, занятие 1.</p><button class="btn danger" id="reset">Сбросить программу</button></div><div class="set-group"><h2>Резервная копия истории</h2><p class="small">Резервная копия на случай потери доступа к устройству. Импорт объединяет занятия и не удаляет имеющиеся записи.</p><div class="controls"><button class="btn soft" id="exportHistory">Сохранить историю в файл</button><label class="btn ghost" style="cursor:pointer">Загрузить историю из файла<input id="importHistory" type="file" accept=".json,application/json" style="display:none"></label></div></div><div class="controls"><button class="btn" id="saveSettings">Сохранить</button></div></div></div>';
 }
 document.addEventListener('click',function(ev){
   const t=ev.target.closest('[data-go],[data-tab],[data-open],[data-start],[data-exit]');
@@ -442,7 +590,11 @@ document.addEventListener('click',function(ev){
     save({settings:st});ev.target.textContent='Сохранено';setTimeout(function(){render()},600);
   }
   if(ev.target&&ev.target.id==='reset'){
-    if(confirm('Сбросить весь прогресс Тайчи?')){localStorage.removeItem(STORE);VIEW='home';render()}
+    if(confirm('Сбросить весь прогресс Тайчи на всех подключённых устройствах? Предварительно сохрани резервную копию.')){
+      const resetAt=Date.now(),old=state();
+      save({cycle:1,step:0,history:[],feedback:{},feedbackAt:{},running:null,resetAt});
+      VIEW='home';render();syncCloud();
+    }
   }
 });
 function exportHistory(){
@@ -469,7 +621,8 @@ async function importHistory(file){
     history.sort(function(a,b){return a.at-b.at});
     const score=function(x){const cycle=Math.max(1,Math.floor(Number(x.cycle)||1));const step=Math.max(0,Math.min(14,Math.floor(Number(x.step)||0)));return (cycle-1)*15+step};
     const newer=score(source)>score(old)?source:old;
-    save({history:history,cycle:newer.cycle||1,step:newer.step||0,feedback:Object.assign({},source.feedback||{},old.feedback||{}),running:old.running});
+    save({history:history,cycle:newer.cycle||1,step:newer.step||0,feedback:Object.assign({},source.feedback||{},old.feedback||{}),feedbackAt:Object.assign({},source.feedbackAt||{},old.feedbackAt||{}),running:old.running});
+    syncCloud();
     alert('Импорт завершён. В истории '+history.length+' тренировок. Данные с обоих устройств объединены.');
     render();
   }catch(e){alert('Не удалось загрузить историю: '+(e&&e.message||e))}
@@ -484,6 +637,16 @@ document.addEventListener('change',function(ev){
     importHistory(file);
   }
 });
+document.addEventListener('click',function(ev){
+  if(!ev.target)return;
+  if(ev.target.id==='cloudLogin')cloudLogin();
+  if(ev.target.id==='cloudLogout')cloudLogout();
+  if(ev.target.id==='syncNow')syncCloud();
+});
+window.addEventListener('online',function(){syncCloud()});
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&cloudUser)syncCloud()});
+setInterval(function(){if(cloudUser)syncCloud()},45000);
+cloudInit();
 window.addEventListener('resize',function(){if(VIEW==='program')render()});
 tickId=setInterval(updateLive,250);
 if(running()){VIEW='workout';requestWake()}
