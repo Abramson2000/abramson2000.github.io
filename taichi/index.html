@@ -4,11 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FBFCF9" />
-<meta name="app-version" content="2.0.0" />
+<meta name="app-version" content="2.1.0" />
 <title>Тайчи · программа тренировок</title>
-<link rel="icon" type="image/png" href="assets/brand/app-mark.png?v=2.0.0" />
-<link rel="apple-touch-icon" sizes="180x180" href="assets/brand/app-mark.png?v=2.0.0" />
-<link rel="manifest" href="manifest.webmanifest?v=2.0.0" />
+<link rel="icon" type="image/png" href="assets/brand/app-mark.png?v=2.1.0" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/brand/app-mark.png?v=2.1.0" />
+<link rel="manifest" href="manifest.webmanifest?v=2.1.0" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Тайчи" />
@@ -22,7 +22,7 @@ html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
-.bg{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.48;background:url("assets/backgrounds/route-relief-desktop.png?v=2.0.0") center/cover no-repeat}
+.bg{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.48;background:url("assets/backgrounds/route-relief-desktop.png?v=2.1.0") center/cover no-repeat}
 .bg::after{content:"";position:absolute;inset:0;background:rgba(251,252,249,.35)}
 .topbar{position:sticky;top:0;z-index:30;background:rgba(251,252,249,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--div)}
 .topbar .inner{max-width:1280px;margin:auto;padding:12px 28px;display:flex;align-items:center;gap:24px}
@@ -74,7 +74,7 @@ h3{font-size:16px;margin:0 0 6px}
 .month-title h2{margin:0}
 .route-card{overflow:hidden;position:relative}
 .route-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
-.route-wrap{position:relative;max-width:940px;height:460px;margin:auto;border-radius:16px;overflow:hidden;background:linear-gradient(rgba(251,252,249,.45),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-desktop.png?v=2.0.0") center/cover no-repeat}
+.route-wrap{position:relative;max-width:940px;height:460px;margin:auto;border-radius:16px;overflow:hidden;background:linear-gradient(rgba(251,252,249,.45),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-desktop.png?v=2.1.0") center/cover no-repeat}
 .route-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .route-svg polyline{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:2 1.8;stroke-linecap:round;stroke-linejoin:round}
 .node{position:absolute;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:0 2px 6px rgba(23,40,32,.08);z-index:2}
@@ -127,13 +127,14 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
 .toggle input{width:20px;height:20px;min-height:0}
 .footer{text-align:center;color:var(--muted);font-size:12px;margin:24px 0}
 .m-head,.tabs{display:none}
+.version-label{margin-left:auto;align-self:center;font-size:12px;color:var(--muted);font-weight:650}
 @media(max-width:900px){
   .grid2,.hero{grid-template-columns:1fr}
   .hero-side{min-height:0}
   .detail-side{position:static}
 }
 @media(max-width:720px){
-  .bg{background-image:url("assets/backgrounds/route-relief-mobile.png?v=2.0.0")}
+  .bg{background-image:url("assets/backgrounds/route-relief-mobile.png?v=2.1.0")}
   .topbar{display:none}
   .shell{padding:0 14px calc(78px + env(safe-area-inset-bottom))}
   .m-head{display:flex;padding:13px 0 7px}
@@ -145,7 +146,7 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
   .calendar{gap:4px}
   .cal-day{min-height:49px;padding:4px 2px}
   .cal-day span{font-size:9px}
-  .route-wrap{height:930px;background-image:linear-gradient(rgba(251,252,249,.38),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-mobile.png?v=2.0.0")}
+  .route-wrap{height:930px;background-image:linear-gradient(rgba(251,252,249,.38),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-mobile.png?v=2.1.0")}
   .node{width:48px;height:48px}
   .node-label{width:100px}
   .ex-row{grid-template-columns:58px minmax(0,1fr)}
@@ -173,24 +174,24 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
 <div class="bg"></div>
 <header class="topbar">
   <div class="inner">
-    <a class="brand" href="#" data-go="home"><img src="assets/brand/wordmark-horizontal.png?v=2.0.0" alt="Тайчи"></a>
+    <a class="brand" href="#" data-go="home"><img src="assets/brand/wordmark-horizontal.png?v=2.1.0" alt="Тайчи"></a>
     <nav class="nav" id="nav"></nav>
   </div>
 </header>
 <div class="shell">
-  <div class="m-head"><img src="assets/brand/wordmark-horizontal.png?v=2.0.0" alt="Тайчи"></div>
+  <div class="m-head"><img src="assets/brand/wordmark-horizontal.png?v=2.1.0" alt="Тайчи"><span class="version-label">v2.1.0</span></div>
   <main id="view"></main>
-  <div class="footer">v2.0.0 · Тайчи</div>
+  <div class="footer">v2.1.0 · Тайчи</div>
 </div>
 <nav class="tabs" id="tabs">
-  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=2.0.0" alt=""><span>Главная</span></button>
-  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=2.0.0" alt=""><span>Программа</span></button>
-  <button class="tab" data-tab="settings"><img src="assets/icons/nav-settings.png?v=2.0.0" alt=""><span>Настройки</span></button>
+  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=2.1.0" alt=""><span>Главная</span></button>
+  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=2.1.0" alt=""><span>Программа</span></button>
+  <button class="tab" data-tab="settings"><img src="assets/icons/nav-settings.png?v=2.1.0" alt=""><span>Настройки</span></button>
 </nav>
 <script src="../supabase.v139.min.js?v=139"></script>
 <script>
-const VERSION='2.0.0';
-const STORE='taichi-v2.0.0';
+const VERSION='2.1.0';
+const STORE='taichi-v2.0.0'; // НЕ МЕНЯТЬ: локальная история v2.0.0
 const TAICHI_SB_URL='https://mkehzkobjxnjobkqeiwt.supabase.co';
 const TAICHI_SB_KEY='sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
 const cloud=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(TAICHI_SB_URL,TAICHI_SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null;
@@ -570,7 +571,7 @@ function renderDone(v){
 }
 function renderSettings(v){
   const st=settings();
-  v.innerHTML=head('Настройки','Только то, что влияет на тренировку')+'<div class="settings"><div class="set-card">'+
+  v.innerHTML=head('Настройки','Версия '+VERSION+' · облачная синхронизация тренировок')+'<div class="settings"><div class="set-card">'+
   '<div class="set-group"><h2>Синхронизация между устройствами</h2><div class="small" id="cloudStatus">'+esc(cloudStatus)+'</div>'+
   (cloudUser?'<p class="small">Вход: '+esc(cloudUser.email||'')+'. История сохраняется в личном облаке Supabase.</p><div class="controls"><button class="btn soft" id="syncNow">Синхронизировать</button><button class="btn ghost" id="cloudLogout">Выйти из облака</button></div>':
   '<p class="small">Войди с логином и паролем от Базы (CRM). На телефоне и компьютере должен быть один аккаунт. История на устройстве останется и после входа объединится с облачной.</p><input id="cloudEmail" placeholder="Логин Базы" autocomplete="username"><input id="cloudPassword" type="password" placeholder="Пароль" autocomplete="current-password" style="margin-top:8px"><div class="controls"><button class="btn" id="cloudLogin">Подключить облако</button></div>')+'</div>'+
