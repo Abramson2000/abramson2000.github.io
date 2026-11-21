@@ -4,11 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FBFCF9" />
-<meta name="app-version" content="2.1.0" />
+<meta name="app-version" content="2.1.1" />
 <title>Тайчи · программа тренировок</title>
-<link rel="icon" type="image/png" href="assets/brand/app-mark.png?v=2.1.0" />
-<link rel="apple-touch-icon" sizes="180x180" href="assets/brand/app-mark.png?v=2.1.0" />
-<link rel="manifest" href="manifest.webmanifest?v=2.1.0" />
+<link rel="icon" type="image/png" href="assets/brand/app-mark.png?v=2.1.1" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/brand/app-mark.png?v=2.1.1" />
+<link rel="manifest" href="manifest.webmanifest?v=2.1.1" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Тайчи" />
@@ -22,7 +22,7 @@ html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
-.bg{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.48;background:url("assets/backgrounds/route-relief-desktop.png?v=2.1.0") center/cover no-repeat}
+.bg{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.48;background:url("assets/backgrounds/route-relief-desktop.png?v=2.1.1") center/cover no-repeat}
 .bg::after{content:"";position:absolute;inset:0;background:rgba(251,252,249,.35)}
 .topbar{position:sticky;top:0;z-index:30;background:rgba(251,252,249,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--div)}
 .topbar .inner{max-width:1280px;margin:auto;padding:12px 28px;display:flex;align-items:center;gap:24px}
@@ -74,7 +74,7 @@ h3{font-size:16px;margin:0 0 6px}
 .month-title h2{margin:0}
 .route-card{overflow:hidden;position:relative}
 .route-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
-.route-wrap{position:relative;max-width:940px;height:460px;margin:auto;border-radius:16px;overflow:hidden;background:linear-gradient(rgba(251,252,249,.45),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-desktop.png?v=2.1.0") center/cover no-repeat}
+.route-wrap{position:relative;max-width:940px;height:460px;margin:auto;border-radius:16px;overflow:hidden;background:linear-gradient(rgba(251,252,249,.45),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-desktop.png?v=2.1.1") center/cover no-repeat}
 .route-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .route-svg polyline{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:2 1.8;stroke-linecap:round;stroke-linejoin:round}
 .node{position:absolute;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:0 2px 6px rgba(23,40,32,.08);z-index:2}
@@ -134,7 +134,7 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
   .detail-side{position:static}
 }
 @media(max-width:720px){
-  .bg{background-image:url("assets/backgrounds/route-relief-mobile.png?v=2.1.0")}
+  .bg{background-image:url("assets/backgrounds/route-relief-mobile.png?v=2.1.1")}
   .topbar{display:none}
   .shell{padding:0 14px calc(78px + env(safe-area-inset-bottom))}
   .m-head{display:flex;padding:13px 0 7px}
@@ -146,7 +146,7 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
   .calendar{gap:4px}
   .cal-day{min-height:49px;padding:4px 2px}
   .cal-day span{font-size:9px}
-  .route-wrap{height:930px;background-image:linear-gradient(rgba(251,252,249,.38),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-mobile.png?v=2.1.0")}
+  .route-wrap{height:930px;background-image:linear-gradient(rgba(251,252,249,.38),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-mobile.png?v=2.1.1")}
   .node{width:48px;height:48px}
   .node-label{width:100px}
   .ex-row{grid-template-columns:58px minmax(0,1fr)}
@@ -174,23 +174,23 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
 <div class="bg"></div>
 <header class="topbar">
   <div class="inner">
-    <a class="brand" href="#" data-go="home"><img src="assets/brand/wordmark-horizontal.png?v=2.1.0" alt="Тайчи"></a>
+    <a class="brand" href="#" data-go="home"><img src="assets/brand/wordmark-horizontal.png?v=2.1.1" alt="Тайчи"></a>
     <nav class="nav" id="nav"></nav>
   </div>
 </header>
 <div class="shell">
-  <div class="m-head"><img src="assets/brand/wordmark-horizontal.png?v=2.1.0" alt="Тайчи"><span class="version-label">v2.1.0</span></div>
+  <div class="m-head"><img src="assets/brand/wordmark-horizontal.png?v=2.1.1" alt="Тайчи"><span class="version-label">v2.1.1</span></div>
   <main id="view"></main>
-  <div class="footer">v2.1.0 · Тайчи</div>
+  <div class="footer">v2.1.1 · Тайчи</div>
 </div>
 <nav class="tabs" id="tabs">
-  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=2.1.0" alt=""><span>Главная</span></button>
-  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=2.1.0" alt=""><span>Программа</span></button>
-  <button class="tab" data-tab="settings"><img src="assets/icons/nav-settings.png?v=2.1.0" alt=""><span>Настройки</span></button>
+  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=2.1.1" alt=""><span>Главная</span></button>
+  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=2.1.1" alt=""><span>Программа</span></button>
+  <button class="tab" data-tab="settings"><img src="assets/icons/nav-settings.png?v=2.1.1" alt=""><span>Настройки</span></button>
 </nav>
 <script src="../supabase.v139.min.js?v=139"></script>
 <script>
-const VERSION='2.1.0';
+const VERSION='2.1.1';
 const STORE='taichi-v2.0.0'; // НЕ МЕНЯТЬ: локальная история v2.0.0
 const TAICHI_SB_URL='https://mkehzkobjxnjobkqeiwt.supabase.co';
 const TAICHI_SB_KEY='sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
@@ -206,7 +206,7 @@ const EX={
   wallpush:{name:'Отжимания от стены',group:'Грудь · трицепс',gif:'assets/exercises/wallpush.gif'+AV,kind:'main',reps:'8–15',rest:75,equip:'body',about:'Нагрузка регулируется расстоянием до стены.',how:['Тело держи прямой линией','Опускай грудь к стене, а не голову','Если легко — отойди немного дальше от стены']},
   bentrow:{name:'Тяга двух гантелей в наклоне',group:'Спина · бицепс',gif:REMOTE+'upper-back/dumbbell-bent-over-row.gif',kind:'main',reps:'10–15',rest:75,equip:'dumbbell',about:'Тяга на верх спины без креплений и дополнительного оборудования.',how:['Стопы примерно на ширине плеч, колени слегка согнуты','Наклонись от таза, спину держи ровной','Тяни локти назад, сводя лопатки','Опускай гантели медленно, корпус не раскачивай']},
   onearmrow:{name:'Тяга гантели одной рукой с опорой',group:'Спина',gif:'assets/exercises/onearmrow.gif'+AV,kind:'main',reps:'10–15 каждой рукой',rest:75,equip:'dumbbell',unilateral:true,about:'Тяга с опорой позволяет спокойно контролировать спину. Один подход = обе руки по очереди; отдых начинается после второй руки.',how:['Подход 1: левая → правая; следующий подход начни с правой','Спина ровная, корпус не вращай','Тяни локоть к тазу, а не гантель к плечу','Опускай гантель медленно, сохраняя контроль']},
-  rearfly:{name:'Разведение гантелей в наклоне',group:'Задняя дельта · верх спины',gif:REMOTE+'delts/dumbbell-reverse-fly.gif',kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Задняя дельта и верх спины без анкера для резинки.',how:['Колени чуть согнуты, корпус наклонён от таза','Руки опущены, локти слегка мягкие','Разводи руки в стороны без рывка','Не поднимай плечи к ушам; опускай медленно']},
+  rearfly:{name:'Разведение гантелей стоя в наклоне',group:'Задняя дельта · верх спины',gif:REMOTE+'delts/dumbbell-rear-lateral-raise.gif',kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Без скамьи: стоя наклони корпус вперёд от таза, колени слегка согнуты. Можно сделать наклон глубже, как на GIF, только если спина остаётся ровной и положение комфортно. Если 3 кг заставляют раскачиваться, попробуй без веса или с более лёгкими гантелями.',how:['Стоя: стопы на ширине плеч, колени немного согни','Отведи таз назад и наклони корпус вперёд; спину держи ровной, не округляй','Опусти гантели перед собой, слегка согнув локти','Плавно разводи руки в стороны; плечи не поднимай к ушам','Опускай гантели медленно, не раскачивай корпус']},
   curl:{name:'Сгибание рук с гантелями',group:'Бицепс',gif:'assets/exercises/curl.gif'+AV,kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Бицепс без раскачки корпусом.',how:['Локти остаются рядом с корпусом','Поднимай гантели без рывка','Опускай за 2–3 секунды']},
   bandcurl:{name:'Сгибание рук с резинкой',group:'Бицепс',gif:REMOTE+'biceps/band-alternating-biceps-curl.gif',kind:'accessory',reps:'10–15',rest:60,equip:'band',about:'Удобный способ постепенно увеличивать сопротивление для бицепса.',how:['Надёжно прижми резинку стопами','Локти не уводи вперёд','Сохраняй натяжение и опускай руки медленно']},
   hammer:{name:'Сгибание рук «молот»',group:'Бицепс · предплечье',gif:'assets/exercises/hammer.gif'+AV,kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Нейтральный хват нагружает бицепс и плечевую мышцу.',how:['Ладони смотрят друг на друга','Локти не гуляют вперёд-назад','Не раскачивай корпус']},
