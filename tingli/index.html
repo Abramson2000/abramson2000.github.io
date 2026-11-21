@@ -121,6 +121,16 @@
 .rik-review-note { background: var(--ochre-soft); border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.5; margin-bottom: 4px; }
 .rik-traps { display: flex; flex-direction: column; gap: 8px; }
 .rik-trap { background: var(--danger-soft); border-left: 4px solid var(--danger); border-radius: 12px; padding: 14px 16px; font-size: 17.5px; line-height: 1.6; color: var(--ink); }
+/* 6.22.0: на телефоне задания «Ежедневной грамматики» читаются крупнее */
+@media (max-width: 899px) {
+  .rik-q-text { font-size: 19px; line-height: 1.6; }
+  .rik-q-opts { gap: 10px; }
+  .rik-opt { font-size: 17px; padding: 11px 17px; }
+  .rik-q-num { width: 28px; height: 28px; font-size: 14px; }
+  .rik-rule { font-size: 17.5px; line-height: 1.65; }
+  .rik-trap { font-size: 19px; }
+  .rik-review-note { font-size: 16px; }
+}
 .rik-res { font-size: 15px; margin: 4px 2px 12px; }
 .rik-glyph { font-family: "TLKai", "TLCJK", serif; font-size: 26px; font-weight: 700; }
 .rik-locked { background: var(--danger-soft); box-shadow: inset 0 0 0 1px rgba(166,59,52,.14); }
@@ -34396,7 +34406,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.21.1';
+const APP_VER = '6.22.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
