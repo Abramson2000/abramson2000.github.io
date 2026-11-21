@@ -6,7 +6,12 @@
 <meta name="theme-color" content="#FBFCF9" />
 <meta name="app-version" content="2.0.0" />
 <title>Тайчи · программа тренировок</title>
-<link rel="icon" href="assets/brand/app-mark.png" />
+<link rel="icon" type="image/png" href="assets/brand/app-mark.png?v=2.0.0" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/brand/app-mark.png?v=2.0.0" />
+<link rel="manifest" href="manifest.webmanifest?v=2.0.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Тайчи" />
 <style>
 :root{
   --bg:#FBFCF9;--surface:#fff;--ink:#172820;--primary:#285444;--sel:#E5EFE6;
@@ -57,6 +62,16 @@ h3{font-size:16px;margin:0 0 6px}
 .history{display:flex;flex-direction:column;gap:8px}
 .hist{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--div)}
 .hist:first-child{border-top:0}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-head{text-align:center;font-size:11px;color:var(--muted);padding-bottom:3px}
+.cal-day{min-height:58px;border-radius:11px;background:#F7F9F7;padding:6px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.cal-day.blank{background:transparent}
+.cal-day.today{box-shadow:inset 0 0 0 1px var(--line)}
+.cal-day.trained{background:var(--sel);box-shadow:inset 0 0 0 1px var(--line)}
+.cal-day b{font-size:14px;line-height:1}
+.cal-day span{font-size:10px;color:var(--primary);font-weight:700;white-space:nowrap}
+.month-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.month-title h2{margin:0}
 .route-card{overflow:hidden;position:relative}
 .route-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
 .route-wrap{position:relative;max-width:940px;height:460px;margin:auto;border-radius:16px;overflow:hidden;background:linear-gradient(rgba(251,252,249,.45),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-desktop.png?v=2.0.0") center/cover no-repeat}
@@ -127,6 +142,9 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
   .hero-main{padding:17px}
   .hero-main .big{font-size:30px}
   .stats{grid-template-columns:repeat(3,1fr)}
+  .calendar{gap:4px}
+  .cal-day{min-height:49px;padding:4px 2px}
+  .cal-day span{font-size:9px}
   .route-wrap{height:870px;background-image:linear-gradient(rgba(251,252,249,.38),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-mobile.png?v=2.0.0")}
   .node{width:48px;height:48px}
   .node-label{width:100px}
@@ -270,13 +288,37 @@ function render(){
   else if(VIEW==='workout')renderWorkout(v);
   else if(VIEW==='done')renderDone(v);
 }
+function monthCalendarHtml(){
+  const hist=state().history||[], now=new Date(), y=now.getFullYear(), m=now.getMonth();
+  const first=new Date(y,m,1), days=new Date(y,m+1,0).getDate();
+  const offset=(first.getDay()+6)%7;
+  const byDay={};
+  hist.forEach(function(h){
+    const d=new Date(h.at);
+    if(d.getFullYear()===y&&d.getMonth()===m){
+      const k=d.getDate();
+      if(!byDay[k])byDay[k]={min:0,count:0};
+      byDay[k].min+=(Number(h.min)||0);byDay[k].count++;
+    }
+  });
+  const wd=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  let cells=wd.map(function(x){return '<div class="cal-head">'+x+'</div>'}).join('');
+  for(let i=0;i<offset;i++)cells+='<div class="cal-day blank"></div>';
+  for(let d=1;d<=days;d++){
+    const x=byDay[d],isToday=d===now.getDate();
+    cells+='<div class="cal-day '+(x?'trained ':'')+(isToday?'today':'')+'"><b>'+d+'</b>'+(x?'<span>'+x.min+' мин'+(x.count>1?' · '+x.count+'×':'')+'</span>':'')+'</div>';
+  }
+  const month=now.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+  return '<div class="month-title"><h2>Календарь тренировок</h2><span class="small">'+month+'</span></div><div class="calendar">'+cells+'</div>';
+}
 function renderHome(v){
-  const s=state(),n=currentN(),w=workout(n),pct=Math.round((s.step/15)*100),hist=s.history.slice(-5).reverse();
+  const s=state(),n=currentN(),w=workout(n),pct=Math.round((s.step/15)*100),hist=s.history.slice(-8).reverse();
   v.innerHTML=head('Главная','Моя программа тренировок')+
   '<div class="hero"><section class="card hero-main"><span class="pill gold">Круг '+s.cycle+'</span><div class="row"><div class="big">'+s.step+' / 15</div><div><b>шагов пройдено</b><div class="small">'+esc(cycleNote())+'</div></div></div><div class="progress"><span style="width:'+pct+'%"></span></div><div class="controls"><button class="btn" data-start="'+n+'">Продолжить · '+esc(w.title)+'</button><button class="btn ghost" data-go="program">Открыть маршрут</button></div></section>'+
   '<aside class="card hero-side"><div class="stats"><div class="stat"><b>'+s.history.length+'</b><span>занятий всего</span></div><div class="stat"><b>'+weekCount()+'</b><span>за эту неделю</span></div><div class="stat"><b>'+s.cycle+'</b><span>текущий круг</span></div></div></aside></div>'+
   '<div class="grid2" style="margin-top:18px"><section class="card"><h2>Следующая тренировка</h2><span class="pill">'+esc(w.focus)+'</span><h3 style="font-size:22px;margin-top:10px">№'+w.n+' · '+esc(w.title)+'</h3><p class="small">Около 30–40 минут. GIF техники, подходы, отдых и таймер находятся внутри тренировки.</p><div class="controls"><button class="btn" data-open="'+w.n+'">Посмотреть состав</button></div></section>'+
-  '<aside class="card"><h2>Последние занятия</h2><div class="history">'+(hist.length?hist.map(function(h){return '<div class="hist"><div><b>Круг '+h.cycle+' · №'+h.n+'</b><div class="small">'+esc(h.title)+'</div></div><div class="small">'+new Date(h.at).toLocaleDateString('ru-RU')+'</div></div>'}).join(''):'<div class="small">История появится после первой тренировки.</div>')+'</div></aside></div>';
+  '<aside class="card">'+monthCalendarHtml()+'</aside></div>'+
+  '<section class="card" style="margin-top:18px"><h2>История тренировок</h2><div class="history">'+(hist.length?hist.map(function(h){return '<div class="hist"><div><b>'+new Date(h.at).toLocaleDateString('ru-RU',{day:'2-digit',month:'long'})+' · Круг '+h.cycle+' · №'+h.n+'</b><div class="small">'+esc(h.title)+'</div></div><div style="text-align:right"><b>'+h.min+' мин</b><div class="small">'+new Date(h.at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'</div></div></div>'}).join(''):'<div class="small">История появится после первой завершённой тренировки.</div>')+'</div></section>';
 }
 const DESK=[[10,15],[30,15],[50,15],[70,15],[90,15],[90,50],[70,50],[50,50],[30,50],[10,50],[10,84],[30,84],[50,84],[70,84],[90,84]];
 const MOB=[[20,5],[52,11],[80,17],[80,24],[52,31],[20,38],[20,45],[52,52],[80,59],[80,66],[52,73],[20,80],[20,87],[52,93],[82,98]];
