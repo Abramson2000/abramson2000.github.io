@@ -4,11 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FBFCF9" />
-<meta name="app-version" content="2.0.0" />
+<meta name="app-version" content="2.1.1" />
 <title>Тайчи · программа тренировок</title>
-<link rel="icon" type="image/png" href="assets/brand/app-mark.png?v=2.0.0" />
-<link rel="apple-touch-icon" sizes="180x180" href="assets/brand/app-mark.png?v=2.0.0" />
-<link rel="manifest" href="manifest.webmanifest?v=2.0.0" />
+<link rel="icon" type="image/png" href="assets/brand/app-mark.png?v=2.1.1" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/brand/app-mark.png?v=2.1.1" />
+<link rel="manifest" href="manifest.webmanifest?v=2.1.1" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Тайчи" />
@@ -22,7 +22,7 @@ html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
-.bg{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.48;background:url("assets/backgrounds/route-relief-desktop.png?v=2.0.0") center/cover no-repeat}
+.bg{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.48;background:url("assets/backgrounds/route-relief-desktop.png?v=2.1.1") center/cover no-repeat}
 .bg::after{content:"";position:absolute;inset:0;background:rgba(251,252,249,.35)}
 .topbar{position:sticky;top:0;z-index:30;background:rgba(251,252,249,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--div)}
 .topbar .inner{max-width:1280px;margin:auto;padding:12px 28px;display:flex;align-items:center;gap:24px}
@@ -74,7 +74,7 @@ h3{font-size:16px;margin:0 0 6px}
 .month-title h2{margin:0}
 .route-card{overflow:hidden;position:relative}
 .route-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
-.route-wrap{position:relative;max-width:940px;height:460px;margin:auto;border-radius:16px;overflow:hidden;background:linear-gradient(rgba(251,252,249,.45),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-desktop.png?v=2.0.0") center/cover no-repeat}
+.route-wrap{position:relative;max-width:940px;height:460px;margin:auto;border-radius:16px;overflow:hidden;background:linear-gradient(rgba(251,252,249,.45),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-desktop.png?v=2.1.1") center/cover no-repeat}
 .route-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .route-svg polyline{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:2 1.8;stroke-linecap:round;stroke-linejoin:round}
 .node{position:absolute;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:0 2px 6px rgba(23,40,32,.08);z-index:2}
@@ -127,13 +127,14 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
 .toggle input{width:20px;height:20px;min-height:0}
 .footer{text-align:center;color:var(--muted);font-size:12px;margin:24px 0}
 .m-head,.tabs{display:none}
+.version-label{margin-left:auto;align-self:center;font-size:12px;color:var(--muted);font-weight:650}
 @media(max-width:900px){
   .grid2,.hero{grid-template-columns:1fr}
   .hero-side{min-height:0}
   .detail-side{position:static}
 }
 @media(max-width:720px){
-  .bg{background-image:url("assets/backgrounds/route-relief-mobile.png?v=2.0.0")}
+  .bg{background-image:url("assets/backgrounds/route-relief-mobile.png?v=2.1.1")}
   .topbar{display:none}
   .shell{padding:0 14px calc(78px + env(safe-area-inset-bottom))}
   .m-head{display:flex;padding:13px 0 7px}
@@ -145,7 +146,7 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
   .calendar{gap:4px}
   .cal-day{min-height:49px;padding:4px 2px}
   .cal-day span{font-size:9px}
-  .route-wrap{height:930px;background-image:linear-gradient(rgba(251,252,249,.38),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-mobile.png?v=2.0.0")}
+  .route-wrap{height:930px;background-image:linear-gradient(rgba(251,252,249,.38),rgba(251,252,249,.72)),url("assets/backgrounds/route-relief-mobile.png?v=2.1.1")}
   .node{width:48px;height:48px}
   .node-label{width:100px}
   .ex-row{grid-template-columns:58px minmax(0,1fr)}
@@ -173,66 +174,209 @@ select,input{width:100%;min-height:44px;border:1px solid var(--div);border-radiu
 <div class="bg"></div>
 <header class="topbar">
   <div class="inner">
-    <a class="brand" href="#" data-go="home"><img src="assets/brand/wordmark-horizontal.png?v=2.0.0" alt="Тайчи"></a>
+    <a class="brand" href="#" data-go="home"><img src="assets/brand/wordmark-horizontal.png?v=2.1.1" alt="Тайчи"></a>
     <nav class="nav" id="nav"></nav>
   </div>
 </header>
 <div class="shell">
-  <div class="m-head"><img src="assets/brand/wordmark-horizontal.png?v=2.0.0" alt="Тайчи"></div>
+  <div class="m-head"><img src="assets/brand/wordmark-horizontal.png?v=2.1.1" alt="Тайчи"><span class="version-label">v2.1.1</span></div>
   <main id="view"></main>
-  <div class="footer">v2.0.0 · Тайчи</div>
+  <div class="footer">v2.1.1 · Тайчи</div>
 </div>
 <nav class="tabs" id="tabs">
-  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=2.0.0" alt=""><span>Главная</span></button>
-  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=2.0.0" alt=""><span>Программа</span></button>
-  <button class="tab" data-tab="settings"><img src="assets/icons/nav-settings.png?v=2.0.0" alt=""><span>Настройки</span></button>
+  <button class="tab" data-tab="home"><img src="assets/icons/nav-home.png?v=2.1.1" alt=""><span>Главная</span></button>
+  <button class="tab" data-tab="program"><img src="assets/icons/nav-program.png?v=2.1.1" alt=""><span>Программа</span></button>
+  <button class="tab" data-tab="settings"><img src="assets/icons/nav-settings.png?v=2.1.1" alt=""><span>Настройки</span></button>
 </nav>
+<script src="../supabase.v139.min.js?v=139"></script>
 <script>
-const VERSION='2.0.0';
-const STORE='taichi-v2.0.0';
+const VERSION='2.1.1';
+const STORE='taichi-v2.0.0'; // НЕ МЕНЯТЬ: локальная история v2.0.0
+const TAICHI_SB_URL='https://mkehzkobjxnjobkqeiwt.supabase.co';
+const TAICHI_SB_KEY='sb_publishable_4RVlpOkywKmEjsnKsHpRiA_q_Af-f0v';
+const cloud=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(TAICHI_SB_URL,TAICHI_SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null;
+let cloudUser=null,cloudStatus='Локально',cloudBusy=null,cloudLast=0;
 const AV='?v='+VERSION;
 const REMOTE='https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/';
 const EX={
   warmup:{name:'Разминка',group:'Подготовка',gif:'assets/exercises/warmup.gif'+AV,kind:'service',seconds:300,about:'Разогрей плечи, локти и верх спины без рывков.',how:['Круги плечами и руками в комфортной амплитуде','10–12 лёгких сведений лопаток','Несколько медленных жимовых и тяговых движений без усилия']},
   cooldown:{name:'Заминка и растяжка',group:'Восстановление',gif:'assets/exercises/cooldown.gif'+AV,kind:'service',seconds:180,about:'Спокойно снизь темп после тренировки.',how:['Дыши ровно, не пружинь в растяжке','Мягко растяни грудь, спину и руки','Никакой боли — только лёгкое натяжение']},
   floorpress:{name:'Жим гантелей лёжа на полу',group:'Грудь · трицепс',gif:'assets/exercises/floorpress.gif'+AV,kind:'main',reps:'10–15',rest:75,equip:'dumbbell',about:'Основное жимовое движение на грудь с гантелями 3 кг.',how:['Локти направлены примерно под 45° к корпусу','Опускай гантели спокойно до касания локтями пола','Выжимай вверх без рывка и без жёсткого удара локтями']},
-  bandpress:{name:'Жим резинки от груди',group:'Грудь · трицепс',gif:REMOTE+'pectorals/band-bench-press.gif',kind:'main',reps:'10–15',rest:75,equip:'band',about:'Резинка даёт возрастающее сопротивление и хорошо дополняет лёгкие гантели.',how:['Резинка проходит за верхней частью спины, не вокруг шеи','Локти не разводи строго в стороны','Выжимай вперёд и возвращай руки медленно']},
+  pushup:{name:'Отжимания от высокой опоры',group:'Грудь · трицепс',gif:REMOTE+'pectorals/incline-push-up.gif',kind:'main',reps:'8–12',rest:75,equip:'body',about:'Выбери высокую устойчивую опору — например, столешницу или крепкий стол. Высота должна позволять сделать 8–12 чистых повторений. От пола пока не отжимаемся.',how:['Ладони чуть шире плеч на устойчивой неподвижной опоре','Корпус держи одной линией от головы до пяток','Опускай грудь к опоре спокойно, локти не разводи строго в стороны','Если 8 повторений не получается — используй более высокую опору; если 12 легко — немного снизь высоту']},
   wallpush:{name:'Отжимания от стены',group:'Грудь · трицепс',gif:'assets/exercises/wallpush.gif'+AV,kind:'main',reps:'8–15',rest:75,equip:'body',about:'Нагрузка регулируется расстоянием до стены.',how:['Тело держи прямой линией','Опускай грудь к стене, а не голову','Если легко — отойди немного дальше от стены']},
-  bandlowrow:{name:'Тяга резинки одной рукой к поясу',group:'Спина',gif:REMOTE+'upper-back/band-one-arm-standing-low-row.gif',kind:'main',reps:'10–15 на руку',rest:75,equip:'band',about:'Горизонтальная тяга для верхней части спины.',how:['Используй только надёжное штатное крепление резинки','Тяни локоть назад к поясу, не поднимай плечо к уху','В конце на секунду сведи лопатку, затем медленно отпусти']},
-  onearmrow:{name:'Тяга гантели одной рукой с опорой',group:'Спина',gif:'assets/exercises/onearmrow.gif'+AV,kind:'main',reps:'10–15 на руку',rest:75,equip:'dumbbell',about:'Тяга с опорой позволяет спокойно контролировать спину.',how:['Спина ровная, корпус не вращай','Тяни локоть к тазу, а не гантель к плечу','Опускай гантель медленно, сохраняя контроль']},
-  bandpulldown:{name:'Тяга резинки сверху к груди',group:'Широчайшие · бицепс',gif:REMOTE+'lats/band-close-grip-pulldown.gif',kind:'main',reps:'10–15',rest:75,equip:'band',about:'Вертикальная тяга для широчайших.',how:['Только надёжная высокая точка крепления; не используй случайную мебель','Плечи держи опущенными, локти веди вниз','Не отклоняйся резко назад и не дёргай резинку']},
+  bentrow:{name:'Тяга двух гантелей в наклоне',group:'Спина · бицепс',gif:REMOTE+'upper-back/dumbbell-bent-over-row.gif',kind:'main',reps:'10–15',rest:75,equip:'dumbbell',about:'Тяга на верх спины без креплений и дополнительного оборудования.',how:['Стопы примерно на ширине плеч, колени слегка согнуты','Наклонись от таза, спину держи ровной','Тяни локти назад, сводя лопатки','Опускай гантели медленно, корпус не раскачивай']},
+  onearmrow:{name:'Тяга гантели одной рукой с опорой',group:'Спина',gif:'assets/exercises/onearmrow.gif'+AV,kind:'main',reps:'10–15 каждой рукой',rest:75,equip:'dumbbell',unilateral:true,about:'Тяга с опорой позволяет спокойно контролировать спину. Один подход = обе руки по очереди; отдых начинается после второй руки.',how:['Подход 1: левая → правая; следующий подход начни с правой','Спина ровная, корпус не вращай','Тяни локоть к тазу, а не гантель к плечу','Опускай гантель медленно, сохраняя контроль']},
+  rearfly:{name:'Разведение гантелей стоя в наклоне',group:'Задняя дельта · верх спины',gif:REMOTE+'delts/dumbbell-rear-lateral-raise.gif',kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Без скамьи: стоя наклони корпус вперёд от таза, колени слегка согнуты. Можно сделать наклон глубже, как на GIF, только если спина остаётся ровной и положение комфортно. Если 3 кг заставляют раскачиваться, попробуй без веса или с более лёгкими гантелями.',how:['Стоя: стопы на ширине плеч, колени немного согни','Отведи таз назад и наклони корпус вперёд; спину держи ровной, не округляй','Опусти гантели перед собой, слегка согнув локти','Плавно разводи руки в стороны; плечи не поднимай к ушам','Опускай гантели медленно, не раскачивай корпус']},
   curl:{name:'Сгибание рук с гантелями',group:'Бицепс',gif:'assets/exercises/curl.gif'+AV,kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Бицепс без раскачки корпусом.',how:['Локти остаются рядом с корпусом','Поднимай гантели без рывка','Опускай за 2–3 секунды']},
   bandcurl:{name:'Сгибание рук с резинкой',group:'Бицепс',gif:REMOTE+'biceps/band-alternating-biceps-curl.gif',kind:'accessory',reps:'10–15',rest:60,equip:'band',about:'Удобный способ постепенно увеличивать сопротивление для бицепса.',how:['Надёжно прижми резинку стопами','Локти не уводи вперёд','Сохраняй натяжение и опускай руки медленно']},
   hammer:{name:'Сгибание рук «молот»',group:'Бицепс · предплечье',gif:'assets/exercises/hammer.gif'+AV,kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Нейтральный хват нагружает бицепс и плечевую мышцу.',how:['Ладони смотрят друг на друга','Локти не гуляют вперёд-назад','Не раскачивай корпус']},
-  bandtriceps:{name:'Разгибание руки с резинкой на трицепс',group:'Трицепс',gif:REMOTE+'triceps/band-side-triceps-extension.gif',kind:'accessory',reps:'10–15 на руку',rest:60,equip:'band',about:'Изолирующая работа на трицепс с регулируемым сопротивлением.',how:['Плечо держи неподвижно','Разгибай руку плавно до почти прямого положения','Возвращай медленно, не отпускай резинку резко']},
-  kickback:{name:'Разгибание руки назад с гантелью',group:'Трицепс',gif:'assets/exercises/kickback.gif'+AV,kind:'accessory',reps:'10–15 на руку',rest:60,equip:'dumbbell',about:'Дополнительное упражнение на трицепс.',how:['Спина ровная, корпус неподвижен','Локоть прижат к корпусу','Двигается только предплечье']},
+  overheadext:{name:'Разгибание гантели над головой',group:'Трицепс',gif:REMOTE+'triceps/dumbbell-standing-triceps-extension.gif',kind:'accessory',reps:'10–15 каждой рукой',rest:60,equip:'dumbbell',unilateral:true,about:'Трицепс с одной гантелью, без скамьи и креплений. Один подход = обе руки по очереди; отдых начинается после второй руки.',how:['Подход 1: левая → правая; подход 2: правая → левая','Стой устойчиво и не прогибай поясницу','Плечо держи рядом с головой','Сгибается и разгибается только локоть','Опускай гантель медленно и без рывка']},
+  kickback:{name:'Разгибание руки назад с гантелью',group:'Трицепс',gif:'assets/exercises/kickback.gif'+AV,kind:'accessory',reps:'10–15 каждой рукой',rest:60,equip:'dumbbell',unilateral:true,about:'Дополнительное упражнение на трицепс. Один подход = 10–15 повторений одной рукой + 10–15 другой рукой. После обеих рук отдых 60 секунд.',how:['Подход 1: левая → правая; подход 2: правая → левая','Спина ровная, корпус неподвижен','Локоть прижат к корпусу','Двигается только предплечье']},
   lateral:{name:'Разведение рук в стороны',group:'Плечи',gif:'assets/exercises/lateral.gif'+AV,kind:'accessory',reps:'10–15',rest:60,equip:'dumbbell',about:'Средняя дельта. С 3 кг важнее контроль, чем высота подъёма.',how:['Локти слегка согнуты','Поднимай до комфортного уровня, обычно не выше плеч','Не раскачивайся и не бросай гантели вниз']},
   bandshoulder:{name:'Жим резинки вверх',group:'Плечи · трицепс',gif:REMOTE+'delts/band-shoulder-press.gif',kind:'main',reps:'10–15',rest:75,equip:'band',about:'Жим вверх с постепенно растущим сопротивлением.',how:['Надёжно прижми резинку стопами','Не прогибай поясницу','Жми вверх плавно, затем контролируй обратное движение']},
   bandreverse:{name:'Разведение рук с резинкой назад',group:'Задняя дельта · верх спины',gif:REMOTE+'delts/band-reverse-fly.gif',kind:'accessory',reps:'12–15',rest:60,equip:'band',about:'Работа на заднюю дельту и верх спины.',how:['Начинай с лёгкого натяжения','Разводи руки, сводя лопатки','Не задирай плечи к ушам']},
   scapula:{name:'Сведение лопаток стоя',group:'Верх спины',gif:'assets/exercises/scapula.gif'+AV,kind:'accessory',reps:'12–15',rest:45,equip:'body',about:'Контроль лопаток и осанки.',how:['Плечи опущены','Своди лопатки без прогиба в пояснице','Задержись на секунду и расслабь']},
-  pallof:{name:'Удержание резинки перед собой',group:'Корпус',gif:REMOTE+'abs/band-horizontal-pallof-press.gif',kind:'accessory',reps:'10–12 на сторону',rest:60,equip:'band',about:'Стабилизация корпуса без скручиваний.',how:['Используй только надёжное штатное крепление','Держи корпус ровно и не разворачивайся к резинке','Выводи руки вперёд медленно и возвращай под контролем']}
+  scapush:{name:'Лопаточные отжимания',group:'Грудь · плечевой пояс · корпус',gif:REMOTE+'pectorals/scapula-push-up.gif',kind:'accessory',reps:'8–15',rest:60,equip:'body',about:'Укрепляет плечевой пояс и контроль лопаток без оборудования.',how:['Стой в упоре, локти остаются почти прямыми','Сначала мягко сведи лопатки, затем оттолкни пол','Корпус держи ровно','Движение небольшое и контролируемое']}
 };
 const W=[
- {n:1,title:'Грудь + трицепс',focus:'грудь · трицепс',ids:['warmup','floorpress','bandpress','wallpush','bandtriceps','kickback','cooldown']},
- {n:2,title:'Спина + бицепс',focus:'спина · бицепс',ids:['warmup','bandlowrow','onearmrow','bandpulldown','curl','hammer','cooldown']},
- {n:3,title:'Грудь + спина',focus:'грудь · спина',ids:['warmup','floorpress','bandlowrow','bandpress','onearmrow','scapula','cooldown']},
- {n:4,title:'Руки + плечи',focus:'бицепс · трицепс · плечи',ids:['warmup','curl','hammer','bandtriceps','kickback','lateral','bandshoulder','cooldown']},
- {n:5,title:'Грудь + корпус',focus:'грудь · корпус',ids:['warmup','bandpress','floorpress','wallpush','pallof','scapula','cooldown']},
- {n:6,title:'Спина + бицепс',focus:'широчайшие · бицепс',ids:['warmup','bandpulldown','bandlowrow','onearmrow','bandcurl','hammer','cooldown']},
- {n:7,title:'Грудь + трицепс',focus:'грудь · трицепс',ids:['warmup','floorpress','bandpress','wallpush','bandtriceps','kickback','cooldown']},
- {n:8,title:'Спина + плечи',focus:'верх спины · плечи',ids:['warmup','bandlowrow','bandreverse','bandpulldown','lateral','scapula','cooldown']},
- {n:9,title:'Руки',focus:'бицепс · трицепс',ids:['warmup','curl','bandcurl','hammer','bandtriceps','kickback','lateral','cooldown']},
- {n:10,title:'Грудь + спина',focus:'грудь · спина',ids:['warmup','bandpress','onearmrow','floorpress','bandlowrow','bandreverse','cooldown']},
- {n:11,title:'Грудь + трицепс',focus:'объём груди · трицепс',ids:['warmup','floorpress','bandpress','wallpush','bandtriceps','kickback','lateral','cooldown']},
- {n:12,title:'Спина + бицепс',focus:'объём спины · бицепс',ids:['warmup','bandpulldown','bandlowrow','onearmrow','curl','hammer','bandcurl','cooldown']},
- {n:13,title:'Верх тела',focus:'грудь · спина · руки',ids:['warmup','floorpress','bandlowrow','bandshoulder','bandpulldown','curl','bandtriceps','cooldown']},
- {n:14,title:'Руки + плечи',focus:'контроль техники',ids:['warmup','curl','hammer','bandtriceps','kickback','bandshoulder','bandreverse','cooldown']},
- {n:15,title:'Контрольная',focus:'весь верх тела',ids:['warmup','floorpress','bandpress','bandlowrow','onearmrow','bandshoulder','curl','bandtriceps','cooldown']}
+ {n:1,title:'Грудь + трицепс',focus:'грудь · трицепс',ids:['warmup','floorpress','pushup','wallpush','overheadext','kickback','cooldown']},
+ {n:2,title:'Спина + бицепс',focus:'спина · бицепс',ids:['warmup','bentrow','onearmrow','rearfly','curl','hammer','cooldown']},
+ {n:3,title:'Грудь + спина',focus:'грудь · спина',ids:['warmup','floorpress','bentrow','pushup','onearmrow','scapula','cooldown']},
+ {n:4,title:'Руки + плечи',focus:'бицепс · трицепс · плечи',ids:['warmup','curl','hammer','overheadext','kickback','lateral','bandshoulder','cooldown']},
+ {n:5,title:'Грудь + плечевой пояс',focus:'грудь · плечи · корпус',ids:['warmup','pushup','floorpress','wallpush','scapush','scapula','cooldown']},
+ {n:6,title:'Спина + бицепс',focus:'спина · бицепс',ids:['warmup','bentrow','onearmrow','rearfly','bandcurl','hammer','cooldown']},
+ {n:7,title:'Грудь + трицепс',focus:'грудь · трицепс',ids:['warmup','floorpress','pushup','wallpush','overheadext','kickback','cooldown']},
+ {n:8,title:'Спина + плечи',focus:'верх спины · плечи',ids:['warmup','bentrow','rearfly','onearmrow','lateral','scapula','cooldown']},
+ {n:9,title:'Руки',focus:'бицепс · трицепс',ids:['warmup','curl','bandcurl','hammer','overheadext','kickback','lateral','cooldown']},
+ {n:10,title:'Грудь + спина',focus:'грудь · спина',ids:['warmup','pushup','onearmrow','floorpress','bentrow','rearfly','cooldown']},
+ {n:11,title:'Грудь + трицепс',focus:'объём груди · трицепс',ids:['warmup','floorpress','pushup','wallpush','overheadext','kickback','lateral','cooldown']},
+ {n:12,title:'Спина + бицепс',focus:'объём спины · бицепс',ids:['warmup','bentrow','onearmrow','rearfly','curl','hammer','bandcurl','cooldown']},
+ {n:13,title:'Верх тела',focus:'грудь · спина · руки',ids:['warmup','floorpress','bentrow','bandshoulder','onearmrow','curl','overheadext','cooldown']},
+ {n:14,title:'Руки + плечи',focus:'контроль техники',ids:['warmup','curl','hammer','overheadext','kickback','bandshoulder','rearfly','cooldown']},
+ {n:15,title:'Контрольная',focus:'весь верх тела',ids:['warmup','floorpress','pushup','bentrow','onearmrow','bandshoulder','curl','overheadext','cooldown']}
 ];
 const defaultState={cycle:1,step:0,history:[],feedback:{},running:null,settings:{frequency:3,wake:true,vibrate:true}};
 function state(){try{return Object.assign({},defaultState,JSON.parse(localStorage.getItem(STORE)||'{}'))}catch(e){return JSON.parse(JSON.stringify(defaultState))}}
 function save(p){const s=Object.assign({},state(),p);localStorage.setItem(STORE,JSON.stringify(s));return s}
 function settings(){return state().settings||defaultState.settings}
+
+const historyId=h=>'workout-'+String(h.at)+'-'+String(h.cycle)+'-'+String(h.n);
+function validateWorkout(h){
+  return !!(h&&Number.isFinite(Number(h.at))&&Number(h.at)>0&&Number.isInteger(Number(h.n))&&Number(h.n)>=1&&Number(h.n)<=15&&Number.isInteger(Number(h.cycle))&&Number(h.cycle)>=1);
+}
+function mergeWorkoutHistory(a,b,resetAt){
+  const seen=new Set(),list=[];
+  [...(a||[]),...(b||[])].forEach(h=>{
+    if(!validateWorkout(h)||Number(h.at)<=resetAt)return;
+    const key=historyId(h);
+    if(seen.has(key))return;
+    seen.add(key);list.push(h);
+  });
+  return list.sort((x,y)=>Number(x.at)-Number(y.at));
+}
+function routeProgress(history){
+  let max=0;
+  (history||[]).forEach(h=>{if(validateWorkout(h))max=Math.max(max,(Number(h.cycle)-1)*15+Number(h.n));});
+  return {cycle:Math.floor(max/15)+1,step:max%15};
+}
+function nextFeedbackStamp(data,id){
+  const times=(data.feedbackAt||{});
+  return Number(times[id])||1;
+}
+async function signedIn(){
+  if(!cloud)return null;
+  const {data,error}=await cloud.auth.getUser();
+  if(error||!data||!data.user)return null;
+  return data.user;
+}
+function showCloudStatus(message){
+  cloudStatus=message;
+  const el=document.getElementById('cloudStatus');
+  if(el)el.textContent=message;
+}
+function cloudTable(){return cloud.from('taichi_events')}
+async function syncCloud(){
+  if(!cloud||!cloudUser||!navigator.onLine)return false;
+  if(cloudBusy)return cloudBusy;
+  cloudBusy=(async()=>{
+    showCloudStatus('Синхронизация…');
+    try{
+      const user=await signedIn();
+      if(!user||user.id!==cloudUser.id){cloudUser=null;showCloudStatus('Нужен вход');return false}
+      const local=state();
+      const owner=localStorage.getItem('taichi-cloud-owner-v1');
+      if(owner&&owner!==user.id){showCloudStatus('Данные относятся к другому аккаунту — экспортируй историю');return false}
+      // Load remote events BEFORE attempting writes, then upload only local-only events.
+      let rows=[],page=0;
+      while(true){
+        const {data,error}=await cloudTable().select('event_key,kind,client_ms,payload').eq('user_id',user.id).order('client_ms',{ascending:true}).range(page*500,page*500+499);
+        if(error)throw error;
+        rows.push(...(data||[]));
+        if(!data||data.length<500)break;
+        page++;if(page>40)throw Error('История превышает лимит синхронизации');
+      }
+      const remoteReset=Math.max(0,...rows.filter(x=>x.kind==='reset').map(x=>Number(x.client_ms)||0));
+      const resetAt=Math.max(Number(local.resetAt)||0,remoteReset);
+      const keys=new Set(rows.map(x=>x.event_key));
+      const outgoing=[];
+      if(Number(local.resetAt)>remoteReset){
+        const key='reset-'+local.resetAt;
+        if(!keys.has(key))outgoing.push({user_id:user.id,event_key:key,kind:'reset',client_ms:local.resetAt,payload:{}});
+      }
+      (local.history||[]).forEach(h=>{
+        if(!validateWorkout(h)||Number(h.at)<=resetAt)return;
+        const key=historyId(h);
+        if(!keys.has(key))outgoing.push({user_id:user.id,event_key:key,kind:'workout',client_ms:Number(h.at),payload:{n:h.n,title:h.title||'',cycle:h.cycle,at:h.at,min:h.min||0}});
+      });
+      Object.entries(local.feedback||{}).forEach(([id,value])=>{
+        if(!EX[id]||!['easy','ok','hard'].includes(value))return;
+        const at=nextFeedbackStamp(local,id);
+        if(at<=resetAt)return;
+        const key='feedback-'+id+'-'+at;
+        if(!keys.has(key))outgoing.push({user_id:user.id,event_key:key,kind:'feedback',client_ms:at,payload:{id,value}});
+      });
+      for(let i=0;i<outgoing.length;i+=100){
+        const batch=outgoing.slice(i,i+100);
+        const {error}=await cloudTable().upsert(batch,{onConflict:'user_id,event_key',ignoreDuplicates:true});
+        if(error)throw error;
+        rows.push(...batch);
+      }
+      // Merge, never replace local data with an older remote snapshot.
+      const remoteHistory=rows.filter(x=>x.kind==='workout').map(x=>x.payload);
+      const history=mergeWorkoutHistory(local.history,remoteHistory,resetAt);
+      const progress=routeProgress(history);
+      const feedback={},feedbackAt={};
+      rows.filter(x=>x.kind==='feedback'&&Number(x.client_ms)>resetAt)
+        .sort((a,b)=>Number(a.client_ms)-Number(b.client_ms)).forEach(row=>{
+          const id=row.payload&&row.payload.id, value=row.payload&&row.payload.value;
+          if(EX[id]&&['easy','ok','hard'].includes(value)){feedback[id]=value;feedbackAt[id]=Number(row.client_ms)}
+        });
+      const prior=state(),merged=mergeWorkoutHistory(prior.history,history,resetAt);
+      const latest=routeProgress(merged);
+      // The browser keeps its own active workout; never cancel it during sync.
+      save({history:merged,cycle:latest.cycle,step:latest.step,
+        resetAt:resetAt,feedback:feedback,feedbackAt:feedbackAt});
+      localStorage.setItem('taichi-cloud-owner-v1',user.id);
+      cloudLast=Date.now();
+      showCloudStatus('Облако ✓ · '+new Date(cloudLast).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}));
+      if(VIEW!=='workout')render();
+      return true;
+    }catch(e){showCloudStatus('Нет синхронизации: '+String(e.message||e).slice(0,110));return false}
+  })();
+  try{return await cloudBusy}finally{cloudBusy=null}
+}
+async function cloudLogin(){
+  if(!cloud){alert('Не загрузился модуль Supabase. Проверь интернет и обнови страницу.');return}
+  const el=document.getElementById('cloudEmail'),pw=document.getElementById('cloudPassword');
+  if(!el||!pw)return;
+  const raw=el.value.trim();
+  const email=(raw.includes('@')?raw:raw+'@crm.ru').toLowerCase();
+  const password=pw.value;
+  if(!raw||!password){showCloudStatus('Укажи логин и пароль от Базы');return}
+  showCloudStatus('Вход…');
+  const {data,error}=await cloud.auth.signInWithPassword({email,password});
+  pw.value='';
+  if(error){showCloudStatus('Вход не выполнен: '+error.message);return}
+  cloudUser=data.user;
+  await syncCloud();
+  if(VIEW==='settings')render();
+}
+async function cloudLogout(){
+  if(!cloud)return;
+  await cloud.auth.signOut();
+  cloudUser=null;cloudLast=0;
+  showCloudStatus('Локально — облако отключено');
+  render();
+}
+async function cloudInit(){
+  if(!cloud){showCloudStatus('Нет подключения к Supabase');return}
+  try{
+    cloudUser=await signedIn();
+    if(cloudUser)await syncCloud();
+    else showCloudStatus('Нужен вход');
+  }catch(e){showCloudStatus('Не удалось проверить авторизацию')}
+}
+
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function currentN(){return Math.min(15,(state().step||0)+1)}
 function workout(n){return W.find(function(x){return x.n===Number(n)})}
@@ -248,6 +392,11 @@ function effortText(id){
   let t='Последние 2–3 повтора должны быть заметно тяжёлыми, но движение остаётся аккуратным. Если начинаются рывки или техника портится — подход закончен.';
   if(c===2)t+=' Во втором круге основные упражнения уже идут по 3 подхода.';
   if(c>=3)t+=' В этом круге делай обратную фазу медленнее — примерно 3 секунды.';
+  if(id==='pushup'){
+    if(c===1)t+=' Для отжиманий выбери высокую опору, где получается 8–12 чистых повторений. От пола пока не нужно.';
+    else if(c===2)t+=' Если 12 повторений от текущей опоры уже уверенные, используй немного более низкую устойчивую опору.';
+    else t+=' Переход к отжиманиям от пола только когда от низкой опоры стабильно получается 12–15 чистых повторений.';
+  }
   if(last==='easy'){
     if(e.equip==='band')t+=' В прошлый раз было легко: увеличь натяжение резинки совсем немного.';
     else if(e.equip==='dumbbell')t+=' В прошлый раз было легко: не ускоряйся — опускай вес 3 секунды и добавь короткую паузу.';
@@ -316,7 +465,7 @@ function renderHome(v){
   v.innerHTML=head('Главная','Моя программа тренировок')+
   '<div class="hero"><section class="card hero-main"><span class="pill gold">Круг '+s.cycle+'</span><div class="row"><div class="big">'+s.step+' / 15</div><div><b>шагов пройдено</b><div class="small">'+esc(cycleNote())+'</div></div></div><div class="progress"><span style="width:'+pct+'%"></span></div><div class="controls"><button class="btn" data-start="'+n+'">Продолжить · '+esc(w.title)+'</button><button class="btn ghost" data-go="program">Открыть маршрут</button></div></section>'+
   '<aside class="card hero-side"><div class="stats"><div class="stat"><b>'+s.history.length+'</b><span>занятий всего</span></div><div class="stat"><b>'+weekCount()+'</b><span>за эту неделю</span></div><div class="stat"><b>'+s.cycle+'</b><span>текущий круг</span></div></div></aside></div>'+
-  '<div class="grid2" style="margin-top:18px"><section class="card"><h2>Следующая тренировка</h2><span class="pill">'+esc(w.focus)+'</span><h3 style="font-size:22px;margin-top:10px">№'+w.n+' · '+esc(w.title)+'</h3><p class="small">Около 30–40 минут. GIF техники, подходы, отдых и таймер находятся внутри тренировки.</p><div class="controls"><button class="btn" data-open="'+w.n+'">Посмотреть состав</button></div></section>'+
+  '<div class="grid2" style="margin-top:18px"><section class="card"><h2>Следующая тренировка</h2><span class="pill">'+esc(w.focus)+'</span><h3 style="font-size:22px;margin-top:10px">№'+w.n+' · '+esc(w.title)+'</h3><p class="small">Около 30–40 минут. Оборудование: две гантели по 3 кг и твои замкнутые резиновые петли. GIF техники, подходы, отдых и таймер находятся внутри тренировки.</p><div class="controls"><button class="btn" data-open="'+w.n+'">Посмотреть состав</button></div></section>'+
   '<aside class="card">'+monthCalendarHtml()+'</aside></div>'+
   '<section class="card" style="margin-top:18px"><h2>История тренировок</h2><div class="history">'+(hist.length?hist.map(function(h){return '<div class="hist"><div><b>'+new Date(h.at).toLocaleDateString('ru-RU',{day:'2-digit',month:'long'})+' · Круг '+h.cycle+' · №'+h.n+'</b><div class="small">'+esc(h.title)+'</div></div><div style="text-align:right"><b>'+h.min+' мин</b><div class="small">'+new Date(h.at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'</div></div></div>'}).join(''):'<div class="small">История появится после первой завершённой тренировки.</div>')+'</div></section>';
 }
@@ -392,7 +541,7 @@ function renderWorkout(v){
     if(r.restUntil){
       body+='<div class="restbox"><div class="small">Отдых перед подходом '+r.setIndex+' из '+p.sets+'</div><div class="resttime" id="restTime">'+fmt(Math.ceil((r.restUntil-Date.now())/1000))+'</div></div>';
     }else if(r.setIndex<=p.sets){
-      body+='<div class="setbox"><div class="settitle">Подход '+r.setIndex+' из '+p.sets+'</div><div class="small">'+esc(p.reps)+' · делай спокойно, без рывков</div><div class="controls"><button class="btn" id="setDone">Подход выполнен</button></div></div>';
+      body+='<div class="setbox"><div class="settitle">Подход '+r.setIndex+' из '+p.sets+'</div><div class="small">'+(e.unilateral?'Сделай '+esc(p.reps)+' — сначала одной рукой, затем другой. После обеих рук нажми «Подход выполнен».':esc(p.reps)+' · делай спокойно, без рывков')+'</div><div class="controls"><button class="btn" id="setDone">Подход выполнен</button></div></div>';
     }else{
       const f=(state().feedback||{})[cur.id]||'';
       body+='<div class="feedback"><b>Как было?</b><div class="small">Это помогает следующему кругу выбрать нагрузку.</div><div class="choices"><button data-fb="easy" class="'+(f==='easy'?'on':'')+'">Легко</button><button data-fb="ok" class="'+(f==='ok'?'on':'')+'">Как надо</button><button data-fb="hard" class="'+(f==='hard'?'on':'')+'">Тяжело</button></div></div><div class="controls"><button class="btn" id="nextExercise">'+(last?'Завершить тренировку':'Следующее упражнение')+'</button></div>';
@@ -403,7 +552,7 @@ function renderWorkout(v){
 function wireWorkout(cur,p,last){
   const sp=document.getElementById('startPhase');if(sp)sp.onclick=function(){setRunning({phaseUntil:Date.now()+cur.e.seconds*1000,phaseDone:false});render()};
   const sd=document.getElementById('setDone');if(sd)sd.onclick=function(){const r=running();if(r.setIndex<p.sets){restBuzzed=false;setRunning({setIndex:r.setIndex+1,restUntil:Date.now()+p.rest*1000});render()}else{setRunning({setIndex:p.sets+1});render()}};
-  document.querySelectorAll('[data-fb]').forEach(function(b){b.onclick=function(){const s=state(),fb=Object.assign({},s.feedback||{});fb[cur.id]=b.dataset.fb;save({feedback:fb});render()}});
+  document.querySelectorAll('[data-fb]').forEach(function(b){b.onclick=function(){const s=state(),fb=Object.assign({},s.feedback||{});fb[cur.id]=b.dataset.fb;const at=Object.assign({},s.feedbackAt||{});at[cur.id]=Date.now();save({feedback:fb,feedbackAt:at});render();syncCloud()}});
   const ne=document.getElementById('nextExercise');if(ne)ne.onclick=function(){if(last)finishWorkout(cur.w);else{setRunning({idx:cur.idx+1,setIndex:1,restUntil:null,phaseUntil:null,phaseDone:false});restBuzzed=false;render()}};
 }
 function finishWorkout(w){
@@ -413,6 +562,7 @@ function finishWorkout(w){
   const hist=s.history.concat([{n:w.n,title:w.title,cycle:s.cycle,at:Date.now(),min:Math.max(1,Math.round(elapsed()/60))}]);
   save({cycle:cycle,step:step,history:hist,running:null});
   releaseWake();DONE={w:w,completedCycle:completedCycle,newCycle:cycle};VIEW='done';render();
+  syncCloud();
 }
 let DONE=null;
 function renderDone(v){
@@ -421,7 +571,11 @@ function renderDone(v){
 }
 function renderSettings(v){
   const st=settings();
-  v.innerHTML=head('Настройки','Только то, что влияет на тренировку')+'<div class="settings"><div class="set-card"><div class="set-group"><h2>Режим</h2><div class="set-row"><div><b>Тренировок в неделю</b><div class="small">Оптимально 3; четвёртая — только если восстановился и нет боли.</div></div><select id="freq"><option value="3" '+(st.frequency===3?'selected':'')+'>3 раза</option><option value="4" '+(st.frequency===4?'selected':'')+'>4 раза</option></select></div></div><div class="set-group"><h2>Во время тренировки</h2><div class="set-row"><div><b>Не гасить экран</b><div class="small">Если браузер поддерживает Wake Lock, экран останется включён. Если нет — таймер всё равно восстановится по реальному времени.</div></div><label class="toggle"><input type="checkbox" id="wake" '+(st.wake?'checked':'')+'> Включено</label></div><div class="set-row"><div><b>Вибрация после отдыха</b></div><label class="toggle"><input type="checkbox" id="vib" '+(st.vibrate?'checked':'')+'> Включено</label></div></div><div class="set-group"><h2>Прогресс</h2><p class="small">Сброс удалит историю, оценки нагрузки и вернёт программу на круг 1, занятие 1.</p><button class="btn danger" id="reset">Сбросить программу</button></div><div class="controls"><button class="btn" id="saveSettings">Сохранить</button></div></div></div>';
+  v.innerHTML=head('Настройки','Версия '+VERSION+' · облачная синхронизация тренировок')+'<div class="settings"><div class="set-card">'+
+  '<div class="set-group"><h2>Синхронизация между устройствами</h2><div class="small" id="cloudStatus">'+esc(cloudStatus)+'</div>'+
+  (cloudUser?'<p class="small">Вход: '+esc(cloudUser.email||'')+'. История сохраняется в личном облаке Supabase.</p><div class="controls"><button class="btn soft" id="syncNow">Синхронизировать</button><button class="btn ghost" id="cloudLogout">Выйти из облака</button></div>':
+  '<p class="small">Войди с логином и паролем от Базы (CRM). На телефоне и компьютере должен быть один аккаунт. История на устройстве останется и после входа объединится с облачной.</p><input id="cloudEmail" placeholder="Логин Базы" autocomplete="username"><input id="cloudPassword" type="password" placeholder="Пароль" autocomplete="current-password" style="margin-top:8px"><div class="controls"><button class="btn" id="cloudLogin">Подключить облако</button></div>')+'</div>'+
+  '<div class="set-group"><h2>Режим</h2><div class="set-row"><div><b>Тренировок в неделю</b><div class="small">Оптимально 3; четвёртая — только если восстановился и нет боли.</div></div><select id="freq"><option value="3" '+(st.frequency===3?'selected':'')+'>3 раза</option><option value="4" '+(st.frequency===4?'selected':'')+'>4 раза</option></select></div></div><div class="set-group"><h2>Во время тренировки</h2><div class="set-row"><div><b>Не гасить экран</b><div class="small">Если браузер поддерживает Wake Lock, экран останется включён. Если нет — таймер всё равно восстановится по реальному времени.</div></div><label class="toggle"><input type="checkbox" id="wake" '+(st.wake?'checked':'')+'> Включено</label></div><div class="set-row"><div><b>Вибрация после отдыха</b></div><label class="toggle"><input type="checkbox" id="vib" '+(st.vibrate?'checked':'')+'> Включено</label></div></div><div class="set-group"><h2>Прогресс</h2><p class="small">Сброс удалит историю, оценки нагрузки и вернёт программу на круг 1, занятие 1.</p><button class="btn danger" id="reset">Сбросить программу</button></div><div class="set-group"><h2>Резервная копия истории</h2><p class="small">Резервная копия на случай потери доступа к устройству. Импорт объединяет занятия и не удаляет имеющиеся записи.</p><div class="controls"><button class="btn soft" id="exportHistory">Сохранить историю в файл</button><label class="btn ghost" style="cursor:pointer">Загрузить историю из файла<input id="importHistory" type="file" accept=".json,application/json" style="display:none"></label></div></div><div class="controls"><button class="btn" id="saveSettings">Сохранить</button></div></div></div>';
 }
 document.addEventListener('click',function(ev){
   const t=ev.target.closest('[data-go],[data-tab],[data-open],[data-start],[data-exit]');
@@ -437,9 +591,63 @@ document.addEventListener('click',function(ev){
     save({settings:st});ev.target.textContent='Сохранено';setTimeout(function(){render()},600);
   }
   if(ev.target&&ev.target.id==='reset'){
-    if(confirm('Сбросить весь прогресс Тайчи?')){localStorage.removeItem(STORE);VIEW='home';render()}
+    if(confirm('Сбросить весь прогресс Тайчи на всех подключённых устройствах? Предварительно сохрани резервную копию.')){
+      const resetAt=Date.now(),old=state();
+      save({cycle:1,step:0,history:[],feedback:{},feedbackAt:{},running:null,resetAt});
+      VIEW='home';render();syncCloud();
+    }
   }
 });
+function exportHistory(){
+  const data={app:'taichi',format:1,createdAt:new Date().toISOString(),data:state()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download='taichi-history-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},5000);
+}
+async function importHistory(file){
+  if(!file)return;
+  try{
+    if(file.size>2000000)throw new Error('Файл слишком большой');
+    const raw=JSON.parse(await file.text());
+    if(!raw||raw.app!=='taichi'||!raw.data||!Array.isArray(raw.data.history))throw new Error('Это не резервная копия Тайчи');
+    const source=raw.data, old=state();
+    const clean=function(h){return h&&Number.isFinite(Number(h.at))&&Number.isInteger(Number(h.n))&&Number(h.n)>=1&&Number(h.n)<=15&&Number.isFinite(Number(h.cycle))&&Number(h.cycle)>=1};
+    const seen=new Set(),history=[];
+    [...(old.history||[]),...source.history].forEach(function(h){
+      if(!clean(h))return;
+      const id=String(h.at)+'|'+String(h.cycle)+'|'+String(h.n);
+      if(!seen.has(id)){seen.add(id);history.push(h)}
+    });
+    history.sort(function(a,b){return a.at-b.at});
+    const score=function(x){const cycle=Math.max(1,Math.floor(Number(x.cycle)||1));const step=Math.max(0,Math.min(14,Math.floor(Number(x.step)||0)));return (cycle-1)*15+step};
+    const newer=score(source)>score(old)?source:old;
+    save({history:history,cycle:newer.cycle||1,step:newer.step||0,feedback:Object.assign({},source.feedback||{},old.feedback||{}),feedbackAt:Object.assign({},source.feedbackAt||{},old.feedbackAt||{}),running:old.running});
+    syncCloud();
+    alert('Импорт завершён. В истории '+history.length+' тренировок. Данные с обоих устройств объединены.');
+    render();
+  }catch(e){alert('Не удалось загрузить историю: '+(e&&e.message||e))}
+}
+document.addEventListener('click',function(ev){
+  if(ev.target&&ev.target.id==='exportHistory')exportHistory();
+});
+document.addEventListener('change',function(ev){
+  if(ev.target&&ev.target.id==='importHistory'){
+    const file=ev.target.files&&ev.target.files[0];
+    ev.target.value='';
+    importHistory(file);
+  }
+});
+document.addEventListener('click',function(ev){
+  if(!ev.target)return;
+  if(ev.target.id==='cloudLogin')cloudLogin();
+  if(ev.target.id==='cloudLogout')cloudLogout();
+  if(ev.target.id==='syncNow')syncCloud();
+});
+window.addEventListener('online',function(){syncCloud()});
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&cloudUser)syncCloud()});
+setInterval(function(){if(cloudUser)syncCloud()},45000);
+cloudInit();
 window.addEventListener('resize',function(){if(VIEW==='program')render()});
 tickId=setInterval(updateLive,250);
 if(running()){VIEW='workout';requestWake()}
