@@ -1,4 +1,4 @@
-const APP_VER='1.1.1';
+const APP_VER='1.2.0';
 const tabs=[
   {id:'guide',label:'Путеводитель',ico:'地'},
   {id:'library',label:'Библиотека',ico:'书'},
@@ -38,6 +38,7 @@ const teas=[
 const books=[
   {
     id:'china-geography',
+    cover:'assets/library/china-geography-cover.svg',
     title:'Общие знания о географии Китая',
     cn:'中国地理常识',
     meta:'Китайско-русское издание · 2007 · 243 стр.',
