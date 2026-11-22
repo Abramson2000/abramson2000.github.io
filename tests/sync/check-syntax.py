@@ -6,6 +6,7 @@
 """
 from pathlib import Path
 import re
+import glob
 import subprocess
 import sys
 
@@ -98,7 +99,8 @@ if t_app and t_sw and t_app != t_sw:
     errors.append(f'Тингли: APP_VER {t_app} ≠ sw VERSION {t_sw}')
 
 # --- Словарь: версия приложения == версия service worker ---
-c_ver = one(r"VERSION\s*=\s*'([0-9.]+)'", read('cidian/app.2.23.2.js'), 'cidian/app.2.23.2.js')
+_c_app = sorted(glob.glob('cidian/app.[0-9]*.js'))[-1] if glob.glob('cidian/app.[0-9]*.js') else 'cidian/app.js'
+c_ver = one(r"VERSION\s*=\s*'([0-9.]+)'", read(_c_app), _c_app)
 c_sw = one(r"const V\s*=\s*'([0-9.]+)'", read('cidian/sw.js'), 'cidian/sw.js')
 if c_ver and c_sw and c_ver != c_sw:
     errors.append(f'Словарь: app VERSION {c_ver} ≠ sw V {c_sw}')
