@@ -187,6 +187,9 @@
   .part-zh { font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .2px; }
   .part-arrow { color: var(--line); font-size: 22px; font-weight: 600; }
   .lesson-img { width: 100%; border-radius: 16px; box-shadow: 0 6px 20px rgba(29,29,33,.14); margin: 2px 0 14px; display: block; }
+  .lesson-fig { margin: 0 0 14px; }
+  .lesson-fig .lesson-img { margin: 0 auto; display: block; }
+  .lesson-fig-cap { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.35; }
   .lesson-text { background: var(--card); border-radius: 20px; padding: 24px 22px; box-shadow: var(--shadow-card); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Arial, sans-serif; }
   .lesson-text p { margin: 0 0 1.1em; font-size: 20px; line-height: 1.82; letter-spacing: 0; font-family: "TLKai", "TLCJK", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Arial, sans-serif; }
   .lesson-text p:last-child { margin-bottom: 0; }
@@ -1232,7 +1235,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 </div>
 <script src="offline.5.95.2.js"></script>
 <script src="writing.5.95.2.js?v=5.98.0"></script>
-<script src="data/history.js?v=6.34.0"></script>
+<script src="data/history.js?v=6.34.1"></script>
 <script>
 /* Offline data bundle: embedded so the app can start without any external JS fetches. */
 const UNITS = [
@@ -36156,7 +36159,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.34.0';
+const APP_VER = '6.34.1';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -39664,7 +39667,8 @@ function renderText(u, part) {
   }
   else { partAudioKey = null; showPlayer(false); }
   const paras = String(part.text || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
-  const pimg = part.image ? `<img class="lesson-img" src="${esc(part.image)}" alt="">` : '';
+  const imgs = (part.images && part.images.length) ? part.images : (part.image ? [part.image] : []);
+  const pimg = imgs.map((src, i) => `<figure class="lesson-fig"><img class="lesson-img" src="${esc(src)}" alt="" loading="lazy"><figcaption class="lesson-fig-cap" hidden></figcaption></figure>`).join('');
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
