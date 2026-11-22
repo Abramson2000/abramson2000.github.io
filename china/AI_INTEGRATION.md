@@ -1,15 +1,15 @@
 # Мой Китай — интеграция ИИ для «Справочников»
 
-Версия фронтенда: 1.1.0
+Версия фронтенда: 1.1.2
 
 ## Что уже делает фронтенд
 - ☆/★ добавляет любой объект сайта в localStorage `my-china-favorites-v1`.
 - Сохраняются: `id`, `type`, `title`, `raw`, `source`, `pretty`, `createdAt`.
 - Исходный `raw` никогда не перезаписывается результатом ИИ.
-- Кнопка «ИИ · оформить» вызывает POST `/china/api/beautify`.
+- Кнопка «ИИ · оформить» вызывает `POST https://api.crmuro.ru/api/china-beautify` (сервер — Cloudflare Worker `crmuro-ru-api`, модель DeepSeek, ключ только в секретах воркера).
 
 ## Контракт endpoint
-POST /china/api/beautify
+POST https://api.crmuro.ru/api/china-beautify
 Content-Type: application/json
 
 Вход:

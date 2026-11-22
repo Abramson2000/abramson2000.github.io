@@ -1,4 +1,6 @@
 const FAV_KEY='my-china-favorites-v1';
+// серверный эндпоинт ИИ (ключ модели живёт на сервере, в браузер не попадает)
+const API_AI='https://api.crmuro.ru/api/china-beautify';
 let refsOpen=false;
 let favBusy=false;
 
@@ -102,7 +104,7 @@ async function favBeautify(id,btn){
   const items=favLoad(),item=items.find(x=>x.id===id);if(!item)return;
   favBusy=true;btn.disabled=true;btn.textContent='ИИ…';
   try{
-    const r=await fetch('./api/beautify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:item.id,type:item.type,title:item.title,text:item.raw,source:item.source})});
+    const r=await fetch(API_AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:item.id,type:item.type,title:item.title,text:item.raw,source:item.source})});
     if(!r.ok)throw new Error('HTTP '+r.status);
     const j=await r.json();
     const text=(j.text||j.beautiful||j.result||'').trim();
