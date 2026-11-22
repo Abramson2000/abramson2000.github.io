@@ -1,15 +1,15 @@
 # Мой Китай — интеграция ИИ для «Справочников»
 
-Версия фронтенда: 1.1.0
+Версия фронтенда: 1.3.0
 
 ## Что уже делает фронтенд
 - ☆/★ добавляет любой объект сайта в localStorage `my-china-favorites-v1`.
 - Сохраняются: `id`, `type`, `title`, `raw`, `source`, `pretty`, `createdAt`.
 - Исходный `raw` никогда не перезаписывается результатом ИИ.
-- Кнопка «ИИ · оформить» вызывает POST `/china/api/beautify`.
+- Кнопка «ИИ · оформить» вызывает POST `https://api.crmuro.ru/api/china-beautify`.
 
 ## Контракт endpoint
-POST /china/api/beautify
+POST https://api.crmuro.ru/api/china-beautify
 Content-Type: application/json
 
 Вход:
@@ -40,3 +40,20 @@ Content-Type: application/json
 7. API-ключ хранить только на сервере/Worker, никогда во фронтенде.
 
 Для Cloudflare удобно реализовать endpoint как Pages Function / Worker route.
+
+
+## Критически важное для favorites.js
+
+Не возвращать глобальный `MutationObserver` для автоматического вызова `favDecorate()`.
+`favDecorate()` сам добавляет элементы в DOM, поэтому наблюдатель по `document.body`
+создаёт самозапускающийся цикл и может повесить сайт.
+
+Текущая безопасная схема:
+- сохраняется исходный `render()`;
+- после каждого штатного `render()` один раз вызываются `favGlobalEntry()`, `favEntry()`, `favDecorate()`;
+- никакого наблюдения за всеми DOM mutations.
+
+Production endpoint ИИ фиксированный:
+`https://api.crmuro.ru/api/china-beautify`
+
+Не заменять его обратно на относительный `./api/beautify`.
