@@ -1,0 +1,7 @@
+LXGW WenKai Lite (lxgw-wenkai-lite), version 1.530
+Шрифт: https://github.com/lxgw/LxgwWenKai-Lite
+Автор: LXGW (https://github.com/lxgw)
+Лицензия: SIL Open Font License 1.1 (OFL-1.1)
+
+Файл fonts/kai-cn.woff2 — сабсет этого шрифта: иероглифы приложения (1737 знаков),
+латиница с диакритикой для пиньиня, пунктуация CJK. Собран через fontTools.subset.

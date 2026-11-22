@@ -1,11 +1,11 @@
 /* Tingli 5.95.2: pinned offline shell, durable media, resumable verified downloads. */
-const VERSION = '6.34.2';
+const VERSION = '6.35.0';
 const CACHE = 'tingli-shell-' + VERSION;
 const MEDIA_CACHE = 'tingli-media-v1';
 const MANIFEST = './offline-manifest.5.95.2.json';
 const CORE_ASSETS = [
   "./favicon-20261010.ico",
-  "./fonts/kai-subset.woff2",
+  "./fonts/kai-cn.woff2",
   "./favicon.ico",
   "./apple-touch-icon-20261010.png",
   "./apple-touch-icon.png",
@@ -17,7 +17,7 @@ const CORE_ASSETS = [
   "./sync-transport.5.67.0.js",
   "./manifest.json",
   "./sync-core.js?v=5.64.0",
-  "./data/history.js?v=6.34.2", "./word-sync.5.64.0.js",
+  "./data/history.js?v=6.35.0", "./word-sync.5.64.0.js",
   "./fonts/zhimang-course.ttf",
   "./fonts/simsun-subset.woff2",
   "./fonts/xiaoshan-title.woff2",
