@@ -258,6 +258,94 @@ async function runBackup(env) {
   return { ok: true, day: day, keys: rows.length, bytes: payload.length };
 }
 
+
+/* ---------- ИИ: DeepSeek ----------
+ * Ключ живёт только в секретах воркера (env.DEEPSEEK_KEY), во фронтенд не попадает.
+ */
+const AI_MODEL = 'deepseek-chat';
+async function aiChat(env, system, user, maxTokens) {
+  if (!env.DEEPSEEK_KEY) throw new Error('AI key not configured');
+  const r = await fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + env.DEEPSEEK_KEY },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+      temperature: 0.3,
+      max_tokens: maxTokens || 700
+    })
+  });
+  if (!r.ok) {
+    let t = ''; try { t = await r.text(); } catch (_) {}
+    throw new Error('AI HTTP ' + r.status + ' ' + t.slice(0, 200));
+  }
+  const d = await r.json();
+  const out = d && d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
+  return String(out || '').trim();
+}
+
+/* «Мой Китай»: оформить факт. Контракт — china/AI_INTEGRATION.md */
+const BEAUTIFY_SYSTEM = [
+  'Ты редактор справочника о Китае. На вход дан один факт с источником.',
+  'Задача: изложить этот же факт коротко, ясно и аккуратно.',
+  'Жёсткие правила:',
+  '1. Не добавляй фактов, которых нет во входном тексте.',
+  '2. Не меняй смысл и числа.',
+  '3. Убирай канцелярит, повторы и мусор.',
+  '4. 1–3 коротких абзаца или компактная карточка.',
+  '5. Даты, имена, места и числа сохраняй точно.',
+  '6. Не выдавай догадки за факты.',
+  'Отвечай только готовым текстом, без пояснений и без markdown-заголовков.'
+].join('\n');
+
+async function handleBeautify(request, env, origin) {
+  let body = null;
+  try { body = await request.json(); } catch (_) { return json({ ok: false, error: 'bad json' }, 400, origin); }
+  const text = String((body && (body.text || body.raw)) || '').trim();
+  if (!text) return json({ ok: false, error: 'empty text' }, 400, origin);
+  const meta = [
+    body.type ? 'Тип: ' + body.type : '',
+    body.title ? 'Заголовок: ' + body.title : '',
+    body.source ? 'Источник: ' + body.source : ''
+  ].filter(Boolean).join('\n');
+  try {
+    const out = await aiChat(env, BEAUTIFY_SYSTEM, meta + '\n\nТекст:\n' + text, 700);
+    return json({ text: out }, 200, origin);
+  } catch (e) {
+    return json({ ok: false, error: String(e.message || e) }, 502, origin);
+  }
+}
+
+/* Тингли: проверка ответа на задание */
+const CHECK_SYSTEM = [
+  'Ты строгий, но доброжелательный преподаватель китайского языка.',
+  'На вход: вопрос задания, ответ ученика и, если есть, эталонный ответ.',
+  'Оцени по смыслу, не по форме записи: порядок слов, иероглифы/пиньинь, мелкие опечатки не делают ответ неверным.',
+  'Если эталон есть — сверяйся с ним. Если ученик ответил верно по смыслу, ответ правильный.',
+  'Верни СТРОГО JSON без пояснений: {"correct": true|false, "comment": "короткое объяснение по-русски, 1-2 предложения"}',
+  'В comment при ошибке укажи, что именно не так и как правильно; при верном ответе — короткое подтверждение.'
+].join('\n');
+
+async function handleTingliCheck(request, env, origin) {
+  let body = null;
+  try { body = await request.json(); } catch (_) { return json({ ok: false, error: 'bad json' }, 400, origin); }
+  const q = String((body && body.q) || '').trim();
+  const a = String((body && body.a) || '').trim();
+  const ref = String((body && body.ref) || '').trim();
+  if (!q || !a) return json({ ok: false, error: 'empty question or answer' }, 400, origin);
+  const user = 'Вопрос: ' + q + '\nОтвет ученика: ' + a + (ref ? '\nЭталонный ответ: ' + ref : '');
+  try {
+    const raw = await aiChat(env, CHECK_SYSTEM, user, 300);
+    let parsed = null;
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (m) { try { parsed = JSON.parse(m[0]); } catch (_) {} }
+    if (!parsed) return json({ ok: false, error: 'AI не дал разбор' }, 502, origin);
+    return json({ ok: true, correct: !!parsed.correct, comment: String(parsed.comment || '') }, 200, origin);
+  } catch (e) {
+    return json({ ok: false, error: String(e.message || e) }, 502, origin);
+  }
+}
+
 export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil(runBackup(env));
@@ -368,6 +456,14 @@ export default {
         await store.put(env,{'tingli-diag-report':text});return json({ok:true},200,origin);
       }
       return json({ok:false,error:'method not allowed'},405,origin);
+    }
+    if (url.pathname === '/api/china-beautify') {
+      if (method !== 'POST') return json({ ok: false, error: 'POST only' }, 405, origin);
+      return handleBeautify(request, env, origin);
+    }
+    if (url.pathname === '/api/tingli-check') {
+      if (method !== 'POST') return json({ ok: false, error: 'POST only' }, 405, origin);
+      return handleTingliCheck(request, env, origin);
     }
     if (url.pathname === '/api/sync') {
       if (rateLimited(request.headers.get('cf-connecting-ip') || 'unknown')) return json({ok:false,error:'too many requests'},429,origin);
