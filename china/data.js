@@ -1,4 +1,4 @@
-const APP_VER='1.0.0';
+const APP_VER='1.1.0';
 const tabs=[
   {id:'guide',label:'Путеводитель',ico:'地'},
   {id:'library',label:'Библиотека',ico:'书'},
