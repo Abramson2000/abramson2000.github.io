@@ -39078,6 +39078,45 @@ function rikExamCard(to, p) {
   RIK_UNITS.forEach(function (u, i) { u.n = i + 1; });
 })();
 
+/* 6.35.2: порядок уроков — как в книге; номера уроков остаются стабильными ключами прогресса */
+(function () {
+  var ORDER = ["Опыт: уже бывало", "Сравнение: 比 (уровень 2)", "Как действие выполнено: V + 得", "Что сделали с предметом", "Пассив: что произошло с предметом", "Сравнение: 比, 一样, 不比", "Результат действия: 到, 住, 走, 上", "Направление и начало: 出, 起来, 下去", "Могу или нет: 得/不, 得很, 极了", "Выделение и повтор глагола", "Что где находится", "Ни одного и вообще всё", "Всё более и «чем… тем…»", "Немного: перед чем ставить", "Два действия сразу", "Как только, порядок и оттенки", "Только что: наречие и время", "Порядок действий", "Условие: если, достаточно", "Каузатив: заставить, сделать так, чтобы", "Готово, узнать, казаться", "Или, а где, разве можно", "Интерес, время, «насчёт»", "С одной стороны… с другой", "Либо… либо · оно-то так, но", "Уже столько-то · пусть так · какой там", "Все: наречие и прилагательное", "Два подлежащих · «велеть»", "Повтор глагола: V O V 得", "Действие вместо существительного", "Из-за · если (разговорное)", "С тех пор · от/кем · в сторону · согласно", "Счётные слова действия · «до смерти»", "Слова, которые разрываются", "Усиление 是 · не только… но и", "Любой · вслед за · когда наступит", "Так и сделай · но · и притом", "Даже · и вот · к тому же", "Могу/не могу · успею", "И… и · каждый своё · как минимум", "Достаточно · сильно · изредка", "Сей · никогда · вновь · а", "В плане · если взять · по сравнению", "Что бы ни · иначе · заставлять", "И то и это · чего уж там · полно"];
+  var byRu = {}; RIK_UNITS.forEach(function (u) { byRu[u.ru] = u; });
+  var ordered = ORDER.map(function (r) { return byRu[r]; }).filter(Boolean);
+  if (ordered.length !== RIK_UNITS.length) return;
+  var map = {};
+  RIK_UNITS.forEach(function (u, i) { map[u.n] = ordered.indexOf(u) + 1; });
+
+  // 1) переносим прогресс: ключ — номер урока, поэтому переиндексируем один раз
+  var FLAG = 'tingli-rik-order-6.35.2';
+  if (!localStorage.getItem(FLAG)) {
+    try {
+      var pr = JSON.parse(localStorage.getItem(RIK_PKEY) || '{}') || {};
+      var moved = {};
+      Object.keys(pr).forEach(function (k) {
+        if (/^\d+$/.test(k) && map[+k]) moved[map[+k]] = pr[k];
+        else moved[k] = pr[k];                      // зачёты ex1..ex9 не двигаем
+      });
+      localStorage.setItem(RIK_PKEY, JSON.stringify(moved));
+      localStorage.setItem(FLAG, '1');
+    } catch (e) {}
+  }
+
+  // 2) банк доп. вопросов тоже привязан к номерам
+  try {
+    var remapped = {};
+    Object.keys(RIK_EXTRA_QUIZ).forEach(function (k) {
+      var nn = map[+k]; if (nn) remapped[nn] = RIK_EXTRA_QUIZ[k];
+    });
+    Object.keys(RIK_EXTRA_QUIZ).forEach(function (k) { delete RIK_EXTRA_QUIZ[k]; });
+    Object.keys(remapped).forEach(function (k) { RIK_EXTRA_QUIZ[k] = remapped[k]; });
+  } catch (e) {}
+
+  // 3) сам порядок и номера уроков
+  RIK_UNITS.length = 0;
+  ordered.forEach(function (u, i) { u.n = i + 1; RIK_UNITS.push(u); });
+})();
+
 function renderRik() {
 
   window.RIK_OPEN = false;
