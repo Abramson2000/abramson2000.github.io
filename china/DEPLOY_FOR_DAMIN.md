@@ -1,27 +1,31 @@
-# Мой Китай — пакет для Да Мина
+# Мой Китай v2.0.0
 
-Текущая версия: **1.2.0**
+## Что выкладывать
+Брать **содержимое папки `china/` целиком**.
 
-Источник:
-- репозиторий: `Abramson2000/abramson2000.github.io`
-- ветка: `app/china`
-- папка сайта: `china/`
-- папка графики: `china/assets/`
+## Куда выкладывать
+На сервере публиковать как:
 
-## Что публиковать
-Содержимое `china/` публиковать в `/china/` на crmuro.ru.
+`https://crmuro.ru/china/`
 
-## Графика
-- `assets/brand/logo-main.svg` — основной утверждённый логотип
-- `assets/brand/app-icon.svg` — PWA/app icon
-- `assets/brand/favicon.svg` — favicon без подписи
-- `assets/guide/china-relief-map.svg` — рельефная карта для Путеводителя/hero
-- `assets/sections/library.svg` — графика Библиотеки
-- `assets/sections/tea.svg` — графика 茶道
-- `assets/sections/trips.svg` — графика Поездок
-- `assets/library/china-geography-cover.svg` — обложка первой книги
+То есть:
+- `china/index.html` → `/china/index.html`
+- `china/app.js` → `/china/app.js`
+- `china/styles.css` → `/china/styles.css`
+- `china/assets/...` → `/china/assets/...`
 
 ## Важно
-Не брать файлы из `main`. Рабочая сборка находится только в `app/china`.
-Не менять относительные пути внутри `china/`.
-После публикации проверить `https://crmuro.ru/china/` и наличие версии 1.2.0.
+- Не класть как `china/china/`.
+- Не менять относительные пути.
+- Service worker уже настроен на `v2.0.0`.
+- В `favorites.js` зафиксирован production endpoint:
+  `https://api.crmuro.ru/api/china-beautify`
+
+## Что внутри v2
+- новый десктоп + mobile layout в утверждённой стилистике;
+- выдвижная левая панель на мобильной версии;
+- на главной **нет звёздочек**;
+- раздел Библиотека с картой посещённых регионов;
+- книга `中国地理常识` с компиляцией;
+- разделы Дао чая / Поездки / Справочники;
+- локальное хранение избранного и посещённых регионов.

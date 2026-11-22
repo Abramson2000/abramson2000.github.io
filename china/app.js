@@ -1,31 +1,299 @@
-let state={tab:localStorage.getItem('china-tab')||'guide',detail:null,book:null,query:''};
-const $=s=>document.querySelector(s); const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function nav(){
-  const h=t=>`<button class="${state.tab===t.id?'on':''}" data-tab="${t.id}">${t.ico} &nbsp;${t.label}</button>`;
-  $('#sideNav').innerHTML=tabs.map(h).join('');
-  $('#bottomNav').innerHTML=tabs.map(t=>`<button class="nav-btn ${state.tab===t.id?'on':''}" data-tab="${t.id}"><i>${t.ico}</i><span>${t.label}</span></button>`).join('');
-  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab;state.detail=null;state.book=null;localStorage.setItem('china-tab',state.tab);render();})
-}
-function searchBox(ph='Поиск по провинциям, городам и местам'){return `<div class="search"><input id="searchInput" value="${esc(state.query)}" placeholder="${ph}"><span>⌕</span></div>`}
-function hero(){return `<section class="hero"><div><h1>Личный атлас Китая</h1><p>Провинции, города, места, книги, чай и поездки — в одной структуре. Всё привязано к карте и личным материалам.</p><div class="hero-actions"><button class="pill-btn" data-jump="provinces">Открыть карту</button><button class="pill-btn alt" data-tabjump="trips">Мои поездки</button></div></div><img class="hero-logo" src="assets/guide/china-relief-map.svg" alt="Карта Китая"></section>`}
-function guide(){
-  const q=state.query.trim().toLowerCase();
-  const list=provinces.filter(p=>!q||p.join(' ').toLowerCase().includes(q));
-  return `${hero()}${searchBox()}<section class="section" id="provinces"><div class="section-head"><h2>Карта Китая</h2><small>${list.length} регионов</small></div><div class="province-grid">${list.map(p=>`<button class="province ${p[2]==='visited'?'visited':p[2]==='plan'?'plan':''}" data-province="${p[0]}"><b>${p[1]}</b><span>${p[0]}</span><em>${p[2]==='visited'?'был':p[2]==='plan'?'в планах':'справочник'}</em></button>`).join('')}</div><div class="legend"><span><i class="dot v"></i>был</span><span><i class="dot p"></i>в планах</span><span><i class="dot n"></i>справочник</span></div></section>`}
-function library(){return `${searchBox('Поиск по библиотеке')}<section class="section"><div class="section-head"><h2>Библиотека</h2><small>знания и источники</small></div><div class="grid"><button class="card"><div class="cn">中国基础</div><div class="ru">Основы Китая</div><div class="meta">Люди · учения · религии · династии · эпохи</div></button><button class="card"><div class="cn">人物</div><div class="ru">Люди</div><div class="meta">Конфуций · Лао-цзы · исторические фигуры</div></button><button class="card"><div class="cn">历史</div><div class="ru">История</div><div class="meta">Династии и эпохи</div></button><button class="card"><div class="cn">专题</div><div class="ru">Подборки</div><div class="meta">Темы и связанные книги</div></button></div></section><section class="section"><div class="section-head"><h2>Книги</h2><small>${books.length}</small></div><div class="list">${books.map(b=>`<button class="list-item" style="width:100%;text-align:left" data-book="${b.id}"><div class="list-ico">书</div><img class="book-thumb" src="${b.cover}" alt=""><div class="list-main"><b>${b.title}</b><div>${b.cn} · ${b.meta}</div></div><span class="badge">Конспект</span></button>`).join('')}</div></section><section class="section"><div class="section-head"><h2>Основы Китая</h2></div><div class="list"><div class="list-item"><div class="list-ico">孔</div><div class="list-main"><b>Конфуций · 孔子</b><div>Конфуцианская традиция и её влияние</div></div></div><div class="list-item"><div class="list-ico">道</div><div class="list-main"><b>Лао-цзы · 老子</b><div>Даосская мысль и 道德经</div></div></div><div class="list-item"><div class="list-ico">史</div><div class="list-main"><b>Династии и эпохи</b><div>Хронология, ключевые переходы и памятники</div></div></div></div></section><section class="section"><div class="section-head"><h2>Книжная статистика</h2><small>источник → показатель</small></div><div class="empty-table">Структура готова: <b>показатель · год · единица · книга · страница</b>. Числа не заполняю выдуманными данными — сюда пойдут только реальные значения из твоих книг и заметок.</div></section>`}
-function tea(){return `${searchBox('Поиск по чаю и дегустациям')}<section class="section"><div class="section-head"><h2>茶道</h2><small>чайный профиль</small></div><div class="grid"><button class="card"><div class="cn">茶知识</div><div class="ru">О чае</div><div class="meta">Регионы · сорта · обработка · термины</div></button><button class="card"><div class="cn">品茶</div><div class="ru">Мои дегустации</div><div class="meta">Избранное · оценки · заметки</div></button></div></section><section class="section"><div class="section-head"><h2>Избранное</h2><small>${teas.length} записи</small></div><div class="list">${teas.map(t=>`<div class="list-item"><div class="list-ico">茶</div><div class="list-main"><b>${t.title}</b><div>${t.sub} · ${t.note}</div></div><span class="badge lime">${t.rate}</span></div>`).join('')}</div></section>`}
-function tripsPage(){const plan=trips.filter(t=>t.status==='plan'),past=trips.filter(t=>t.status==='past');const row=t=>`<button class="list-item" style="width:100%;text-align:left" data-province="${t.cn}"><div class="list-ico">行</div><div class="list-main"><b>${t.title}</b><div>${t.dates} · ${t.route}</div></div><span class="badge ${t.status==='plan'?'lime':''}">${t.status==='plan'?'План':'Был'}</span></button>`;return `${searchBox('Поиск по поездкам')}<section class="section"><div class="section-head"><h2>Планы</h2><small>${plan.length}</small></div><div class="list">${plan.map(row).join('')}</div></section><section class="section"><div class="section-head"><h2>Прошедшие</h2><small>${past.length}</small></div><div class="list">${past.map(row).join('')}</div></section>`}
-function bookPage(id){const b=books.find(x=>x.id===id);if(!b)return library();return `<div class="detail-head"><button class="back" id="bookBack">← Назад</button><div><div class="detail-title">${b.title}</div><div class="detail-cn">${b.cn}</div></div></div><div class="panel book-lead"><img class="book-cover" src="${b.cover}" alt=""><div><div class="info-title">О книге</div><p>${b.note}</p><div class="book-meta">${b.meta}</div></div></div><div class="panel book-warning"><div class="info-title">Важно</div><p>${b.outdated}</p></div><section class="section"><div class="section-head"><h2>Компиляция</h2><small>${b.sections.length} крупных блоков</small></div><div class="book-sections">${b.sections.map((s,i)=>`<div class="panel book-section"><div class="book-num">${String(i+1).padStart(2,'0')}</div><h3>${s.title}</h3><p>${s.text}</p></div>`).join('')}</div></section><section class="section"><div class="section-head"><h2>Главное из книги</h2></div><div class="panel book-takeaway"><p>${b.takeaway}</p></div></section><div class="panel book-source"><div class="info-title">Источник</div><p>${b.cn} · ${b.title}. Китайско-русское издание, 2007. Компиляция сделана по тексту книги; статистические цифры не обновлялись внешними источниками.</p></div>`}
-function provincePage(code){const p=provinces.find(x=>x[0]===code);const d=provinceDetails[code]||{ru:p?.[1]||code,intro:'Раздел создан. Здесь будут собраны материалы по региону, связанные места, поездки и заметки.',geo:'Материалы пока не добавлены.',cities:[],places:[],materials:'Пока нет личных материалов'};return `<div class="detail-head"><button class="back" id="backBtn">← Назад</button><div class="detail-title">${d.ru} <span class="detail-cn">${code}</span></div></div><div class="detail-grid"><div><div class="panel"><div class="info-title">Кратко</div><p>${d.intro}</p></div><div class="panel"><div class="info-title">География и маршрут</div><p>${d.geo}</p></div><div class="panel"><div class="info-title">Города</div><div class="chips">${d.cities.length?d.cities.map(x=>`<span class="chip">${x}</span>`).join(''):'<span class="chip">Материалы готовятся</span>'}</div></div></div><div><div class="panel"><div class="info-title">Места</div><div class="list">${d.places.length?d.places.map(x=>`<div class="list-item"><div class="list-ico">⌖</div><div class="list-main"><b>${x}</b></div></div>`).join(''):'<div class="empty-table">Места пока не добавлены.</div>'}</div></div><div class="panel"><div class="info-title">Мои материалы</div><p>${d.materials}</p></div></div></div>`}
-function bind(){
-  const inp=$('#searchInput'); if(inp) inp.oninput=e=>{state.query=e.target.value;render(false)};
-  document.querySelectorAll('[data-province]').forEach(b=>b.onclick=()=>{state.detail=b.dataset.province;state.book=null;render()});
-  document.querySelectorAll('[data-book]').forEach(b=>b.onclick=()=>{state.book=b.dataset.book;state.detail=null;render()});
-  document.querySelectorAll('[data-jump="provinces"]').forEach(b=>b.onclick=()=>document.getElementById('provinces')?.scrollIntoView({behavior:'smooth'}));
-  document.querySelectorAll('[data-tabjump]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.tabjump;state.detail=null;state.book=null;render()});
-  $('#backBtn')&&($('#backBtn').onclick=()=>{state.detail=null;render()});
-  $('#bookBack')&&($('#bookBack').onclick=()=>{state.book=null;render()});
-}
-function render(scroll=true){nav();let html=state.book?bookPage(state.book):state.detail?provincePage(state.detail):(state.tab==='guide'?guide():state.tab==='library'?library():state.tab==='tea'?tea():tripsPage());$('#content').innerHTML=html;bind();if(scroll)window.scrollTo({top:0,behavior:'instant'})}
-$('#homeBtn')&&($('#homeBtn').onclick=()=>{state.tab='guide';state.detail=null;state.book=null;render()});render();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v='+APP_VER,{updateViaCache:'none'}).catch(()=>{});
+(() => {
+  const data = window.APP_DATA;
+  const state = {
+    section: 'guide',
+    selectedProvince: 'YN',
+    currentBook: null,
+    drawerOpen: false,
+    visited: loadVisited(),
+    aiBusy: false
+  };
+
+  const icons = {
+    guide: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg>`,
+    library: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5A2.5 2.5 0 0 1 6.5 3z"/></svg>`,
+    tea: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2c0 2-1 3-1 4 0 1.2.8 2 2 2"/><path d="M12 2c0 2-1 3-1 4 0 1.2.8 2 2 2"/><path d="M4 10h10a4 4 0 0 1 0 8H8a4 4 0 0 1-4-4v-4z"/><path d="M14 11h3a3 3 0 0 1 0 6h-1"/></svg>`,
+    plane: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2 19 20-7-20-7 5 7-5 7z"/><path d="M7 12h15"/></svg>`,
+    help: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 1 1 5.7 1.3c-.7 1-1.8 1.5-2.4 2.2-.3.3-.4.7-.4 1.5"/><circle cx="12" cy="17" r=".8" fill="currentColor" stroke="none"/></svg>`,
+    bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>`,
+    chevron: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
+    star: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3 1.1-6.5L2.7 9.4l6.5-.9z"/></svg>`,
+    bookStack: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 12 3l9 3.5L12 10z"/><path d="M3 12l9 3.5 9-3.5"/><path d="M3 17.5 12 21l9-3.5"/></svg>`,
+    picture: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 15-4.5-4.5L8 19"/></svg>`
+  };
+
+  function loadVisited(){
+    try {
+      const stored = JSON.parse(localStorage.getItem('my-china-visited-v2') || 'null');
+      if(Array.isArray(stored)) return stored;
+    } catch(e){}
+    return [...data.visitedDefaults];
+  }
+  function saveVisited(){ localStorage.setItem('my-china-visited-v2', JSON.stringify(state.visited)); }
+  function isVisited(id){ return state.visited.includes(id); }
+  function provinceById(id){ return data.provinces.find(p => p.id === id); }
+  function esc(str){ return String(str || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+  function sourceName(){ return data.menu.find(m => m.id === state.section)?.title || 'Мой Китай'; }
+
+  function regionStatus(province){
+    if(isVisited(province.id)) return 'visited';
+    return province.status === 'plan' ? 'plan' : 'neutral';
+  }
+
+  function makeFavoriteButton(item){
+    const active = window.Favorites.has(item.id);
+    return `<button class="fav-btn ${active ? 'active' : ''}" data-fav='${JSON.stringify(item).replace(/'/g, '&apos;')}' aria-label="Избранное">${icons.star}</button>`;
+  }
+
+  function renderNav(){
+    const nav = document.getElementById('nav');
+    nav.innerHTML = data.menu.map(item => `
+      <button class="nav-item ${state.section === item.id ? 'active' : ''}" data-nav="${item.id}">
+        <span class="nav-icon">${icons[item.icon]}</span>
+        <span>${item.title}</span>
+      </button>`).join('');
+    nav.querySelectorAll('[data-nav]').forEach(btn => btn.onclick = () => {
+      state.section = btn.dataset.nav;
+      state.currentBook = null;
+      if(state.section !== 'guide') state.selectedProvince = state.selectedProvince || 'YN';
+      closeDrawer();
+      render();
+    });
+  }
+
+  function pageChrome(title, subtitle, content, side){
+    return `
+      <div class="topbar">
+        <div class="topbar-spacer"></div>
+        <div class="topbar-actions"><span class="top-icon">${icons.bell}</span><span class="top-avatar"><img src="assets/brand/logo-main.png" alt="avatar" /></span></div>
+      </div>
+      <section class="hero-copy ${state.section === 'library' ? 'library-copy' : ''}">
+        <h1>${title}</h1>
+        <p>${subtitle}</p>
+        <div class="hero-underline"></div>
+      </section>
+      <section class="content-layout">
+        <div class="content-main">${content}</div>
+        <div class="content-side">${side}</div>
+      </section>
+    `;
+  }
+
+  function renderGuide(){
+    const selected = provinceById(state.selectedProvince) || provinceById('YN');
+    const map = `
+      <div class="map-card">
+        <img src="assets/guide/china-relief-map.webp" class="china-map" alt="Карта Китая" />
+        <div class="map-hotspots guide-hotspots">
+          ${data.provinces.map(p => {
+            const status = regionStatus(p);
+            return `<button class="map-label ${status} ${state.selectedProvince === p.id ? 'selected' : ''}" style="left:${p.x}%;top:${p.y}%" data-province="${p.id}">
+              <span class="map-cn">${p.cn}</span><span class="map-ru">${p.ru}</span>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>`;
+
+    const detailFavBase = { id:`province:${selected.id}`, type:'регион', title:`${selected.ru} · ${selected.cn}`, raw:`${selected.intro} Города: ${selected.cities.join(', ')}. Места: ${selected.places.join(', ')}. Маршрут: ${selected.routes.join('; ')}.`, source:`Путеводитель · ${selected.ru}` };
+    const side = `
+      <div class="side-panel province-panel">
+        <div class="province-head">
+          <div>
+            <div class="province-cn-large">${selected.cn}</div>
+            <div class="province-ru-large">${selected.ru}</div>
+            <p>${selected.intro}</p>
+            <div class="hero-underline small"></div>
+          </div>
+          <img src="assets/guide/china-relief-map.png" class="province-cover" alt="${selected.ru}" />
+        </div>
+        <div class="info-list">
+          <div class="info-card">
+            <div class="info-thumb thumb-city"></div>
+            <div class="info-body">
+              <div class="info-row"><h3>Города</h3>${makeFavoriteButton({...detailFavBase,id:`province-cities:${selected.id}`,title:`${selected.ru} · Города`,raw:`${selected.cities.join(' · ')}`,source:`Путеводитель · ${selected.ru}`})}</div>
+              <p>${selected.cities.join(' · ')}</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-thumb thumb-place"></div>
+            <div class="info-body">
+              <div class="info-row"><h3>Достопримечательности</h3>${makeFavoriteButton({...detailFavBase,id:`province-places:${selected.id}`,title:`${selected.ru} · Достопримечательности`,raw:`${selected.places.join(' · ')}`,source:`Путеводитель · ${selected.ru}`})}</div>
+              <p>${selected.places.join(' · ')}</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-thumb thumb-route"></div>
+            <div class="info-body">
+              <div class="info-row"><h3>Маршруты</h3>${makeFavoriteButton({...detailFavBase,id:`province-routes:${selected.id}`,title:`${selected.ru} · Маршруты`,raw:`${selected.routes.join(' · ')}`,source:`Путеводитель · ${selected.ru}`})}</div>
+              <p>${selected.routes.join(' · ')}</p>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    return pageChrome('Мой Китай','Личный атлас путешествий, культуры и открытий',map,side);
+  }
+
+  function renderLibrary(){
+    const books = data.books.map(book => `
+      <button class="book-card" data-book="${book.id}">
+        <img src="${book.cover}" alt="${esc(book.title)}" />
+        <div class="book-copy">
+          <div class="book-copy-row"><h3>${book.title}</h3>${makeFavoriteButton({ id:`book:${book.id}`, type:'книга', title:book.title, raw:book.note, source:'Библиотека' })}</div>
+          <div class="book-cn">${book.cn}</div>
+          <p>${book.note}</p>
+          <small>${book.meta}</small>
+        </div>
+      </button>`).join('');
+
+    const map = `
+      <div class="map-card library-map-card">
+        <img src="assets/guide/china-relief-map.webp" class="china-map grayscale" alt="Атлас регионов" />
+        <div class="map-hotspots library-hotspots">
+          ${data.provinces.map(p => {
+            const status = isVisited(p.id) ? 'visited' : 'muted';
+            return `<button class="map-label cn-only ${status}" style="left:${p.x}%;top:${p.y}%" data-toggle-visited="${p.id}">${p.cn}</button>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="visited-panel">
+        <div class="panel-header"><h3>Посещённые регионы</h3><p>Меняй отметки прямо здесь — карта обновляется сразу.</p></div>
+        <div class="visited-grid">
+          ${data.provinces.map(p => `<button class="visit-chip ${isVisited(p.id) ? 'active' : ''}" data-toggle-visited="${p.id}"><span>${p.cn}</span><small>${p.ru}</small></button>`).join('')}
+        </div>
+      </div>
+      <div class="books-block">
+        <div class="panel-header"><h3>Книги и материалы</h3><p>Первые компиляции для библиотеки.</p></div>
+        <div class="books-grid">${books}</div>
+      </div>`;
+
+    const side = `
+      <div class="side-panel library-side">
+        <div class="atlas-hero">
+          <div>
+            <h2>Атлас посещённых регионов</h2>
+            <p>Личная библиотека превращается в карту путешествий по Китаю.</p>
+            <div class="hero-underline small"></div>
+          </div>
+        </div>
+        <div class="feature-list">
+          <div class="feature-item"><span class="feature-icon">${icons.guide}</span><div><h4>Отмечайте регионы</h4><p>Фиксируй, где уже был, и строй карту своих поездок.</p></div></div>
+          <div class="feature-item"><span class="feature-icon">${icons.bookStack}</span><div><h4>Изучайте регионы</h4><p>Статьи, книги и заметки о каждом уголке страны.</p></div></div>
+          <div class="feature-item"><span class="feature-icon">${icons.picture}</span><div><h4>Дополняйте коллекцию</h4><p>Сохраняй впечатления, полезные факты и маршруты.</p></div></div>
+        </div>
+      </div>`;
+
+    return pageChrome('Библиотека','Личный атлас посещённых регионов',map,side);
+  }
+
+  function renderBook(bookId){
+    const book = data.books.find(b => b.id === bookId) || data.books[0];
+    const sections = book.sections.map((s, idx) => `<div class="book-section"><div class="book-number">${idx+1}</div><div class="book-section-copy"><div class="book-section-head"><h3>${s.title}</h3>${makeFavoriteButton({ id:`book-section:${book.id}:${idx}`, type:'фрагмент книги', title:`${book.title} · ${s.title}`, raw:s.text, source:`Библиотека · ${book.title}` })}</div><p>${s.text}</p></div></div>`).join('');
+    const side = `
+      <div class="side-panel book-side">
+        <img src="${book.cover}" class="book-cover-large" alt="${esc(book.title)}" />
+        <div class="book-side-copy">
+          <div class="book-copy-row"><h2>${book.title}</h2>${makeFavoriteButton({ id:`book:${book.id}:summary`, type:'книга', title:book.title, raw:book.takeaway, source:`Библиотека · ${book.title}` })}</div>
+          <div class="book-cn">${book.cn}</div>
+          <small>${book.meta}</small>
+          <p class="book-warning">${book.outdated}</p>
+        </div>
+      </div>`;
+    const content = `
+      <button class="back-btn" id="backToLibrary">← Назад в Библиотеку</button>
+      <div class="book-layout">
+        <div class="book-takeaway-block"><h3>О книге</h3><p>${book.note}</p><div class="book-main-idea"><strong>Главное:</strong> ${book.takeaway}</div></div>
+        <div class="book-sections">${sections}</div>
+      </div>`;
+    return pageChrome(book.title, 'Краткая компиляция по книге', content, side);
+  }
+
+  function renderTea(){
+    const cards = data.tea.map(t => `<article class="content-card tea-card"><div class="content-row"><div><h3>${t.title}</h3><div class="book-cn">${t.subtitle}</div></div>${makeFavoriteButton({ id:`tea:${t.id}`, type:'чай', title:t.title, raw:`${t.subtitle}. ${t.note}. ${t.favoriteHint}`, source:'Дао чая' })}</div><p>${t.note}</p><div class="tag-row"><span class="tag">${t.rating}</span><span class="tag">${t.favoriteHint}</span></div></article>`).join('');
+    const side = `<div class="side-panel"><img src="assets/sections/tea.svg" class="section-image" alt="Дао чая" /><div class="side-text"><h2>Дао чая</h2><p>Чайный профиль, дегустации и заметки по любимым чаям.</p></div></div>`;
+    return pageChrome('Дао чая','Любимые чаи, дегустации и ориентиры для покупок', `<div class="cards-grid">${cards}</div>`, side);
+  }
+
+  function renderTrips(){
+    const cards = data.trips.map(trip => `<article class="content-card trip-card"><div class="content-row"><div><h3>${trip.title}</h3><div class="book-cn">${trip.dates}</div></div>${makeFavoriteButton({ id:`trip:${trip.id}`, type:'поездка', title:trip.title, raw:`${trip.route}. ${trip.summary}`, source:'Поездки' })}</div><p class="trip-route">${trip.route}</p><p>${trip.summary}</p><div class="tag-row"><span class="tag ${trip.status === 'plan' ? 'tag-plan' : 'tag-done'}">${trip.status === 'plan' ? 'План' : 'Был'}</span></div></article>`).join('');
+    const side = `<div class="side-panel"><img src="assets/sections/trips.svg" class="section-image" alt="Поездки" /><div class="side-text"><h2>Поездки</h2><p>Маршруты, планы и уже пройденные оси по Китаю.</p></div></div>`;
+    return pageChrome('Поездки','Маршруты, которые уже были и ещё впереди', `<div class="cards-grid">${cards}</div>`, side);
+  }
+
+  function renderReferences(){
+    const favs = window.Favorites.all();
+    const content = favs.length ? favs.map(item => `
+      <article class="content-card reference-card" data-ref-id="${esc(item.id)}">
+        <div class="content-row"><div><h3>${esc(item.title)}</h3><div class="book-cn">${esc(item.type || 'факт')}</div></div><button class="remove-fav" data-remove-fav="${esc(item.id)}">Удалить</button></div>
+        <p>${esc(item.raw)}</p>
+        ${item.pretty ? `<div class="ai-result">${esc(item.pretty)}</div>` : ''}
+        <div class="ref-actions"><button class="ai-btn" data-ai="${esc(item.id)}">${item.pretty ? 'ИИ · переделать' : 'ИИ · оформить'}</button><span class="ref-source">${esc(item.source || '')}</span></div>
+      </article>`).join('') : `<div class="empty-state">Пока здесь пусто. Добавляй материалы в избранное внутри разделов — звёздочки спрятаны внутри карточек, а не на главной.</div>`;
+    const side = `<div class="side-panel"><div class="side-text"><h2>Справочники</h2><p>Сюда попадает всё избранное. Исходный факт не меняется, а ИИ создаёт отдельную красивую формулировку.</p></div></div>`;
+    return pageChrome('Справочники','Избранные материалы и ИИ-оформление', content, side);
+  }
+
+  function render(){
+    renderNav();
+    let html = '';
+    if(state.section === 'guide') html = renderGuide();
+    if(state.section === 'library') html = state.currentBook ? renderBook(state.currentBook) : renderLibrary();
+    if(state.section === 'tea') html = renderTea();
+    if(state.section === 'trips') html = renderTrips();
+    if(state.section === 'references') html = renderReferences();
+    document.getElementById('main').innerHTML = html;
+    bindPageEvents();
+  }
+
+  function bindPageEvents(){
+    document.querySelectorAll('[data-province]').forEach(btn => btn.onclick = () => { state.selectedProvince = btn.dataset.province; render(); });
+    document.querySelectorAll('[data-book]').forEach(btn => btn.onclick = () => { state.currentBook = btn.dataset.book; render(); });
+    const back = document.getElementById('backToLibrary');
+    if(back) back.onclick = () => { state.currentBook = null; render(); };
+    document.querySelectorAll('[data-toggle-visited]').forEach(btn => btn.onclick = () => {
+      const id = btn.dataset.toggleVisited;
+      if(isVisited(id)) state.visited = state.visited.filter(x => x !== id); else state.visited.push(id);
+      saveVisited();
+      render();
+    });
+    document.querySelectorAll('.fav-btn').forEach(btn => btn.onclick = (e) => {
+      e.stopPropagation();
+      const payload = JSON.parse(btn.dataset.fav.replace(/&apos;/g, "'"));
+      window.Favorites.toggle(payload);
+      render();
+    });
+    document.querySelectorAll('[data-remove-fav]').forEach(btn => btn.onclick = () => {
+      const id = btn.dataset.removeFav;
+      const items = window.Favorites.all().filter(x => x.id !== id);
+      localStorage.setItem('my-china-favorites-v2', JSON.stringify(items));
+      render();
+    });
+    document.querySelectorAll('[data-ai]').forEach(btn => btn.onclick = async () => {
+      if(state.aiBusy) return;
+      const id = btn.dataset.ai;
+      const items = window.Favorites.all();
+      const item = items.find(x => x.id === id);
+      if(!item) return;
+      state.aiBusy = true;
+      btn.textContent = 'ИИ…';
+      try {
+        item.pretty = await window.Favorites.beautify(item);
+        localStorage.setItem('my-china-favorites-v2', JSON.stringify(items));
+      } catch(err){
+        item.pretty = item.pretty || 'ИИ пока недоступен. Но логика уже подключена к production endpoint.';
+        localStorage.setItem('my-china-favorites-v2', JSON.stringify(items));
+      }
+      state.aiBusy = false;
+      render();
+    });
+  }
+
+  function openDrawer(){ state.drawerOpen = true; document.body.classList.add('drawer-open'); }
+  function closeDrawer(){ state.drawerOpen = false; document.body.classList.remove('drawer-open'); }
+
+  document.getElementById('mobileMenuBtn').onclick = () => state.drawerOpen ? closeDrawer() : openDrawer();
+  document.getElementById('overlay').onclick = closeDrawer;
+
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js?v=' + window.APP_VER).catch(() => {}); }
+  render();
+})();
