@@ -1,4 +1,5 @@
 const FAV_KEY='my-china-favorites-v1';
+const CHINA_AI_ENDPOINT='https://api.crmuro.ru/api/china-beautify';
 let refsOpen=false;
 let favBusy=false;
 
@@ -99,7 +100,7 @@ async function favBeautify(id,btn){
   const items=favLoad(),item=items.find(x=>x.id===id);if(!item)return;
   favBusy=true;btn.disabled=true;btn.textContent='ИИ…';
   try{
-    const r=await fetch('./api/beautify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:item.id,type:item.type,title:item.title,text:item.raw,source:item.source})});
+    const r=await fetch(CHINA_AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:item.id,type:item.type,title:item.title,text:item.raw,source:item.source})});
     if(!r.ok)throw new Error('HTTP '+r.status);
     const j=await r.json();
     const text=(j.text||j.beautiful||j.result||'').trim();
@@ -120,6 +121,24 @@ function favGlobalEntry(){
     const b=document.createElement('button');b.id='refsSide';b.className='side-refs';b.textContent='★  Справочники';b.onclick=()=>{refsOpen=true;renderRefs()};side.appendChild(b);
   }
 }
-const favObserver=new MutationObserver(()=>{if(favBusy)return;favGlobalEntry();if(!refsOpen){favEntry();favDecorate()}});
-favObserver.observe(document.body,{childList:true,subtree:true});
-favGlobalEntry();favEntry();favDecorate();
+// Do not observe DOM mutations here: favDecorate() itself adds DOM nodes,
+// so a MutationObserver creates a self-triggering render/decorate loop.
+// Instead, decorate exactly once after each normal application render.
+const chinaBaseRender=render;
+render=function(...args){
+  const result=chinaBaseRender(...args);
+  if(!refsOpen){
+    requestAnimationFrame(()=>{
+      favGlobalEntry();
+      favEntry();
+      favDecorate();
+    });
+  }else{
+    requestAnimationFrame(favGlobalEntry);
+  }
+  return result;
+};
+
+favGlobalEntry();
+favEntry();
+favDecorate();
