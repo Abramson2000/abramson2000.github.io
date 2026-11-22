@@ -27,7 +27,9 @@ const HISTORY_UNITS = [
      "img/hist/a00_2.webp",
      "img/hist/a00_3.webp",
      "img/hist/a00_4.webp",
-     "img/hist/a00_5.webp"
+     "img/hist/a00_5.webp",
+     "img/hist/a00_6.webp",
+     "img/hist/a00_7.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Бронзовое изделие Доциньской эпохи\n— Великая стена\n— Монеты Доциньской эпохи\n— Нефритовые украшения, найденные при\n— Деньги в виде меча Доциньской эпохи"
    }
@@ -59,7 +61,9 @@ const HISTORY_UNITS = [
      "img/hist/a01_2.webp",
      "img/hist/a01_3.webp",
      "img/hist/a01_4.webp",
-     "img/hist/a01_5.webp"
+     "img/hist/a01_5.webp",
+     "img/hist/a01_6.webp",
+     "img/hist/a01_7.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Череп пекинского синантропа\n— Зубы юаньмоуского человека\n— Голова пекинского человека.\n— Голова шаньдинтунского человека.\n— Стоянка пекинского синант ропа в\n— Яншаоская культура в настоящее время"
    },
@@ -95,8 +99,9 @@ const HISTORY_UNITS = [
     "titleZh": "插图",
     "images": [
      "img/hist/a02_1.webp",
-     "img/hist/a01_5.webp",
-     "img/hist/a02_3.webp"
+     "img/hist/a01_7.webp",
+     "img/hist/a02_3.webp",
+     "img/hist/a02_4.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Фусиши\n— 64 гексограммы Фусиши\n— Шеньнунши"
    }
@@ -124,7 +129,7 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a02_3.webp",
+     "img/hist/a02_4.webp",
      "img/hist/a03_2.webp",
      "img/hist/a03_3.webp",
      "img/hist/a03_4.webp"
@@ -237,10 +242,11 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
+     "img/hist/a06_1.webp",
      "img/hist/a05_5.webp",
-     "img/hist/a06_2.webp",
      "img/hist/a06_3.webp",
-     "img/hist/a06_4.webp"
+     "img/hist/a06_4.webp",
+     "img/hist/a06_5.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Винный сосуд Сыянфан\n— Треножник Маогун"
    },
@@ -275,9 +281,11 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a06_4.webp",
-     "img/hist/a07_2.webp",
-     "img/hist/a07_3.webp"
+     "img/hist/a07_1.webp",
+     "img/hist/a06_5.webp",
+     "img/hist/a07_3.webp",
+     "img/hist/a07_4.webp",
+     "img/hist/a07_5.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Ров с захоронениями статуй коней\n— Меч юеского князя Гоуцзяня"
    },
@@ -317,7 +325,8 @@ const HISTORY_UNITS = [
      "img/hist/a08_3.webp",
      "img/hist/a08_4.webp",
      "img/hist/a08_5.webp",
-     "img/hist/a08_6.webp"
+     "img/hist/a08_6.webp",
+     "img/hist/a08_7.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Терракотовые статуи воинов и коней\n— Брон зов ый со суд э п охи Воюю щи х\n— Эстамп орнамента бронзового сосуда"
    },
@@ -352,7 +361,7 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a08_6.webp",
+     "img/hist/a08_7.webp",
      "img/hist/a09_2.webp",
      "img/hist/a09_3.webp",
      "img/hist/a09_4.webp"
@@ -394,7 +403,9 @@ const HISTORY_UNITS = [
      "img/hist/a10_2.webp",
      "img/hist/a10_3.webp",
      "img/hist/a10_4.webp",
-     "img/hist/a10_5.webp"
+     "img/hist/a10_5.webp",
+     "img/hist/a10_6.webp",
+     "img/hist/a10_7.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Лаоцзы\n— Выгравированные на камне «Каноны о\n— «Каноны о морали» Лаоцзы\n— В ы г р а в и р о ва н н ы е н а ка м н е\n— Моцзы\n— Сюньцзы\n— Чжуанцзы"
    }
@@ -458,8 +469,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a12_1.webp",
-     "img/hist/a12_1.webp"
+     "img/hist/a00_1.webp",
+     "img/hist/a12_2.webp",
+     "img/hist/a12_2.webp"
     ],
     "text": ""
    }
@@ -530,7 +542,8 @@ const HISTORY_UNITS = [
      "img/hist/a14_2.webp",
      "img/hist/a14_3.webp",
      "img/hist/a14_4.webp",
-     "img/hist/a14_5.webp"
+     "img/hist/a14_5.webp",
+     "img/hist/a14_6.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Великая стена\n— З а с т а в а Ц з я ю й г у а н ь н а з а п а д н о й\n— Застава Шаньхайгуань на восточной"
    },
@@ -566,7 +579,7 @@ const HISTORY_UNITS = [
     "titleZh": "插图",
     "images": [
      "img/hist/a15_1.webp",
-     "img/hist/a14_5.webp",
+     "img/hist/a14_6.webp",
      "img/hist/a15_3.webp",
      "img/hist/a15_4.webp"
     ],
@@ -718,7 +731,8 @@ const HISTORY_UNITS = [
     "images": [
      "img/hist/a18_4.webp",
      "img/hist/a19_2.webp",
-     "img/hist/a19_3.webp"
+     "img/hist/a19_3.webp",
+     "img/hist/a19_4.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— уезде\n— Чжаоцзюнь проезжает заставу"
    }
@@ -746,9 +760,11 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a20_1.webp",
+     "img/hist/a19_4.webp",
      "img/hist/a20_2.webp",
-     "img/hist/a20_3.webp"
+     "img/hist/a20_3.webp",
+     "img/hist/a20_4.webp",
+     "img/hist/a20_5.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Сыма Цянь\n— Рукопись «Исторические записи» Минской\n— первый в Китае\n— Могиля Сыма Цяня в Ханьчэне пр. Шэньси"
    }
@@ -776,7 +792,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a21_1.webp"
+     "img/hist/a21_1.webp",
+     "img/hist/a20_5.webp",
+     "img/hist/a21_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Cейсмограф\n— Чжанхэн\n— Астрономческй прибор «Небесная сфера»"
    }
@@ -806,7 +824,8 @@ const HISTORY_UNITS = [
     "images": [
      "img/hist/a22_1.webp",
      "img/hist/a22_2.webp",
-     "img/hist/a22_3.webp"
+     "img/hist/a22_3.webp",
+     "img/hist/a22_4.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Чжан Чжунцзин\n— Чжан Чжунцзин «О брюшном тифе»\n— Гимнастика «Движения пяти зверей и птиц»\n— Хуато\n— Лечение «скобление кости»"
    }
@@ -835,8 +854,9 @@ const HISTORY_UNITS = [
     "titleZh": "插图",
     "images": [
      "img/hist/a23_1.webp",
-     "img/hist/a23_2.webp",
-     "img/hist/a23_3.webp"
+     "img/hist/a00_1.webp",
+     "img/hist/a23_3.webp",
+     "img/hist/a23_4.webp"
     ],
     "text": ""
    }
@@ -908,7 +928,8 @@ const HISTORY_UNITS = [
      "img/hist/a25_4.webp",
      "img/hist/a25_5.webp",
      "img/hist/a25_6.webp",
-     "img/hist/a25_7.webp"
+     "img/hist/a25_7.webp",
+     "img/hist/a25_8.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Чжугэ Лян\n— Построенный в память Чжугэ Ляна храм\n— Чжугэ Лян «Расстановка войск»\n— Постановка теневого кукольного театра\n— Лю Бэй трижды побывал в Маолу, чтобы\n— В разгроме восставшей армии Мэн Ю"
    },
@@ -944,7 +965,7 @@ const HISTORY_UNITS = [
     "titleZh": "插图",
     "images": [
      "img/hist/a26_1.webp",
-     "img/hist/a25_7.webp",
+     "img/hist/a25_8.webp",
      "img/hist/a26_3.webp",
      "img/hist/a26_4.webp",
      "img/hist/a26_5.webp"
@@ -1020,7 +1041,9 @@ const HISTORY_UNITS = [
     "images": [
      "img/hist/a28_1.webp",
      "img/hist/a28_2.webp",
-     "img/hist/a28_3.webp"
+     "img/hist/a28_3.webp",
+     "img/hist/a28_4.webp",
+     "img/hist/a28_5.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Главное поле брани Фэйшуйской битвы\n— Сыма Жун\n— Карта Фэйшуйской битвы"
    },
@@ -1161,7 +1184,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a33_1.webp"
+     "img/hist/a32_1.webp",
+     "img/hist/a32_2.webp",
+     "img/hist/a32_3.webp"
     ],
     "text": ""
    }
@@ -1189,9 +1214,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a34_1.webp",
-     "img/hist/a34_2.webp",
-     "img/hist/a34_3.webp"
+     "img/hist/a00_1.webp",
+     "img/hist/a33_2.webp"
     ],
     "text": ""
    }
@@ -1219,8 +1243,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a35_1.webp",
-     "img/hist/a35_2.webp"
+     "img/hist/a34_1.webp",
+     "img/hist/a34_2.webp",
+     "img/hist/a34_3.webp"
     ],
     "text": ""
    },
@@ -1255,9 +1280,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a36_1.webp",
-     "img/hist/a36_2.webp",
-     "img/hist/a36_1.webp"
+     "img/hist/a35_1.webp",
+     "img/hist/a35_2.webp",
+     "img/hist/a35_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Танский император Тайцзун\n— Трехцветная керамика Танской эпохи\n— Танская эпоха. Янь Либэн «Посланники»"
    }
@@ -1285,7 +1310,10 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a38_1.webp"
+     "img/hist/a36_1.webp",
+     "img/hist/a36_2.webp",
+     "img/hist/a36_1.webp",
+     "img/hist/a36_4.webp"
     ],
     "text": ""
    },
@@ -1320,9 +1348,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a39_1.webp",
-     "img/hist/a39_2.webp",
-     "img/hist/a39_3.webp"
+     "img/hist/a36_4.webp",
+     "img/hist/a37_2.webp",
+     "img/hist/a37_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— деньги периода Кайюань Танской эпохи\n— Танский император Сюаньцзун"
    },
@@ -1357,10 +1385,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a40_1.webp",
-     "img/hist/a40_2.webp",
-     "img/hist/a40_3.webp",
-     "img/hist/a40_4.webp"
+     "img/hist/a38_1.webp",
+     "img/hist/a37_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Эстамп дворца Синцингун\n— Минская городская стена в Сиане пр."
    }
@@ -1388,7 +1414,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a41_1.webp"
+     "img/hist/a39_1.webp",
+     "img/hist/a39_2.webp",
+     "img/hist/a39_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Царь Сронцзангамбо\n— Принцесса Вэньчэн\n— Дворец Потала в Лхасе\n— Прибытие принцессы Вэньчэн в Тибет"
    }
@@ -1416,11 +1444,10 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a42_1.webp",
-     "img/hist/a42_2.webp",
-     "img/hist/a42_3.webp",
-     "img/hist/a42_4.webp",
-     "img/hist/a42_5.webp"
+     "img/hist/a40_1.webp",
+     "img/hist/a40_2.webp",
+     "img/hist/a40_3.webp",
+     "img/hist/a40_4.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Статуя Сюаньцзана на территории пагоды\n— Пагода Даянь\n— «Танские записки о Западном"
    },
@@ -1455,9 +1482,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a43_1.webp",
-     "img/hist/a43_2.webp",
-     "img/hist/a43_3.webp"
+     "img/hist/a41_1.webp",
+     "img/hist/a41_2.webp"
     ],
     "text": ""
    },
@@ -1492,8 +1518,11 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a44_1.webp",
-     "img/hist/a44_1.webp"
+     "img/hist/a42_1.webp",
+     "img/hist/a42_2.webp",
+     "img/hist/a42_3.webp",
+     "img/hist/a42_4.webp",
+     "img/hist/a42_5.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— В 20-й пещере Юньганских каменных\n— Статуя Будды в Лунмэньских каменных\n— Пещеры Могаоку в Дуньхуане"
    },
@@ -1528,8 +1557,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a45_1.webp",
-     "img/hist/a45_2.webp"
+     "img/hist/a43_1.webp",
+     "img/hist/a43_2.webp",
+     "img/hist/a43_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Идут экзамены\n— Экзаменационный лист Цинской эпохи\n— Экзаменационный лист экзаменов на"
    }
@@ -1557,7 +1587,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a46_1.webp"
+     "img/hist/a44_1.webp",
+     "img/hist/a00_1.webp",
+     "img/hist/a44_1.webp"
     ],
     "text": ""
    }
@@ -1585,8 +1617,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a47_1.webp",
-     "img/hist/a47_2.webp"
+     "img/hist/a45_1.webp",
+     "img/hist/a45_2.webp"
     ],
     "text": ""
    },
@@ -1621,9 +1653,7 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a48_1.webp",
-     "img/hist/a48_2.webp",
-     "img/hist/a48_3.webp"
+     "img/hist/a46_1.webp"
     ],
     "text": ""
    },
@@ -1658,9 +1688,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a49_1.webp",
-     "img/hist/a49_2.webp",
-     "img/hist/a49_3.webp"
+     "img/hist/a47_1.webp",
+     "img/hist/a47_2.webp",
+     "img/hist/a47_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Бронзовая статуя Баогуна внутри молельни\n— Гильотина внутри молельни Баогуна в\n— Одна из историй о Баогуне"
    },
@@ -1695,10 +1725,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a49_3.webp",
-     "img/hist/a50_2.webp",
-     "img/hist/a50_3.webp",
-     "img/hist/a50_4.webp"
+     "img/hist/a48_1.webp",
+     "img/hist/a48_2.webp",
+     "img/hist/a48_3.webp"
     ],
     "text": ""
    },
@@ -1733,7 +1762,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a51_1.webp"
+     "img/hist/a49_1.webp",
+     "img/hist/a49_2.webp",
+     "img/hist/a49_3.webp"
     ],
     "text": ""
    },
@@ -1768,10 +1799,10 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a52_1.webp",
-     "img/hist/a52_2.webp",
-     "img/hist/a52_3.webp",
-     "img/hist/a52_4.webp"
+     "img/hist/a49_3.webp",
+     "img/hist/a50_2.webp",
+     "img/hist/a50_3.webp",
+     "img/hist/a50_4.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Чингизхан\n— Основатель Юаньской династии Хубиле\n— Г р о б н и ц а  Ч и н г и з х а н а  в  х о ш у н е\n— Настенная картина о Чингизхане в гробнице\n— Даду"
    }
@@ -1799,9 +1830,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a53_1.webp",
-     "img/hist/a53_2.webp",
-     "img/hist/a53_1.webp"
+     "img/hist/a51_1.webp",
+     "img/hist/a51_2.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Марко Поло\n— «Путешествие Марко Поло», переведенное"
    }
@@ -1829,7 +1859,11 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a54_1.webp"
+     "img/hist/a52_1.webp",
+     "img/hist/a52_2.webp",
+     "img/hist/a52_3.webp",
+     "img/hist/a52_4.webp",
+     "img/hist/a52_5.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Цай Лунь\n— Штурвал с компасом"
    },
@@ -1864,8 +1898,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a55_1.webp",
-     "img/hist/a55_2.webp"
+     "img/hist/a53_1.webp",
+     "img/hist/a53_2.webp",
+     "img/hist/a53_1.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— «На реке в День поминания усопших»\n— «На реке в День поминания усопших»"
    }
@@ -1893,8 +1928,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a55_2.webp",
-     "img/hist/a56_2.webp"
+     "img/hist/a54_1.webp",
+     "img/hist/a54_2.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Сыма Гуан «О большой политике»\n— «О большой политике» издания Юаньской"
    },
@@ -1929,8 +1964,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a57_1.webp",
-     "img/hist/a57_2.webp"
+     "img/hist/a00_1.webp",
+     "img/hist/a55_2.webp",
+     "img/hist/a55_3.webp"
     ],
     "text": ""
    }
@@ -1958,8 +1994,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a58_1.webp",
-     "img/hist/a58_2.webp"
+     "img/hist/a56_1.webp",
+     "img/hist/a55_3.webp",
+     "img/hist/a56_3.webp"
     ],
     "text": ""
    },
@@ -1994,8 +2031,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a59_1.webp",
-     "img/hist/a59_2.webp"
+     "img/hist/a57_1.webp",
+     "img/hist/a57_2.webp"
     ],
     "text": ""
    },
@@ -2030,8 +2067,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a60_1.webp",
-     "img/hist/a60_2.webp"
+     "img/hist/a58_1.webp",
+     "img/hist/a58_2.webp"
     ],
     "text": ""
    },
@@ -2066,9 +2103,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a61_1.webp",
-     "img/hist/a61_2.webp",
-     "img/hist/a61_3.webp"
+     "img/hist/a59_1.webp",
+     "img/hist/a59_2.webp"
     ],
     "text": ""
    },
@@ -2103,13 +2139,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a62_1.webp",
-     "img/hist/a62_2.webp",
-     "img/hist/a62_3.webp",
-     "img/hist/a62_4.webp",
-     "img/hist/a62_5.webp",
-     "img/hist/a62_6.webp",
-     "img/hist/a62_5.webp"
+     "img/hist/a60_1.webp",
+     "img/hist/a60_2.webp",
+     "img/hist/a60_3.webp"
     ],
     "text": ""
    },
@@ -2144,11 +2176,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a63_1.webp",
-     "img/hist/a63_2.webp",
-     "img/hist/a63_3.webp",
-     "img/hist/a63_4.webp",
-     "img/hist/a63_5.webp"
+     "img/hist/a61_1.webp",
+     "img/hist/a61_2.webp",
+     "img/hist/a61_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Остров Тайвань\n— Памятник Чжэн Чэнгуну на острове"
    },
@@ -2183,9 +2213,13 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a64_1.webp",
-     "img/hist/a64_2.webp",
-     "img/hist/a64_3.webp"
+     "img/hist/a62_1.webp",
+     "img/hist/a62_2.webp",
+     "img/hist/a62_3.webp",
+     "img/hist/a62_4.webp",
+     "img/hist/a62_5.webp",
+     "img/hist/a62_6.webp",
+     "img/hist/a62_5.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Император Канси\n— Император Юнчжен\n— Император Цяньлун\n— Палата Цяньцин ( здесь все императоры\n— Гугун, Палата Цяньцин"
    },
@@ -2220,7 +2254,13 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a65_1.webp"
+     "img/hist/a63_1.webp",
+     "img/hist/a63_2.webp",
+     "img/hist/a63_3.webp",
+     "img/hist/a63_4.webp",
+     "img/hist/a63_5.webp",
+     "img/hist/a63_6.webp",
+     "img/hist/a63_7.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— «Перечень основных трав» издания\n— Энциклопедия сельского хозяйства.\n— Сунь Инсин\n— «Обработка материалов»\n— Памятник Сюй Сякэ"
    }
@@ -2248,8 +2288,11 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a66_1.webp",
-     "img/hist/a66_2.webp"
+     "img/hist/a64_1.webp",
+     "img/hist/a63_7.webp",
+     "img/hist/a64_3.webp",
+     "img/hist/a64_4.webp",
+     "img/hist/a64_5.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Мао Цзэдун в ранний период создания\n— Шанхай. Здесь состоялся Первый съезд\n— Внутри лодки, в которой продолжался\n— Лодка на озере Наньху, куда из Шанхая был\n— Ли Дачжао ( 1889-1927 гг. )"
    },
@@ -2284,8 +2327,10 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a67_1.webp",
-     "img/hist/a67_2.webp"
+     "img/hist/a65_1.webp",
+     "img/hist/a64_5.webp",
+     "img/hist/a65_3.webp",
+     "img/hist/a65_4.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Начальник политотдела Хуанпуской военной школы Чжоу Эньлай в\n— Хуанпуская военная школа в Гуанчжоу\n— Манифест о сотрудничестве Гоминьдана и Компартии"
    },
@@ -2320,12 +2365,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a68_1.webp",
-     "img/hist/a68_2.webp",
-     "img/hist/a68_3.webp",
-     "img/hist/a68_4.webp",
-     "img/hist/a68_5.webp",
-     "img/hist/a68_6.webp"
+     "img/hist/a66_1.webp",
+     "img/hist/a66_2.webp",
+     "img/hist/a66_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Комполка Отдельного полка Четвертой армии Е Тин\n— В Юецзянлоу размещался штаб Отдельного полка Е Тина\n— Мавзолей Сунь Ятсена в Нанкине пр. Цзянсу"
    },
@@ -2360,9 +2402,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a70_1.webp",
-     "img/hist/a70_2.webp",
-     "img/hist/a70_3.webp"
+     "img/hist/a67_1.webp",
+     "img/hist/a67_2.webp",
+     "img/hist/a67_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Чжоу Эньлай и другие руководители\n— Мемориальный музей восстания 1 августа в"
    },
@@ -2397,9 +2439,14 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a71_1.webp",
-     "img/hist/a71_2.webp",
-     "img/hist/a71_3.webp"
+     "img/hist/a68_1.webp",
+     "img/hist/a67_3.webp",
+     "img/hist/a68_3.webp",
+     "img/hist/a68_4.webp",
+     "img/hist/a68_5.webp",
+     "img/hist/a68_6.webp",
+     "img/hist/a68_7.webp",
+     "img/hist/a68_8.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Топкая степь Жоркай в пр. Сычуань,\n— Здесь проходило Цзуньиское совещание\n— Зал Цзуньиского совещания\n— Справа налево: Мао Цзэдун, Чжу Дэ, Чжоу\n— Мост Лудинцяо через Дадухэ в пр. Сычуань"
    },
@@ -2434,7 +2481,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a71_3.webp"
+     "img/hist/a69_1.webp",
+     "img/hist/a68_8.webp",
+     "img/hist/a69_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Памятник Событию «18 сентября»\n— Автомобиль, на котором Пу И разъезжал с"
    },
@@ -2469,10 +2518,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a73_1.webp",
-     "img/hist/a73_2.webp",
-     "img/hist/a73_3.webp",
-     "img/hist/a73_4.webp"
+     "img/hist/a70_1.webp",
+     "img/hist/a70_2.webp",
+     "img/hist/a70_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Демонстрация студентов\n— Массовый митинг на привокзальной площади"
    },
@@ -2507,9 +2555,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a74_1.webp",
-     "img/hist/a74_2.webp",
-     "img/hist/a74_3.webp"
+     "img/hist/a71_1.webp",
+     "img/hist/a71_2.webp",
+     "img/hist/a71_3.webp"
     ],
     "text": ""
    },
@@ -2544,8 +2592,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a75_1.webp",
-     "img/hist/a75_2.webp"
+     "img/hist/a72_1.webp",
+     "img/hist/a71_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Мост Лугоуцяо"
    },
@@ -2580,9 +2628,10 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a76_1.webp",
-     "img/hist/a76_2.webp",
-     "img/hist/a76_3.webp"
+     "img/hist/a73_1.webp",
+     "img/hist/a73_2.webp",
+     "img/hist/a73_3.webp",
+     "img/hist/a73_4.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Командный пункт 115-й дивизии Восьмой\n— Захваченное в Пинсингуаньском сражении"
    },
@@ -2617,9 +2666,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a77_1.webp",
-     "img/hist/a77_2.webp",
-     "img/hist/a77_3.webp"
+     "img/hist/a74_1.webp",
+     "img/hist/a74_2.webp",
+     "img/hist/a74_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Мемориальный музей жертв кровавой\n— Расправа японских захватчиков над"
    },
@@ -2654,7 +2703,10 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a78_1.webp"
+     "img/hist/a75_1.webp",
+     "img/hist/a75_2.webp",
+     "img/hist/a75_3.webp",
+     "img/hist/a75_4.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Командующий Тайэрчжуанского сражения\n— Тайэрчжуанскоe сражениe"
    },
@@ -2689,9 +2741,11 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a79_1.webp",
-     "img/hist/a79_2.webp",
-     "img/hist/a79_2.webp"
+     "img/hist/a75_4.webp",
+     "img/hist/a76_2.webp",
+     "img/hist/a76_3.webp",
+     "img/hist/a76_4.webp",
+     "img/hist/a76_5.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Вымпел, подаренный Восьмой армии\n— Работники представительства Восьмой\n— Антияпонская демострация китайских эмигрантов в США\n— Духовой оркестр, созданный китайскими эмигрантами на\n— Могила лидера китайской эмиграции Чэнь Цзягэна в Сямэне\n— Памятник Чэнь Цзягэну"
    },
@@ -2726,9 +2780,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a80_1.webp",
-     "img/hist/a80_2.webp",
-     "img/hist/a80_2.webp"
+     "img/hist/a77_1.webp",
+     "img/hist/a77_2.webp",
+     "img/hist/a77_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Мао Цзэдун и Чан Кайши в Чунцине 17\n— 28 августа 1945 года. Мао Цзэдун и Чжоу"
    },
@@ -2763,7 +2817,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a81_1.webp"
+     "img/hist/a78_1.webp",
+     "img/hist/a78_2.webp"
     ],
     "text": ""
    },
@@ -2798,9 +2853,11 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a82_1.webp",
-     "img/hist/a82_2.webp",
-     "img/hist/a82_3.webp"
+     "img/hist/a79_1.webp",
+     "img/hist/a79_2.webp",
+     "img/hist/a00_1.webp",
+     "img/hist/a79_4.webp",
+     "img/hist/a79_4.webp"
     ],
     "text": ""
    }
@@ -2828,9 +2885,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a83_1.webp",
-     "img/hist/a83_2.webp",
-     "img/hist/a83_3.webp"
+     "img/hist/a80_1.webp",
+     "img/hist/a80_2.webp",
+     "img/hist/a80_2.webp"
     ],
     "text": ""
    },
@@ -2865,11 +2922,8 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a84_1.webp",
-     "img/hist/a84_2.webp",
-     "img/hist/a84_3.webp",
-     "img/hist/a84_4.webp",
-     "img/hist/a84_4.webp"
+     "img/hist/a81_1.webp",
+     "img/hist/a81_2.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Н а р од н а я д о б р о в о л ьч е с к а я а р м и я\n— 27 июля 1953 года в Панмыньчжоне было"
    },
@@ -2904,8 +2958,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a84_4.webp",
-     "img/hist/a85_2.webp"
+     "img/hist/a82_1.webp",
+     "img/hist/a82_2.webp",
+     "img/hist/a82_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Премьер Чжоу Эньлай\n— 21 февраля 1972 года с визитом в Китай"
    },
@@ -2940,9 +2995,9 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a86_1.webp",
-     "img/hist/a86_2.webp",
-     "img/hist/a86_3.webp"
+     "img/hist/a83_1.webp",
+     "img/hist/a83_2.webp",
+     "img/hist/a83_3.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— В январе1992 г. Дэн Сяопин в Шэн-\n— Шэнчженьская экономическая спецзона"
    },
@@ -2977,9 +3032,11 @@ const HISTORY_UNITS = [
     "title": "Иллюстрации",
     "titleZh": "插图",
     "images": [
-     "img/hist/a87_1.webp",
-     "img/hist/a87_2.webp",
-     "img/hist/a87_3.webp"
+     "img/hist/a84_1.webp",
+     "img/hist/a84_2.webp",
+     "img/hist/a84_3.webp",
+     "img/hist/a84_4.webp",
+     "img/hist/a84_4.webp"
     ],
     "text": "Подписи к иллюстрациям:\n— Цзян Цзэминь и принц Чарльз на церемонии\n— На церемонии передачи власти в Сянгане"
    },
@@ -3009,6 +3066,17 @@ const HISTORY_UNITS = [
     "text": "С 1553 года управление Аомэнем постепенно захватили португальские колонизаторы, Аомэнь стал на территории Китая первой агрессивной базой западных колонизаторов.\n\nВ конце 70-х годов двадцатого столетия Китай и Португалиядостигли принципиального соглашения по аомэньскому вопросу. В 1986-1987 гг. Китай и Португалия провели мирные дружеские переговоры и 13 апреля 1987 года подписали и опубликовали Совместное заявление правительств Китайской Народной Республики и Республики Португалия об аомэньском вопросе, которое подтверждает, что Аомэньский район является территорией Китая и что 20 декабря 1999 года китайское правительство восстанавливает свой суверенитет в отношении Аомэня.\n\n19 декабря 1999 года в 23 часа 42 мин. состоялась церемония передачи власти в Аомэне. На церемонии присутствовали президент Португали Ж. Сампайю и другие главные лица. 20 декабря 00 часов Председатель КНР Цзян Цзэминь торжественно объявил о восстановлении суверенитета китайского правительства в отношении Аомэня. Затем глава администрации Особого административного района Аомэнь Хэ Хоухуа принял присягу."
    },
    {
+    "id": 1,
+    "kind": "text",
+    "title": "Иллюстрации",
+    "titleZh": "插图",
+    "images": [
+     "img/hist/a84_4.webp",
+     "img/hist/a85_2.webp"
+    ],
+    "text": ""
+   },
+   {
     "id": 2,
     "kind": "text",
     "title": "小资料 · справка",
@@ -3034,6 +3102,18 @@ const HISTORY_UNITS = [
     "text": "Бескрайнее космическое пространство является общим достоянием человечества, которое постоянно стремилось к изучению космоса. Технику полета человека в космос в Китае начали осваивать с 1992 года. Эта великая стройка преследует лишь мирные цели. Китай стремится своими научными опытами и техническим исследованием космического пространства внести лепту в дело науки и мира всего человечества.\n\nСначала было запущено 4 космических корабля без человека на борту, а 15 октября 2003 года космический корабль “Шэньчжоу-5” вынес на солнечную орбиту первого китайского космонавта Ян Ливэя, который после 14 витков вокруг Земного Шара успешно приземлился. Запуск “Шэньчжоу-5” означает, что Китай в основном освоил технику полетов человека в космос и осуществил первый шаг плана стройки полета человека в космос.\n\n“Шеньчжоу-5” с успехом выполнил первый полет с человеком на борту. Осуществились мечты китайской нации о полете в космос. Китай после бывшего Советского Союза и США стал третьей страной в мире, способной самостоятельно совершать полеты человека в космос.\n\n12 октября 2005 года Китай успешно запустил в космос изготовленный собственными силами космический корабль “Шеньчжоу-6”. Космонавты Фэй Цзюньлун и Не Хайшэн, успешно завершив все опыты, 17 октября в полной безопасности вернулись на землю.\n\nУспех “Шеньчжоу-6” означает, что наша страна одержала в развитии техники полетов человека в космос и опытов человека в космическом пространстве еще одну важную победу эпохального значения.\n\nПолеты китайских космонавтов еще более повысили международный престиж Китая, увеличили мощь экономики, науки и обороны нашей страны и силу сцепления нашей нации, вдохновили все народы Китая тесно сплотиться вокруг ЦК партии, непрерывно продвигать великое дело построения социализма с китайской спцификой.\n\nОни имеют важное и далекоидущее значение."
    },
    {
+    "id": 1,
+    "kind": "text",
+    "title": "Иллюстрации",
+    "titleZh": "插图",
+    "images": [
+     "img/hist/a86_1.webp",
+     "img/hist/a86_2.webp",
+     "img/hist/a86_3.webp"
+    ],
+    "text": "Подписи к иллюстрациям:\n— Вернувшаяся на землю кабина «Шеньчжоу-6»\n— Космический герой Ян Ливэй"
+   },
+   {
     "id": 2,
     "kind": "text",
     "title": "小资料 · справка",
@@ -3057,6 +3137,20 @@ const HISTORY_UNITS = [
     "title": "Рассказ",
     "titleZh": "",
     "text": "В 1924 году при содействии Чжан Болина и Ван Чжэнтина была создана Китайская ассоциация содействия спорту.\n\nВ 1937 году Международный олимпийский комитет официально признал ее Китайским олимпийским комитетом. В 1932 году Десятые Олимпийские Игры проходили в Лос-Анжелесе, на которые впервые был послан китайский спортсмен Лю Чанчунь.\n\nВ 1960 году в 17-х Олимпийских Играх участие приняли тайваньские спортсмены, Ян Чуаньгуан завоевал серебряную медаль по десятиборью. Это была первая медаль, завоеванная китайскими спортсменами на Олимпийских Играх. В 1968 году на 19-ой Всемирной Олимпиаде тайваньская спортсменка Цзи Чжэн завоевала бронзовую медаль в беге на 80 м с барьерами. Это была первая медаль китайских спортсменок на Олимпийских Играх.\n\nВ 1979 году Международный олимпийский комитет восстановил законное место Китайской Народной Республики.\n\nВ июле 1984 года на 23-й Всемирной Олимпиаде в Лос-Анжелесе китайский стрелок Сюй Хайфэн завоевал первую золотую медаль этой Олимпиады. По количеству золотых медалей Китай вышел на четвертое место на этих играх. Китайские волейболистки стали чемпионами Олимпиады, осуществив свою мечту о “тройном звании чемпиона” - соревнований по волейболу на Кубок мира, Всемирных соревнований по волейболу и Олимпийских Игр.\n\nКитай участвовал в 24-й в Сеуле, 25-й в Париже и 26-й в Атланте всемирных олимпиадах.\n\nВ сентябре 2000 года на 27-х Олимпийских Играх в Сиднее китайские спортсмены завоевали 59 медалей и по общему количеству вышли на третье место.\n\nВ августе 2004 года на 28-й Всемирной Олимпиаде в Афинах они показали отличные результаты и завоевали 69 медалей, из них 32 золотые. Всего Китай участвовал в 14 всемирных олимпиадах.\n\n13 июля 2001 года Китай выиграл заявку на проведение в своей стране Олимпийских Игр; а вскоре в сентябре он с успехом провел 21-ю Универсиаду. Все это эффективно способствовало развитию спорта в Китае и в то же время продемонстрировало общую мощь Китая и повысило его положение на международной арене."
+   },
+   {
+    "id": 1,
+    "kind": "text",
+    "title": "Иллюстрации",
+    "titleZh": "插图",
+    "images": [
+     "img/hist/a87_1.webp",
+     "img/hist/a87_2.webp",
+     "img/hist/a87_3.webp",
+     "img/hist/a87_4.webp",
+     "img/hist/a87_5.webp"
+    ],
+    "text": "Подписи к иллюстрациям:\n— П е р в ы й  ч л е н  М е ж д у н а р о д н о г о\n— Первый и единственный китайский\n— Куклы-талисманы Пекинской олимпиады в\n— Эмблема Пекинской олимпиады 2008 года\n— Пекинская Олимпиада в 2008 году"
    },
    {
     "id": 2,

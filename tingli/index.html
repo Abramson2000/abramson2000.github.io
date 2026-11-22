@@ -39668,7 +39668,7 @@ function renderText(u, part) {
   else { partAudioKey = null; showPlayer(false); }
   const paras = String(part.text || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
   const imgs = (part.images && part.images.length) ? part.images : (part.image ? [part.image] : []);
-  const pimg = imgs.map((src, i) => `<figure class="lesson-fig"><img class="lesson-img" src="${esc(src)}" alt="" loading="lazy"><figcaption class="lesson-fig-cap" hidden></figcaption></figure>`).join('');
+  const pimg = imgs.map(src => `<div class="lesson-fig"><img class="lesson-img" src="${esc(src)}" alt="" loading="lazy"></div>`).join('');
   app.innerHTML = `
     <div class="topbar"><button class="back" onclick="goBack()">←</button>
       <div style="flex:1;min-width:0"><div class="u-title">${esc(part.title)}</div><div class="u-sub">${esc(u.zh || '')}</div></div></div>
