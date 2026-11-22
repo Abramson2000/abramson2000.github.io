@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="96" fill="#edf6ef"/>
+<path d="M125 242h216v67c0 67-48 116-108 116s-108-49-108-116z" fill="#fff" stroke="#124738" stroke-width="14"/>
+<path d="M341 265h34c55 0 55 79 0 79h-28" fill="none" stroke="#124738" stroke-width="14" stroke-linecap="round"/>
+<path d="M191 232c-4-54 25-93 84-115M260 202c21-52 64-75 117-65" fill="none" stroke="#328563" stroke-width="14" stroke-linecap="round"/>
+<path d="M271 114c18-27 52-37 88-27-9 35-37 58-72 58" fill="#caed72" stroke="#124738" stroke-width="8"/>
+<text x="194" y="323" font-family="KaiTi,STKaiti,serif" font-size="72" fill="#124738">茶</text>
+</svg>

@@ -1,5 +1,4 @@
 const FAV_KEY='my-china-favorites-v1';
-// серверный эндпоинт ИИ (ключ модели живёт на сервере, в браузер не попадает)
 const API_AI='https://api.crmuro.ru/api/china-beautify';
 let refsOpen=false;
 let favBusy=false;
@@ -73,8 +72,8 @@ function favEntry(){
 function favRefreshEntry(){
   const n=favLoad().length;
   const c=document.getElementById('refsCount');
-  // запись в DOM внутри MutationObserver: трогаем узел только если значение изменилось,
-  // иначе наблюдатель срабатывает снова и страница зависает
+  // запись в DOM из MutationObserver: трогаем узел только при изменении значения,
+  // иначе наблюдатель срабатывает заново и страница зависает
   if(c&&c.textContent!==String(n))c.textContent=String(n);
 }
 function refsCard(x){

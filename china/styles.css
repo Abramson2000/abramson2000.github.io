@@ -42,3 +42,9 @@ body{min-height:100vh}.app{min-height:100vh}.sidebar{display:none}.main{padding:
 .book-takeaway{background:var(--sage);border-color:#cfe2d6}
 .book-source{margin-top:18px}
 @media(min-width:900px){.book-sections{grid-template-columns:repeat(2,minmax(0,1fr))}.book-section{min-height:190px}}
+
+/* v1.2.0 — графические assets */
+.book-thumb{width:48px;height:62px;border-radius:9px;object-fit:cover;border:1px solid var(--line);flex:0 0 auto}
+.book-lead{display:grid;grid-template-columns:90px 1fr;gap:14px;align-items:start}
+.book-cover{width:90px;aspect-ratio:760/980;object-fit:cover;border-radius:12px;border:1px solid var(--line);box-shadow:0 8px 22px rgba(18,71,56,.10)}
+@media(min-width:900px){.book-lead{grid-template-columns:150px 1fr}.book-cover{width:150px}}

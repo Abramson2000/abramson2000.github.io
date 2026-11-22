@@ -1,1 +1,1 @@
-{"name":"Мой Китай","short_name":"Мой Китай","start_url":"./","display":"standalone","background_color":"#F7FAF7","theme_color":"#124738","icons":[{"src":"logo.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{"name":"Мой Китай","short_name":"Мой Китай","start_url":"./","display":"standalone","background_color":"#F7FAF7","theme_color":"#124738","icons":[{"src":"assets/brand/app-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
