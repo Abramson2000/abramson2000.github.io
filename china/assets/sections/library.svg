@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="96" fill="#edf6ef"/>
+<rect x="108" y="82" width="296" height="348" rx="34" fill="#fff" stroke="#124738" stroke-width="14"/>
+<path d="M145 128h220M145 178h220M145 228h155" stroke="#328563" stroke-width="14" stroke-linecap="round"/>
+<text x="148" y="330" font-family="KaiTi,STKaiti,serif" font-size="70" fill="#124738">中国</text>
+<text x="148" y="382" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#328563">БИБЛИОТЕКА</text>
+</svg>
