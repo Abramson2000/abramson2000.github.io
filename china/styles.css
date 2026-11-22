@@ -29,3 +29,16 @@ body{min-height:100vh}.app{min-height:100vh}.sidebar{display:none}.main{padding:
 .refs-source{font-size:10.5px;color:var(--muted);margin-top:7px}
 .refs-empty{border:1px dashed #c8d9cf;border-radius:18px;padding:22px;text-align:center;color:var(--muted);font-size:13px}
 .side-refs{margin-top:8px!important;border-top:1px solid var(--line)!important;padding-top:13px!important}
+
+/* v1.1.1 — книжная компиляция */
+.book-lead{background:linear-gradient(135deg,#f1f8f2,#fff)}
+.book-meta{font-size:11px;color:var(--muted);margin-top:9px}
+.book-warning{background:#fffcef;border-color:#eadfa8}
+.book-sections{display:grid;grid-template-columns:1fr;gap:10px}
+.book-section{position:relative;padding-left:58px}
+.book-section h3{margin:0 0 7px;font-size:16px}
+.book-section p{margin:0}
+.book-num{position:absolute;left:14px;top:14px;width:32px;height:32px;border-radius:10px;background:var(--sage);display:grid;place-items:center;color:var(--pine);font-size:11px;font-weight:800}
+.book-takeaway{background:var(--sage);border-color:#cfe2d6}
+.book-source{margin-top:18px}
+@media(min-width:900px){.book-sections{grid-template-columns:repeat(2,minmax(0,1fr))}.book-section{min-height:190px}}
