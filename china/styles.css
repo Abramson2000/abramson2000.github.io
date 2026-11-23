@@ -139,6 +139,10 @@ a{text-decoration:none;color:inherit}
   .hero-copy h1{font-size:74px}
   .map-card{min-height:0}
 }
+@media (min-width: 961px){
+  body{background:url('assets/guide/desktop-bg.jpg') center top / cover no-repeat, linear-gradient(180deg,#fbfdfb 0%,#eef5ef 100%);background-attachment:fixed,scroll}
+  body::after{display:none}
+}
 @media (max-width: 960px){
   .app-shell{grid-template-columns:1fr}
   .mobile-menu-btn{display:flex;position:fixed;left:14px;top:14px;z-index:40;width:48px;height:48px;border:0;border-radius:16px;background:rgba(255,255,255,.9);box-shadow:var(--shadow);align-items:center;justify-content:center;flex-direction:column;gap:5px}
