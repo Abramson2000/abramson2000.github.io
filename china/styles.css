@@ -1,3 +1,6 @@
+@font-face{font-family:'CidianSerif';src:url('assets/fonts/noto-serif-sc-reg.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'CidianSerif';src:url('assets/fonts/noto-serif-sc-bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}
+:root{--cn-font:'CidianSerif',"Noto Serif CJK SC","Noto Serif SC","Songti SC",serif}
 :root{
   --bg:#F7FAF7;
   --panel:#ffffffdd;
@@ -52,37 +55,40 @@ a{text-decoration:none;color:inherit}
 .content-side{min-width:0}
 
 .map-card,.side-panel,.content-card,.visited-panel,.books-block,.book-takeaway-block{background:var(--panel);border:1px solid rgba(18,71,56,.08);border-radius:32px;box-shadow:var(--shadow)}
-.map-card{position:relative;overflow:hidden;padding:20px;min-height:700px;background:linear-gradient(180deg,rgba(255,255,255,.68),rgba(247,250,247,.84))}
-.china-map{width:100%;height:100%;object-fit:contain;filter:saturate(1.1);padding:40px 20px 10px}
+.map-card{position:relative;overflow:hidden;padding:16px;min-height:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(255,255,255,.68),rgba(247,250,247,.84))}
+.china-map{width:100%;height:auto;max-height:100%;object-fit:contain;filter:saturate(1.1);padding:0;display:block}
 .china-map.grayscale{filter:grayscale(.88) brightness(1.08) saturate(.55)}
+.map-card .china-map{aspect-ratio:1/1}
 .map-hotspots{position:absolute;inset:0}
 .map-label{position:absolute;transform:translate(-50%,-50%);border:0;background:transparent;cursor:pointer;text-align:center;color:var(--green);padding:4px 6px;border-radius:12px;transition:.2s ease all}
-.map-label .map-cn{display:block;font-size:32px;line-height:1;font-family:KaiTi, STKaiti, serif}
+.map-label .map-cn{display:block;font-size:32px;line-height:1;font-family:var(--cn-font)}
 .map-label .map-ru{display:block;font-size:14px;line-height:1.1;margin-top:2px}
 .guide-hotspots .map-label.selected{background:rgba(202,237,114,.45);box-shadow:0 0 0 2px rgba(133,192,92,.35)}
 .guide-hotspots .map-label.visited .map-cn,.guide-hotspots .map-label.plan .map-cn,.guide-hotspots .map-label.neutral .map-cn{color:#173d31}
 .guide-hotspots .map-label.visited .map-ru{color:#3a584d}.guide-hotspots .map-label.plan .map-ru{color:#3a584d}.guide-hotspots .map-label.neutral .map-ru{color:#7a8d85}
 .guide-hotspots .map-label:hover{background:rgba(255,255,255,.55)}
-.library-hotspots .map-label{font-family:KaiTi, STKaiti, serif;font-size:20px;padding:2px 6px;border-radius:10px}
+.library-hotspots .map-label{font-family:var(--cn-font);font-size:20px;padding:2px 6px;border-radius:10px}
 .library-hotspots .map-label.visited{color:#184634;background:rgba(202,237,114,.38)}
 .library-hotspots .map-label.muted{color:rgba(21,60,49,.58)}
 .cn-only{font-size:28px}
 
 .side-panel{padding:18px;overflow:hidden}
 .province-head{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:start}
-.province-cn-large{font-size:74px;line-height:.9;font-family:KaiTi, STKaiti, serif;color:var(--green)}
+.province-cn-large{font-size:74px;line-height:.9;font-family:var(--cn-font);color:var(--green)}
 .province-ru-large{font-size:58px;line-height:.95;color:var(--green);margin-top:4px}
 .province-head p{font-size:20px;color:#495f56;line-height:1.45;margin:16px 0 0}
 .province-cover{border-radius:26px;height:250px;object-fit:cover;object-position:center;filter:saturate(1.05)}
 .info-list{display:flex;flex-direction:column;gap:14px;margin-top:18px}
-.info-card{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:12px;border-radius:24px;background:rgba(245,248,243,.9);border:1px solid rgba(18,71,56,.06)}
+.info-card{display:grid;grid-template-columns:150px minmax(0,1fr);min-width:0;gap:16px;padding:12px;border-radius:24px;background:rgba(245,248,243,.9);border:1px solid rgba(18,71,56,.06)}
 .info-thumb{border-radius:18px;min-height:105px;background-size:cover;background-position:center}
 .thumb-city{background-image:linear-gradient(180deg,rgba(180,212,228,.2),rgba(255,255,255,.1)),url('assets/library/china-geography-territory-page.webp')}
 .thumb-place{background-image:linear-gradient(180deg,rgba(180,212,228,.15),rgba(255,255,255,.04)),url('assets/library/china-geography-relief-page.webp')}
 .thumb-route{background-image:linear-gradient(180deg,rgba(180,212,228,.15),rgba(255,255,255,.04)),url('assets/guide/china-relief-map.webp')}
 .info-body h3,.book-copy h3,.content-card h3{margin:0;font-size:26px;color:var(--green);font-weight:500}
 .info-body p,.content-card p,.feature-item p,.side-text p,.book-copy p{margin:10px 0 0;color:var(--muted);font-size:20px;line-height:1.45}
-.info-row,.content-row,.book-copy-row,.book-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.info-row,.content-row,.book-copy-row,.book-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.info-body,.side-panel,.content-main,.content-side{min-width:0}
+.info-body h3,.book-copy h3,.content-card h3{min-width:0;overflow-wrap:anywhere}
 
 .fav-btn{border:0;background:#f1f5ee;color:#95a59d;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;margin-top:2px}
 .fav-btn svg{width:19px;height:19px}
@@ -109,13 +115,13 @@ a{text-decoration:none;color:inherit}
 .panel-header p{margin:8px 0 0;color:var(--muted);font-size:18px}
 .visited-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
 .visit-chip{border:1px solid rgba(18,71,56,.08);background:#f7faf7;border-radius:18px;padding:12px 10px;cursor:pointer;text-align:left;color:var(--green)}
-.visit-chip span{display:block;font-family:KaiTi, STKaiti, serif;font-size:28px;line-height:1}.visit-chip small{display:block;margin-top:4px;font-size:13px;color:#5f746b}
+.visit-chip span{display:block;font-family:var(--cn-font);font-size:28px;line-height:1}.visit-chip small{display:block;margin-top:4px;font-size:13px;color:#5f746b}
 .visit-chip.active{background:#e8f1de;box-shadow:0 0 0 1px rgba(133,192,92,.35) inset}
 .books-grid,.cards-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}
 .book-card,.content-card{border:1px solid rgba(18,71,56,.08);background:rgba(255,255,255,.82);padding:16px;border-radius:24px;cursor:pointer;text-align:left}
 .book-card{display:grid;grid-template-columns:150px 1fr;gap:16px}
 .book-card img{width:150px;height:200px;object-fit:cover;border-radius:18px}
-.book-cn{font-family:KaiTi, STKaiti, serif;font-size:24px;color:var(--green)}
+.book-cn{font-family:var(--cn-font);font-size:24px;color:var(--green)}
 .book-card small,.content-card small{color:#6d8379;font-size:14px}
 .section-image{width:130px;height:130px;margin-bottom:8px}
 .side-text h2{margin:0;font-size:44px;color:var(--green);font-weight:500}
@@ -131,7 +137,7 @@ a{text-decoration:none;color:inherit}
 @media (max-width: 1200px){
   .content-layout{grid-template-columns:1fr}
   .hero-copy h1{font-size:74px}
-  .map-card{min-height:600px}
+  .map-card{min-height:0}
 }
 @media (max-width: 960px){
   .app-shell{grid-template-columns:1fr}
