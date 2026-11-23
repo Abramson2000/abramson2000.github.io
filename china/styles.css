@@ -152,6 +152,9 @@ a{text-decoration:none;color:inherit}
   body.drawer-drag .main{transition:none}
   body.drawer-open .sidebar{transform:translateX(0)}
   .main{padding:72px 12px 24px}
+  /* мобильный фон из макета */
+  body{background:url('assets/guide/mobile-bg.jpg') center top / cover no-repeat, linear-gradient(180deg,#fbfdfb 0%,#eef5ef 100%);background-attachment:fixed,scroll}
+  body::after{display:none}
   .hero-copy{padding:8px 8px 10px}
   .hero-copy h1{font-size:58px}
   .hero-copy p{font-size:20px}
