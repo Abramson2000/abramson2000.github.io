@@ -83,7 +83,7 @@
     const selected = provinceById(state.selectedProvince) || provinceById('YN');
     const map = `
       <div class="map-card">
-        <img src="assets/guide/china-relief-map.webp" class="china-map" alt="Карта Китая" />
+        <div class="map-inline" id="guideMap"></div>
       </div>
       <div class="region-picker">
         <label for="regionPicker">Регион</label>
@@ -146,7 +146,7 @@
 
     const map = `
       <div class="map-card library-map-card">
-        <img src="assets/guide/china-relief-map.webp" class="china-map grayscale" alt="Атлас регионов" />
+        <div class="map-inline" id="libMap"></div>
       </div>
       <div class="visited-panel">
         <div class="panel-header"><h3>Посещённые регионы</h3><p>Меняй отметки прямо здесь — карта обновляется сразу.</p></div>
@@ -237,7 +237,63 @@
     bindPageEvents();
   }
 
+
+  /* ===== карты из набора (SVG) ===== */
+  const mapCache = {};
+  function loadMap(kind){
+    if (mapCache[kind]) return Promise.resolve(mapCache[kind]);
+    return fetch('assets/maps/china-' + kind + '.svg')
+      .then(r => r.ok ? r.text() : '')
+      .then(t => { mapCache[kind] = t; return t; })
+      .catch(() => '');
+  }
+  function applyVisited(root){
+    root.querySelectorAll('[data-region]').forEach(function(p){
+      p.dataset.visited = String(isVisited(p.dataset.region));
+    });
+  }
+  function toggleVisited(id){
+    if (isVisited(id)) state.visited = state.visited.filter(x => x !== id); else state.visited.push(id);
+    saveVisited();
+    document.querySelectorAll('[data-toggle-visited]').forEach(function(b){
+      b.classList.toggle('active', isVisited(b.dataset.toggleVisited));
+    });
+    const root = document.querySelector('#libMap svg');
+    if (root) applyVisited(root);
+  }
+  function mountMaps(){
+    const g = document.getElementById('guideMap');
+    if (g && !g.dataset.mounted){
+      g.dataset.mounted = '1';
+      loadMap('guide').then(function(svg){
+        if (!svg) return;
+        g.innerHTML = svg;
+        const r = g.querySelector('svg');
+        if (r){ r.removeAttribute('width'); r.removeAttribute('height'); r.style.width = '100%'; r.style.height = 'auto'; }
+        g.querySelectorAll('[data-region]').forEach(function(p){
+          p.style.cursor = 'pointer';
+          p.addEventListener('click', function(){ state.selectedProvince = p.dataset.region; render(); });
+        });
+      });
+    }
+    const l = document.getElementById('libMap');
+    if (l && !l.dataset.mounted){
+      l.dataset.mounted = '1';
+      loadMap('library').then(function(svg){
+        if (!svg) return;
+        l.innerHTML = svg;
+        const r = l.querySelector('svg');
+        if (r){ r.removeAttribute('width'); r.removeAttribute('height'); r.style.width = '100%'; r.style.height = 'auto'; }
+        applyVisited(l);
+        l.querySelectorAll('[data-region]').forEach(function(p){
+          p.style.cursor = 'pointer';
+          p.addEventListener('click', function(){ toggleVisited(p.dataset.region); });
+        });
+      });
+    }
+  }
   function bindPageEvents(){
+    mountMaps();
     document.querySelectorAll('[data-province]').forEach(btn => btn.onclick = () => { state.selectedProvince = btn.dataset.province; render(); });
     const picker = document.getElementById('regionPicker');
     if (picker) picker.onchange = e => { state.selectedProvince = e.target.value; render(); };
@@ -245,10 +301,7 @@
     const back = document.getElementById('backToLibrary');
     if(back) back.onclick = () => { state.currentBook = null; render(); };
     document.querySelectorAll('[data-toggle-visited]').forEach(btn => btn.onclick = () => {
-      const id = btn.dataset.toggleVisited;
-      if(isVisited(id)) state.visited = state.visited.filter(x => x !== id); else state.visited.push(id);
-      saveVisited();
-      render();
+      toggleVisited(btn.dataset.toggleVisited);
     });
     document.querySelectorAll('.fav-btn').forEach(btn => btn.onclick = (e) => {
       e.stopPropagation();

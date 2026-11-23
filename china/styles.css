@@ -183,3 +183,7 @@ a{text-decoration:none;color:inherit}
 .update-bar span{flex:1;min-width:0}
 .update-bar button{border:0;border-radius:12px;padding:9px 14px;font:inherit;font-size:14px;font-weight:600;background:#eaf4e6;color:#124738;cursor:pointer}
 .update-bar .upd-close{background:transparent;color:rgba(255,255,255,.75);font-size:20px;padding:4px 8px;font-weight:400}
+.map-inline{width:100%}
+.map-inline svg{width:100%;height:auto;display:block}
+.map-card{padding:0;background:transparent;border:0;box-shadow:none}
+.map-inline [data-region]{transition:fill-opacity .15s ease}
