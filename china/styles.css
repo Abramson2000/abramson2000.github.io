@@ -157,3 +157,6 @@ a{text-decoration:none;color:inherit}
   .book-cover-large{width:140px;height:190px}
   .library-hotspots .map-label{font-size:16px}
 }
+.region-picker{display:flex;align-items:center;gap:12px;margin-top:14px;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.72);border:1px solid var(--line)}
+.region-picker label{font-size:14px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.region-picker select{flex:1;min-width:0;font:inherit;font-size:18px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink)}

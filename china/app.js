@@ -84,14 +84,12 @@
     const map = `
       <div class="map-card">
         <img src="assets/guide/china-relief-map.webp" class="china-map" alt="Карта Китая" />
-        <div class="map-hotspots guide-hotspots">
-          ${data.provinces.map(p => {
-            const status = regionStatus(p);
-            return `<button class="map-label ${status} ${state.selectedProvince === p.id ? 'selected' : ''}" style="left:${p.x}%;top:${p.y}%" data-province="${p.id}">
-              <span class="map-cn">${p.cn}</span><span class="map-ru">${p.ru}</span>
-            </button>`;
-          }).join('')}
-        </div>
+      </div>
+      <div class="region-picker">
+        <label for="regionPicker">Регион</label>
+        <select id="regionPicker">
+          ${data.provinces.map(p => `<option value="${p.id}"${state.selectedProvince === p.id ? ' selected' : ''}>${p.cn} · ${p.ru}</option>`).join('')}
+        </select>
       </div>`;
 
     const detailFavBase = { id:`province:${selected.id}`, type:'регион', title:`${selected.ru} · ${selected.cn}`, raw:`${selected.intro} Города: ${selected.cities.join(', ')}. Места: ${selected.places.join(', ')}. Маршрут: ${selected.routes.join('; ')}.`, source:`Путеводитель · ${selected.ru}` };
@@ -149,12 +147,6 @@
     const map = `
       <div class="map-card library-map-card">
         <img src="assets/guide/china-relief-map.webp" class="china-map grayscale" alt="Атлас регионов" />
-        <div class="map-hotspots library-hotspots">
-          ${data.provinces.map(p => {
-            const status = isVisited(p.id) ? 'visited' : 'muted';
-            return `<button class="map-label cn-only ${status}" style="left:${p.x}%;top:${p.y}%" data-toggle-visited="${p.id}">${p.cn}</button>`;
-          }).join('')}
-        </div>
       </div>
       <div class="visited-panel">
         <div class="panel-header"><h3>Посещённые регионы</h3><p>Меняй отметки прямо здесь — карта обновляется сразу.</p></div>
@@ -247,6 +239,8 @@
 
   function bindPageEvents(){
     document.querySelectorAll('[data-province]').forEach(btn => btn.onclick = () => { state.selectedProvince = btn.dataset.province; render(); });
+    const picker = document.getElementById('regionPicker');
+    if (picker) picker.onchange = e => { state.selectedProvince = e.target.value; render(); };
     document.querySelectorAll('[data-book]').forEach(btn => btn.onclick = () => { state.currentBook = btn.dataset.book; render(); });
     const back = document.getElementById('backToLibrary');
     if(back) back.onclick = () => { state.currentBook = null; render(); };
