@@ -145,7 +145,11 @@ a{text-decoration:none;color:inherit}
   .mobile-menu-btn span{display:block;width:20px;height:2px;background:var(--green);border-radius:2px}
   .overlay{position:fixed;inset:0;background:rgba(10,25,19,.28);z-index:19}
   body.drawer-open .overlay{display:block}
-  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:30;width:280px;transform:translateX(-102%);transition:transform .25s ease}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:30;width:280px;transform:translateX(-102%);transition:transform .28s cubic-bezier(.25,.8,.3,1);box-shadow:0 0 40px rgba(10,25,19,.18)}
+  .sidebar.dragging{transition:none}
+  .main{transition:opacity .3s ease}
+  body.drawer-open .main{opacity:.45}
+  body.drawer-drag .main{transition:none}
   body.drawer-open .sidebar{transform:translateX(0)}
   .main{padding:72px 12px 24px}
   .hero-copy{padding:8px 8px 10px}

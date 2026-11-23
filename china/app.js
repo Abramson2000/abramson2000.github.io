@@ -288,6 +288,52 @@
   document.getElementById('mobileMenuBtn').onclick = () => state.drawerOpen ? closeDrawer() : openDrawer();
   document.getElementById('overlay').onclick = closeDrawer;
 
+  /* Свайп панели — как в Тингли: тянем от левого края, закрываем движением влево */
+  (function(){
+    let drag = null;
+    const sidebar = () => document.getElementById('sidebar');
+    const narrow = () => window.innerWidth < 960;
+    document.addEventListener('touchstart', function(e){
+      if (!narrow()) return;
+      const sb = sidebar(); if (!sb) return;
+      const t = e.touches[0];
+      const open = document.body.classList.contains('drawer-open');
+      const onSidebar = e.target && e.target.closest && e.target.closest('#sidebar');
+      if (open && onSidebar) drag = { x:t.clientX, y:t.clientY, mode:'close', armed:false };
+      else if (!open && t.clientX < 24) drag = { x:t.clientX, y:t.clientY, mode:'open', armed:false };
+    }, { passive:true });
+
+    document.addEventListener('touchmove', function(e){
+      if (!drag) return;
+      const sb = sidebar(); if (!sb) return;
+      const t = e.touches[0];
+      const dx = t.clientX - drag.x, dy = Math.abs(t.clientY - drag.y);
+      const w = sb.offsetWidth;
+      if (!drag.armed) {
+        if (Math.abs(dx) < 12 || Math.abs(dx) < dy * 1.4) return;
+        drag.armed = true; sb.classList.add('dragging');
+        document.body.classList.add('drawer-drag');
+      }
+      if (Math.abs(dx) < dy) return;
+      if (drag.mode === 'close') sb.style.transform = 'translateX(' + Math.min(0, dx) + 'px)';
+      else sb.style.transform = 'translateX(' + Math.max(-w, dx - w) + 'px)';
+    }, { passive:true });
+
+    document.addEventListener('touchend', function(e){
+      if (!drag) return;
+      const sb = sidebar();
+      const dx = e.changedTouches[0].clientX - drag.x;
+      const armed = drag.armed;
+      if (sb){ sb.classList.remove('dragging'); sb.style.transform = ''; }
+      document.body.classList.remove('drawer-drag');
+      if (armed) {
+        if (drag.mode === 'close' && dx < -55) closeDrawer();
+        else if (drag.mode === 'open' && dx > 55) openDrawer();
+      }
+      drag = null;
+    }, { passive:true });
+  })();
+
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js?v=' + window.APP_VER).catch(() => {}); }
   render();
 })();
