@@ -36169,7 +36169,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.39.0';
+const APP_VER = '6.40.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -39287,6 +39287,7 @@ function openRik(n, review) {
     <div id="rikRes" class="rik-res"></div>
     <div style="display:flex;gap:10px;margin:6px 0 26px">
       <button class="btn" onclick="rikCheck(${n})">Проверить</button>
+      <button class="btn" id="rikNextBtn" onclick="rikQueueNext()" style="display:none">Дальше ›</button>
       <button class="btn ghost" onclick="rikBackToList(true)">К списку</button>
       ${RIK_REVIEW ? `<button class="btn ghost" onclick="openRik(${n},false)">Теория</button>` : ''}
     </div>`;
@@ -39380,9 +39381,16 @@ function rikCheck(n) {
     ? (RIK_REVIEW ? `<span style="color:#1f7a45">Повтор: верно ${right} из ${quiz.length} — закреплено</span>`
                   : `<span style="color:#1f7a45">Верно ${right} из ${quiz.length} — урок зачтён</span>`)
     : `<span style="color:#b3261e">Верно ${right} из ${quiz.length}. Нужно ${need}. Повтори правило и попробуй ещё</span>`;
-  if (pass && RIK_REVIEW && RIK_QUEUE) {          // в очереди — идём дальше сам
-    if (res) res.insertAdjacentHTML('beforeend', ' <b style="color:var(--ink-3)">Дальше…</b>');
-    setTimeout(rikQueueNext, 1100);
+  if (pass && RIK_REVIEW && RIK_QUEUE) {          // в очереди — дальше по кнопке, без спешки
+    const nb = document.getElementById('rikNextBtn');
+    if (nb) {
+      const pNow = rikProgress();
+      const due = rikReviewDue(pNow);
+      const nextU = RIK_UNITS.find(u => !(pNow[u.n] && pNow[u.n].ok));
+      nb.textContent = due.length ? 'Следующий повтор ›' : (nextU && rikAvailable(nextU.n, pNow) ? 'Новый урок ›' : 'К списку ›');
+      nb.style.display = '';
+      nb.onclick = (due.length || (nextU && rikAvailable(nextU.n, pNow))) ? rikQueueNext : function () { rikBackToList(true); };
+    }
   }
 }
 function renderMine() {
