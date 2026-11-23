@@ -191,3 +191,6 @@ a{text-decoration:none;color:inherit}
 .map-inline svg{width:100%;height:auto;display:block}
 .map-card{padding:0;background:transparent;border:0;box-shadow:none}
 .map-inline [data-region]{transition:fill-opacity .15s ease}
+.note-facts{margin:8px 0 0;padding-left:18px;color:#41675a;font-size:16px;line-height:1.45}
+.note-facts li{margin-bottom:4px}
+.thumb-note{background:#eef3e4}

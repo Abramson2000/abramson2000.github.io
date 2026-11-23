@@ -126,6 +126,14 @@
               <p>${selected.routes.join(' · ')}</p>
             </div>
           </div>
+          ${selected.notes ? `<div class="info-card">
+            <div class="info-thumb thumb-note"></div>
+            <div class="info-body">
+              <div class="info-row"><h3>Из блокнота</h3>${makeFavoriteButton({...detailFavBase,id:`province-notes:${selected.id}`,title:`${selected.ru} · Из блокнота`,raw:`${selected.notes.places.join(' · ')}. ${selected.notes.facts.join(' · ')}`,source:`Блокнот · ${selected.ru}`})}</div>
+              <p>${selected.notes.places.join(' · ')}</p>
+              ${selected.notes.facts.length ? `<ul class="note-facts">${selected.notes.facts.map(f => `<li>${f}</li>`).join('')}</ul>` : ''}
+            </div>
+          </div>` : ''}
         </div>
       </div>`;
 
