@@ -11,9 +11,9 @@
 
   const icons = {
     guide: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg>`,
-    library: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5A2.5 2.5 0 0 1 6.5 3z"/></svg>`,
-    tea: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2c0 2-1 3-1 4 0 1.2.8 2 2 2"/><path d="M12 2c0 2-1 3-1 4 0 1.2.8 2 2 2"/><path d="M4 10h10a4 4 0 0 1 0 8H8a4 4 0 0 1-4-4v-4z"/><path d="M14 11h3a3 3 0 0 1 0 6h-1"/></svg>`,
-    plane: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2 19 20-7-20-7 5 7-5 7z"/><path d="M7 12h15"/></svg>`,
+    library: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5C10.5 5.8 8.4 5 5.5 5H3v13h3c2.4 0 4.4.7 6 2.2 1.6-1.5 3.6-2.2 6-2.2h3V5h-2.5c-2.9 0-5 .8-6.5 2.5z"/><path d="M12 7.5V20"/></svg>`,
+    tea: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8.5c0-1.4 1.6-2.5 3.5-2.5s3.5 1.1 3.5 2.5"/><path d="M10.5 6V4.8"/><path d="M6 11h13v2.2a4.3 4.3 0 0 1-4.3 4.3H10.3A4.3 4.3 0 0 1 6 13.2z"/><path d="M6 12.2 3 10.6v3.2z"/><path d="M19 12.4a2.6 2.6 0 0 1 0 5"/><path d="M9 20.5h6"/></svg>`,
+    plane: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2a1.6 1.6 0 0 1 1.6 1.6v5.1l6.9 4v2.1l-6.9-2.1v3.9l2.4 1.7v1.6L12 20.4l-4 1.3v-1.6l2.4-1.7v-3.9L3.5 16v-2.1l6.9-4V4.8A1.6 1.6 0 0 1 12 3.2z"/></svg>`,
     help: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 1 1 5.7 1.3c-.7 1-1.8 1.5-2.4 2.2-.3.3-.4.7-.4 1.5"/><circle cx="12" cy="17" r=".8" fill="currentColor" stroke="none"/></svg>`,
     bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>`,
     chevron: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
@@ -65,7 +65,7 @@
     return `
       <div class="topbar">
         <div class="topbar-spacer"></div>
-        <div class="topbar-actions"><span class="top-icon">${icons.bell}</span><span class="top-avatar"><img src="assets/brand/logo-main.png" alt="avatar" /></span></div>
+        <div class="topbar-actions"><span class="ver-chip">v${window.APP_VER}</span><span class="top-icon">${icons.bell}</span><span class="top-avatar"><img src="assets/brand/logo-main.png" alt="avatar" /></span></div>
       </div>
       <section class="hero-copy ${state.section === 'library' ? 'library-copy' : ''}">
         <h1>${title}</h1>
