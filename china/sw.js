@@ -1,7 +1,7 @@
-const CACHE='my-china-v2.8.0';
+const CACHE='my-china-v2.9.0';
 const ASSETS=[
-  './','./index.html','./styles.css?v=2.8.0','./data.js?v=2.8.0','./favorites.js?v=2.8.0','./app.js?v=2.8.0','./manifest.json?v=2.8.0',
-  './assets/brand/logo-main.webp','./assets/brand/logo-main.png','./assets/brand/app-icon-192.png','./assets/brand/app-icon-512.png','./assets/guide/china-relief-map.webp','./assets/guide/mobile-bg.jpg','./assets/guide/desktop-bg.jpg','./assets/library/china-geography-cover.webp','./assets/library/china-geography-territory-page.webp','./assets/library/china-geography-relief-page.webp','./assets/sections/library.svg','./assets/sections/tea.svg','./assets/sections/trips.svg','./assets/fonts/noto-serif-sc-reg.woff2','./assets/fonts/noto-serif-sc-bold.woff2'
+  './','./index.html','./styles.css?v=2.9.0','./data.js?v=2.9.0','./favorites.js?v=2.9.0','./app.js?v=2.9.0','./manifest.json?v=2.9.0',
+  './assets/brand/logo-main.webp','./assets/brand/logo-main.png','./assets/brand/app-icon-192.png','./assets/brand/app-icon-512.png','./assets/guide/china-relief-map.webp','./assets/guide/mobile-bg.jpg','./assets/guide/desktop-bg.jpg','./assets/library/china-geography-cover.webp','./assets/library/china-geography-territory-page.webp','./assets/library/china-geography-relief-page.webp','./assets/sections/library.svg','./assets/sections/tea.svg','./assets/sections/trips.svg','./assets/icons/menu/guide.svg','./assets/icons/menu/library.svg','./assets/icons/menu/tea.svg','./assets/icons/menu/trips.svg','./assets/icons/menu/reference.svg','./assets/icons/brand/sidebar-mark.svg','./assets/icons/browser/favicon.svg','./assets/icons/browser/favicon-32.png','./assets/icons/browser/favicon.ico','./assets/fonts/noto-serif-sc-reg.woff2','./assets/fonts/noto-serif-sc-bold.woff2'
 ];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 const PREFIX='my-china-';
