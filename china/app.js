@@ -334,6 +334,41 @@
     }, { passive:true });
   })();
 
-  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js?v=' + window.APP_VER).catch(() => {}); }
+  /* Обновление приложения: проверяем новую версию при возврате и предлагаем обновить */
+  function swUpdateBar(){
+    if (document.getElementById('swUpd')) return;
+    const bar = document.createElement('div');
+    bar.id = 'swUpd'; bar.className = 'update-bar';
+    const label = document.createElement('span');
+    label.textContent = 'Доступна новая версия';
+    const go = document.createElement('button');
+    go.textContent = 'Обновить';
+    go.onclick = () => location.reload();
+    const close = document.createElement('button');
+    close.className = 'upd-close'; close.textContent = '×';
+    close.setAttribute('aria-label', 'Скрыть');
+    close.onclick = () => bar.remove();
+    bar.appendChild(label); bar.appendChild(go); bar.appendChild(close);
+    document.body.appendChild(bar);
+  }
+  window.swUpdateBar = swUpdateBar;
+
+  if('serviceWorker' in navigator){
+    let hadController = !!navigator.serviceWorker.controller, updating = false;
+    navigator.serviceWorker.register('sw.js?v=' + window.APP_VER, { updateViaCache: 'none' }).then(reg => {
+      const chk = () => {
+        if (document.visibilityState !== 'visible' || updating) return;
+        updating = true;
+        if (!reg || !reg.update) { updating = false; return; }
+        reg.update().catch(() => {}).then(() => { updating = false; });
+      };
+      document.addEventListener('visibilitychange', chk);
+      window.addEventListener('focus', chk);
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController) { hadController = true; return; }
+        swUpdateBar();
+      });
+    }).catch(() => {});
+  }
   render();
 })();

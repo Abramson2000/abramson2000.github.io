@@ -454,6 +454,10 @@
   .tab.active .tab-ru { color: var(--red-deep); opacity: .72; }
   .tab.active { background: var(--red-soft); }
   .tab.active .tab-label { color: var(--red-deep); }
+  .tl-update { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 90; display: flex; align-items: center; gap: 10px; background: var(--ink); color: var(--surface); padding: 12px 14px; border-radius: 16px; box-shadow: 0 10px 30px rgba(29,29,33,.28); font-size: 15px; line-height: 1.2; }
+  .tl-update span { flex: 1; min-width: 0; }
+  .tl-update button { border: 0; border-radius: 12px; padding: 9px 14px; font: inherit; font-size: 14px; font-weight: 700; background: var(--surface); color: var(--red-deep); cursor: pointer; }
+  .tl-update .tl-upd-close { background: transparent; color: rgba(255,255,255,.75); font-size: 20px; padding: 4px 8px; font-weight: 400; }
   .sb-ver { margin-top: auto; padding: 18px 12px calc(6px + env(safe-area-inset-bottom)); font-size: 12px; color: var(--ink-3); letter-spacing: .3px; text-align: left; font-weight: 500; }
   .sb-offline { padding: 0 12px 6px; }
   .sb-offline-btn { width: 100%; padding: 10px 12px; border: 1px solid rgba(29,29,33,.12); border-radius: 12px; background: var(--surface); color: var(--red-deep); font-size: 13px; font-weight: 700; cursor: pointer; transition: .15s ease; }
@@ -36160,7 +36164,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.35.3';
+const APP_VER = '6.37.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -43227,7 +43231,38 @@ try { localStorage.removeItem('tingli-offline-v1'); } catch (e) {}
 if ('serviceWorker' in navigator) {
   const SW_BUILD = 'offline-5.95.2';
 try { crsReconcileManHw(); crsReconcileAnswered(); } catch (e) {}
-  navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).catch(() => {});
+  /* Обновление приложения: проверяем новую версию при возврате и предлагаем обновить */
+  function swUpdateBar() {
+    if (document.getElementById('tlUpd')) return;
+    const bar = document.createElement('div');
+    bar.id = 'tlUpd'; bar.className = 'tl-update';
+    const label = document.createElement('span');
+    label.textContent = 'Доступна новая версия';
+    const go = document.createElement('button');
+    go.textContent = 'Обновить';
+    go.onclick = () => location.reload();
+    const close = document.createElement('button');
+    close.className = 'tl-upd-close'; close.textContent = '×';
+    close.setAttribute('aria-label', 'Скрыть');
+    close.onclick = () => bar.remove();
+    bar.appendChild(label); bar.appendChild(go); bar.appendChild(close);
+    document.body.appendChild(bar);
+  }
+  let hadController = !!navigator.serviceWorker.controller, swUpdating = false;
+  navigator.serviceWorker.register('sw.js?v=' + SW_BUILD, { updateViaCache: 'none' }).then(function (reg) {
+    const chk = function () {
+      if (document.visibilityState !== 'visible' || swUpdating) return;
+      swUpdating = true;
+      if (!reg || !reg.update) { swUpdating = false; return; }
+      reg.update().catch(function () {}).then(function () { swUpdating = false; });
+    };
+    document.addEventListener('visibilitychange', chk);
+    window.addEventListener('focus', chk);
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController) { hadController = true; return; }
+      swUpdateBar();
+    });
+  }).catch(() => {});
   navigator.serviceWorker.ready.then(() => offlineRefreshStatus()).catch(() => {});
 }
 </script>
