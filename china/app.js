@@ -65,7 +65,7 @@
     return `
       <div class="topbar">
         <div class="topbar-spacer"></div>
-        <div class="topbar-actions"><span class="ver-chip">v${window.APP_VER}</span><span class="top-icon">${icons.bell}</span><span class="top-avatar"><img src="assets/brand/logo-main.png" alt="avatar" /></span></div>
+        <div class="topbar-actions"><span class="ver-chip">v. ${window.APP_VER}</span><span class="top-icon">${icons.bell}</span><span class="top-avatar"><img src="assets/brand/logo-main.png" alt="avatar" /></span></div>
       </div>
       <section class="hero-copy ${state.section === 'library' ? 'library-copy' : ''}">
         <h1>${title}</h1>
@@ -335,7 +335,14 @@
     });
   }
 
-  function openDrawer(){ state.drawerOpen = true; document.body.classList.add('drawer-open'); }
+  function panelWidth(){
+    const sb = document.getElementById('sidebar');
+    if (!sb) return 0;
+    const w = Math.round(sb.getBoundingClientRect().width);
+    document.documentElement.style.setProperty('--panel-w', w + 'px');
+    return w;
+  }
+  function openDrawer(){ panelWidth(); state.drawerOpen = true; document.body.classList.add('drawer-open'); }
   function closeDrawer(){ state.drawerOpen = false; document.body.classList.remove('drawer-open'); }
 
   document.getElementById('mobileMenuBtn').onclick = () => state.drawerOpen ? closeDrawer() : openDrawer();
