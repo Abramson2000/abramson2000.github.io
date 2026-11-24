@@ -1,7 +1,7 @@
 (() => {
   const data = window.APP_DATA;
   const state = {
-    section: 'guide',
+    section: new URLSearchParams(location.search).get('section') === 'library' ? 'library' : 'guide',
     selectedProvince: 'YN',
     currentBook: null,
     drawerOpen: false,
@@ -202,6 +202,7 @@
     const content = `
       <button class="back-btn" id="backToLibrary">← Назад в Библиотеку</button>
       <div class="book-layout">
+        ${book.id === 'book-history' ? '<a class="back-btn" href="books/history.html">Читать иллюстрированный курс по истории →</a>' : ''}
         ${book.id === 'book-geo' ? '<a class="back-btn" href="books/geography.html">Читать иллюстрированное содержание · 97 тем →</a>' : ''}
         <div class="book-takeaway-block"><h3>О книге</h3><p>${book.note}</p><div class="book-main-idea"><strong>Главное:</strong> ${book.takeaway}</div></div>
         <div class="book-sections">${sections}</div>
