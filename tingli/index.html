@@ -24,9 +24,9 @@
   @font-face { font-family: 'TLCJK'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/simsun-subset.woff2?v=5.97.0') format('woff2'); unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF, U+2018-201D, U+2026, U+00B7; }
   :root {
     /* 6.16.0: китайские шрифты — 黑体 для слов и заданий, 楷体 для текстов */
-    --f-hei: "PingFang SC", "Heiti SC", "Noto Sans SC", "Source Han Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    --f-hei: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, "PingFang SC", "Heiti SC", "Noto Sans SC", "Source Han Sans SC", sans-serif;
     --f-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "PingFang SC", "Heiti SC", "Noto Sans SC", sans-serif;
-    --f-kai: "TLKai", "Kaiti SC", "STKaiti", "KaiTi", serif;
+    --f-kai: "Iowan Old Style", Georgia, "Times New Roman", -apple-system, "TLKai", "Kaiti SC", "STKaiti", "KaiTi", serif;
     /* ===== палитра Tingli (5.0.0) ===== */
     --paper:       #F5F4F1;
     --surface:     #FFFFFF;
@@ -106,7 +106,7 @@
   .rik-sec { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3, #9a968f); margin: 18px 2px 8px; }
 .rik-rule { background: var(--card); border-radius: 16px; padding: 16px; font-size: 16.5px; line-height: 1.62; box-shadow: var(--shadow-card); }
 .rik-ex { background: var(--card); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow-card); }
-.rik-ex-zh { font-family: "TLKai", "TLCJK", serif; font-size: 25px; line-height: 1.5; color: var(--ink); }
+.rik-ex-zh { font-family: var(--f-kai); font-size: 25px; line-height: 1.5; color: var(--ink); }
 .rik-ex-py { font-size: 13.5px; color: var(--ink-2); margin-top: 4px; }
 .rik-ex-ru { font-size: 15px; color: var(--ink); margin-top: 6px; }
 .rik-q { display: flex; gap: 12px; background: var(--card); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow-card); }
@@ -139,7 +139,7 @@
   .rik-review-note { font-size: 16px; }
 }
 .rik-res { font-size: 15px; margin: 4px 2px 12px; }
-.rik-glyph { font-family: "TLKai", "TLCJK", serif; font-size: 26px; font-weight: 700; }
+.rik-glyph { font-family: var(--f-kai); font-size: 26px; font-weight: 700; }
 .rik-locked { background: var(--danger-soft); box-shadow: inset 0 0 0 1px rgba(166,59,52,.14); }
 .rik-locked .unit-zh { color: var(--danger); }
 .rik-locked .unit-zh-sub { color: rgba(166,59,52,.75); }
@@ -151,8 +151,8 @@
 .rik-passed { background: linear-gradient(180deg, var(--done-soft), var(--card) 62%); }
 .rik-check { width: 30px; height: 30px; border-radius: 50%; background: var(--done); color: #fff; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .unit-emoji { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 25px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(29,29,33,.04); }
-  .unit-zh { font-family: "TLKai", "TLCJK", "PingFang SC", "Songti SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
-  .unit-zh-sub { font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .unit-zh { font-family: var(--f-kai); font-size: 16px; font-weight: 700; letter-spacing: -.2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  .unit-zh-sub { font-family: var(--f-kai); font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .unit-arrow { color: var(--line); font-size: 22px; font-weight: 600; flex-shrink: 0; line-height: 1; width: 12px; text-align: right; font-family: "TLKai", "TLCJK", -apple-system, sans-serif; }
   .unit-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; min-width: 0; flex-wrap: nowrap; }
   .pbar { flex: 0 1 92px; min-width: 34px; height: 5px; border-radius: 99px; background: var(--line); overflow: hidden; }
@@ -174,13 +174,13 @@
   .unit-dl:disabled { opacity: .55; cursor: not-allowed; pointer-events: none; }
 
   .u-title { font-size: 21px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 2px; }
-  .u-sub { font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 13.5px; color: var(--muted); margin-bottom: 14px; letter-spacing: .3px; }
+  .u-sub { font-family: var(--f-kai); font-weight: 400; font-size: 13.5px; color: var(--muted); margin-bottom: 14px; letter-spacing: .3px; }
 
   /* Список частей */
   .part { background: var(--card); border-radius: 16px; margin-bottom: 11px; overflow: hidden; box-shadow: var(--shadow-card); cursor: pointer; transition: transform .12s ease; }
   .part:active { transform: scale(.985); }
   .part-head { display: flex; align-items: center; gap: 10px; padding: 14px 13px; }
-  .part-num { width: 31px; height: 31px; border-radius: 12px; font-weight: 700; font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-size: 16.5px; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--surface); background: var(--red); box-shadow: 0 2px 6px rgba(198,55,23,.28); }
+  .part-num { width: 31px; height: 31px; border-radius: 12px; font-weight: 700; font-family: var(--f-kai); font-size: 16.5px; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--surface); background: var(--red); box-shadow: 0 2px 6px rgba(198,55,23,.28); }
   .part-title { font-weight: 650; font-size: 15.5px; flex: 1; min-width: 0; letter-spacing: -.2px; line-height: 1.28; }
   .part-main { flex: 1; min-width: 0; }
   .part-due { margin-top: 4px; }
@@ -189,14 +189,14 @@
   .part-due .due-badge.over { color: var(--danger); }
   .part-due .due-badge.soon { color: var(--ochre-ink); }
   .part-due .due-badge.done { color: var(--jade); }
-  .part-zh { font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .2px; }
+  .part-zh { font-family: var(--f-kai); font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .2px; }
   .part-arrow { color: var(--line); font-size: 22px; font-weight: 600; }
   .lesson-img { width: 100%; border-radius: 16px; box-shadow: 0 6px 20px rgba(29,29,33,.14); margin: 2px 0 14px; display: block; }
   .lesson-fig { margin: 0 0 14px; }
   .lesson-fig .lesson-img { margin: 0 auto; display: block; }
   .lesson-fig-cap { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.35; }
   .lesson-text { background: var(--card); border-radius: 20px; padding: 24px 22px; box-shadow: var(--shadow-card); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Arial, sans-serif; }
-  .lesson-text p { margin: 0 0 1.1em; font-size: 20px; line-height: 1.82; letter-spacing: 0; font-family: "TLKai", "TLCJK", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Arial, sans-serif; }
+  .lesson-text p { margin: 0 0 1.1em; font-size: 20px; line-height: 1.82; letter-spacing: 0; font-family: var(--f-kai); }
   .lesson-text p:last-child { margin-bottom: 0; }
   .speak { background: var(--card); border-radius: 20px; padding: 18px 16px; box-shadow: var(--shadow-card); margin-top: 14px; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Arial, sans-serif; }
   .speak-h { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
@@ -210,7 +210,7 @@
   .speak-out { margin-top: 10px; display: none; }
   .speak-out.show { display: block; }
   .speak-heard { font-size: 14px; line-height: 1.7; background: var(--paper); border-radius: 14px; padding: 12px; }
-  .speak-heard .hzh { font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; font-size: 19px; display: block; margin-top: 4px; }
+  .speak-heard .hzh { font-family: var(--f-kai); font-size: 19px; display: block; margin-top: 4px; }
   .speak-verdict { font-size: 14px; line-height: 1.7; margin-top: 10px; }
   .dlg-tools { display:flex; gap:9px; margin:0 0 12px; }
   .dlg-tools .btn { padding:12px 14px; }
@@ -221,13 +221,13 @@
   .dlg-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
   .dlg-role { width:25px; height:25px; border-radius:9px; background:var(--seal-soft); color:var(--seal); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; }
   .dlg-say { margin-left:auto; border:0; background:var(--paper); color:var(--ink); border-radius:999px; padding:6px 10px; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
-  .dlg-zh { font-family:"TLKai", "TLCJK","SimSun","Songti SC","STSong",serif; font-size:19px; line-height:1.6; color:var(--ink); }
+  .dlg-zh { font-family:var(--f-kai); font-size:19px; line-height:1.6; color:var(--ink); }
   .dlg-py { font-size:13px; line-height:1.5; color:var(--seal); margin-top:4px; }
   .dlg-ru { font-size:13px; line-height:1.5; color:var(--ink-2); margin-top:4px; }
   .vhw-intro { background:var(--surface); border-radius:16px; padding:13px 14px; margin:12px 0; box-shadow:var(--shadow-card); color:var(--ink-2); font-size:14px; line-height:1.55; }
   .vhw-item { background:var(--surface); border-radius:18px; padding:14px; margin:10px 0; box-shadow:var(--shadow-card); }
   .vhw-num { font-size:12px; font-weight:800; color:var(--seal); margin-bottom:6px; }
-  .vhw-zh { font-family:"TLKai", "TLCJK","SimSun","Songti SC","STSong",serif; font-size:19px; line-height:1.6; color:var(--ink); }
+  .vhw-zh { font-family:var(--f-kai); font-size:19px; line-height:1.6; color:var(--ink); }
   .vhw-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
   .vhw-b { border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:999px; padding:8px 12px; font:inherit; font-size:12.5px; font-weight:700; cursor:pointer; }
   .vhw-b.rec { background:var(--seal); border-color:var(--seal); color:#fff; }
@@ -248,7 +248,7 @@
   .rec-hw-item { background:var(--surface); border-radius:18px; padding:15px 16px; box-shadow:var(--shadow-card); margin-bottom:11px; }
   .rec-hw-top { display:flex; gap:11px; align-items:flex-start; }
   .rec-hw-num { width:30px; height:30px; border-radius:10px; background:var(--seal); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; }
-  .rec-hw-phrase { font-family:"TLKai", "TLCJK","SimSun","Songti SC","STSong",serif; font-size:19px; line-height:1.65; color:var(--ink); flex:1; }
+  .rec-hw-phrase { font-family:var(--f-kai); font-size:19px; line-height:1.65; color:var(--ink); flex:1; }
   .rec-hw-state { font-size:12.5px; color:var(--ink-2); margin:8px 0 0 41px; }
   .rec-hw-state.saved { color:var(--jade); font-weight:700; }
   .rec-hw-state.live { color:var(--danger); font-weight:700; }
@@ -288,7 +288,7 @@
   .tdot.bad { background: var(--red); }
   .task-card { background: var(--card); border-radius: 20px; padding: 22px 18px; box-shadow: var(--shadow-card); }
   .task-q-ru { font-size: 18.5px; font-weight: 650; margin-bottom: 5px; line-height: 1.45; letter-spacing: -.2px; }
-  .task-q-zh { font-size: 15.5px; color: var(--ink-2); margin-bottom: 15px; line-height: 1.55; font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; }
+  .task-q-zh { font-size: 15.5px; color: var(--ink-2); margin-bottom: 15px; line-height: 1.55; font-family: var(--f-kai); }
   .task-q { font-size: 17.5px; margin-bottom: 13px; line-height: 1.55; font-weight: 600; letter-spacing: -.1px; }
   .task-q.ruq, .opt.ruq, .fill.ruq { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important; }
   .task-q .hl { background: var(--ochre-soft); color: var(--ochre-ink); font-weight: 700; border-radius: 5px; padding: 0 4px; }
@@ -368,12 +368,12 @@
   .word .py { color: var(--muted); font-size: 14px; }
   .word .ru { color: var(--text); font-size: 14px; text-align: left; }
   .word .w-add { color: var(--line); font-size: 19px; text-align: right; padding: 3px 2px 3px 8px; line-height: 1; border: 0; background: transparent; font-family: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; }
-  .word .word-ex { grid-column: 1 / -1; color: var(--muted); font-size: 13.5px; line-height: 1.45; margin-top: -2px; font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; }
+  .word .word-ex { grid-column: 1 / -1; color: var(--muted); font-size: 13.5px; line-height: 1.45; margin-top: -2px; font-family: var(--f-kai); }
   .word.indict .w-add { color: var(--done); }
   .word.sel { background: var(--seal-soft); box-shadow: inset 0 0 0 1.5px var(--red); padding-left: 10px; padding-right: 10px; border-radius: 14px; }
   .dict-send-bar { position: sticky; bottom: 0; padding: 12px 16px 18px; background: linear-gradient(transparent, var(--bg) 30%); }
   .dict-item { display: flex; align-items: center; gap: 13px; background: var(--card); border-radius: 16px; padding: 12px 15px; margin: 9px 16px; box-shadow: var(--shadow-card); }
-  .dict-zh { font-size: 19.5px; font-weight: 600; min-width: 92px; font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", serif; }
+  .dict-zh { font-size: 19.5px; font-weight: 600; min-width: 92px; font-family: var(--f-kai); }
   .dict-body { flex: 1; min-width: 0; }
   .dict-py { color: var(--muted); font-size: 13px; }
   .dict-ru { font-size: 14px; color: var(--text); text-align: left; }
@@ -454,7 +454,7 @@
   .tab.active .ic-img-on { display: block; }
   .tab.active .ic-img-off { display: none; }
   .tab-label { display: flex; flex-direction: column; align-items: flex-start; font-size: 22px; font-weight: 700; color: var(--ink-2); white-space: nowrap; letter-spacing: .3px; font-family: "TLKai", "TLCJK", "SimSun", "Songti SC", "STSong", "Noto Serif SC", serif; line-height: 1.12; }
-  .tab-ru { font-family: "TLKai", "TLCJK", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif; font-weight: 300; font-size: 13.5px; letter-spacing: .2px; color: var(--ink-3); margin-top: 3px; }
+  .tab-ru { font-family: var(--f-ui); font-weight: 300; font-size: 13.5px; letter-spacing: .2px; color: var(--ink-3); margin-top: 3px; }
   .tab.active .tab-ru { color: var(--red-deep); opacity: .72; }
   .tab.active { background: var(--red-soft); }
   .tab.active .tab-label { color: var(--red-deep); }
@@ -1129,7 +1129,7 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
 }
 
   /* 5.97.0: ТОЛЬКО текст урока — крупнее. Заголовки (XSHand) не трогаем вообще. */
-  .lesson-text p, .lesson-text li, .dlg-zh { font-family: "TLKai", "TLCJK", "KaiTi", "Kaiti SC", "STKaiti", serif; }
+  .lesson-text p, .lesson-text li, .dlg-zh { font-family: var(--f-kai); }
   .lesson-text p { font-size: 21px; line-height: 1.85; }
 </style>
 <style id="crs-card-621">
@@ -16988,7 +16988,7 @@ const EXTRA_UNITS = [
     "kind": "hw",
     "title": "ДЗ 作业",
     "titleZh": "",
-    "text": "Ответь письменно на вопросы по тексту «我要去埃及». Ответы сохраняются сами. Когда ответишь на все — жми «📋 Сформировать текст для учителя» и отправляй учителю.",
+    "text": "Ответь письменно на вопросы по тексту «我要去埃及».",
     "questions": [
      "老师给了“我”什么？",
      "“我”为什么一到家就看起那本地图来？",
@@ -17588,7 +17588,7 @@ const EXTRA_UNITS = [
     "kind": "hw",
     "title": "ДЗ 作业",
     "titleZh": "",
-    "text": "Часть 1 — лексика и связки. Часть 2 — сравнение и 并不. Часть 3 — собрать предложение. Часть 4 — перевод и своя речь. Ответы сохраняются сами; в конце «🤖 Проверить».",
+    "text": "Часть 1 — лексика и связки. Часть 2 — сравнение и 并不. Часть 3 — собрать предложение. Часть 4 — перевод и своя речь.",
     "questions": [
      {
       "q": "Вставь слово: 那是我一生中最（____）的一天。",
@@ -19909,7 +19909,7 @@ const EXTRA_UNITS = [
     "kind": "hw",
     "title": "ДЗ 作业 · Вставь слово",
     "titleZh": "选词填空",
-    "text": "Вставь пропущенное слово из новых слов урока. Выбери слово и жми «Проверить».",
+    "text": "Вставь пропущенное слово из новых слов урока.",
     "bank": [
      "使",
      "各种各样",
@@ -20150,7 +20150,7 @@ const EXTRA_UNITS = [
     "kind": "hw",
     "title": "ДЗ 作业 · Упражнения из учебника",
     "titleZh": "课本练习",
-    "text": "Три упражнения из учебника — дословно, ничего не менял. Впиши ответ в каждой строке, нажми «🤖 Проверить», потом «📋 Сформировать текст для учителя» и отправь Лаоши. Ответы сохраняются сами.",
+    "text": "",
     "bank": [
      "什么",
      "哪儿",
@@ -20159,59 +20159,59 @@ const EXTRA_UNITS = [
     ],
     "questions": [
      {
-      "q": "练习一 (1). A：______吗？（什么）B：谢谢，我也喝咖啡吧。",
+      "q": "A：______吗？（什么）B：谢谢，我也喝咖啡吧。",
       "ex": "你想喝点儿什么吗？ — Ты хочешь что-нибудь выпить?"
      },
      {
-      "q": "练习一 (2). A：______吗？（哪儿）B：不想去，我太累了。",
+      "q": "A：______吗？（哪儿）B：不想去，我太累了。",
       "ex": "我们找哪儿玩儿一会儿好吗？ — Может, найдём где-нибудь место и немного погуляем?"
      },
      {
-      "q": "练习一 (3). A：______吧。（谁）B：附近没有人，怎么问呢？",
+      "q": "A：______吧。（谁）B：附近没有人，怎么问呢？",
       "ex": "我们找谁问问吧。 — Давай спросим кого-нибудь."
      },
      {
-      "q": "练习一 (4). A：______吧。（什么时候）B：最近很忙，暑假的时候再去吧。",
+      "q": "A：______吧。（什么时候）B：最近很忙，暑假的时候再去吧。",
       "ex": "你什么时候有时间，到我家来玩儿吧。 — Когда у тебя будет время, приходи ко мне в гости."
      },
      {
-      "q": "练习二 (1). A：你想吃什么？B：______。",
+      "q": "A：你想吃什么？B：______。",
       "ex": "你吃什么，我就吃什么。 — Что будешь есть ты, то буду есть и я."
      },
      {
-      "q": "练习二 (2). A：你想去哪个班？B：______。",
+      "q": "A：你想去哪个班？B：______。",
       "ex": "哪个班人少，我就去哪个班。 — В ту, где меньше людей."
      },
      {
-      "q": "练习二 (3). A：我们去哪儿玩儿？B：______。",
+      "q": "A：我们去哪儿玩儿？B：______。",
       "ex": "今天，我们哪儿热闹去哪儿。 — Сегодня пойдём туда, где оживлённее."
      },
      {
-      "q": "练习二 (4). A：作文怎么写呢？B：______。",
+      "q": "A：作文怎么写呢？B：______。",
       "ex": "你想怎么写，就怎么写。 — Пиши так, как тебе хочется."
      },
      {
-      "q": "练习二 (5). A：我们谁回答都行吗？B：当然，______。",
+      "q": "A：我们谁回答都行吗？B：当然，______。",
       "ex": "谁知道谁就回答吧。 — Конечно, кто знает, тот и отвечает."
      },
      {
-      "q": "练习三 (1). A：看看我是谁？不认识我了？B：______。",
+      "q": "A：看看我是谁？不认识我了？B：______。",
       "ex": "你变化太大了，我都认不出来了。 — Ты так изменился, что я тебя уже не узнаю."
      },
      {
-      "q": "练习三 (2). A：他们俩最近有点儿奇怪。B：______。",
+      "q": "A：他们俩最近有点儿奇怪。B：______。",
       "ex": "你看不出来吗？小李喜欢小王。 — Разве ты не замечаешь? Сяо Ли нравится Сяо Ван."
      },
      {
-      "q": "练习三 (3). A：外边谁在说话？B：______。",
+      "q": "A：外边谁在说话？B：______。",
       "ex": "我听出来了，是小王的声音。 — Я узнал голос: это Сяо Ван."
      },
      {
-      "q": "练习三 (4). A：这份文件我急着用，谁能帮我快点儿打出来？B：______。",
+      "q": "A：这份文件我急着用，谁能帮我快点儿打出来？B：______。",
       "ex": "小王打字快，一会儿就打出来了。 — Сяо Ван быстро печатает, скоро всё напечатает."
      },
      {
-      "q": "练习三 (5). A：怎么办？谁有好办法？B：______。",
+      "q": "A：怎么办？谁有好办法？B：______。",
       "ex": "我想出来一个好办法。 — Мне пришла в голову хорошая идея."
      }
     ]
@@ -36246,7 +36246,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.41.0';
+const APP_VER = '6.41.3';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -39559,6 +39559,18 @@ function cidianToast(msg) {
   document.body.appendChild(d);
 }
 function dictSrcLabel() { try { return (typeof unitLabel === 'function' && curUnit ? unitLabel(curUnit) : '') + (curPart ? ' · ' + curPart.title : ''); } catch (e) { return 'Тингли'; } }
+/** Что уже лежит в «Моём словаре» (cidian) — читаем его per-word ключи в этом же origin. */
+function cidianKnownHanzi(){
+ const set=new Set();
+ try{
+  for(let i=0;i<localStorage.length;i++){
+   const k=localStorage.key(i);
+   if(!k||!k.startsWith('cidian-word-v4-'))continue;
+   try{const w=JSON.parse(localStorage.getItem(k));if(w&&w.hanzi&&!w.deleted)set.add(String(w.hanzi).trim());}catch(_){}
+  }
+ }catch(_){}
+ return set;
+}
 function sendWordOne(el) {
   const row = el.closest('.word'); if (!row || !curPart) return;
   const w = curPart.words[Number(row.dataset.i)]; if (!w) return;
@@ -39591,13 +39603,31 @@ async function sendReviewedWords(d,label){
 }
 async function dictSendOne(i){
  const w=dictLoad()[i];if(!w)return;
- try{const ok=await sendReviewedWords([w],w.src||'Тингли');cidianToast(ok?'Словарь получил: '+w.zh:'Не отправлено. Слово сохранено в очереди; повторим при подключении.');}
+ try{
+   if(cidianKnownHanzi().has(String(w.zh||'').trim())){ cidianToast('Не прошло: '+w.zh+' — уже есть в Словаре.'); return; }
+   cidianSend([w],w.src||'Тингли');
+   for(let n=0;n<4 && cidianSender.pending().length;n++){ if(!await cidianSender.run())break; }
+   cidianToast(cidianSender.pending().length?('Не ушло: '+w.zh+'. Слово в очереди.'):('В «Мои слова»: '+w.zh));
+ }
  catch(e){cidianToast('Не отправлено: '+e.message);}
 }
 async function dictSendAll(){
  const d=dictLoad();if(!d.length)return;
  const b=document.getElementById('dictSendAll');if(b){b.disabled=true;b.textContent='Отправляю…';}
- try{const ok=await sendReviewedWords(d,'Тингли · словарь');cidianToast(ok?'Словарь получил '+d.length+' слов. Открой «не в Лаоши».':'Не отправлено. Слова сохранены в очереди; повторим при подключении.');}
+ try{
+   const known=cidianKnownHanzi();
+   const fresh=d.filter(w=>!known.has(String(w.zh||'').trim()));
+   const skipped=d.length-fresh.length;
+   if(fresh.length){
+     cidianSend(fresh,'Тингли · словарь');
+     for(let n=0;n<4 && cidianSender.pending().length;n++){ if(!await cidianSender.run())break; }
+   }
+   const left=cidianSender.pending().length;
+   const parts=[];
+   if(fresh.length) parts.push(left? ('Отправляю '+fresh.length+', часть ещё в очереди.') : ('Отправлено в «Мои слова»: '+fresh.length+'.'));
+   if(skipped) parts.push('Не прошло '+skipped+' '+(skipped===1?'слово':'слов')+' — уже есть в Словаре.');
+   cidianToast(parts.join(' '));
+ }
  catch(e){cidianToast('Не отправлено: '+e.message);}
  finally{if(b){b.disabled=false;b.textContent='Отправить в Словарь';}}
 }
