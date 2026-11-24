@@ -2618,7 +2618,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.3.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.4.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5601,10 +5601,12 @@ async function renderVisits() {
     if (!MGR_FILTER) return true;
     const cid = (rec && rec.clinic_id != null) ? rec.clinic_id : null;
     const parts = ((rec && rec.participants) || []).map(canonManager);
-    if (parts.includes(MGR_FILTER)) return true;               // совместная поездка: визит виден участнику
     const m = String(mgrById[cid] || '').trim();
-    if (MGR_FILTER === '__dept') return DEPT.includes(m) || parts.some(x => DEPT.includes(x));
-    return m === MGR_FILTER;
+    // 6.4.0: у визита есть участники — фильтр смотрит на них, а не на менеджера клиники.
+    // Иначе визит Осечкиной в клинике Абрамова попадал в его список.
+    if (MGR_FILTER === '__dept') return parts.length ? parts.some(x => DEPT.includes(x)) : DEPT.includes(m);
+    if (parts.length) return parts.includes(MGR_FILTER);
+    return m === MGR_FILTER;                                   // у старых записей участников нет — судим по клинике
   };
 
   const sV = state.search;
@@ -6431,10 +6433,19 @@ async function saveVisitPlanRow(clinicId, plan, noteId) {
     const { error } = await sb.from('notes').update({ text: body, clinic_id: cid }).eq('id', nId);
     if (error) throw error;
   } else {
-    const { error } = await sb.from('notes').insert({
-      clinic_id: cid, text: body,
-      author_email: CURRENT_EMAIL || null, author_name: myManagerName() || window.CURRENT_MANAGER || null, source: 'visit_plan'
-    });
+    // 6.4.0: точный дубль (тот же визит, то же тело) не создаём — обновляем найденный
+    let twinId = null;
+    try {
+      const { data: same } = await sb.from('notes').select('id,text').like('text', VISIT_MARK + '%').eq('clinic_id', cid);
+      const twin = (same || []).find(n => String(n.text) === body);
+      if (twin) twinId = twin.id;
+    } catch (_) {}
+    const { error } = twinId
+      ? await sb.from('notes').update({ text: body, clinic_id: cid }).eq('id', twinId)
+      : await sb.from('notes').insert({
+          clinic_id: cid, text: body,
+          author_email: CURRENT_EMAIL || null, author_name: myManagerName() || window.CURRENT_MANAGER || null, source: 'visit_plan'
+        });
     if (error) throw error;
   }
   invalidateVisitCache();
