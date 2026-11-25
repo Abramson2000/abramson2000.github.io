@@ -1,4 +1,4 @@
-window.APP_VER = '2.13.2';
+window.APP_VER = '2.13.3';
 window.APP_DATA = {
   menu: [
     { id: 'guide', title: 'Путеводитель', icon: 'guide' },
