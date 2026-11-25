@@ -1,5 +1,5 @@
 // A complete version-pinned shell starts without waiting for the network.
-const V = '2.23.4';
+const V = '2.23.3';
 const CACHE = 'cidian-cache-v' + V + '-offline';
 const ENTRY = './index.' + V + '.html';
 const CORE = [ENTRY, './styles.'+V+'.css', './app.'+V+'.js', './pinyin-pro.'+V+'.js', './offline.'+V+'.js',
