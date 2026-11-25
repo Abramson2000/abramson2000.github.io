@@ -1492,6 +1492,10 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
         <span>Литокласт</span><em class="cnt" data-cnt="litho"></em>
       </button>
+      <button class="tab d-item" data-view="klei">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg>
+        <span>Клей</span><em class="cnt" data-cnt="klei"></em>
+      </button>
       <button class="tab d-item" data-view="air">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M5.8 12h2.6l1.6-3.4 2.2 6.6 1.7-3.2h3.3"/></svg>
         <span>АиР</span>
@@ -1581,6 +1585,10 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
       <button class="tab" data-view="litho">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
         <span>Литокласт <em class="cnt" data-cnt="litho"></em></span>
+      </button>
+      <button class="tab" data-view="klei">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg>
+        <span>Клей <em class="cnt" data-cnt="klei"></em></span>
       </button>
       <button class="tab" data-view="air">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M5.8 12h2.6l1.6-3.4 2.2 6.6 1.7-3.2h3.3"/></svg>
@@ -2618,7 +2626,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.4.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.5.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2728,10 +2736,10 @@ function ownershipLabel(o) { return o === 'private' ? 'Частная' : (o === 
 // v3.29.0: единая короткая метка клиники для всех списков — «ЛПУ» / «ЧК»
 // ===== v3.30.0: МЕТКИ ПО ГРУППАМ — тип (ЛПУ/ЧК) · продукты · источники · служебные =====
 const TYPE_VALS = ['ЛПУ', 'ЧК'];
-const PRODUCT_VALS = ['ЦНС', 'BS', 'ХМ', 'АиР', 'Эндо', 'EMS'];
+const PRODUCT_VALS = ['ЦНС', 'BS', 'ХМ', 'АиР', 'Эндо', 'EMS', 'Клей'];
 const SOURCE_VALS = ['База', 'MDPro', 'Сафайр', 'РОУ26', 'OLD'];
 const SERVICE_VALS = ['ТЕСТ'];
-const PROD_ALIAS = { 'цнс': 'ЦНС', 'cns': 'ЦНС', 'bs': 'BS', 'boston': 'BS', 'хм': 'ХМ', 'hm': 'ХМ', 'hugemed': 'ХМ', 'аир': 'АиР', 'air': 'АиР', 'эндо': 'Эндо', 'endo': 'Эндо', 'ems': 'EMS' };
+const PROD_ALIAS = { 'цнс': 'ЦНС', 'cns': 'ЦНС', 'bs': 'BS', 'boston': 'BS', 'хм': 'ХМ', 'hm': 'ХМ', 'hugemed': 'ХМ', 'аир': 'АиР', 'air': 'АиР', 'эндо': 'Эндо', 'endo': 'Эндо', 'ems': 'EMS', 'клей': 'Клей', 'клеи': 'Клей', 'venaseal': 'Клей', 'glue': 'Клей' };
 const SRC_ALIAS = { 'база': 'База', 'base': 'База', 'mdpro': 'MDPro', 'сафайр': 'Сафайр', 'safair': 'Сафайр', 'роу26': 'РОУ26', 'rou26': 'РОУ26', 'old': 'OLD' };
 const SVC_ALIAS = { 'тест': 'ТЕСТ', 'test': 'ТЕСТ' };
 function aliasOf(map, t) { return map[String(t || '').trim().toLowerCase()] || ''; }
@@ -3334,7 +3342,7 @@ async function bootstrap(preferredUser) {
   let savedView = '';
   try { savedView = localStorage.getItem('crm-last-view') || ''; } catch (_) {}
   const KNOWN_VIEWS = ['myday', 'clinics', 'distributors', 'people', 'plan', 'money', 'calls', 'visits',
-    'cns', 'litho', 'air', 'endo', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'analysis', 'sasha', 'nastya', 'galya'];
+    'cns', 'litho', 'klei', 'air', 'endo', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'analysis', 'sasha', 'nastya', 'galya'];
   state.view = (savedView && KNOWN_VIEWS.includes(savedView)) ? savedView : 'myday';
   state.mydayMgr = myDayDefaultManager();
   Object.keys(WORKLISTS).forEach(k => {
@@ -3704,7 +3712,7 @@ Object.keys(FILTER_CFG).forEach(v => {
   VIEW_FILTER_KEYS[v] = keys;
 });
 // v3.28.0: виды, где кнопка «＋» не показывается (кнопку синхронизируем и в render())
-const FAB_HIDDEN_VIEWS = ['analysis', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'litho', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
+const FAB_HIDDEN_VIEWS = ['analysis', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'litho', 'klei', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
 const EMPTY_FILTERS = { region: '', city: '', manager: '', type: '', tag: '', tags: [], prods: [], srcs: [] };
 const viewFilters = {};
 const viewSearch = {};
@@ -4021,8 +4029,8 @@ async function filterRowsFor(view) {
   if (view === 'distributors') return all.filter(c => (c.kind || 'hospital') === 'distributor');
   if (view === 'clinics') return all.filter(c => (c.kind || 'hospital') === 'hospital' || (isRefClinicCard(c) && String(c.manager || '').trim() !== ''));
   if (view === 'money') return all.filter(c => (c.kind || 'hospital') === 'hospital');
-  if (view === 'cns' || view === 'litho' || view === 'air' || view === 'endo') {
-    const prod = view === 'cns' ? 'ЦНС' : (view === 'litho' ? 'EMS' : (view === 'air' ? 'АиР' : 'Эндо'));
+  if (view === 'cns' || view === 'litho' || view === 'klei' || view === 'air' || view === 'endo') {
+    const prod = view === 'cns' ? 'ЦНС' : (view === 'litho' ? 'EMS' : (view === 'klei' ? 'Клей' : (view === 'air' ? 'АиР' : 'Эндо')));
     // v3.37.0: минус справочные записи, связанные с рабочей карточкой (иначе клиника попадёт дважды)
     return all.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital')
       && cardProducts(c).includes(prod) && !isRefLinkedToWorking(c));
@@ -4491,6 +4499,7 @@ async function render() {
     else if (state.view === 'calls') renderCalls();
     else if (state.view === 'cns') await renderCns();
     else if (state.view === 'litho') await renderCns('EMS');
+    else if (state.view === 'klei') await renderCns('Клей');
     else if (state.view === 'refgos') await renderRefOrgs('ref_gos');
     else if (state.view === 'refpriv') await renderRefOrgs('ref_priv');
     else if (state.view === 'refdoc') await renderRefDoctors();
@@ -4540,12 +4549,12 @@ async function renderProductList(product, title) {
 }
 async function renderCns(prod) {
   prod = prod || 'ЦНС';
-  const label = prod === 'EMS' ? 'Литокласт' : 'Цисто';
+  const label = prod === 'EMS' ? 'Литокласт' : (prod === 'Клей' ? 'Клей' : 'Цисто');
   const view = document.getElementById('view');
   const s = state.search;
   let clinics = await listClinics();
   // 5.67.0: у EMS часть клиник живёт справочными записями (ref_gos/ref_priv) и в отбор не попадала
-  const kinds = prod === 'EMS' ? ['hospital', 'ref_gos', 'ref_priv'] : ['hospital'];
+  const kinds = (prod === 'EMS' || prod === 'Клей') ? ['hospital', 'ref_gos', 'ref_priv'] : ['hospital'];
   clinics = clinics.filter(c => kinds.includes(c.kind || 'hospital') && cardProducts(c).includes(prod)
     && !isRefLinkedToWorking(c) && matchFilters(state.filters, c));
   if (s) clinics = clinics.filter(c =>
