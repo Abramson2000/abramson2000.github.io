@@ -272,6 +272,12 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
 .hw-item[data-ok="1"]{border-color:#BFE3C9}
 .hw-item[data-ok="0"]{border-color:#F3C9C9}
 .qz2 .qz-opts{display:grid;gap:6px;margin-top:6px}
+
+/* плашка «доступна новая версия» */
+.update-bar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9000;display:flex;align-items:center;gap:10px;background:#1d2b25;color:#fff;padding:12px 14px;border-radius:16px;box-shadow:0 10px 30px rgba(10,25,19,.28);font-size:15px;line-height:1.2}
+.update-bar span{flex:1;min-width:0}
+.update-bar button{border:0;border-radius:12px;padding:9px 14px;font:inherit;font-size:14px;font-weight:700;background:#fff;color:#1d2b25;cursor:pointer}
+.update-bar .upd-close{background:transparent;color:rgba(255,255,255,.75);font-size:20px;padding:4px 8px;font-weight:400}
 </style>
 </head>
 <body>
@@ -292,7 +298,7 @@ width:32px;height:32px;border-radius:10px;border:1px solid var(--line);backgroun
   <main id="view"></main>
 </div>
 <script>
-const APP_VER='0.34.0';
+const APP_VER='0.35.0';
 const LESSONS=[
  {id:'L1',daily:false,date:'2026-11-02',time:'17:00',course:'中文 · 口语',teacher:'Люба',mat:'HSK 4上 · Урок 1',lang:'中文'},
  {id:'L2',daily:false,date:'2026-11-03',time:'18:00',course:'Español',teacher:'Сайра',mat:'Разговорная практика',lang:'Español'},
@@ -943,7 +949,22 @@ function go(s){
 }
 document.querySelectorAll('.mi').forEach(b=>b.addEventListener('click',()=>go(b.dataset.s)));
 document.getElementById('ver').textContent='© Abramson '+APP_VER;
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+if('serviceWorker' in navigator){
+  let had=!!navigator.serviceWorker.controller, busy=false;
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
+    const chk=()=>{ if(document.visibilityState!=='visible'||busy||!reg||!reg.update) return; busy=true; reg.update().catch(()=>{}).then(()=>{busy=false;}); };
+    document.addEventListener('visibilitychange',chk); window.addEventListener('focus',chk);
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(!had){had=true;return;}
+      if(document.getElementById('swUpd')) return;
+      const b=document.createElement('div'); b.id='swUpd'; b.className='update-bar';
+      const t=document.createElement('span'); t.textContent='Доступна новая версия';
+      const go=document.createElement('button'); go.textContent='Обновить'; go.onclick=()=>location.reload();
+      const x=document.createElement('button'); x.className='upd-close'; x.textContent='×'; x.setAttribute('aria-label','Скрыть'); x.onclick=()=>b.remove();
+      b.appendChild(t); b.appendChild(go); b.appendChild(x); document.body.appendChild(b);
+    });
+  }).catch(()=>{});
+}
 
 /* плеер (логика как в Тингли) */
 function mwPlayerInit(){

@@ -1417,6 +1417,12 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
   /* 6.2.0: название и версия всегда в одной строке; шапка по высоте чуть выше заглавной «А» */
   .topbar-row { flex-wrap: nowrap; }
   .topbar-row .brand-version { margin: 0 0 0 8px; }
+
+/* 6.7.0: плашка «доступна новая версия» */
+.update-bar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9000;display:flex;align-items:center;gap:10px;background:#1d2b25;color:#fff;padding:12px 14px;border-radius:16px;box-shadow:0 10px 30px rgba(10,25,19,.28);font-size:15px;line-height:1.2}
+.update-bar span{flex:1;min-width:0}
+.update-bar button{border:0;border-radius:12px;padding:9px 14px;font:inherit;font-size:14px;font-weight:700;background:#fff;color:#1d2b25;cursor:pointer}
+.update-bar .upd-close{background:transparent;color:rgba(255,255,255,.75);font-size:20px;padding:4px 8px;font-weight:400}
 </style>
   <script>window.__d={t:Date.now(),m:[]};setInterval(function(){var e=document.getElementById('diag');if(e&&!e.__on)e.__on=1;if(e&&window.__shDiag)e.textContent='diag: '+(Date.now()-window.__d.t)+'ms'+(window.__d.m.length?' | '+window.__d.m.join(' | '):'');},1000);window.__shDiag=(location.search.indexOf('diag=1')>=0);if(window.__shDiag){var e=document.getElementById('diag');if(e)e.style.display='block';}</script>
 
@@ -2627,7 +2633,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.6.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.7.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -10201,6 +10207,39 @@ if ('serviceWorker' in navigator) {
 }
 const offSyncBtn = document.getElementById('offSync');
 if (offSyncBtn) offSyncBtn.addEventListener('click', () => { OFF.blocked = false; offFlush(); });
+
+/* 6.7.0: проверяем обновление при возврате и показываем плашку */
+(function(){
+  if (!('serviceWorker' in navigator)) return;
+  function bar(){
+    if (document.getElementById('swUpd')) return;
+    const b = document.createElement('div');
+    b.id = 'swUpd'; b.className = 'update-bar';
+    const t = document.createElement('span'); t.textContent = 'Доступна новая версия';
+    const go = document.createElement('button'); go.textContent = 'Обновить';
+    go.onclick = () => location.reload();
+    const x = document.createElement('button'); x.className = 'upd-close'; x.textContent = '×'; x.setAttribute('aria-label','Скрыть');
+    x.onclick = () => b.remove();
+    b.appendChild(t); b.appendChild(go); b.appendChild(x);
+    document.body.appendChild(b);
+  }
+  let had = !!navigator.serviceWorker.controller, busy = false;
+  const chk = () => {
+    if (document.visibilityState !== 'visible' || busy) return;
+    navigator.serviceWorker.getRegistration().then(reg => {
+      if (!reg || !reg.update) return;
+      busy = true;
+      reg.update().catch(() => {}).then(() => { busy = false; });
+    }).catch(() => {});
+  };
+  document.addEventListener('visibilitychange', chk);
+  window.addEventListener('focus', chk);
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!had) { had = true; return; }
+    bar();
+  });
+})();
+
 setTimeout(offInfo, 1500);
 window.addEventListener('load', () => setTimeout(offInfo, 800));
 
