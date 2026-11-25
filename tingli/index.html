@@ -36246,7 +36246,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.41.4';
+const APP_VER = '6.41.5';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -39160,6 +39160,56 @@ function rikExamCard(to, p) {
   } catch (e) {}
 
   // 3) сам порядок и номера уроков
+  RIK_UNITS.length = 0;
+  ordered.forEach(function (u, i) { u.n = i + 1; RIK_UNITS.push(u); });
+})();
+
+/* 6.41.5: номера уроков выравниваем по учебнику.
+   После переупорядочивания 6.35.2 номера съехали: «一边…一边» стоял 15-м,
+   хотя в книге это урок 14, и блок «Примеры из учебника» относился к соседнему уроку. */
+(function () {
+  var FLAG = 'tingli-rik-book-num-6.41.5';
+  var ANCHORS = [
+    '一边…一边 · V着V2',
+    '就 · 才 · 再 · 又',
+    '刚 · 刚才',
+    '如果…就 · 只要…就',
+    '先…再…然后',
+    'V好 · 看出来 · 看起来',
+    '还是 · 或者 · 呢',
+    '感兴趣 · 时间 · 关于'
+  ];
+  var byZh = {}; RIK_UNITS.forEach(function (u) { byZh[u.zh] = u; });
+  var anchorUnits = ANCHORS.map(function (t) { return byZh[t]; }).filter(Boolean);
+  if (anchorUnits.length !== ANCHORS.length) return;
+
+  var oldByN = {}; RIK_UNITS.forEach(function (u) { oldByN[u.n] = u.zh; });   // до перенумерации
+
+  var used = {}; anchorUnits.forEach(function (u) { used[u.zh] = 1; });
+  var head = RIK_UNITS.filter(function (u) { return u.n <= 13; });
+  var tail = RIK_UNITS.filter(function (u) { return u.n > 13 && !used[u.zh]; });
+  var ordered = head.concat(anchorUnits, tail);
+  if (ordered.length !== RIK_UNITS.length) return;
+
+  // ключ прогресса — номер урока, поэтому старый номер переводим через тему урока
+  var byTopic = {}; ordered.forEach(function (u, i) { byTopic[u.zh] = i + 1; });
+  var map = {};
+  Object.keys(oldByN).forEach(function (k) { var nn = byTopic[oldByN[k]]; if (nn) map[+k] = nn; });
+
+  if (!localStorage.getItem(FLAG)) {
+    try {
+      var pr = JSON.parse(localStorage.getItem(RIK_PKEY) || '{}') || {}, moved = {};
+      Object.keys(pr).forEach(function (k) {
+        if (/^\d+$/.test(k) && map[+k]) moved[map[+k]] = pr[k]; else moved[k] = pr[k];
+      });
+      localStorage.setItem(RIK_PKEY, JSON.stringify(moved));
+      var ex = {};
+      Object.keys(RIK_EXTRA_QUIZ).forEach(function (k) { var nn = map[+k]; if (nn) ex[nn] = RIK_EXTRA_QUIZ[k]; });
+      Object.keys(RIK_EXTRA_QUIZ).forEach(function (k) { delete RIK_EXTRA_QUIZ[k]; });
+      Object.keys(ex).forEach(function (k) { RIK_EXTRA_QUIZ[k] = ex[k]; });
+      localStorage.setItem(FLAG, '1');
+    } catch (e) {}
+  }
   RIK_UNITS.length = 0;
   ordered.forEach(function (u, i) { u.n = i + 1; RIK_UNITS.push(u); });
 })();
