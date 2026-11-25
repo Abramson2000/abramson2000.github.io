@@ -217,6 +217,7 @@
       </div>
       <label class="visit-control"><input type="checkbox" id="visitedRegion" ${isVisited(selected.id) ? 'checked' : ''}> Я был в этом регионе</label>`;
 
+    const notes = window.TRAVEL_NOTES?.[selected.id] || [];
     const picture = regionPictures[selected.id];
     const detailFavBase = { id:`province:${selected.id}`, type:'регион', title:`${selected.ru} · ${selected.cn}`, raw:`${selected.intro} Города: ${selected.cities.join(', ')}. Места: ${selected.places.join(', ')}. Маршрут: ${selected.routes.join('; ')}.`, source:`Путеводитель · ${selected.ru}` };
     const side = `
@@ -257,6 +258,10 @@
             </div>
           </div>` : ''}
         </div>
+        <nav class="guide-notes" aria-label="Заметки о путешествиях">
+          ${notes.length ? `<details><summary>Заметки о регионе · ${notes.length}</summary>${notes.map(note=>`<a href="travel/${selected.id}.html#n${note.id}">${esc(note.title)}</a>`).join('')}</details>` : ''}
+          <a href="travel/index.html">Все заметки о путешествиях</a>
+        </nav>
       </div>`;
 
     return pageChrome('Мой Китай','Личный атлас путешествий, культуры и открытий',map,side);
