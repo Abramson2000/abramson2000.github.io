@@ -214,7 +214,7 @@
   function renderTea(){
     const cards = data.tea.map(t => `<article class="content-card tea-card"><div class="content-row"><div><h3>${t.title}</h3><div class="book-cn">${t.subtitle}</div></div>${makeFavoriteButton({ id:`tea:${t.id}`, type:'чай', title:t.title, raw:`${t.subtitle}. ${t.note}. ${t.favoriteHint}`, source:'Дао чая' })}</div><p>${t.note}</p><div class="tag-row"><span class="tag">${t.rating}</span><span class="tag">${t.favoriteHint}</span></div></article>`).join('');
     const side = `<div class="side-panel"><img src="assets/sections/tea.svg" class="section-image" alt="Дао чая" /><div class="side-text"><h2>Дао чая</h2><p>Чайный профиль, дегустации и заметки по любимым чаям.</p></div></div>`;
-    return pageChrome('Дао чая','Любимые чаи, дегустации и ориентиры для покупок', `<div class="cards-grid">${cards}</div>`, side);
+    return pageChrome('Дао чая','Любимые чаи, дегустации и ориентиры для покупок', `<a class="back-btn" href="tea.html">Читать чайный путеводитель · все заметки →</a><div class="cards-grid">${cards}</div>`, side);
   }
 
   function renderTrips(){
