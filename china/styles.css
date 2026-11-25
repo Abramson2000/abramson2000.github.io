@@ -246,3 +246,8 @@ a{text-decoration:none;color:inherit}
 .region-picture figcaption{font:12px/1.25 system-ui;margin-top:4px}
 .province-head{display:flow-root}
 .back-btn{display:inline-block}
+.library-map{width:100%;max-width:660px;margin:0 auto 16px}
+#libMap svg text{pointer-events:none}
+#libMap [role=button]:focus-visible{outline:2px solid var(--green)}
+.guide-notes{clear:both;margin:12px 0}
+.guide-notes a{display:block;color:var(--green);text-decoration:underline;padding:6px 0}

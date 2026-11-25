@@ -271,8 +271,8 @@
         ${makeFavoriteButton({id:`book:${book.id}`, type:'книга', title:book.title, raw:book.note, source:'Библиотека'})}
       </article>`).join('');
     return pageChrome('Библиотека','Книги и иллюстрированные курсы',
-      `<div class="books-grid">${books}</div>`,
-      '<section class="library-map"><h2>Карта посещённых регионов</h2><div class="map-inline" id="libMap"></div></section>');
+      `<section class="library-map"><h2>Карта посещённых регионов</h2><div class="map-inline" id="libMap"></div></section>
+       <section><h2>Книги и материалы</h2><div class="books-grid">${books}</div></section>`);
   }
 
   function renderBook(bookId){
@@ -365,6 +365,7 @@
   function applyVisited(root){
     root.querySelectorAll('[data-region]').forEach(function(p){
       p.dataset.visited = String(isVisited(p.dataset.region));
+      p.setAttribute('aria-pressed',p.dataset.visited);
     });
   }
   function toggleVisited(id){
@@ -401,8 +402,13 @@
         if (r){ r.removeAttribute('width'); r.removeAttribute('height'); r.style.width = '100%'; r.style.height = 'auto'; }
         applyVisited(l);
         l.querySelectorAll('[data-region]').forEach(function(p){
+          p.setAttribute('role','button');
+          p.setAttribute('tabindex','0');
           p.style.cursor = 'pointer';
-          p.addEventListener('click', function(){ location.assign('?section=guide&province='+encodeURIComponent(p.dataset.region)); });
+          p.addEventListener('click', () => toggleVisited(p.dataset.region));
+          p.addEventListener('keydown', e => {
+            if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleVisited(p.dataset.region); }
+          });
         });
       });
     }
