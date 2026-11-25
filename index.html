@@ -466,6 +466,7 @@ select.sort-toggle { appearance: auto; -webkit-appearance: auto; padding: 3px 6p
   background: var(--bg); color: var(--ink); font-weight: 600;
 }
 .tag.manager { background: #f1f1f1; color: #404040; }
+.dir-sub{color:#7a5c2e;font-weight:600}
 .tag.type { background: #f1f1f1; color: #404040; }
 /* v3.5.4: метки в списках — кликабельные (тап включает фильтр по этой метке) */
 .tag-click { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .12s, color .12s; }
@@ -2780,9 +2781,17 @@ function chip(txt, cls) {
 function productChips(c) { return cardProducts(c).map(v => chip(v, 'pchip-prod')).join(''); }
 // v3.30.1: метки (тип + продукты) — во ВТОРОЙ строке плашки, перед городом/менеджером
 function markChips(c) { return ownBadge(c) + productChips(c); }
+function dirText(c) {
+  const d = dirMap(c);
+  const parts = [];
+  if (d.Уро) parts.push('Уро: ' + d.Уро);
+  if (d.ССХ) parts.push('ССХ: ' + d.ССХ);
+  return parts.join(' · ');
+}
 function subMarks(c, text) {
   const m = markChips(c);
-  return `<div class="list-row-sub">${text}${m && text ? '<span class="sub-sep">·</span>' : ''}${m}</div>`;
+  const dt = dirText(c);
+  return `<div class="list-row-sub">${text}${m && text ? '<span class="sub-sep">·</span>' : ''}${m}${dt ? (text || m ? '<span class="sub-sep">·</span>' : '') + '<span class="dir-sub">' + esc(dt) + '</span>' : ''}</div>`;
 }
 function sourceChips(c) { return cardSources(c).map(v => chip(v, 'pchip-src')).join('') + cardService(c).map(v => chip(v, 'pchip-svc')).join(''); }
 // вкл/выкл значения внутри группы меток (канонизируя остальные значения группы)
@@ -3832,6 +3841,20 @@ function geoEq(a, b) { return geoKey(a) === geoKey(b); }
 
 // v3.33.0: ЕДИНОЕ правило отбора раздела: ИЛИ внутри группы, И между группами.
 // Одинаково работает в «Клиниках», «Партнёрах», «Деньгах», справочниках, рабочих списках и списках продуктов.
+function dirMap(c) {
+  const out = {};
+  ((c && c.tags) || []).forEach(t => {
+    const m = /^(Уро|ССХ)\s*:\s*(.+)$/i.exec(String(t || '').trim());
+    if (m) out[m[1].toUpperCase() === 'УРО' ? 'Уро' : 'ССХ'] = m[2].trim();
+  });
+  return out;
+}
+function managerHit(c, mgr) {
+  if (!mgr) return true;
+  if (String((c && c.manager) || '').trim() === mgr) return true;
+  const d = dirMap(c);
+  return Object.values(d).some(v => String(v).trim() === mgr);
+}
 function matchFilters(f, c, opts) {
   opts = opts || {};
   f = f || {};
@@ -3839,7 +3862,7 @@ function matchFilters(f, c, opts) {
   if (!opts.noSel) {
     if (f.region && !geoEq(c.region, f.region)) return false;
     if (f.city && !geoEq(c.city, f.city)) return false;
-    if (f.manager && (c.manager || '') !== f.manager) return false;
+    if (f.manager && !managerHit(c, f.manager)) return false;
   }
   if (!opts.noType && f.type && cardType(c) !== f.type) return false;
   if (!opts.noProd && !prodHit(f, c)) return false;
@@ -3849,7 +3872,7 @@ function matchFilters(f, c, opts) {
 }
 function passFilters(f, c) {
   return (!f.region || geoEq(c.region, f.region)) && (!f.city || geoEq(c.city, f.city)) &&
-    (!f.manager || c.manager === f.manager) &&
+    (!f.manager || managerHit(c, f.manager)) &&
     typeHit(f, c) && prodHit(f, c) && srcHit(f, c) && tagHit(f, c.tags);
 }
 // однотипные меню-переключатели (продукты/источники)
@@ -7976,7 +7999,13 @@ async function saveRefOrg(id, kind) {
   if (!name) { toast('Название обязательно'); return; }
   const region = document.getElementById('fm_region').value.trim();
   const city = document.getElementById('fm_city').value.trim();
-  const tags = orgTagsFromForm();   // v3.35.0: продукты + источники + прочие метки
+  let tags = orgTagsFromForm();
+  // направления: теги вида «Уро:Абрамов», «ССХ:Скокова»
+  const dirUro = (document.getElementById('fm_dir_uro') || {}).value ? document.getElementById('fm_dir_uro').value.trim() : '';
+  const dirSsh = (document.getElementById('fm_dir_ssx') || {}).value ? document.getElementById('fm_dir_ssx').value.trim() : '';
+  tags = (tags || []).filter(t => !/^\s*(Уро|ССХ)\s*:/i.test(String(t || '')));
+  if (dirUro) tags.push('Уро:' + dirUro);
+  if (dirSsh) tags.push('ССХ:' + dirSsh);   // v3.35.0: продукты + источники + прочие метки
   const situation = document.getElementById('f_situation').value.trim();
   await addDictValues('region', [region]);
   await addDictValues('city', [city]);
@@ -8087,7 +8116,11 @@ async function openClinicForm(id, presetKind) {
         <div class="field"><label for="fm_region">Регион *</label><input id="fm_region" list="dl_region" value="${esc(c.region)}" /><datalist id="dl_region">${regions}</datalist></div>
         <div class="field"><label for="fm_city">Город</label><input id="fm_city" list="dl_city" value="${esc(c.city)}" /><datalist id="dl_city">${cities}</datalist></div>
       </div>
-      <div class="field"><label for="fm_manager">Менеджер</label><input id="fm_manager" list="dl_manager" value="${esc(c.manager || myManager || '')}" /><datalist id="dl_manager">${managers}</datalist></div>
+      <div class="field"><label for="fm_manager">Менеджер (главный)</label><input id="fm_manager" list="dl_manager" value="${esc(c.manager || myManager || '')}" /><datalist id="dl_manager">${managers}</datalist></div>
+      <div class="row2">
+        <div class="field"><label for="fm_dir_uro">Урология</label><input id="fm_dir_uro" list="dl_manager" value="${esc(dirMap(c).Уро || '')}" placeholder="менеджер направления" /></div>
+        <div class="field"><label for="fm_dir_ssx">Сосудистая (ССХ)</label><input id="fm_dir_ssx" list="dl_manager" value="${esc(dirMap(c).ССХ || '')}" placeholder="менеджер направления" /></div>
+      </div>
     </div>
     ${isFirmKind(kind) ? '' : `<div class="fgroup" data-group="sales"><div class="fgroup-h">Продажи</div>${salesFormFields(c, isRefKind(kind))}</div>`}
     <div class="fgroup" data-group="links">
