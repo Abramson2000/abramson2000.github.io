@@ -202,6 +202,7 @@
     const content = `
       <button class="back-btn" id="backToLibrary">← Назад в Библиотеку</button>
       <div class="book-layout">
+        ${book.id === 'book-culture' ? '<a class="back-btn" href="books/culture.html">Читать курс по культуре · 103 темы →</a>' : ''}
         ${book.id === 'book-history' ? '<a class="back-btn" href="books/history.html">Читать иллюстрированный курс по истории →</a>' : ''}
         ${book.id === 'book-geo' ? '<a class="back-btn" href="books/geography.html">Читать иллюстрированное содержание · 97 тем →</a>' : ''}
         <div class="book-takeaway-block"><h3>О книге</h3><p>${book.note}</p><div class="book-main-idea"><strong>Главное:</strong> ${book.takeaway}</div></div>
