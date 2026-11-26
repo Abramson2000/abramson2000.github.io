@@ -2693,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.11.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.12.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3781,11 +3781,6 @@ const FILTER_CFG = {
   refgos:       { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
   refpriv:      { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
   people:       { sel: 0, type: 0, prods: 0, srcs: 0, tags: 1, ownTags: 1, year: 0 },   // v4.3.0: бывшие «Врачи»+«Контакты»
-  cns:          { sel: 0, mgr: 1, type: 0, prods: 0, srcs: 0, tags: 0, year: 0 },   // v6.11.0: только менеджер
-  air:          { sel: 0, mgr: 1, type: 0, prods: 0, srcs: 0, tags: 0, year: 0 },   // v6.11.0: только менеджер
-  endo:          { sel: 0, mgr: 1, type: 0, prods: 0, srcs: 0, tags: 0, year: 0 },   // v6.11.0: только менеджер
-  litho:          { sel: 0, mgr: 1, type: 0, prods: 0, srcs: 0, tags: 0, year: 0 },   // v6.11.0: только менеджер
-  klei:          { sel: 0, mgr: 1, type: 0, prods: 0, srcs: 0, tags: 0, year: 0 },   // v6.11.0: только менеджер
   nastya:       { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   galya:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   sasha:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
@@ -3805,6 +3800,9 @@ Object.keys(FILTER_CFG).forEach(v => {
   keys.push('prods', 'srcs', 'tags');
   VIEW_FILTER_KEYS[v] = keys;
 });
+// v6.12.0: в продуктах фильтр менеджера — чипом сверху, как в «Моём дне»
+['cns', 'air', 'endo', 'litho', 'klei'].forEach(v => { VIEW_FILTER_KEYS[v] = ['manager']; });
+
 // v3.28.0: виды, где кнопка «＋» не показывается (кнопку синхронизируем и в render())
 const FAB_HIDDEN_VIEWS = ['analysis', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'managers', 'cns', 'litho', 'klei', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'myday', 'air', 'endo'];
 const EMPTY_FILTERS = { region: '', city: '', manager: '', type: '', tag: '', tags: [], prods: [], srcs: [] };
@@ -4638,6 +4636,33 @@ async function render() {
 
 // ---------- ЦНС: отобранные клиники (v1.158) ----------
 // v3.30.0: разделы продуктов (АиР/Эндо) — карточки с этим продуктом
+
+// v6.12.0: чип «менеджер» — тот же вид, что сверху «Моего дня»
+function prodMgrChipHtml() {
+  const cur = state.filters.manager || '';
+  const opts = [''].concat(PROD_MGRS);
+  return `<div class="md-mgr" id="mdMgrBox"><button class="md-mgr-btn" id="mdMgrBtn" title="Фильтр по менеджеру">${esc(cur || 'Все')}<span class="md-caret">▾</span></button>` +
+    `<div class="md-mgr-pop hidden" id="mdMgrPop">${opts.map(m => `<button class="md-mgr-opt${cur === m ? ' active' : ''}" data-m="${esc(m)}">${esc(m || 'Все менеджеры')}</button>`).join('')}</div></div>`;
+}
+function bindProdMgrChip() {
+  const mb = document.getElementById('mdMgrBtn');
+  const mp = document.getElementById('mdMgrPop');
+  const mbox = document.getElementById('mdMgrBox');
+  if (!mb || !mp) return;
+  mb.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = mp.classList.toggle('hidden');
+    if (mbox) mbox.classList.toggle('pop-open', !open);
+  });
+  mp.querySelectorAll('.md-mgr-opt').forEach(b => b.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    state.filters.manager = b.dataset.m || '';
+    state.selId = null;
+    await render();
+  }));
+  document.addEventListener('click', () => { mp.classList.add('hidden'); if (mbox) mbox.classList.remove('pop-open'); }, { once: true });
+}
+
 async function renderProductList(product, title) {
   const view = document.getElementById('view');
   const s = state.search;
@@ -4649,7 +4674,7 @@ async function renderProductList(product, title) {
   const f = state.filters;
   clinics = clinics.filter(c => matchFilters(f, c));   // v3.33.0: метки в списках продуктов тоже фильтруют
   clinics.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0) || (a.name || '').localeCompare(b.name || '', 'ru'));
-  view.innerHTML = `<div class="cns-head"><span>${esc(title)} · <b>${clinics.length}</b></span></div>` + (clinics.length
+  view.innerHTML = `<div class="cns-head"><span>${esc(title)} · <b>${clinics.length}</b></span>${prodMgrChipHtml()}</div>` + (clinics.length
     ? '<div class="list">' + clinics.map(c => {
         const m = (c.manager || '').trim();
         return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}" data-id="${c.id}" data-kind="clinic">
@@ -4658,6 +4683,7 @@ async function renderProductList(product, title) {
         </div>`;
       }).join('') + '</div>'
     : `<div class="empty">${s ? 'Ничего не найдено' : 'Нет клиник с продуктом «' + esc(product) + '» — отметь продукт в карточке клиники'}</div>`);
+  bindProdMgrChip();
   restorePanelSelection();
 }
 async function renderCns(prod) {
@@ -4676,10 +4702,11 @@ async function renderCns(prod) {
     (c.region || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
     (c.manager || '').toLowerCase().replace(/ё/g,'е').includes(s));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
-  const cnsHead = `<div class="cns-head"><span>${label} · <b>${clinics.length}</b> ${clinics.length === 1 ? 'клиника' : clinics.length < 5 ? 'клиники' : 'клиник'} в отборе</span><button class="cns-add" id="cnsAddBtn">＋ Добавить</button></div>`;
+  const cnsHead = `<div class="cns-head"><span>${label} · <b>${clinics.length}</b> ${clinics.length === 1 ? 'клиника' : clinics.length < 5 ? 'клиники' : 'клиник'} в отборе</span>${prodMgrChipHtml()}<button class="cns-add" id="cnsAddBtn">＋ Добавить</button></div>`;
   if (!clinics.length) {
     view.innerHTML = cnsHead + `<div class="empty">${s ? 'Ничего не найдено' : 'Отбор пуст — добавляй клиники кнопкой «＋ Добавить»'}</div>`;
     bindCnsAdd(view, prod);
+    bindProdMgrChip();
     return;
   }
   view.innerHTML = cnsHead
@@ -4694,6 +4721,7 @@ async function renderCns(prod) {
       </div>`;
     }).join('') + '</div>';
   bindCnsAdd(view, prod);
+  bindProdMgrChip();
 }
 async function bindCnsAdd(view, prod) {
   prod = prod || 'ЦНС';
