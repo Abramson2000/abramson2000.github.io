@@ -251,3 +251,7 @@ a{text-decoration:none;color:inherit}
 #libMap [role=button]:focus-visible{outline:2px solid var(--green)}
 .guide-notes{clear:both;margin:12px 0}
 .guide-notes a{display:block;color:var(--green);text-decoration:underline;padding:6px 0}
+
+.library-map h1,.library-books h2{margin:0 0 8px;color:var(--green)}
+.library-map h1{font-size:clamp(23px,3vw,34px);line-height:1.15}
+.library-map p{margin:0 0 10px;color:var(--muted);font-size:14px}

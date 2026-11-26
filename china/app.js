@@ -231,6 +231,10 @@
             <div class="hero-underline small"></div>
           </div>
         </div>
+        <nav class="guide-notes" aria-label="Заметки о путешествиях">
+          ${notes.length ? `<details><summary>Заметки о регионе · ${notes.length}</summary>${notes.map(note=>`<a href="travel/${selected.id}.html#n${note.id}">${esc(note.title)}</a>`).join('')}</details>` : ''}
+          <a href="travel/index.html">Все заметки о путешествиях</a>
+        </nav>
         <div class="info-list">
           <div class="info-card">
             <div class="info-body">
@@ -258,10 +262,7 @@
             </div>
           </div>` : ''}
         </div>
-        <nav class="guide-notes" aria-label="Заметки о путешествиях">
-          ${notes.length ? `<details><summary>Заметки о регионе · ${notes.length}</summary>${notes.map(note=>`<a href="travel/${selected.id}.html#n${note.id}">${esc(note.title)}</a>`).join('')}</details>` : ''}
-          <a href="travel/index.html">Все заметки о путешествиях</a>
-        </nav>
+
       </div>`;
 
     return pageChrome('Мой Китай','Личный атлас путешествий, культуры и открытий',map,side);
@@ -275,9 +276,12 @@
         </a>
         ${makeFavoriteButton({id:`book:${book.id}`, type:'книга', title:book.title, raw:book.note, source:'Библиотека'})}
       </article>`).join('');
-    return pageChrome('Библиотека','Книги и иллюстрированные курсы',
-      `<section class="library-map"><h2>Карта посещённых регионов</h2><div class="map-inline" id="libMap"></div></section>
-       <section><h2>Книги и материалы</h2><div class="books-grid">${books}</div></section>`);
+    return `<section class="library-map" aria-labelledby="visitedMapTitle">
+      <h1 id="visitedMapTitle">Карта посещённых регионов</h1>
+      <p>Нажмите на регион, чтобы отметить посещение. Повторное нажатие снимает отметку.</p>
+      <div class="map-inline" id="libMap"></div>
+    </section>
+    <section class="library-books"><h2>Книги и материалы</h2><div class="books-grid">${books}</div></section>`;
   }
 
   function renderBook(bookId){
