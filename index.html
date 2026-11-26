@@ -1497,7 +1497,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
       </button>
       <button class="tab d-item" data-view="litho">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
-        <span>Литокласт</span><em class="cnt" data-cnt="litho"></em>
+        <span>LithoClast</span><em class="cnt" data-cnt="litho"></em>
       </button>
       <button class="tab d-item" data-view="klei">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg>
@@ -1591,7 +1591,7 @@ textarea.priv-note { width: 100%; min-height: 70px; border: 1px solid var(--line
       </button>
       <button class="tab" data-view="litho">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
-        <span>Литокласт <em class="cnt" data-cnt="litho"></em></span>
+        <span>LithoClast <em class="cnt" data-cnt="litho"></em></span>
       </button>
       <button class="tab" data-view="klei">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg>
@@ -2693,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.14.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.15.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4697,7 +4697,7 @@ async function renderProductList(product, title) {
   const mgr = f.manager || '';
   clinics = clinics.filter(c => matchFilters(Object.assign({}, f, { manager: '' }), c) && prodMgrHit(c, mgr));
   clinics.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0) || (a.name || '').localeCompare(b.name || '', 'ru'));
-  view.innerHTML = `<div class="cns-head"><span>${esc(title)} · <b>${clinics.length}</b></span>${prodMgrChipHtml()}</div>` + (clinics.length
+  view.innerHTML = `<div class="cns-head"><span>${esc(title)} · <b>${clinics.length}</b> ЛПУ</span>${prodMgrChipHtml()}</div>` + (clinics.length
     ? '<div class="list">' + clinics.map(c => {
         return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}" data-id="${c.id}" data-kind="clinic">
           <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span></div>
@@ -4710,7 +4710,7 @@ async function renderProductList(product, title) {
 }
 async function renderCns(prod) {
   prod = prod || 'ЦНС';
-  const label = prod === 'EMS' ? 'Литокласт' : (prod === 'Клей' ? 'Клей' : 'Цисто');
+  const label = prod === 'EMS' ? 'LithoClast' : (prod === 'Клей' ? 'Клей' : 'Цисто');
   const view = document.getElementById('view');
   const s = state.search;
   let clinics = await listClinics();
@@ -4725,7 +4725,7 @@ async function renderCns(prod) {
     (c.region || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
     (c.manager || '').toLowerCase().replace(/ё/g,'е').includes(s));
   clinics.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
-  const cnsHead = `<div class="cns-head"><span>${label} · <b>${clinics.length}</b> ${clinics.length === 1 ? 'клиника' : clinics.length < 5 ? 'клиники' : 'клиник'} в отборе</span>${prodMgrChipHtml()}<button class="cns-add" id="cnsAddBtn">＋ Добавить</button></div>`;
+  const cnsHead = `<div class="cns-head"><span>${label} · <b>${clinics.length}</b> ЛПУ</span>${prodMgrChipHtml()}<button class="cns-add" id="cnsAddBtn">＋ Добавить</button></div>`;
   if (!clinics.length) {
     view.innerHTML = cnsHead + `<div class="empty">${s ? 'Ничего не найдено' : 'Отбор пуст — добавляй клиники кнопкой «＋ Добавить»'}</div>`;
     bindCnsAdd(view, prod);
@@ -4746,7 +4746,7 @@ async function renderCns(prod) {
 }
 async function bindCnsAdd(view, prod) {
   prod = prod || 'ЦНС';
-  const label = prod === 'EMS' ? 'Литокласт' : 'Цисто';
+  const label = prod === 'EMS' ? 'LithoClast' : 'Цисто';
   const btn = view.querySelector('#cnsAddBtn');
   if (!btn) return;
   btn.addEventListener('click', async () => {
@@ -6724,7 +6724,7 @@ async function openVisitModal(cfg) {
     </div>
 </div>
     <div class="field"><label>Название визита</label>
-      <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || '')}" placeholder="например: мастер-класс по Литокласт" />
+      <input type="text" id="vmTitle" value="${esc((plan && plan.title) || (idea && idea.title) || '')}" placeholder="например: мастер-класс по LithoClast" />
     </div>
     <div class="field"><label>Тип визита</label>
       <select id="vmKind">${VISIT_KINDS.map(k => `<option value="${esc(k)}"${(((plan && plan.kind) || (idea && idea.kind) || base.kind || 'Встреча') === k) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>
@@ -6940,7 +6940,7 @@ async function openIdeaModal(presetClinicId, idea) {
     : (presetClinicId ? all.find(c => Number(c.id) === Number(presetClinicId)) : null);
   openModal(idea ? 'Изменить идею визита' : 'Идея визита', `
     <div class="field"><label>Название визита</label>
-      <input type="text" id="viTitle" value="${esc((idea && idea.title) || '')}" placeholder="например: мастер-класс по Литокласт" />
+      <input type="text" id="viTitle" value="${esc((idea && idea.title) || '')}" placeholder="например: мастер-класс по LithoClast" />
     </div>
     <div class="field"><label>Тип визита</label>
       <select id="viKind">${VISIT_KINDS.map(k => `<option value="${esc(k)}"${(((idea && idea.kind) || 'Встреча') === k) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>
@@ -6956,7 +6956,7 @@ async function openIdeaModal(presetClinicId, idea) {
         <div class="cp-list hidden" id="viClinicResults"></div>
       </div>
     </div>
-    <div class="field"><label>Комментарий</label><input type="text" id="viGoal" value="${esc((idea && idea.goal) || '')}" placeholder="апробация Литокласт" /></div>
+    <div class="field"><label>Комментарий</label><input type="text" id="viGoal" value="${esc((idea && idea.goal) || '')}" placeholder="апробация LithoClast" /></div>
     <div class="field"><label>Месяц (если точная дата ещё не известна)</label>
       <input type="month" id="viMonth" value="${esc((idea && idea.month) || '')}" />
     </div>
