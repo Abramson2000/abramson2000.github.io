@@ -1783,7 +1783,7 @@ if (window.__d) window.__d.m.push('db ' + (Date.now() - window.__d.t) + 'ms');
 // если SDK не загрузился (плохая сеть / кеш) — не падаем, а показываем понятную ошибку
 const sb = (window.supabase && window.supabase.createClient)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-      auth: { persistSession: true, autoRefreshToken: navigator.onLine !== false }
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
     })
   : null;
 
@@ -2484,8 +2484,67 @@ async function signIn(email, password) {
   );
   if (error) throw error;
   await rememberOfflineLogin(email, password);
+  try { saveAuthBackup(data && data.session); } catch (_) {}
   return data.user;
 }
+// v6.10.0: держим сессию сами — чтобы не логиниться по десять раз в день.
+// Supabase кладёт токены в localStorage; на iOS/PWA их иногда вымывает или refresh-токен
+// не успевает прокрутиться. Тогда держим вторую копию и восстанавливаем ею.
+const AUTH_BACKUP_KEY = 'crm-auth-backup-v1';
+function saveAuthBackup(session) {
+  try {
+    if (!session || !session.refresh_token) return;
+    localStorage.setItem(AUTH_BACKUP_KEY, JSON.stringify({
+      access_token: session.access_token || '',
+      refresh_token: session.refresh_token,
+      email: (session.user && session.user.email) || '',
+      at: Date.now()
+    }));
+  } catch (_) {}
+}
+function readAuthBackup() {
+  try {
+    const raw = localStorage.getItem(AUTH_BACKUP_KEY);
+    if (!raw) return null;
+    const b = JSON.parse(raw);
+    return (b && b.refresh_token) ? b : null;
+  } catch (_) { return null; }
+}
+// пробуем вернуть сессию из копии; возвращает true, если получилось
+async function restoreAuthBackup() {
+  if (!sb || !sb.auth) return false;
+  const b = readAuthBackup();
+  if (!b) return false;
+  try {
+    const r = await withTimeout(sb.auth.setSession({ access_token: b.access_token, refresh_token: b.refresh_token }), 8000, 'auth-restore');
+    const s2 = r && r.data && r.data.session;
+    if (s2 && s2.user) {
+      saveAuthBackup(s2);
+      if (!CURRENT_EMAIL) CURRENT_EMAIL = s2.user.email || b.email || null;
+      return true;
+    }
+  } catch (_) {}
+  return false;
+}
+// держим токен живым: проверяем сессию, если её нет — поднимаем из копии
+function startAuthKeepAlive() {
+  if (window.__authKeepAlive) return;
+  window.__authKeepAlive = 1;
+  const tick = async () => {
+    if (!sb || !sb.auth) return;
+    if (document.body.classList.contains('logged-out')) return;
+    try {
+      const r = await sb.auth.getSession();
+      const sess = r && r.data && r.data.session;
+      if (sess && sess.refresh_token) { saveAuthBackup(sess); return; }
+      await restoreAuthBackup();
+    } catch (_) {}
+  };
+  setInterval(tick, 4 * 60 * 1000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') tick(); });
+  window.addEventListener('online', tick);
+}
+
 async function signOut() {
   // 4.8.1: выход должен вычищать всё, иначе приложение поднимает пользователя
   // из crm-offline-user и офлайн-входа, и база открывается снова без пароля.
@@ -2495,6 +2554,7 @@ async function signOut() {
     localStorage.removeItem('crm-offline-user');
     localStorage.removeItem('crm-role');
     localStorage.removeItem('crm-relogin-snooze-v1');
+    localStorage.removeItem(AUTH_BACKUP_KEY);   // v6.10.0: выход — так выход, копию токенов тоже убираем
     Object.keys(localStorage).filter(function (k) {
       return k.indexOf('crm-offline-login:') === 0 ||
              (k.indexOf('sb-') === 0 && k.indexOf('-auth-token') > 0);
@@ -2633,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.9.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.10.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3255,6 +3315,14 @@ async function healSession(silent) {
     const s2 = r && r.data && r.data.session;
     if (s2 && s2.user && (s2.user.email || '').toLowerCase() === (CURRENT_EMAIL || '').toLowerCase()) { SESSION_FROM_STORAGE = false; hideReLogin(false); offFlush(); offReloadData(); return; }
   } catch (e) {}
+  // v6.10.0: сначала пробуем поднять сессию из резервной копии токенов
+  try {
+    if (await restoreAuthBackup()) {
+      const again = await withTimeout(sb.auth.getSession(), 2000, 'relogin-session2');
+      const s3 = again && again.data && again.data.session;
+      if (s3 && s3.user) { SESSION_FROM_STORAGE = false; hideReLogin(false); offFlush(); offReloadData(); return; }
+    }
+  } catch (_) {}
   showReLogin();   // 5.78.0: «Позже» больше не глушит напоминание на 6 часов — иначе приложение
                    // оставалось с пустыми списками, и это выглядело как поломка базы
 }
@@ -3387,6 +3455,7 @@ async function bootstrap(preferredUser) {
   }
   if (isGuest && state.view === 'money') state.view = 'clinics';
   showApp();
+  try { startAuthKeepAlive(); } catch (e) {}
   try { healSession(true); } catch (e) {}
   // 5.78.0: вернулись в приложение (PWA из фона) или появилась сеть — пробуем восстановить
   // сессию ещё раз, чтобы не сидеть с пустыми списками
@@ -3437,6 +3506,9 @@ async function init() {
         savedOffline = raw ? JSON.parse(raw) : null;
       } catch (_) {}
       if (!savedOffline || !savedOffline.email) {
+        // v6.10.0: токены могли остаться в резервной копии — пробуем ими
+        const restored = await restoreAuthBackup().catch(() => false);
+        if (restored) { await withTimeout(bootstrap(), 5000, 'bootstrap-restored'); return; }
         if (TEMP_AUTO_LOGIN && TEMP_AUTO_LOGIN.on) {
           try {
             await withTimeout(signIn(TEMP_AUTO_LOGIN.email, TEMP_AUTO_LOGIN.password), 1500, 'signin');
@@ -3496,6 +3568,7 @@ if (document.getElementById('loginBtn')) {
 // авто-переключение при смене сессии
 if (sb) {
   sb.auth.onAuthStateChange((event, session) => {
+    if (session && session.refresh_token) saveAuthBackup(session);
     if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') { bootstrap(session && session.user); }
     else if (event === 'SIGNED_OUT') {
       let hasOfflineUser = false;
@@ -3506,8 +3579,9 @@ if (sb) {
       } catch (_) {}
       // В авиарежиме Supabase может сообщить SIGNED_OUT из-за невозможности обновить токен.
       // Это не должно выбрасывать из локальной CRM.
-      if (navigator.onLine === false && hasOfflineUser) bootstrap();
-      else showLogin();
+      if (navigator.onLine === false && hasOfflineUser) { bootstrap(); return; }
+      // v6.10.0: не выбрасываем сразу — сначала пробуем резервную копию токенов
+      restoreAuthBackup().then(ok => { if (ok) bootstrap(); else showLogin(); }).catch(() => showLogin());
     }
   });
 } else {
