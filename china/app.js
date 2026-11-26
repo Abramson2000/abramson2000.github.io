@@ -280,6 +280,7 @@
       <h1 id="visitedMapTitle">Карта посещённых регионов</h1>
       <p>Нажмите на регион, чтобы отметить посещение. Повторное нажатие снимает отметку.</p>
       <div class="map-inline" id="libMap"></div>
+      <p id="visitedTotal" aria-live="polite">Посещено регионов: ${state.visited.length}</p>
     </section>
     <section class="library-books"><h2>Книги и материалы</h2><div class="books-grid">${books}</div></section>`;
   }
@@ -385,6 +386,8 @@
     });
     const root = document.querySelector('#libMap svg');
     if (root) applyVisited(root);
+    const total = document.getElementById('visitedTotal');
+    if (total) total.textContent = 'Посещено регионов: ' + state.visited.length;
   }
   function mountMaps(){
     const g = document.getElementById('guideMap');
