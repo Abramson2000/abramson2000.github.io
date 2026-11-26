@@ -2693,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.10.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.11.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3781,11 +3781,11 @@ const FILTER_CFG = {
   refgos:       { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
   refpriv:      { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
   people:       { sel: 0, type: 0, prods: 0, srcs: 0, tags: 1, ownTags: 1, year: 0 },   // v4.3.0: бывшие «Врачи»+«Контакты»
-  cns:          { sel: 0, mgr: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
-  air:          { sel: 0, mgr: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
-  endo:         { sel: 0, mgr: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
-  litho:        { sel: 0, mgr: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
-  klei:         { sel: 0, mgr: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  cns:          { sel: 0, mgr: 1, type: 0, prods: 0, srcs: 0, tags: 0, year: 0 },   // v6.11.0: только менеджер
+  air:          { sel: 0, mgr: 1, type: 0, prods: 0, srcs: 0, tags: 0, year: 0 },   // v6.11.0: только менеджер
+  endo:          { sel: 0, mgr: 1, type: 0, prods: 0, srcs: 0, tags: 0, year: 0 },   // v6.11.0: только менеджер
+  litho:          { sel: 0, mgr: 1, type: 0, prods: 0, srcs: 0, tags: 0, year: 0 },   // v6.11.0: только менеджер
+  klei:          { sel: 0, mgr: 1, type: 0, prods: 0, srcs: 0, tags: 0, year: 0 },   // v6.11.0: только менеджер
   nastya:       { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   galya:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   sasha:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
