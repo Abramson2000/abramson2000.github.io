@@ -2693,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.13.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.14.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4667,6 +4667,24 @@ function bindProdMgrChip() {
   document.addEventListener('click', () => { mp.classList.add('hidden'); if (mbox) mbox.classList.remove('pop-open'); }, { once: true });
 }
 
+
+// v6.14.0: в Продуктах строка карточки — только «Город · Менеджер», без меток.
+// Если ССХ ведёт другой менеджер — показываем его отдельно, и фильтр учитывает обоих.
+function prodRowSub(c) {
+  const city = c.city || '—';
+  const parts = [city];
+  const m = String(c.manager || '').trim();
+  if (m) parts.push(m);
+  const ssx = (c.tags || []).filter(t => /^ССХ:/.test(t)).map(t => t.replace(/^ССХ:\s*/, '').trim()).find(Boolean);
+  if (ssx && ssx !== m) parts.push('ССХ: ' + ssx);
+  return `<div class="list-row-sub">${esc(parts.join(' · '))}</div>`;
+}
+function prodMgrHit(c, mgr) {
+  if (!mgr) return true;
+  if (managerHit(c, mgr)) return true;
+  return (c.tags || []).some(t => String(t).replace(/^ССХ:\s*/, '') === mgr);
+}
+
 async function renderProductList(product, title) {
   const view = document.getElementById('view');
   const s = state.search;
@@ -4676,14 +4694,14 @@ async function renderProductList(product, title) {
     (c.name || '').toLowerCase().replace(/ё/g,'е').includes(s) || (c.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
     (c.region || '').toLowerCase().replace(/ё/g,'е').includes(s) || (c.manager || '').toLowerCase().replace(/ё/g,'е').includes(s));
   const f = state.filters;
-  clinics = clinics.filter(c => matchFilters(f, c));   // v3.33.0: метки в списках продуктов тоже фильтруют
+  const mgr = f.manager || '';
+  clinics = clinics.filter(c => matchFilters(Object.assign({}, f, { manager: '' }), c) && prodMgrHit(c, mgr));
   clinics.sort((a, b) => (b.markedDel ? 1 : 0) - (a.markedDel ? 1 : 0) || (a.name || '').localeCompare(b.name || '', 'ru'));
   view.innerHTML = `<div class="cns-head"><span>${esc(title)} · <b>${clinics.length}</b></span>${prodMgrChipHtml()}</div>` + (clinics.length
     ? '<div class="list">' + clinics.map(c => {
-        const m = (c.manager || '').trim();
         return `<div class="card list-row${c.markedDel ? ' marked-del' : ''}" data-id="${c.id}" data-kind="clinic">
           <div class="list-row-top"><span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span></div>
-          ${subMarks(c, esc(c.city || '—') + (m ? ' · ' + esc(m) : ''))}
+          ${prodRowSub(c)}
         </div>`;
       }).join('') + '</div>'
     : `<div class="empty">${s ? 'Ничего не найдено' : 'Нет клиник с продуктом «' + esc(product) + '» — отметь продукт в карточке клиники'}</div>`);
@@ -4699,7 +4717,8 @@ async function renderCns(prod) {
   // 5.67.0: у EMS часть клиник живёт справочными записями (ref_gos/ref_priv) и в отбор не попадала
   const kinds = (prod === 'EMS' || prod === 'Клей') ? ['hospital', 'ref_gos', 'ref_priv'] : ['hospital'];
   clinics = clinics.filter(c => kinds.includes(c.kind || 'hospital') && cardProducts(c).includes(prod)
-    && !isRefLinkedToWorking(c) && matchFilters(state.filters, c));
+    && !isRefLinkedToWorking(c) && matchFilters(Object.assign({}, state.filters, { manager: '' }), c)
+    && prodMgrHit(c, state.filters.manager || ''));
   if (s) clinics = clinics.filter(c =>
     (c.name || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
     (c.city || '').toLowerCase().replace(/ё/g,'е').includes(s) ||
@@ -4715,13 +4734,11 @@ async function renderCns(prod) {
   }
   view.innerHTML = cnsHead
     + '<div class="list">' + clinics.map(c => {
-      const loc = c.city || '';
-      const m = (c.manager || '').trim();
       return `<div class="card list-row" data-id="${c.id}" data-kind="clinic">
         <div class="list-row-top">
           <span class="rn-wrap"><span class="list-row-name">${esc(c.name)}</span></span>
         </div>
-        ${subMarks(c, (loc ? esc(loc) : '—') + (m ? ' · ' + esc(m) : ''))}
+        ${prodRowSub(c)}
       </div>`;
     }).join('') + '</div>';
   bindCnsAdd(view, prod);
