@@ -2633,7 +2633,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.8.5';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.9.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3698,6 +3698,8 @@ let filterCtx = '';
 //   tags  — «Метки» (прочие метки листа); ownTags — у людей свои назначения меток,
 //           канонические продукты/источники им не подставляются.
 //   sel — регион/город/менеджер, year — год (только «Деньги»).
+// v6.9.0: в «Продуктах» фильтр только по этим менеджерам (решение Саши)
+const PROD_MGRS = ['Абрамов', 'Осечкина', 'Скокова'];
 const FILTER_CFG = {
   clinics:      { sel: 1, type: 1, prods: 1, srcs: 1, tags: 1, year: 0 },   // все группы
   distributors: { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // продукты и источники, тип не нужен
@@ -4107,8 +4109,8 @@ async function populateFiltersFor(view) {
     fillSelect('f_city', cities, 'Города');
     fillSelect('f_manager', managers, 'Менеджеры');
   } else if (cfg.mgr) {
-    // v6.8.0: продуктовые разделы — фильтр только по менеджеру (список из своих карточек + словарь)
-    const managers = geoUniq([...rows.map(r => r.manager), ...(await getDict('manager'))]);
+    // v6.9.0: в продуктах — только рабочие менеджеры, без всего словаря
+    const managers = PROD_MGRS.slice();
     if (state.filters.manager && !managers.includes(state.filters.manager)) state.filters.manager = '';
     fillSelect('f_manager', managers, 'Менеджеры');
   }
