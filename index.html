@@ -2633,7 +2633,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.7.3';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.8.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -3705,9 +3705,11 @@ const FILTER_CFG = {
   refgos:       { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
   refpriv:      { sel: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },   // тип задан разделом
   people:       { sel: 0, type: 0, prods: 0, srcs: 0, tags: 1, ownTags: 1, year: 0 },   // v4.3.0: бывшие «Врачи»+«Контакты»
-  cns:          { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
-  air:          { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
-  endo:         { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  cns:          { sel: 0, mgr: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  air:          { sel: 0, mgr: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  endo:         { sel: 0, mgr: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  litho:        { sel: 0, mgr: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
+  klei:         { sel: 0, mgr: 1, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   nastya:       { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   galya:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
   sasha:        { sel: 0, type: 0, prods: 1, srcs: 1, tags: 1, year: 0 },
@@ -3722,6 +3724,7 @@ const VIEW_FILTER_KEYS = {};
 Object.keys(FILTER_CFG).forEach(v => {
   const c = FILTER_CFG[v], keys = [];
   if (c.sel) keys.push('region', 'city', 'manager');
+  else if (c.mgr) keys.push('manager');   // v6.8.0: в продуктах — только менеджер
   if (c.type) keys.push('type');
   keys.push('prods', 'srcs', 'tags');
   VIEW_FILTER_KEYS[v] = keys;
@@ -3988,7 +3991,7 @@ function syncFilterGroupVisibility() {
   // v3.33.0: селекты регион/город/менеджер/год — только там, где они есть в разделе
   ['f_region', 'f_city'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', !cfg.sel); });
   const fm = document.getElementById('f_manager');
-  if (fm) fm.classList.toggle('hidden', !cfg.sel);
+  if (fm) fm.classList.toggle('hidden', !(cfg.sel || cfg.mgr));
   const fy = document.getElementById('f_year');
   if (fy) fy.classList.toggle('hidden', !cfg.year);
   // v3.34.0: группы продуктов/источников — по конфигурации раздела (канон), а не по наличию на листе
@@ -4102,6 +4105,11 @@ async function populateFiltersFor(view) {
     if (state.filters.manager && !managers.includes(state.filters.manager)) state.filters.manager = '';
     fillSelect('f_region', regions, 'Регионы');
     fillSelect('f_city', cities, 'Города');
+    fillSelect('f_manager', managers, 'Менеджеры');
+  } else if (cfg.mgr) {
+    // v6.8.0: продуктовые разделы — фильтр только по менеджеру (список из своих карточек + словарь)
+    const managers = geoUniq([...rows.map(r => r.manager), ...(await getDict('manager'))]);
+    if (state.filters.manager && !managers.includes(state.filters.manager)) state.filters.manager = '';
     fillSelect('f_manager', managers, 'Менеджеры');
   }
   fillSelect('f_year', YEAR_OPTIONS, 'Годы');
@@ -8174,13 +8182,18 @@ function shortPos(p) {
   const l = s.toLowerCase().replace(/ё/g, 'е');
   const has = re => re.test(l);
   // v4.45.0: «Зав УО», «Зав ХО», «Зав АиР» — по названию отделения
+  // v6.8.0: заведующий показывается по-человечески — «Зав. урологии», «Зав. ССХ», а не «Зав УО»
   const DEPT_ABBR = [
-    [/урогинеколог/, 'УГО'], [/уролог/, 'УО'], [/хирург/, 'ХО'], [/анестези|реанимат/, 'АиР'],
-    [/гинеколог/, 'ГО'], [/терапевт/, 'ТО'], [/кардиолог/, 'КО'], [/невролог/, 'НО'],
-    [/онколог/, 'ОО'], [/эндоскоп/, 'ЭО'], [/офтальмолог/, 'ОфтО'], [/травматолог/, 'ТрО'],
-    [/нефролог/, 'НфО'], [/пульмонолог/, 'ПулО'], [/гастроэнтеролог/, 'ГЭО'], [/инфекцион/, 'ИО'],
-    [/педиатр/, 'ПедО'], [/родильн|роддом/, 'РД'], [/поликлиник/, 'Пол'], [/функцион/, 'ФД'],
-    [/лучев|радиолог/, 'РДО'], [/патологоанатом/, 'ПАО']
+    [/урогинеколог/, 'урогинекологии'], [/сосудист|ангиохирург|ссх/, 'ССХ'],
+    [/уролог/, 'урологии'], [/кардиохирург/, 'кардиохирургии'],
+    [/анестези|реанимат|реанимац|аир/, 'АиР'], [/хирург/, 'хирургии'],
+    [/гинеколог/, 'гинекологии'], [/терапевт/, 'терапии'], [/кардиолог/, 'кардиологии'],
+    [/невролог/, 'неврологии'], [/онколог/, 'онкологии'], [/эндоскоп/, 'эндоскопии'],
+    [/офтальмолог/, 'офтальмологии'], [/травматолог/, 'травматологии'], [/нефролог/, 'нефрологии'],
+    [/пульмонолог/, 'пульмонологии'], [/гастроэнтеролог/, 'гастроэнтерологии'],
+    [/инфекцион/, 'инфекционном'], [/педиатр/, 'педиатрии'], [/родильн|роддом/, 'роддома'],
+    [/поликлиник/, 'поликлиники'], [/функцион/, 'функциональной диагностики'],
+    [/лучев|радиолог/, 'лучевой диагностики'], [/патологоанатом/, 'патологоанатомическом']
   ];
   const deptAbbr = (str) => {
     const l2 = String(str).toLowerCase().replace(/ё/g, 'е');
@@ -8193,7 +8206,8 @@ function shortPos(p) {
   if (has(/зам.*эконом/)) return 'Зам. по экономике';
   if (has(/^зам(\s|$|\.)/) || has(/заместител/)) { const ab = deptAbbr(s); return ab ? 'Зам ' + ab : 'Заместитель'; }
   if (has(/главн.*врач|главврач/)) return 'Главврач';
-  if (has(/(^|\s)гл\.?\s+уролог|главн.*уролог/)) return 'Главный уролог';
+  // v6.8.0: «Заведующий ... Главный уролог ...» — главное заведование, а не титул
+  if (!/^\s*зав/.test(l) && has(/(^|\s)гл\.?\s+уролог|главн.*уролог/)) return 'Главный уролог';
   if (has(/профессор/)) return 'Профессор';
   if (has(/доцент/)) return 'Доцент';
   if (has(/академик|член-корр/)) return 'Академик';
@@ -8204,10 +8218,11 @@ function shortPos(p) {
   if (has(/зав|завед/)) {
     if (has(/аптек/)) return 'Зав. аптекой';
     if (has(/кафедр|каф\.?\s/)) return 'Зав. кафедрой';
+    if (has(/отдел(?!ени)/)) return 'Зав. отделом';
     if (has(/оперблок/)) return 'Зав. оперблоком';
     if (has(/лаборатор/)) return 'Зав. лабораторией';
     const ab = deptAbbr(s);
-    return ab ? 'Зав ' + ab : 'Зав. отделением';
+    return ab ? 'Зав. ' + ab : 'Зав. отделением';
   }
   if (has(/ген.*директор/)) return 'Ген. директор';
   if (has(/директор/)) return 'Директор';
