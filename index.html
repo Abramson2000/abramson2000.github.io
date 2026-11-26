@@ -2693,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.12.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.13.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2753,6 +2753,10 @@ async function refreshCounts() {
       ).length,
       cns: clinics.filter(c => (c.kind || 'hospital') === 'hospital' && cardProducts(c).includes('ЦНС')).length,
       litho: clinics.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital') && cardProducts(c).includes('EMS') && !isRefLinkedToWorking(c)).length,
+      // v6.13.0: у «Клея» (и АиР/Эндо) тоже показываем количество клиник
+      klei: clinics.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital') && cardProducts(c).includes('Клей') && !isRefLinkedToWorking(c)).length,
+      air: clinics.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital') && cardProducts(c).includes('АиР') && !isRefLinkedToWorking(c)).length,
+      endo: clinics.filter(c => ['hospital', 'ref_gos', 'ref_priv'].includes(c.kind || 'hospital') && cardProducts(c).includes('Эндо') && !isRefLinkedToWorking(c)).length,
       refgos: clinics.filter(c => c.kind === 'ref_gos' && !c.markedDel).length,
       refpriv: clinics.filter(c => c.kind === 'ref_priv' && !c.markedDel).length
     };
