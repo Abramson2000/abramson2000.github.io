@@ -2693,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.15.2';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.16.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5834,7 +5834,8 @@ async function renderVisits() {
     const labelOf = (p) => {
       const city = String(p.city || cityById[p.clinic_id] || '').trim();
       const clinic = String(byId[p.clinic_id] || '').trim();
-      if (clinic) return (city ? city + ' · ' : '') + clinic;
+      const showCity = city && !/^москва$/i.test(city);   // v6.16.0: в Москве город не дублируем
+      if (clinic) return (showCity ? city + ' · ' : '') + clinic;
       const raw = visitTitleOf(p) || p.goal || '';
       return (stripKind(raw) || String(p.goal || '').trim() || 'Визит') + (city ? ' · ' + city : '');
     };
@@ -5847,16 +5848,29 @@ async function renderVisits() {
       evs.push({ a, b, noteId: p.noteId, title: labelOf(p), cls: (b0 < today) ? 'past' : 'now' });
     });
     // 5.11.0: в календаре идеи тоже подчиняются фильтру по менеджеру
+    // v6.16.0: дубли «идея + визит» на одни и те же даты не рисуем (идея остаётся в базе)
+    const visitSpans = {};
+    visitRows.forEach(p => {
+      const a = String(p.date).slice(0, 10), b = visitEnd(p);
+      (visitSpans[p.clinic_id] = visitSpans[p.clinic_id] || []).push([a, b]);
+    });
+    const coveredByVisit = (cid, a, b) => {
+      const list = visitSpans[cid];
+      if (!list) return false;
+      return list.some(([x, y]) => !(b < x || y < a));
+    };
     (ideas || []).filter(i => visible(i) && passMgr(i)).forEach(i => {
       if (!i.from) return;
       const a0 = String(i.from).slice(0, 10), b0 = String(i.to || i.from).slice(0, 10);
+      if (i.clinic_id && coveredByVisit(i.clinic_id, a0, b0)) return;
       const a = a0 < monthStart ? monthStart : a0;
       const b = b0 > monthEnd ? monthEnd : b0;
       if (a > b) return;
       const city = String(i.city || cityById[i.clinic_id] || '').trim();
       const clinic = String(byId[i.clinic_id] || '').trim();
       const nm = clinic ? clinic : (i.goal || i.title || 'идея');
-      evs.push({ a, b, noteId: i.noteId, idea: true, cls: 'idea', title: 'идея · ' + (city ? city + ' · ' : '') + nm });
+      const showCity = city && !/^москва$/i.test(city);
+      evs.push({ a, b, noteId: i.noteId, idea: true, cls: 'idea', title: (showCity ? city + ' · ' : '') + nm });
     });
 
     // разбиваем месяц на недели по понедельникам
