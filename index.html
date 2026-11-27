@@ -2693,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.16.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.16.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5837,7 +5837,10 @@ async function renderVisits() {
       const showCity = city && !/^москва$/i.test(city);   // v6.16.0: в Москве город не дублируем
       if (clinic) return (showCity ? city + ' · ' : '') + clinic;
       const raw = visitTitleOf(p) || p.goal || '';
-      return (stripKind(raw) || String(p.goal || '').trim() || 'Визит') + (city ? ' · ' + city : '');
+      const t = stripKind(raw) || String(p.goal || '').trim() || 'Визит';
+      // v6.16.1: если город уже есть в названии («Иваново. RIRS…»), второй раз не добавляем
+      const dup = city && t.toLowerCase().replace(/ё/g, 'е').includes(city.toLowerCase().replace(/ё/g, 'е'));
+      return t + (city && !dup && !/^москва$/i.test(city) ? ' · ' + city : '');
     };
     const evs = [];
     visitRows.forEach(p => {
@@ -5869,7 +5872,8 @@ async function renderVisits() {
       const city = String(i.city || cityById[i.clinic_id] || '').trim();
       const clinic = String(byId[i.clinic_id] || '').trim();
       const nm = clinic ? clinic : (i.goal || i.title || 'идея');
-      const showCity = city && !/^москва$/i.test(city);
+      const dupCity = city && nm.toLowerCase().replace(/ё/g, 'е').includes(city.toLowerCase().replace(/ё/g, 'е'));
+      const showCity = city && !/^москва$/i.test(city) && !dupCity;   // v6.16.1: город не дублируем
       evs.push({ a, b, noteId: i.noteId, idea: true, cls: 'idea', title: (showCity ? city + ' · ' : '') + nm });
     });
 
