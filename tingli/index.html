@@ -26035,6 +26035,86 @@ const IDV_UNITS = [
    ]
   },
   {
+     "id": 5,
+     "kind": "words",
+     "title": "Новые слова (с урока)",
+     "titleZh": "生词和短语（三）",
+     "words": [
+       {
+         "zh": "叫上朋友",
+         "py": "jiào shàng péngyou",
+         "ru": "позвать с собой друзей",
+         "ph": true
+       },
+       {
+         "zh": "讨论话题",
+         "py": "tǎolùn huàtí",
+         "ru": "обсуждать тему",
+         "ph": true
+       },
+       {
+         "zh": "留在家里",
+         "py": "liú zài jiāli",
+         "ru": "остаться дома",
+         "ph": true
+       },
+       {
+         "zh": "微信群",
+         "py": "Wēixìn qún",
+         "ru": "группа в WeChat",
+         "ph": true
+       },
+       {
+         "zh": "放心吧",
+         "py": "fàngxīn ba",
+         "ru": "не переживай, будь спокоен",
+         "ph": true
+       },
+       {
+         "zh": "其他人",
+         "py": "qítā rén",
+         "ru": "другие люди",
+         "ph": true
+       },
+       {
+         "zh": "商量",
+         "py": "shāngliang",
+         "ru": "обсуждать, советоваться (чтобы договориться)",
+         "ph": true
+       },
+       {
+         "zh": "在飞机上我睡不着",
+         "py": "zài fēijī shàng wǒ shuì bù zháo",
+         "ru": "в самолёте я не могу заснуть",
+         "ph": true
+       },
+       {
+         "zh": "头上",
+         "py": "tóu shàng",
+         "ru": "над головой, на голове",
+         "ph": true
+       },
+       {
+         "zh": "听着有声书",
+         "py": "tīng zhe yǒushēngshū",
+         "ru": "слушая аудиокнигу",
+         "ph": true
+       },
+       {
+         "zh": "提前",
+         "py": "tíqián",
+         "ru": "заранее, досрочно",
+         "ph": true
+       },
+       {
+         "zh": "准时",
+         "py": "zhǔnshí",
+         "ru": "вовремя, точно по времени",
+         "ph": true
+       }
+     ]
+   },
+  {
    "id": 3,
    "kind": "text",
    "title": "Текст (二) · Объявление о походе",
@@ -37016,7 +37096,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.41.7';
+const APP_VER = '6.41.8';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
