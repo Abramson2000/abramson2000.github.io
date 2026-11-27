@@ -2693,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.16.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.17.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -2975,8 +2975,8 @@ function tagChipsHtml(tags) {
   const other = all.filter(t => !isProdTag(t) && !isSrcTag(t) && !isSvcTag(t));
   return prod.map(v => tagChipHtml(v, 'prods', 'pchip pchip-prod')).join('')
     + src.map(v => tagChipHtml(v, 'srcs', 'pchip pchip-src')).join('')
-    + svc.map(v => tagChipHtml(v, 'srcs', 'pchip pchip-svc')).join('')
-    + other.map(t => tagChipHtml(t, 'tags', 'tag')).join('');
+    + svc.map(v => tagChipHtml(v, 'srcs', 'pchip pchip-svc')).join('');
+  // v6.17.0: прочие (неклассифицированные) метки в строке не показываем
 }
 function cardTagsBlockHtml(c) {
   // v3.35.0: продукты и источники — ОТДЕЛЬНЫМИ компактными блоками; пустые блоки не показываем.
@@ -2993,7 +2993,9 @@ function cardTagsBlockHtml(c) {
   if (src.length) html += `<div class="detail-block src-block"><div class="k">Источники</div><div class="row">${src.map(v => tagChipHtml(v, 'srcs', 'pchip pchip-src')).join('')}</div></div>`;
   // v3.35.1: служебные метки — отдельным блоком и НЕ как фильтр (в обычном выборе их нет)
   if (svc.length) html += `<div class="detail-block src-block"><div class="k">Служебные</div><div class="row">${svc.map(v => `<span class="pchip pchip-svc">${esc(v)}</span>`).join('')}</div></div>`;
-  if (other.length) html += `<div class="detail-block src-block"><div class="k">Неклассифицированные метки</div><div class="row">${other.map(x => tagChipHtml(x, 'tags', 'tag')).join('')}</div></div>`;
+  // v6.17.0: неклассифицированные метки на карточке не показываем — оставляем только понятные группы
+  const dt = dirText(c);
+  if (dt) html += `<div class="detail-block src-block"><div class="k">Направления</div><div class="row"><span class="dir-sub">${esc(dt)}</span></div></div>`;
   return html;
 }
 // включить/снять фильтр по метке
