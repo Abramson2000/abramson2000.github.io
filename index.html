@@ -939,7 +939,7 @@ body.logged-out .toast { display: none !important; }
 .nc-hit:hover { background: var(--bg); }
 /* поле даты связи + свой календарь (кнопки ◀ • ▶, • — сегодня) */
 .date-wrap { display: inline-flex; align-items: center; gap: 4px; }
-.date-inp { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font: inherit; background: #fff; min-width: 116px; cursor: pointer; }
+.date-inp { cursor:pointer; border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font: inherit; background: #fff; min-width: 116px; cursor: pointer; }
 .date-inp:disabled { background: var(--bg); color: var(--muted); }
 .date-cal, .date-clear { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 5px 8px; cursor: pointer; font-size: 14px; line-height: 1; }
 .date-clear { color: var(--danger); }
@@ -2693,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.17.1';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.18.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -4569,7 +4569,7 @@ async function render() {
     try { document.body.classList.remove('card-open', 'card-sliding', 'swipe-drag'); } catch (_) {}
   }
   __lastRenderedView = state.view;
-  const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'money', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact'];
+  const PANEL_VIEWS = ['clinics', 'distributors', 'myday', 'plan', 'calls', 'visits', 'nastya', 'galya', 'sasha', 'people', 'money', 'refgos', 'refpriv', 'refdoc', 'reffirm', 'refcontact', 'cns', 'litho', 'klei', 'air', 'endo'];   // v6.18.0: продукты — тоже полная карточка
   document.body.classList.toggle('detail-mode', PANEL_VIEWS.includes(state.view));
   document.body.classList.toggle('plan-mode', state.view === 'plan');   // v4.28.0: «План» — на всю ширину
   document.body.classList.toggle('visits-mode', state.view === 'visits');   // v4.49.0: в «Визитах» поиск не нужен
@@ -10048,6 +10048,14 @@ document.addEventListener('click', async (ev) => {
     ev.preventDefault(); ev.stopPropagation();
     const box = document.getElementById('workChangeBox');
     if (box) box.classList.toggle('hidden');
+    return;
+  }
+  const cnext = ev.target.closest('#cpNext');
+  if (cnext && !cnext.disabled) {
+    ev.preventDefault(); ev.stopPropagation();
+    const pb = cnext.closest('.priv-block');
+    const mgr = pb ? (pb.dataset.mgr || '') : '';
+    openDateCal(cnext.dataset.date || '', (v) => saveNextContact(Number(pb && pb.dataset.cid), v, mgr));
     return;
   }
   const ccal = ev.target.closest('#cpCal');
