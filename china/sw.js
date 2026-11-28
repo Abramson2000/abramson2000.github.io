@@ -1,7 +1,7 @@
-const CACHE='my-china-v2.14.2';
-const SHELL = './index.html?v=2.14.2';
+const CACHE='my-china-v2.14.3';
+const SHELL = './index.html?v=2.14.3';
 const ASSETS=[
-  './travel/catalog.js?v=2.14.2','./travel/index.html','./travel/reader.css','./travel/reader.js','./books/geography.html','./tea.html','./books/history.html','./books/culture.html','./books/culture-cover.webp','./books/history-cover.webp',SHELL,'./styles.css?v=2.14.2','./data.js?v=2.14.2','./favorites.js?v=2.14.2','./app.js?v=2.14.2','./manifest.json?v=2.14.2',
+  './travel/catalog.js?v=2.14.3','./travel/index.html','./travel/reader.css','./travel/reader.js','./books/geography.html','./tea.html','./books/history.html','./books/culture.html','./books/culture-cover.webp','./books/history-cover.webp',SHELL,'./styles.css?v=2.14.3','./data.js?v=2.14.3','./favorites.js?v=2.14.3','./app.js?v=2.14.3','./manifest.json?v=2.14.3',
   './assets/brand/logo-main.webp','./assets/brand/logo-main.png','./assets/brand/app-icon-192.png','./assets/brand/app-icon-512.png','./assets/guide/china-relief-map.webp','./assets/maps/china-guide.svg','./assets/maps/china-library.svg','./assets/maps/relief-guide.webp','./assets/maps/relief-color.webp','./assets/maps/relief-gray.webp','./assets/guide/mobile-bg.jpg','./assets/guide/desktop-bg.jpg','./assets/library/china-geography-cover.webp','./assets/library/china-geography-territory-page.webp','./assets/library/china-geography-relief-page.webp','./assets/sections/library.svg','./assets/sections/tea.svg','./assets/sections/trips.svg','./assets/icons/menu/guide.svg','./assets/icons/menu/library.svg','./assets/icons/menu/tea.svg','./assets/icons/menu/trips.svg','./assets/icons/menu/reference.svg','./assets/icons/brand/sidebar-mark.svg','./assets/icons/browser/favicon.svg','./assets/icons/browser/favicon-32.png','./assets/icons/browser/favicon.ico','./assets/fonts/noto-serif-sc-reg.woff2','./assets/fonts/noto-serif-sc-bold.woff2'
 ];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
