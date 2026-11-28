@@ -105,7 +105,9 @@
   .unit-card { background: var(--card); border-radius: 20px; padding: 15px 14px 15px 16px; margin-bottom: 11px; cursor: pointer; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); transition: transform .12s ease, box-shadow .12s ease; }
   .unit-card:active { transform: scale(.98); box-shadow: 0 1px 3px rgba(29,29,33,.06); }
   .rik-sec { font-size: 12.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin: 18px 2px 8px; }
-.rik-rule { background: var(--card); border-radius: 16px; padding: 18px; font-size: 17.5px; line-height: 1.7; color: var(--ink); box-shadow: var(--shadow-card); }
+.rik-rule { background: var(--card); border-radius: 16px; padding: 18px; font-size: 17.5px; line-height: 1.72; color: var(--ink); box-shadow: var(--shadow-card); }
+.rik-rule p { margin: 0 0 16px; }
+.rik-rule p:last-child { margin-bottom: 0; }
 .rik-ex { background: var(--card); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow-card); }
 .rik-ex-zh { font-family: var(--f-hei); font-weight: 500; font-size: 26px; line-height: 1.5; color: var(--ink); }
 .rik-ex-py { font-size: 14.5px; color: var(--ink-2); margin-top: 5px; }
@@ -128,7 +130,7 @@
   .rik-due-go { margin-left: auto; font-weight: 800; white-space: nowrap; }
 .rik-review-note { background: #F0EFEB; border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.5; margin-bottom: 4px; }
 .rik-traps { display: flex; flex-direction: column; gap: 8px; }
-.rik-trap { background: var(--danger-soft); border-left: 4px solid var(--danger); border-radius: 12px; padding: 14px 16px; font-size: 17.5px; line-height: 1.6; color: var(--ink); }
+.rik-trap { background: #F3F1ED; border-left: 4px solid #C9C4BB; border-radius: 12px; padding: 14px 16px; font-size: 17.5px; line-height: 1.65; color: var(--ink); white-space: pre-line; }
 /* 6.22.0: на телефоне задания «Ежедневной грамматики» читаются крупнее */
 @media (max-width: 899px) {
   .rik-q-text { font-size: 19px; line-height: 1.6; }
@@ -517,13 +519,17 @@
   .task-card.anim-next { animation: slideNext .3s cubic-bezier(.2,.7,.3,1); }
   .task-card.anim-prev { animation: slidePrev .3s cubic-bezier(.2,.7,.3,1); }
   .app { will-change: transform; }
-  /* 6.47.1: однородный светлый фон — убрали цветную фотографию под карточками */
-  body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: var(--paper); }
+  /* фон-фотография: прозрачность задаётся переменной --bg-photo */
+  :root { --bg-photo: .45; }
+  body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: url('bg.jpg') no-repeat center 25% / cover; opacity: var(--bg-photo); transform: translateZ(0); -webkit-transform: translateZ(0); will-change: transform; }
+  /* в уроках грамматики фото приглушено, чтобы карточки читались */
+  body.rik-on { --bg-photo: .18; }
   .app { position: relative; z-index: 1; }
 
   /* Стартовый экран */
   #splash { position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center;
-    background: var(--paper);
+    background: linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,.4)), var(--line) url('bg.jpg') no-repeat center 25% / cover;
     transition: opacity .45s ease; }
   #splash.hide { opacity: 0; pointer-events: none; }
   .splash-in { display: flex; flex-direction: column; align-items: center; gap: 30px; transform: translateY(-30px); }
@@ -37069,7 +37075,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.51.0';
+const APP_VER = '6.52.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -37108,7 +37114,7 @@ async function syncRequest(path, opts) {
 /* ===== 日课 · грамматика HSK 3.0, уровень 3 ===== */
 const RIK_UNITS = [
  { n:1, zh:'把字句', ru:'Что делают с предметом: 把',
-   rule:'В китайском нельзя поставить после глагола сразу объект и место: 我放书在桌子上 — ошибка. Поэтому объект выносят вперёд, за 把, а после глагола остаётся то, что с объектом произошло.\nПодлежащее здесь — тот, кто действует. Объект — конкретный, известный из разговора.\nСхема: кто + 把 + объект + глагол + результат.\n我把书放在桌子上了。— Я положил книгу на стол.\n请把书给我。— Дай мне книгу, пожалуйста.\n我把作业做完了。— Я закончил домашнюю работу.\nПосле глагола обязательно указывается результат: место (在/到 + место), адресат (给 + кому) или завершённость (完/好/开/干净). Без этого предложение неполное: 我把书看 — ошибка, нужно 看完了.\nОтрицание и запрет ставятся перед 把: 我没把门关上 · 别把杯子打碎.\nС глаголами состояния и отношения (喜欢, 爱, 怕, 是, 有, 在) 把 не употребляется.',
+   rule:'В китайском нельзя поставить после глагола сразу объект и место. Фраза 我放书在桌子上 поэтому неверна.\n\nОбъект выносят вперёд, за 把, а после глагола остаётся то, что с объектом произошло.\n\nПодлежащее здесь тот, кто действует. Объект конкретный, известный из разговора.\n\nСхема:\nкто + 把 + объект + глагол + результат\n\n我把书放在桌子上了。\nЯ положил книгу на стол.\n\n请把书给我。\nДай мне книгу, пожалуйста.\n\n我把作业做完了。\nЯ закончил домашнюю работу.\n\nПосле глагола обязательно указывается результат: место (在/到 + место), адресат (给 + кому) или завершённость (完/好/开/干净).\n\nБез этого предложение неполное:\n我把书看 ✗\n我把书看完了 ✓\n\nОтрицание и запрет ставятся перед 把:\n我没把门关上 ✓\n别把杯子打碎 ✓\n\nС глаголами состояния и отношения (喜欢, 爱, 怕, 是, 有, 在) 把 не употребляется.',
    ex:[ {zh:'我把书放在桌子上了。', py:'Wǒ bǎ shū fàng zài zhuōzi shàng le.', ru:'Я положил книгу на стол.'},
         {zh:'请把书给我。', py:'Qǐng bǎ shū gěi wǒ.', ru:'Дай мне книгу, пожалуйста.'},
         {zh:'我把手机放在桌子上了。', py:'Wǒ bǎ shǒujī fàng zài zhuōzi shàng le.', ru:'Я положил телефон на стол.'} ],
@@ -37117,7 +37123,7 @@ const RIK_UNITS = [
      {q:'我把照片发___你了。', opts:['在','给','干净'], a:1},
      {q:'他把衣服洗___了。', opts:['干净','在','给'], a:0}] },
  { n:2, zh:'被', ru:'Что случилось с предметом: 被',
-   rule:'Конструкция с 被 нужна, когда подлежащее — не тот, кто действует, а предмет, на который действие направлено.\nСхема: предмет + 被 + (кто) + глагол + результат.\n我的钱包被偷了。— Кошелёк украли.\n他被老师批评了。— Его отругал учитель.\n杯子被我打碎了。— Чашка разбита мной.\nОдна и та же ситуация в двух конструкциях:\n我把杯子打碎了 — сообщаем, что сделал я: подлежащее «я», в конце результат действия.\n杯子被我打碎了 — сообщаем, что стало с чашкой: подлежащее «чашка».\nПосле глагола, как и с 把, обязателен результат: 被风吹 — ошибка, нужно 被风吹开了.\n被 обычно употребляется, когда речь о неприятности или помехе; о хорошем так не говорят.\nОтрицание ставится перед 被: 我没被他骗.',
+   rule:'Конструкция с 被 нужна, когда подлежащее не тот, кто действует, а предмет, на который действие направлено.\n\nСхема:\nпредмет + 被 + (кто) + глагол + результат\n\n我的钱包被偷了。\nКошелёк украли.\n\n他被老师批评了。\nЕго отругал учитель.\n\n杯子被我打碎了。\nЧашка разбита мной.\n\nОдна и та же ситуация в двух конструкциях.\n\n我把杯子打碎了\nЯ разбил чашку. Подлежащее «я», в конце результат действия.\n\n杯子被我打碎了\nЧашка разбита. Подлежащее «чашка», в центре то, что с ней стало.\n\nПосле глагола, как и с 把, обязателен результат:\n被风吹 ✗\n被风吹开了 ✓\n\n被 обычно употребляется, когда речь о неприятности или помехе. О хорошем так не говорят.\n\nОтрицание ставится перед 被:\n我没被他骗 ✓',
    ex:[ {zh:'他被老师批评了。', py:'Tā bèi lǎoshī pīpíng le.', ru:'Его отругал учитель.'},
         {zh:'我的手机被弟弟拿走了。', py:'Wǒ de shǒujī bèi dìdi ná zǒu le.', ru:'Мой телефон забрал брат.'},
         {zh:'这本书被他拿走了。', py:'Zhè běn shū bèi tā ná zǒu le.', ru:'Эту книгу он забрал.'} ],
@@ -37212,9 +37218,7 @@ RIK_UNITS.forEach(function (u) {
 const RIK_L2 = [
  { n:0, zh:'过', ru:'Опыт: уже бывало',
    rule:'Опыт: 过 guò. Стоит ПОСЛЕ глагола и говорит: такое в жизни уже было, время не важно.\n我去过中国。Wǒ qùguo Zhōngguó. — Я бывал в Китае (когда-то, не важно когда).\n你吃过北京烤鸭吗？Nǐ chīguo Běijīng kǎoyā ma? — Ты ел утку по-пекински?\nСравни: 我去了 — я поехал (конкретный раз); 我去过 — я бывал (опыт).\nОтрицание — 没(有)…过: 我没去过日本 — я не был в Японии.\n⚠️ 过 не ставится, когда важен результат «сейчас»: 他来了 ✓, 他来过 — «он бывал здесь», другой смысл.',
-   traps:['«Я был в Китае» → 我去过中国, а не 我去了中国.',
-          'Отрицание только через 没: 没去过. «不去过» — ошибка.',
-          'Вопрос: 你去过中国吗？ — 过 остаётся на месте.'],
+   traps:['После 被 обязателен результат:\n被风吹 ✗\n被风吹开了 ✓','Отрицание ставится перед 被:\n我没被他骗 ✓\n我被他没骗 ✗','被 чаще о неприятности:\n我的钱包被偷了 ✓'],
    ex:[ {zh:'我去过中国两次。', py:'Wǒ qùguo Zhōngguó liǎng cì.', ru:'Я дважды был в Китае.'},
         {zh:'他没吃过这个东西。', py:'Tā méi chīguo zhège dōngxi.', ru:'Он это не пробовал.'},
         {zh:'你见过她吗？', py:'Nǐ jiànguo tā ma?', ru:'Ты её видел?'}],
@@ -40331,7 +40335,7 @@ function rikExamCard(to, p) {
   const NEW = [
     {
       zh: '很 · 真 · 太', ru: 'Очень, правда, слишком',
-      rule: 'Все три — про степень. Разница в том, что ты чувствуешь.\n很 hěn — просто «очень», спокойно, без эмоции:\n今天很热。— Сегодня жарко.\n真 zhēn — «правда, действительно». Ты удивляешься или радуешься:\n今天真热！— Сегодня правда жарко!\n太 tài — «слишком». С 了 в конце почти всегда:\n今天太热了。— Сегодня слишком жарко.\nЗапомни пару: 真 — про твоё чувство, 太 — про перебор, 很 — просто факт.',
+      rule:'Все три слова показывают степень. Разница в том, что именно вы сообщаете.\n\n很 hěn значит «очень», спокойная констатация:\n今天很热。\nСегодня жарко.\n\n真 zhēn значит «правда, действительно», с удивлением или радостью:\n今天真热！\nСегодня правда жарко!\n\n太 tài значит «слишком», почти всегда с 了 в конце:\n今天太热了。\nСегодня слишком жарко.\n\nКоротко: 很 сообщает факт, 真 передаёт ваше чувство, 太 говорит о переборе.',
       traps: ['太 без 了 звучит не по-китайски: 太热了 ✓, 太热 ✗ (в разговоре иногда можно, в норме — с 了).',
               '真 нельзя ставить в вопрос: 真热吗 ✗ → 很热吗 ✓.',
               '很 не нужно, если уже есть 太, 真, 非常: 很太热 ✗.'],
@@ -40348,7 +40352,7 @@ function rikExamCard(to, p) {
     },
     {
       zh: '马上 · 突然 · 渐渐 · 一直', ru: 'Скоро, вдруг, постепенно, всё время',
-      rule: 'Четыре наречия времени. Проще всего запомнить по картинке.\n马上 mǎshàng — «сейчас же, через минуту»:\n我马上来。— Я сейчас приду.\n突然 tūrán — «вдруг, неожиданно». Ставим перед глаголом:\n他突然走了。— Он вдруг ушёл.\n渐渐 jiànjiàn — «постепенно, потихоньку». Процесс идёт сам:\n天气渐渐冷了。— Погода постепенно холодает.\n一直 yìzhí — «всё время, не переставая»:\n他一直在看书。— Он всё время читает.',
+      rule:'Наречия времени различаются картинкой, которую вы держите в голове.\n\n马上 значит «сейчас же, через минуту», стоит перед глаголом:\n我马上来。\nЯ сейчас приду.\n\n突然 значит «вдруг, неожиданно»:\n他突然走了。\nОн вдруг ушёл.\n\n渐渐 значит «постепенно», процесс идёт сам:\n天气渐渐冷了。\nПогода постепенно холодает.\n\n一直 значит «всё время, не переставая»:\n他一直在看书。\nОн всё время читает.',
       traps: ['突然 — про один момент; 渐渐 — про долгий процесс. Не путай.',
               '一直 требует продолжения: 一直 + глагол (+ 在).',
               '马上 ставят перед глаголом, а не в конце: 我马上来 ✓, 我来马上 ✗.'],
@@ -40365,7 +40369,7 @@ function rikExamCard(to, p) {
     },
     {
       zh: '常常 · 往往 · 偶尔 · 一再', ru: 'Часто, обычно, изредка, снова и снова',
-      rule: 'Как часто это бывает.\n常常 chángcháng — «часто» в разговоре. Можно про себя:\n我常常去那儿。— Я часто туда хожу.\n往往 wǎngwǎng — «обычно, как правило». Про общий порядок вещей, не про меня:\n夏天往往很热。— Летом, как правило, жарко.\n偶尔 ǒu\'ěr — «изредка, иногда»:\n他偶尔喝一杯酒。— Он изредка выпивает.\n一再 yízài — «раз за разом» (чаще о просьбах, ошибках):\n他一再迟到。— Он снова и снова опаздывает.',
+      rule:'Эти наречия отвечают на вопрос «как часто».\n\n常常 значит «часто», обычное разговорное слово:\n我常常去那儿。\nЯ часто туда хожу.\n\n往往 значит «как правило», о общем порядке вещей, а не о вашем сегодняшнем дне:\n夏天往往很热。\nЛетом, как правило, жарко.\n\n偶尔 значит «изредка»:\n他偶尔喝一杯酒。\nОн изредка выпивает рюмку.\n\n一再 значит «раз за разом», чаще о настойчивом или плохом:\n他一再迟到。\nОн снова и снова опаздывает.',
       traps: ['往往 не про одно действие сейчас, а про правило: ✗ 我今天往往很累 → 常常 ✓.',
               '偶尔 = редко; 常常 = часто. Обратное не получится.',
               '一再 — с плохим или настойчивым оттенком, не для «иногда».'],
@@ -40442,6 +40446,43 @@ function rikExamCard(to, p) {
   RIK_UNITS.forEach(u => { if (pr[u.n] && pr[u.n].ok) lastOk = Math.max(lastOk, u.n); });
   const at = Math.min(lastOk, RIK_UNITS.length);
   const out = RIK_UNITS.slice(0, at).concat(add, RIK_UNITS.slice(at));
+  RIK_UNITS.length = 0;
+  out.forEach((u, i) => { u.n = i + 1; RIK_UNITS.push(u); });
+})();
+
+/* 6.52.0: 刚刚 — третий вариант «только что», его не хватало */
+(function rikInsertGanggang() {
+  if (RIK_UNITS.some(u => u.zh === '刚刚')) return;
+  const item = {
+    zh: '刚刚', ru: 'Только что: 刚, 刚刚, 刚才',
+    rule: 'Три слова говорят о недавнем прошлом, но играют разную роль в предложении.\n\n' +
+      '刚 и 刚刚 наречия, стоят после подлежащего и перед глаголом:\n' +
+      '我刚吃完饭。\nЯ только что поел.\n\n' +
+      '他刚刚走。\nОн только что ушёл.\n\n' +
+      '刚刚 звучит мягче и чаще встречается в разговоре, по смыслу совпадает с 刚.\n\n' +
+      '刚才 существительное времени, поэтому свободнее в позиции, в том числе в начале фразы:\n' +
+      '刚才我看见老师了。\nТолько что я видел учителя.\n\n' +
+      'С количеством времени употребляется только 刚:\n' +
+      '他刚走三天。\nОн ушёл всего три дня назад.\n\n' +
+      'Форма 刚才三天 ошибочна.',
+    traps: ['刚 и 刚刚 стоят перед глаголом:\n我刚到 ✓\n我刚刚到 ✓',
+            '刚才 может открывать предложение:\n刚才我看见了 ✓\n刚我看见了 ✗',
+            'С количеством только 刚:\n刚三天 ✓\n刚才三天 ✗'],
+    ex: [
+      { zh: '他刚刚走。', py: 'Tā gānggāng zǒu.', ru: 'Он только что ушёл.' },
+      { zh: '刚才我看见老师了。', py: 'Gāngcái wǒ kànjiàn lǎoshī le.', ru: 'Только что я видел учителя.' },
+      { zh: '他刚走三天。', py: 'Tā gāng zǒu sān tiān.', ru: 'Он ушёл всего три дня назад.' }
+    ],
+    quiz: [
+      { q: '___我看见老师了。', opts: ['刚才', '刚', '刚刚'], a: 0 },
+      { q: '他___走，现在追还来得及。', opts: ['刚', '刚才', '才'], a: 0 },
+      { q: '她结婚___两个月。', opts: ['刚', '刚才', '刚刚'], a: 0 }
+    ]
+  };
+  // ставим сразу после урока «刚才», чтобы шли подряд: 刚, 刚才, 刚刚
+  let at = RIK_UNITS.findIndex(u => u.zh === '刚才');
+  at = at >= 0 ? at + 1 : RIK_UNITS.length;
+  const out = RIK_UNITS.slice(0, at).concat([item], RIK_UNITS.slice(at));
   RIK_UNITS.length = 0;
   out.forEach((u, i) => { u.n = i + 1; RIK_UNITS.push(u); });
 })();
@@ -40597,6 +40638,8 @@ function renderRik() {
     ${rows}`;
 }
 function rikBackToList(animated) {
+  document.body.classList.remove('rik-on');
+  document.body.style.removeProperty('--bg-photo');
   const a = document.getElementById('app');
   if (!a || !animated) { renderRik(); return; }
   a.style.transition = '';
@@ -40643,6 +40686,10 @@ function openRik(n, review) {
   if (!isDone && !rikAvailable(n, pr)) return;   // закрытый урок не открываем
   RIK_REVIEW = !!(review && isDone);
   window.RIK_OPEN = true;
+  document.body.classList.add('rik-on');
+  const RIK_PHOTO = { 1: .30, 2: .18, 3: .10 };
+  if (RIK_PHOTO[n] != null) document.body.style.setProperty('--bg-photo', String(RIK_PHOTO[n]));
+  else document.body.style.removeProperty('--bg-photo');
   RIK_ANS = {};
   const rvN = (pr[n] && pr[n].rv) || 0;
   RIK_QUIZ = u.quiz;
@@ -40674,7 +40721,9 @@ function openRik(n, review) {
     <div class="rik-review-note">Новые примеры и новые задания по тому же правилу. Забыл правило — <b>открой урок целиком</b>.</div>
     <div class="rik-sec">${RIK_EX_BOOK ? '例子 · Примеры из учебника' : '例子 · Новые примеры'}</div>
     ${ex}` : `<div class="rik-sec">理论 · Теория</div>
-    <div class="rik-rule">${String(u.rule).split('\n').map(function (ln) { return '<p style="margin:0 0 8px">' + ln + '</p>'; }).join('')}</div>
+    <div class="rik-rule">${String(u.rule).split(/\n\s*\n/).map(function (blk) {
+      return '<p>' + blk.split('\n').join('<br>') + '</p>';
+    }).join('')}</div>
     ${u.traps && u.traps.length ? `<div class="rik-sec" style="margin-top:14px">注意 · Ловушки</div><div class="rik-traps">${u.traps.map(function (t) { return '<div class="rik-trap">' + t + '</div>'; }).join('')}</div>` : ''}
     <div class="rik-sec">例子 · Примеры</div>
     ${ex}`}
