@@ -37075,7 +37075,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.57.2';
+const APP_VER = '6.57.3';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -40660,11 +40660,8 @@ let RIK_QUEUE = false;
       shuffled.splice(pos, 0, right);
       return { q: 'Неверно:\n' + it.wrong + '\nКак правильно?', opts: shuffled, a: shuffled.indexOf(right), err: 1 };
     });
-    // задания на ошибки должны попадаться и в первом проходе, и в любом повторе
+    // держим задания только в основном наборе; повтор подмешает их сам, без дублей
     u.quiz = items.concat(u.quiz || []);
-    u.rvQuiz = items.concat(u.rvQuiz || []);
-    if (u.rvLv2) u.rvLv2 = items.concat(u.rvLv2);
-    if (u.rvLv3) u.rvLv3 = items.concat(u.rvLv3);
   });
 })();
 
@@ -41025,9 +41022,16 @@ function openRik(n, review) {
   const rvN = (pr[n] && pr[n].rv) || 0;
   RIK_QUIZ = u.quiz;
   if (RIK_REVIEW) RIK_QUIZ = (rvN >= 2 && u.rvLv3) ? u.rvLv3 : ((rvN === 1 && u.rvLv2) ? u.rvLv2 : (u.rvQuiz || u.quiz));
-  if (RIK_REVIEW) {                                // 6.57.1: задания «найди ошибку» показываем всегда
+  if (RIK_REVIEW) {                                // 6.57.3: задания «найди ошибку» первыми и без дублей
     const errs = (u.quiz || []).filter(q => q.err);
-    if (errs.length) RIK_QUIZ = errs.concat((RIK_QUIZ || []).filter(q => !q.err));
+    const seen = new Set();
+    const uniq = [];
+    errs.concat(RIK_QUIZ || []).forEach(function (q) {
+      const k = String(q.q) + '|' + (q.opts || []).join('|');
+      if (seen.has(k)) return;
+      seen.add(k); uniq.push(q);
+    });
+    RIK_QUIZ = uniq;
   }
   RIK_EX = (RIK_REVIEW && (u.bkEx || u.rvEx)) ? (u.bkEx || u.rvEx) : u.ex;
   if (RIK_EX && RIK_EX.length > 5) RIK_EX = RIK_EX.slice(0, 5);   // 6.54.1: в повторе не больше пяти примеров
