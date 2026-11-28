@@ -37161,7 +37161,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.41.14';
+const APP_VER = '6.41.15';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -39191,6 +39191,21 @@ function scheduleBackup(key) { if (!key || tingliSyncKey(key)) tingliSync.mark()
 function initialTingliMerge(k, local, remote) {
   if (k === 'tingli-schedule-v1') return JSON.stringify(CrmSyncCore.mergeSchedule(JSON.parse(remote), JSON.parse(local)));
   if (k === 'tingli-rik-v1') return JSON.stringify(rikMergeMap(JSON.parse(local || '{}'), JSON.parse(remote || '{}')));
+  if (k === RIK_MIS_KEY) {                            // журнал ошибок: объединяем по вопросам
+    const l = JSON.parse(local || '{}') || {}, r = JSON.parse(remote || '{}') || {};
+    const out = {};
+    new Set([...Object.keys(l), ...Object.keys(r)]).forEach(key => {
+      const a = l[key], b = r[key];
+      if (!a) { out[key] = b; return; }
+      if (!b) { out[key] = a; return; }
+      const newer = (+b.last || 0) > (+a.last || 0) ? b : a;
+      out[key] = Object.assign({}, newer, {
+        n: Math.max(+a.n || 0, +b.n || 0),
+        last: Math.max(+a.last || 0, +b.last || 0)
+      });
+    });
+    return JSON.stringify(out);
+  }
   if (k === 'tingli-manual-v1') return JSON.stringify(mergeMan(JSON.parse(local), JSON.parse(remote)));
   if (k === 'tingli-progress-v1') return JSON.stringify(mergeProgress(JSON.parse(local), JSON.parse(remote)));
   if (k === LS_FAV || k === DICT_KEY || k === 'tingli-cidian-outbox-v3') {
@@ -40324,12 +40339,28 @@ function rikQueueNext() {                       // следующий повто
   return false;
 }
 /* 6.41.13: журнал ошибок по каждому вопросу — видно, какие пары путаются */
-const RIK_MIS_KEY = 'rik_mistakes_v1';
+const RIK_MIS_KEY = 'tingli-rik-mistakes-v1';
+const RIK_MIS_OLD = 'rik_mistakes_v1';
+(function rikMisMigrate() {
+  try {
+    const oldRaw = localStorage.getItem(RIK_MIS_OLD);
+    if (!oldRaw) return;
+    const oldMap = JSON.parse(oldRaw) || {};
+    const cur = JSON.parse(localStorage.getItem(RIK_MIS_KEY) || '{}') || {};
+    Object.keys(oldMap).forEach(k => { if (!cur[k]) cur[k] = oldMap[k]; });
+    localStorage.setItem(RIK_MIS_KEY, JSON.stringify(cur));
+    localStorage.removeItem(RIK_MIS_OLD);
+  } catch (e) {}
+})();
 function rikMisLoad() {
   try { return JSON.parse(localStorage.getItem(RIK_MIS_KEY) || '{}') || {}; } catch (e) { return {}; }
 }
 function rikMisSave(m) {
-  try { localStorage.setItem(RIK_MIS_KEY, JSON.stringify(m)); } catch (e) {}
+  try {
+    const raw = JSON.stringify(m);
+    if (typeof saveLocal === 'function') saveLocal(RIK_MIS_KEY, raw);
+    else localStorage.setItem(RIK_MIS_KEY, raw);
+  } catch (e) {}
 }
 function rikMisKey(unitN, qText) { return unitN + '|' + String(qText || '').replace(/\s+/g, ' ').trim().slice(0, 120); }
 function rikMisAdd(unitN, topic, qText, chosen, right) {
