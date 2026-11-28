@@ -37075,7 +37075,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.54.0';
+const APP_VER = '6.54.1';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -40790,6 +40790,7 @@ function openRik(n, review) {
   RIK_QUIZ = u.quiz;
   if (RIK_REVIEW) RIK_QUIZ = (rvN >= 2 && u.rvLv3) ? u.rvLv3 : ((rvN === 1 && u.rvLv2) ? u.rvLv2 : (u.rvQuiz || u.quiz));
   RIK_EX = (RIK_REVIEW && (u.bkEx || u.rvEx)) ? (u.bkEx || u.rvEx) : u.ex;
+  if (RIK_EX && RIK_EX.length > 5) RIK_EX = RIK_EX.slice(0, 5);   // 6.54.1: в повторе не больше пяти примеров
   RIK_EX_BOOK = !!(RIK_REVIEW && u.bkEx);
   RIK_VIEW = rikViewQuiz(RIK_QUIZ);
   RIK_ORDER = RIK_REVIEW ? RIK_VIEW.map((q, i) => i).sort(() => Math.random() - 0.5) : null;
@@ -40798,7 +40799,7 @@ function openRik(n, review) {
       <div class="rik-ex-zh">${e.zh}</div>
       <div class="rik-ex-py">${e.py}</div>
       <div class="rik-ex-ru">${e.ru}</div></div>`).join('');
-  const order = RIK_ORDER || RIK_VIEW.map((q, i) => i);
+  const order = (RIK_ORDER || RIK_VIEW.map((q, i) => i)).slice(0, RIK_REVIEW ? 5 : undefined);  // 6.54.1: пять вопросов в повторе
   const qs = order.map((qi, pos) => { const q = RIK_VIEW[qi]; return `<div class="rik-q" data-q="${qi}">
       <div class="rik-q-num">${pos + 1}</div>
       <div class="rik-q-body">
