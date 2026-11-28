@@ -37075,7 +37075,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.57.1';
+const APP_VER = '6.57.2';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -38665,6 +38665,7 @@ const TINTS = ['', ];
 const audio = new Audio();
 audio.preload = 'auto';
 let partAudioKey = null;
+let RIK_SHOWN = null;
 // Кэш blob-URL: грузим файл целиком через fetch → seek/skip работают без серверного Range
 const audioBlobCache = {};
 // Версионированный URL аудио: новый номер версии = обход кэша (старые mp3 не залипают)
@@ -40971,6 +40972,7 @@ function renderRik() {
     ${rows}`;
 }
 function rikBackToList(animated) {
+  RIK_SHOWN = null;
   const a = document.getElementById('app');
   if (!a || !animated) { renderRik(); return; }
   a.style.transition = '';
@@ -41042,6 +41044,7 @@ function openRik(n, review) {
       <div class="rik-ex-py">${e.py}</div>
       <div class="rik-ex-ru">${e.ru}</div></div>`).join('');
   const order = (RIK_ORDER || RIK_VIEW.map((q, i) => i)).slice(0, RIK_REVIEW ? 5 : undefined);  // 6.54.1: пять вопросов в повторе
+  RIK_SHOWN = order.map(i => RIK_VIEW[i]);           // 6.57.2: считаем только показанные
   const qs = order.map((qi, pos) => { const q = RIK_VIEW[qi]; return `<div class="rik-q" data-q="${qi}">
       <div class="rik-q-num">${pos + 1}</div>
       <div class="rik-q-body">
@@ -41144,7 +41147,7 @@ function rikPick(n, qi, oi) {
 }
 function rikCheck(n) {
   const u = RIK_UNITS.find(x => x.n === n); if (!u) return;
-  const quiz = RIK_VIEW || rikViewQuiz(RIK_QUIZ || u.quiz);
+  const quiz = (RIK_SHOWN && RIK_SHOWN.length) ? RIK_SHOWN : (RIK_VIEW || rikViewQuiz(RIK_QUIZ || u.quiz));
   let right = 0;
   quiz.forEach((q, qi) => {
     const ok = RIK_ANS[qi] === q.a;
