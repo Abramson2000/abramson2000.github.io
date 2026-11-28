@@ -37075,7 +37075,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.56.0';
+const APP_VER = '6.57.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -40608,6 +40608,59 @@ let RIK_QUEUE = false;
   const out = RIK_UNITS.slice(0, at).concat(add, RIK_UNITS.slice(at));
   RIK_UNITS.length = 0;
   out.forEach((u, i) => { u.n = i + 1; RIK_UNITS.push(u); });
+})();
+
+/* 6.57.0: задания «найди ошибку» из книги 3 (汉语病句辨析九百例) — в повторении грамматики */
+(function rikAddErrorTasks() {
+  const BANK = {
+    'Что делают с предметом: 把': {
+      items: [
+        { wrong: '他把那张画儿挂在屋子的墙里了。', right: '他把那张画儿挂在屋子墙上了。' },
+        { wrong: '你把这件衣服洗干净吗？', right: '你能把这件衣服洗干净吗？' },
+        { wrong: '三个女孩子们把鲜花送给代表了。', right: '三个女孩子把鲜花送给代表了。' }
+      ],
+      extra: ['请你把这张票给阿里还是巴里亚。']
+    },
+    'Что случилось с предметом: 被': {
+      items: [
+        { wrong: '我的自行车被朋友骑去城里到了。', right: '我的自行车被朋友骑到城里去了。' },
+        { wrong: '那些画被他都卖了。', right: '那些画都被他卖了。' },
+        { wrong: '自行车被丁力没骑走。', right: '自行车没被丁力骑走。' }
+      ],
+      extra: ['我被收音机醒了。']
+    },
+    'Сравнение: 比, 一样, 不比': {
+      items: [
+        { wrong: '他比我一点儿高。', right: '他比我高一点儿。' },
+        { wrong: '长江比黄河多少长公里？', right: '长江比黄河长多少公里？' }
+      ],
+      extra: ['妈妈比五年前旧多了。', '虽然比较忙，但是再有时间复习。']
+    },
+    'Все: наречие и прилагательное': {
+      items: [
+        { wrong: '下课的时候都我们去外边休息。', right: '下课时候我们都去外边休息。' },
+        { wrong: '我每天都没有锻炼身体。', right: '我每天都不锻炼身体。' },
+        { wrong: '这个图书馆怎么书都有。', right: '这个图书馆什么书都有。' }
+      ],
+      extra: ['今天的节目演得真好，观众们都热烈鼓掌。']
+    }
+  };
+
+  Object.keys(BANK).forEach(function (ru) {
+    const u = RIK_UNITS.find(x => x.ru === ru);
+    if (!u) return;
+    const bank = BANK[ru];
+    const wrongs = bank.items.map(i => i.wrong).concat(bank.extra || []);
+    const items = bank.items.map(function (it) {
+      const opts = [it.right].concat(wrongs.filter(w => w !== it.wrong)).slice(0, 3);
+      const pos = (it.wrong.length + it.right.length) % 3;
+      const shuffled = opts.slice();
+      const right = shuffled.splice(0, 1)[0];
+      shuffled.splice(pos, 0, right);
+      return { q: 'Неверно:\n' + it.wrong + '\nКак правильно?', opts: shuffled, a: shuffled.indexOf(right) };
+    });
+    u.rvQuiz = (u.rvQuiz || []).concat(items);
+  });
 })();
 
 /* 6.54.0: два урока «比较句» объединены в один, чтобы не было дубля */
