@@ -28,12 +28,12 @@
     --f-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "PingFang SC", "Heiti SC", "Noto Sans SC", sans-serif;
     --f-kai: "Iowan Old Style", Georgia, "Times New Roman", -apple-system, "TLKai", "Kaiti SC", "STKaiti", "KaiTi", serif;
     /* ===== палитра Tingli (5.0.0) ===== */
-    --paper:       #F5F4F1;
+    --paper:       #F8F8F6;
     --surface:     #FFFFFF;
     --ink:         #1D1D21;
-    --ink-2:       #6E6B66;
-    --ink-3:       #AAA69F;
-    --line:        #E5E1DA;
+    --ink-2:       #5D5952;
+    --ink-3:       #8C867C;
+    --line:        #E7E5DF;
     --seal:        #C63717;
     --seal-dark:   #A62D13;
     --seal-soft:   #F8E8E2;
@@ -68,7 +68,8 @@
     --shadow-card: 0 1px 2px rgba(29,29,33,.04), 0 8px 24px rgba(29,29,33,.055);
     --shadow-pop:  0 2px 6px rgba(29,29,33,.07), 0 14px 34px rgba(29,29,33,.09);
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html { scrollbar-gutter: stable; }
   body { font-family: var(--f-ui); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; letter-spacing: 0; }
   .zh, .zh-opt, .fill, .word .zh, .task-q, .opt, .hw-q-text, .hw-bank, .hw-opt, .hw-ans-btn, .part-zh, .unit-zh, .unit-zh-sub { font-family: var(--f-hei); }
@@ -103,29 +104,29 @@
   /* Карточка урока */
   .unit-card { background: var(--card); border-radius: 20px; padding: 15px 14px 15px 16px; margin-bottom: 11px; cursor: pointer; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); transition: transform .12s ease, box-shadow .12s ease; }
   .unit-card:active { transform: scale(.98); box-shadow: 0 1px 3px rgba(29,29,33,.06); }
-  .rik-sec { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3, #9a968f); margin: 18px 2px 8px; }
-.rik-rule { background: var(--card); border-radius: 16px; padding: 16px; font-size: 16.5px; line-height: 1.62; box-shadow: var(--shadow-card); }
+  .rik-sec { font-size: 12.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin: 18px 2px 8px; }
+.rik-rule { background: var(--card); border-radius: 16px; padding: 18px; font-size: 17.5px; line-height: 1.7; color: var(--ink); box-shadow: var(--shadow-card); }
 .rik-ex { background: var(--card); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow-card); }
-.rik-ex-zh { font-family: var(--f-kai); font-size: 25px; line-height: 1.5; color: var(--ink); }
-.rik-ex-py { font-size: 13.5px; color: var(--ink-2); margin-top: 4px; }
+.rik-ex-zh { font-family: var(--f-hei); font-weight: 500; font-size: 26px; line-height: 1.5; color: var(--ink); }
+.rik-ex-py { font-size: 14.5px; color: var(--ink-2); margin-top: 5px; }
 .rik-ex-ru { font-size: 15px; color: var(--ink); margin-top: 6px; }
 .rik-q { display: flex; gap: 12px; background: var(--card); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow-card); }
 .rik-q-num { width: 26px; height: 26px; border-radius: 50%; background: var(--paper); color: var(--ink-2); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.rik-q-text { font-size: 17.5px; line-height: 1.55; color: var(--ink); }
+.rik-q-text { font-size: 18px; line-height: 1.55; color: var(--ink); }
 .rik-q-opts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.rik-opt { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 10px 16px; font-size: 16px; font-family: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.rik-opt { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 11px 18px; font-size: 17px; font-family: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; }
 .rik-opt.on { border-color: var(--red); color: var(--red); font-weight: 700; }
 .rik-opt.right { background: var(--done-soft); border-color: var(--done); color: #1f7a45; font-weight: 700; }
 .rik-opt.wrong { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
-.rik-review { box-shadow: inset 0 0 0 2px rgba(178,124,40,.35); }
-.rik-badge-review { background: var(--ochre-soft); color: var(--ochre-ink); }
-.rik-arrow-review { color: var(--ochre-ink); font-size: 22px; }
-.rik-due { margin: 0 4px 10px; padding: 10px 12px; border-radius: 10px; background: var(--ochre-soft); color: var(--ochre-ink); font-size: 13.5px; line-height: 1.45; }
-  button.rik-due { display: flex; align-items: center; gap: 10px; width: calc(100% - 8px); border: 1px solid rgba(140,100,20,.22); text-align: left; cursor: pointer; font-family: inherit; transition: background .15s ease; }
-  button.rik-due:hover { background: rgba(214,168,66,.28); }
+.rik-review { box-shadow: inset 0 0 0 2px rgba(29,29,33,.14); }
+.rik-badge-review { background: #EDECE7; color: var(--ink-2); }
+.rik-arrow-review { color: var(--ink-2); font-size: 22px; }
+.rik-due { margin: 0 4px 10px; padding: 10px 12px; border-radius: 10px; background: #F0EFEB; color: var(--ink-2); font-size: 13.5px; line-height: 1.45; }
+  button.rik-due { display: flex; align-items: center; gap: 10px; width: calc(100% - 8px); border: 1px solid var(--line); text-align: left; cursor: pointer; font-family: inherit; transition: background .15s ease; }
+  button.rik-due:hover { background: #E9E8E3; }
   button.rik-due:active { transform: scale(.995); }
   .rik-due-go { margin-left: auto; font-weight: 800; white-space: nowrap; }
-.rik-review-note { background: var(--ochre-soft); border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.5; margin-bottom: 4px; }
+.rik-review-note { background: #F0EFEB; border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.5; margin-bottom: 4px; }
 .rik-traps { display: flex; flex-direction: column; gap: 8px; }
 .rik-trap { background: var(--danger-soft); border-left: 4px solid var(--danger); border-radius: 12px; padding: 14px 16px; font-size: 17.5px; line-height: 1.6; color: var(--ink); }
 /* 6.22.0: на телефоне задания «Ежедневной грамматики» читаются крупнее */
@@ -516,13 +517,13 @@
   .task-card.anim-next { animation: slideNext .3s cubic-bezier(.2,.7,.3,1); }
   .task-card.anim-prev { animation: slidePrev .3s cubic-bezier(.2,.7,.3,1); }
   .app { will-change: transform; }
-  body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background: url('bg.jpg') no-repeat center 25% / cover; opacity: .45; transform: translateZ(0); -webkit-transform: translateZ(0); will-change: transform; }
+  /* 6.47.1: однородный светлый фон — убрали цветную фотографию под карточками */
+  body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: var(--paper); }
   .app { position: relative; z-index: 1; }
 
   /* Стартовый экран */
   #splash { position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,.4)), var(--line) url('bg.jpg') no-repeat center 25% / cover;
+    background: var(--paper);
     transition: opacity .45s ease; }
   #splash.hide { opacity: 0; pointer-events: none; }
   .splash-in { display: flex; flex-direction: column; align-items: center; gap: 30px; transform: translateY(-30px); }
@@ -37068,7 +37069,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.45.0';
+const APP_VER = '6.47.1';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -37106,8 +37107,8 @@ async function syncRequest(path, opts) {
 
 /* ===== 日课 · грамматика HSK 3.0, уровень 3 ===== */
 const RIK_UNITS = [
- { n:1, zh:'把字句', ru:'Что сделали с предметом',
-   rule:'Зачем 把. В китайском после глагола не встают сразу и объект, и место. «放书在桌子上» — нельзя. 把 выносит объект вперёд, и результат спокойно идёт после глагола.\nСхема: подлежащее + 把 + объект + глагол + результат / место / адресат.\n我把书放在桌子上了。Wǒ bǎ shū fàng zài zhuōzi shàng le. — Я положил книгу на стол.\n请把书给我。Qǐng bǎ shū gěi wǒ. — Дай мне книгу, пожалуйста.\nПосле глагола обязательно «что-то»: 在/到 + место, 给 + кому, либо 完/好/干净.\n⚠️ 我把书看 ✗ — нужен результат: 我把书看完了 ✓.\n⚠️ Отрицание перед 把: 我没把门关上 ✓. Объект должен быть определённым.',
+ { n:1, zh:'把字句', ru:'Что делают с предметом: 把',
+   rule:'В китайском нельзя поставить после глагола сразу объект и место: 我放书在桌子上 — ошибка. Поэтому объект выносят вперёд, за 把, а после глагола остаётся то, что с объектом произошло.\nПодлежащее здесь — тот, кто действует. Объект — конкретный, известный из разговора.\nСхема: кто + 把 + объект + глагол + результат.\n我把书放在桌子上了。— Я положил книгу на стол.\n请把书给我。— Дай мне книгу, пожалуйста.\n我把作业做完了。— Я закончил домашнюю работу.\nПосле глагола обязательно указывается результат: место (在/到 + место), адресат (给 + кому) или завершённость (完/好/开/干净). Без этого предложение неполное: 我把书看 — ошибка, нужно 看完了.\nОтрицание и запрет ставятся перед 把: 我没把门关上 · 别把杯子打碎.\nС глаголами состояния и отношения (喜欢, 爱, 怕, 是, 有, 在) 把 не употребляется.',
    ex:[ {zh:'我把书放在桌子上了。', py:'Wǒ bǎ shū fàng zài zhuōzi shàng le.', ru:'Я положил книгу на стол.'},
         {zh:'请把书给我。', py:'Qǐng bǎ shū gěi wǒ.', ru:'Дай мне книгу, пожалуйста.'},
         {zh:'我把手机放在桌子上了。', py:'Wǒ bǎ shǒujī fàng zài zhuōzi shàng le.', ru:'Я положил телефон на стол.'} ],
@@ -37115,8 +37116,8 @@ const RIK_UNITS = [
      {q:'请把水放___桌子上。', opts:['在','给','干净'], a:0},
      {q:'我把照片发___你了。', opts:['在','给','干净'], a:1},
      {q:'他把衣服洗___了。', opts:['干净','在','给'], a:0}] },
- { n:2, zh:'被', ru:'Пассив: что произошло с предметом',
-   rule:'Зачем 被. Когда важно не кто действует, а что случилось с предметом, предмет становится подлежащим: 窗户被风吹开了 — «окно открыло ветром».\nСхема: предмет + 被 + (кто) + глагол + результат.\n他被老师批评了。Tā bèi lǎoshī pīpíng le. — Его отругал учитель.\n我的手机被弟弟拿走了。Wǒ de shǒujī bèi dìdi ná zǒu le. — Мой телефон забрал младший брат.\nЕсли виновник неизвестен — 被 сразу перед глаголом: 我的钱包被偷了 — кошелёк украли.\n⚠️ После глагола нужен результат: 被风吹开了 ✓, 被风吹 ✗.\n⚠️ 被 — про неприятность; для хорошего обычно не говорят.',
+ { n:2, zh:'被', ru:'Что случилось с предметом: 被',
+   rule:'Конструкция с 被 нужна, когда подлежащее — не тот, кто действует, а предмет, на который действие направлено.\nСхема: предмет + 被 + (кто) + глагол + результат.\n我的钱包被偷了。— Кошелёк украли.\n他被老师批评了。— Его отругал учитель.\n杯子被我打碎了。— Чашка разбита мной.\nОдна и та же ситуация в двух конструкциях:\n我把杯子打碎了 — сообщаем, что сделал я: подлежащее «я», в конце результат действия.\n杯子被我打碎了 — сообщаем, что стало с чашкой: подлежащее «чашка».\nПосле глагола, как и с 把, обязателен результат: 被风吹 — ошибка, нужно 被风吹开了.\n被 обычно употребляется, когда речь о неприятности или помехе; о хорошем так не говорят.\nОтрицание ставится перед 被: 我没被他骗.',
    ex:[ {zh:'他被老师批评了。', py:'Tā bèi lǎoshī pīpíng le.', ru:'Его отругал учитель.'},
         {zh:'我的手机被弟弟拿走了。', py:'Wǒ de shǒujī bèi dìdi ná zǒu le.', ru:'Мой телефон забрал брат.'},
         {zh:'这本书被他拿走了。', py:'Zhè běn shū bèi tā ná zǒu le.', ru:'Эту книгу он забрал.'} ],
