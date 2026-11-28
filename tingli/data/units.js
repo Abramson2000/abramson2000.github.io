@@ -6,7 +6,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "1-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -90,7 +89,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "1-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -109,13 +107,13 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "1-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
     "words": [
      {
-      "zh": "两张照片", "py": "liǎngzhāng zhàopiàn",
+      "zh": "两张照片",
+      "py": "liǎngzhāng zhàopiàn",
       "ru": "две фотографии"
      },
      {
@@ -491,7 +489,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "2-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -580,7 +577,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "2-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -604,7 +600,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "2-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -615,7 +610,8 @@ const UNITS = [
       "ru": "не переходить дорогу"
      },
      {
-      "zh": "过了操场就是图书馆", "py": "guòle cāochǎng jiù shì túshūguǎn",
+      "zh": "过了操场就是图书馆",
+      "py": "guòle cāochǎng jiù shì túshūguǎn",
       "ru": "пройти площадку — и библиотека"
      },
      {
@@ -639,7 +635,8 @@ const UNITS = [
       "ru": "напротив книжного — кинотеатр"
      },
      {
-      "zh": "过了路口往东拐", "py": "guòle lùkǒu wǎng dōng guǎi",
+      "zh": "过了路口往东拐",
+      "py": "guòle lùkǒu wǎng dōng guǎi",
       "ru": "за перекрёстком повернуть на восток"
      },
      {
@@ -995,7 +992,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "3-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -1084,7 +1080,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "3-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -1108,7 +1103,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "3-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -1134,7 +1128,8 @@ const UNITS = [
       "ru": "после окончания старшей школы"
      },
      {
-      "zh": "他后来去了日本", "py": "tā hòulái qùle Rìběn",
+      "zh": "他后来去了日本",
+      "py": "tā hòulái qùle Rìběn",
       "ru": "потом он уехал в Японию"
      },
      {
@@ -1495,7 +1490,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "4-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -1584,7 +1578,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "4-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -1608,7 +1601,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "4-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -1619,7 +1611,8 @@ const UNITS = [
       "ru": "очень беспокоиться"
      },
      {
-      "zh": "去了一趟长城", "py": "qùle yítàng Chángchéng",
+      "zh": "去了一趟长城",
+      "py": "qùle yítàng Chángchéng",
       "ru": "съездить на Великую стену"
      },
      {
@@ -2088,7 +2081,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "5-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -2152,7 +2144,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "5-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -2171,7 +2162,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "5-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -2569,7 +2559,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "6-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -2653,7 +2642,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "6-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -2677,7 +2665,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "6-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -3080,7 +3067,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "7-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -3174,7 +3160,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "7-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -3188,7 +3173,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "7-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -3199,7 +3183,8 @@ const UNITS = [
       "ru": "попробуй это блюдо"
      },
      {
-      "zh": "味道好极了", "py": "wèidào hǎojí le",
+      "zh": "味道好极了",
+      "py": "wèidào hǎojí le",
       "ru": "вкус отличный"
      },
      {
@@ -3213,7 +3198,8 @@ const UNITS = [
       "ru": "очень вкусно"
      },
      {
-      "zh": "太咸了", "py": "tàixiánle",
+      "zh": "太咸了",
+      "py": "tàixiánle",
       "ru": "слишком соленый"
      },
      {
@@ -3515,7 +3501,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "8-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -3589,7 +3574,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "8-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -3603,7 +3587,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "8-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -3927,7 +3910,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "9-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -4006,7 +3988,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "9-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -4315,7 +4296,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "10-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -4404,7 +4384,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "10-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -4672,7 +4651,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "11-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -4751,7 +4729,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "11-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -5060,7 +5037,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "12-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -5149,7 +5125,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "12-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -5163,7 +5138,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "12-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -5492,7 +5466,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "13-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -5576,7 +5549,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "13-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -5876,7 +5848,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "14-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -5950,7 +5921,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "14-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -5964,7 +5934,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "14-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -5975,7 +5944,8 @@ const UNITS = [
       "ru": "留作业"
      },
      {
-      "zh": "把手机落在家里了", "py": "bǎshǒu jīluò zàijiā lǐle",
+      "zh": "把手机落在家里了",
+      "py": "bǎshǒu jīluò zàijiā lǐle",
       "ru": "把手机落在家里了"
      },
      {
@@ -5989,7 +5959,8 @@ const UNITS = [
       "ru": "一个U盘"
      },
      {
-      "zh": "太马虎了", "py": "tàimǎ hǔle",
+      "zh": "太马虎了",
+      "py": "tàimǎ hǔle",
       "ru": "太马虎了"
      },
      {
@@ -6239,7 +6210,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "15-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -6333,7 +6303,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "15-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -6352,13 +6321,13 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "15-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
     "words": [
      {
-      "zh": "期中考试就要到了", "py": "qīzhōng kǎoshì jiùyào dàole",
+      "zh": "期中考试就要到了",
+      "py": "qīzhōng kǎoshì jiùyào dàole",
       "ru": "期中考试就要到了"
      },
      {
@@ -6675,7 +6644,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "16-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -6759,7 +6727,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "16-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -6778,7 +6745,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "16-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -7102,7 +7068,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "17-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -7186,7 +7151,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "17-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -7200,7 +7164,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "17-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -7216,7 +7179,8 @@ const UNITS = [
       "ru": "пойти в супермаркет за покупками"
      },
      {
-      "zh": "该去上课了", "py": "gāiqù shàngkè le",
+      "zh": "该去上课了",
+      "py": "gāiqù shàngkè le",
       "ru": "пора идти на занятия"
      },
      {
@@ -7235,7 +7199,8 @@ const UNITS = [
       "ru": "пакет стирального порошка"
      },
      {
-      "zh": "一张纸条", "py": "yīzhāng zhǐtiáo",
+      "zh": "一张纸条",
+      "py": "yīzhāng zhǐtiáo",
       "ru": "записка"
      }
     ]
@@ -7532,7 +7497,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "18-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -7616,7 +7580,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "18-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -7630,7 +7593,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "18-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -7954,7 +7916,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "19-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -8038,7 +7999,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "19-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -8052,7 +8012,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "19-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -8371,7 +8330,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "20-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -8460,7 +8418,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "20-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -8474,7 +8431,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "20-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -8803,7 +8759,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "21-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -8897,7 +8852,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "21-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -8916,7 +8870,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "21-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -9209,7 +9162,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "22-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -9288,7 +9240,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "22-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -9302,7 +9253,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "22-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -9318,7 +9268,8 @@ const UNITS = [
       "ru": "去动物园"
      },
      {
-      "zh": "一张交通卡", "py": "yīzhāng jiāotōng kǎ",
+      "zh": "一张交通卡",
+      "py": "yīzhāng jiāotōng kǎ",
       "ru": "一张交通卡"
      },
      {
@@ -9630,7 +9581,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "23-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -9709,7 +9659,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "23-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -10038,7 +9987,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "24-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -10117,7 +10065,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "24-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -10146,7 +10093,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "24-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -10162,7 +10108,8 @@ const UNITS = [
       "ru": "从来没出过国"
      },
      {
-      "zh": "飞机起飞了", "py": "fēijī qǐfēi le",
+      "zh": "飞机起飞了",
+      "py": "fēijī qǐfēi le",
       "ru": "飞机起飞了"
      },
      {
@@ -10171,7 +10118,8 @@ const UNITS = [
       "ru": "跟家里人一起过年"
      },
      {
-      "zh": "预订了两张飞机票", "py": "yùdìng leliǎng zhāngfēi jīpiào",
+      "zh": "预订了两张飞机票",
+      "py": "yùdìng leliǎng zhāngfēi jīpiào",
       "ru": "预订了两张飞机票"
      },
      {
@@ -10473,7 +10421,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "25-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -10557,7 +10504,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "25-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -10586,7 +10532,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "25-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -10602,11 +10547,13 @@ const UNITS = [
       "ru": "10号车厢"
      },
      {
-      "zh": "一张卧铺票", "py": "yīzhāng wòpù piào",
+      "zh": "一张卧铺票",
+      "py": "yīzhāng wòpù piào",
       "ru": "一张卧铺票"
      },
      {
-      "zh": "两张软座票", "py": "liǎngzhāng ruǎnzuò piào",
+      "zh": "两张软座票",
+      "py": "liǎngzhāng ruǎnzuò piào",
       "ru": "两张软座票"
      },
      {
@@ -10891,7 +10838,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "26-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -10975,7 +10921,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "26-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -10999,13 +10944,13 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "26-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
     "words": [
      {
-      "zh": "找了半天也没有", "py": "zhǎole bàntiān yěméi yǒu",
+      "zh": "找了半天也没有",
+      "py": "zhǎole bàntiān yěméi yǒu",
       "ru": "找了半天也没有"
      },
      {
@@ -11049,7 +10994,8 @@ const UNITS = [
       "ru": "Смотреть телерекламу"
      },
      {
-      "zh": "终于明白了", "py": "zhōngyú míngbái le",
+      "zh": "终于明白了",
+      "py": "zhōngyú míngbái le",
       "ru": "Наконец понял"
      },
      {
@@ -11324,7 +11270,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "27-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -11403,7 +11348,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "27-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -11427,7 +11371,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "27-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -11720,7 +11663,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "28-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -11804,7 +11746,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "28-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -11833,7 +11774,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "28-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -11844,7 +11784,8 @@ const UNITS = [
       "ru": "30集电视剧"
      },
      {
-      "zh": "可生气了", "py": "kěshēng qìle",
+      "zh": "可生气了",
+      "py": "kěshēng qìle",
       "ru": "可生气了"
      },
      {
@@ -11858,7 +11799,8 @@ const UNITS = [
       "ru": "中央电视台第8频道"
      },
      {
-      "zh": "北京队输了", "py": "běijīng duìshū le",
+      "zh": "北京队输了",
+      "py": "běijīng duìshū le",
       "ru": "北京队输了"
      }
     ]
@@ -12146,7 +12088,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "29-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -12225,7 +12166,6 @@ const UNITS = [
    },
    {
     "id": 2,
-    "audio": "29-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
@@ -12254,7 +12194,6 @@ const UNITS = [
    },
    {
     "id": 3,
-    "audio": "29-3.mp3",
     "title": "Фразы",
     "titleZh": "跟读短语",
     "kind": "words",
@@ -12583,7 +12522,6 @@ const UNITS = [
   "parts": [
    {
     "id": 1,
-    "audio": "30-1.mp3",
     "title": "Слова · повторяй вслух",
     "titleZh": "词语 · 跟读生词",
     "kind": "words",
@@ -12662,13 +12600,11 @@ const UNITS = [
       "zh": "一路平安",
       "py": "yílùpíngān",
       "ru": "счастливого пути"
-     },
-
+     }
     ]
    },
    {
     "id": 2,
-    "audio": "30-2.mp3",
     "title": "Имена",
     "titleZh": "跟读专名",
     "kind": "words",
