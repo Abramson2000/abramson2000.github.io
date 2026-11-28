@@ -1,8 +1,8 @@
 /* Tingli 5.95.2: pinned offline shell, durable media, resumable verified downloads. */
-const VERSION = '6.43.0';
+const VERSION = '6.44.0';
 const CACHE = 'tingli-shell-' + VERSION;
 const MEDIA_CACHE = 'tingli-media-v1';
-const MANIFEST = './offline-manifest.5.95.2.json';
+const MANIFEST = './offline-manifest.6.44.0.json';
 const CORE_ASSETS = [
   "./favicon-20261010.ico",
   "./fonts/kai-cn.woff2",
@@ -50,7 +50,7 @@ const CORE_ASSETS = [
   "./offline.5.95.2.js",
   "./writing.5.95.2.js",
   "./writing.5.95.2.css",
-  "./offline-manifest.5.95.2.json"
+  "./offline-manifest.6.44.0.json"
 ];
 const REQUIRED_ASSETS = ['./index.html', './tingli-favicon-32-v3.png', './sync-transport.5.67.0.js', './sync-core.js?v=5.64.0',
   './word-sync.5.64.0.js', './offline.5.95.2.js', './writing.5.95.2.js', './writing.5.95.2.css', MANIFEST, './bg.jpg',
@@ -169,9 +169,26 @@ async function migrateLegacy() {
     if (name !== previous && !failed.has(name)) await caches.delete(name);
   }
 }
+async function pruneOrphanMedia() {
+  // 6.44.0: из кэша убираем аудио, которого больше нет в списке материалов
+  try {
+    const list = await manifest();
+    const keep = new Set(list.media.map(x => canonical(x.url)));
+    const cache = await caches.open(MEDIA_CACHE);
+    let removed = 0;
+    for (const request of await cache.keys()) {
+      const url = new URL(request.url);
+      if (!/\.mp3$/i.test(url.pathname)) continue;
+      if (keep.has(canonical(request))) continue;
+      if (await cache.delete(canonical(request))) removed++;
+    }
+    if (removed) console.info('[tingli] очищено лишних аудио:', removed);
+  } catch (_) {}
+}
 self.addEventListener('activate', event => event.waitUntil((async () => {
   await self.clients.claim();
   await migrateLegacy();
+  await pruneOrphanMedia();
 })()));
 async function serveMedia(request, event) {
   const hit = await mediaHit(request);
