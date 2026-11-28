@@ -37075,7 +37075,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.59.0';
+const APP_VER = '6.60.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -40794,6 +40794,33 @@ let RIK_QUEUE = false;
       const right = shuffled.splice(0, 1)[0];
       shuffled.splice(pos, 0, right);
       return { q: 'Неверно:\n' + it.wrong + '\nКак правильно?', opts: shuffled, a: shuffled.indexOf(right), err: 1 };
+    });
+    u.quiz = items.concat(u.quiz || []);
+  });
+})();
+
+/* 6.60.0: формат из книги 1 — «вставь слово в нужное место» */
+(function rikAddPositionTasks() {
+  const BANK = {
+    'Все: наречие и прилагательное': [
+      { q: 'Куда поставить «也»?\nОн вчера не пришёл.', opts: ['Он вчера тоже не пришёл.', 'Он тоже вчера не пришёл.', 'Он вчера не тоже пришёл.'], a: 0 },
+      { q: 'Куда поставить «都»?\nМы вчера пошли в кино.', opts: ['Мы вчера все пошли в кино.', 'Мы все вчера пошли в кино.', 'Мы вчера пошли все в кино.'], a: 0 }
+    ],
+    'Что делают с предметом: 把': [
+      { q: 'Куда поставить «已经»?\n我把书看完了。', opts: ['我已经把书看完了。', '我把已经书看完了。', '我把书已经看完了。'], a: 0 }
+    ],
+    'Сравнение: 比, 一样, 不比': [
+      { q: 'Куда поставить «一点儿»?\n他比我高。', opts: ['他比我高一点儿。', '他比我一点儿高。', '他一点儿比我高。'], a: 0 }
+    ],
+    'Опыт: уже бывало': [
+      { q: 'Куда поставить «过»?\n我去北京。', opts: ['我去过北京。', '我过去北京。', '我去北京过。'], a: 0 }
+    ]
+  };
+  Object.keys(BANK).forEach(function (ru) {
+    const u = RIK_UNITS.find(x => x.ru === ru);
+    if (!u) return;
+    const items = BANK[ru].map(function (it) {
+      return { q: it.q, opts: it.opts, a: it.a, err: 1 };
     });
     u.quiz = items.concat(u.quiz || []);
   });
