@@ -37075,7 +37075,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.58.0';
+const APP_VER = '6.59.0';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -40721,6 +40721,64 @@ let RIK_QUEUE = false;
         { wrong: '这台机器两多天就修好了。', right: '这台机器两天多就修好了。' }
       ],
       extra: ['没关系，你的病一会儿以后会治好的。']
+    }
+  };
+
+  Object.keys(BANK).forEach(function (ru) {
+    const u = RIK_UNITS.find(x => x.ru === ru);
+    if (!u) return;
+    const bank = BANK[ru];
+    const wrongs = bank.items.map(i => i.wrong).concat(bank.extra || []);
+    const items = bank.items.map(function (it) {
+      const opts = [it.right].concat(wrongs.filter(w => w !== it.wrong)).slice(0, 3);
+      const pos = (it.wrong.length + it.right.length) % 3;
+      const shuffled = opts.slice();
+      const right = shuffled.splice(0, 1)[0];
+      shuffled.splice(pos, 0, right);
+      return { q: 'Неверно:\n' + it.wrong + '\nКак правильно?', opts: shuffled, a: shuffled.indexOf(right), err: 1 };
+    });
+    u.quiz = items.concat(u.quiz || []);
+  });
+})();
+
+/* 6.59.0: последняя порция заданий «найди ошибку» из книги 3 */
+(function rikAddErrorTasks3() {
+  const BANK = {
+    'По отношению к: 对于': {
+      items: [
+        { wrong: '他对于我们很热情。', right: '他对我们很热情。' },
+        { wrong: '我们要对于这个问题进行研究。', right: '我们要对这个问题进行研究。' },
+        { wrong: '对于去南方旅行的路线，我想听听大家的意见。', right: '关于去南方旅行的路线，我想听听大家的意见。' }
+      ],
+      extra: ['他们都对于这件事感兴趣。']
+    },
+    'Два действия сразу': {
+      items: [
+        { wrong: '快走吧，大家已经正等着你呢。', right: '快走吧，大家正等着你呢。' },
+        { wrong: '运动场上站着很多人的。', right: '运动场上站着很多人。' }
+      ],
+      extra: ['老师让我把课文接着念。']
+    },
+    'Как действие выполнено: V + 得': {
+      items: [
+        { wrong: '同学很高高兴兴地走出教室去了。', right: '同学高高兴兴地走出教室去了。' },
+        { wrong: '车一停，他很快地车上跑下来。', right: '车一停，他很快地从车上跑下来。' }
+      ],
+      extra: ['让我们高高兴兴地过个节。']
+    },
+    'Сей · никогда · вновь · а': {
+      items: [
+        { wrong: '这件毛衣样子不是不好看，而是颜色不好。', right: '这件毛衣不是样子不好看，而是颜色不好。' },
+        { wrong: '水变成冰时，不但体积不收缩，反而膨胀。', right: '水变成冰时，体积不但不收缩，反而膨胀。' }
+      ],
+      extra: ['现在是春天了，天气不但不暖和，反而不冷。']
+    },
+    'Так и сделай · но · и притом': {
+      items: [
+        { wrong: '玛丽和安娜来了，你问问她。', right: '玛丽和安娜来了，你问问她们。' },
+        { wrong: '人民们对这新生事物表现了极大兴趣和热情。', right: '人们对这新生事物表现了极大兴趣和热情。' }
+      ],
+      extra: ['每一事物与周围其他事物都联系着和互相影响。']
     }
   };
 
