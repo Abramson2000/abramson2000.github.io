@@ -1096,6 +1096,21 @@ body.in-unit img, body.in-unit audio, body.in-unit video { max-width:100% !impor
   .hw-page .hw-item{ padding:10px !important; }
   .hw-page .hw-ex-btn{ width:34px; }
 }
+
+/* 6.41.13: экран «Мои ошибки» */
+.rik-mis-open{display:flex;align-items:center;gap:8px;width:calc(100% - 8px);margin:0 4px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.rik-mis-open b{color:#b3261e}
+.rik-mis-open .rik-due-go{margin-left:auto;font-weight:600}
+.rik-mis-list{padding:0 4px 16px}
+.rik-mis-row{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:var(--card)}
+.rik-mis-top{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-bottom:4px}
+.rik-mis-n{font-weight:700;color:#b3261e}
+.rik-mis-q{font-size:15px;line-height:1.35;margin-bottom:6px}
+.rik-mis-a{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
+.rik-mis-bad{color:#b3261e;text-decoration:line-through}
+.rik-mis-arr{color:var(--muted)}
+.rik-mis-good{color:#1f7a45;font-weight:600}
+.rik-mis-date{margin-left:auto;color:var(--muted);font-size:12px}
 </style>
 <style id="hw-centering-5953">
 /* ДЗ: вертикальная центровка текста и иконок внутри плашек и кнопок.
@@ -37146,7 +37161,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.41.12';
+const APP_VER = '6.41.13';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -40308,6 +40323,65 @@ function rikQueueNext() {                       // следующий повто
   rikBackToList(true);
   return false;
 }
+/* 6.41.13: журнал ошибок по каждому вопросу — видно, какие пары путаются */
+const RIK_MIS_KEY = 'rik_mistakes_v1';
+function rikMisLoad() {
+  try { return JSON.parse(localStorage.getItem(RIK_MIS_KEY) || '{}') || {}; } catch (e) { return {}; }
+}
+function rikMisSave(m) {
+  try { localStorage.setItem(RIK_MIS_KEY, JSON.stringify(m)); } catch (e) {}
+}
+function rikMisKey(unitN, qText) { return unitN + '|' + String(qText || '').replace(/\s+/g, ' ').trim().slice(0, 120); }
+function rikMisAdd(unitN, topic, qText, chosen, right) {
+  const m = rikMisLoad();
+  const k = rikMisKey(unitN, qText);
+  const rec = m[k] || { u: unitN, t: topic || '', q: String(qText || ''), chosen: '', right: '', n: 0, last: 0 };
+  rec.chosen = chosen || '';
+  rec.right = right || '';
+  rec.n = (rec.n || 0) + 1;
+  rec.last = Date.now();
+  m[k] = rec;
+  // держим последние 400 записей
+  const keys = Object.keys(m).sort((a, b) => (m[b].last || 0) - (m[a].last || 0));
+  keys.slice(400).forEach(k2 => { delete m[k2]; });
+  rikMisSave(m);
+}
+function rikMisClear() {
+  if (!confirm('Очистить журнал ошибок?')) return;
+  rikMisSave({});
+  renderRik();
+  toast('Журнал ошибок очищен');
+}
+function rikMisCount() { return Object.keys(rikMisLoad()).length; }
+function ruDateShortLocal(ms) {
+  const d = new Date(ms || 0);
+  return ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2);
+}
+function renderRikMistakes() {
+  showTabbar(true); partAudioKey = null; showPlayer(false);
+  window.RIK_OPEN = false;
+  const m = rikMisLoad();
+  const rows = Object.keys(m).map(k => m[k]).sort((a, b) => (b.n - a.n) || (b.last - a.last));
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="topbar">
+      <button class="rik-back" onclick="renderRik()" aria-label="Назад">‹</button>
+      <div class="top-title" style="font-family:'Zhi Mang Xing',serif">错题</div><div class="sub">Мои ошибки</div>
+    </div>
+    <div style="padding:0 4px 10px;font-size:13px;color:var(--ink-2)">
+      ${rows.length ? `Всего разных ошибок <b style="color:var(--ink)">${rows.length}</b> · всего промахов <b style="color:var(--ink)">${rows.reduce((s, r) => s + (r.n || 0), 0)}</b>` : 'Журнал пуст — пока ошибок нет.'}
+    </div>
+    ${rows.length ? `<div style="padding:0 4px 10px"><button class="rik-due" style="width:100%;text-align:center" onclick="rikMisClear()">Очистить журнал</button></div>` : ''}
+    <div class="rik-mis-list">
+      ${rows.map(r => `
+        <div class="rik-mis-row">
+          <div class="rik-mis-top"><span class="rik-mis-unit">Урок ${r.u}${r.t ? ' · ' + esc(r.t) : ''}</span><span class="rik-mis-n">×${r.n}</span></div>
+          <div class="rik-mis-q">${esc(r.q)}</div>
+          <div class="rik-mis-a"><span class="rik-mis-bad">${esc(r.chosen || '—')}</span><span class="rik-mis-arr">→</span><span class="rik-mis-good">${esc(r.right || '—')}</span><span class="rik-mis-date">${ruDateShortLocal(r.last)}</span></div>
+        </div>`).join('')}
+    </div>`;
+}
+
 function renderRik() {
 
   RIK_QUEUE = false;                              // вернулись к списку — очередь повторов сброшена
@@ -40360,6 +40434,7 @@ function renderRik() {
       ? `Уроков в курсе <b style="color:var(--ink)">${RIK_UNITS.length}</b> · открыт любой`
       : `Пройдено <b style="color:var(--ink)">${done}</b> из ${RIK_UNITS.length} · сегодня <b style="color:var(--ink)">${todayDone}</b> из ${RIK_PER_DAY}${reviewDone ? ` · повтор <b style="color:var(--ink)">${reviewDone}</b>` : ''}`}</div>
     ${RIK_BETA ? '<div class="rik-due" style="background:var(--ochre-soft);color:var(--ochre-ink)">Бета для проверки курса: открыт любой урок, порядок и лимиты не действуют. Ваш прогресс хранится отдельно и не влияет на статистику автора.</div>' : ''}
+    ${rikMisCount() ? `<button class="rik-mis-open" onclick="renderRikMistakes()">Мои ошибки: <b>${rikMisCount()}</b><span class="rik-due-go">Открыть ›</span></button>` : ''}
     ${rikReviewDue(p).length ? '<button class="rik-due" onclick="rikQueueStart()">Сначала повторы: ' + rikReviewDue(p).length + (rikReviewDue(p).length === 1 ? ' урок' : ' урока') + '. Новые откроются после них.<span class="rik-due-go">Начать ›</span></button>' : ''}
     ${rows}`;
 }
@@ -40534,6 +40609,8 @@ function rikCheck(n) {
     if (!ok && RIK_ANS[qi] != null) {
       const bad = document.querySelector('[data-pick="' + qi + ':' + RIK_ANS[qi] + '"]');
       if (bad) bad.classList.add('wrong');
+      // 6.41.13: пишем в журнал ошибок — вопрос, выбранное и верное
+      try { rikMisAdd(n, u.zh, q.q, (q.opts || [])[RIK_ANS[qi]], (q.opts || [])[q.a]); } catch (_) {}
     }
   });
   const need = Math.ceil(quiz.length * 0.8);        // 4 из 5
