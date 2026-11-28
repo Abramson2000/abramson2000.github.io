@@ -2693,7 +2693,7 @@ function applyAccent() {
 
 // ---------- деньги ----------
 const MONEY_YEARS = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const APP_VER = '6.18.3';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
+const APP_VER = '6.19.0';  // при подъёме версии поднять и APP_CACHE в sw.js  // 3.0.0 — Справочники; 2-я цифра — структура таблиц; 3-я — добавление данных
 const HUGEMED_YEARS = ['2025', '2026'];  // HugeMed продажи только с 2025
 const YEAR_OPTIONS = MONEY_YEARS;
 function curYear() { return String(new Date().getFullYear()); }
@@ -5792,6 +5792,34 @@ async function renderVisits() {
     .filter(p => p.date && passMgr(p) && match(byId[p.clinic_id] || p.city || ''))
     .sort((a, b) => String(a.date).localeCompare(String(b.date)));
 
+  // 6.19.0: одна поездка — один город, одни участники, пересекающиеся даты.
+  // Так Иваново (ОКБ + ГКБ №7) показывается одной строкой, а не двумя.
+  const groupTrips = (list) => {
+    const out = [], used = new Set();
+    list.forEach(p => {
+      if (used.has(p.noteId)) return;
+      used.add(p.noteId);
+      const city = String(p.city || '').trim().toLowerCase();
+      const parts = (p.participants || []).map(canonManager).filter(Boolean).sort().join(',');
+      const items = [p];
+      list.forEach(q => {
+        if (used.has(q.noteId)) return;
+        if (String(q.city || '').trim().toLowerCase() !== city) return;
+        const p2 = (q.participants || []).map(canonManager).filter(Boolean).sort().join(',');
+        if (p2 !== parts) return;
+        const a1 = String(p.date).slice(0, 10), b1 = visitEnd(p);
+        const a2 = String(q.date).slice(0, 10), b2 = visitEnd(q);
+        if (b1 < a2 || b2 < a1) return;                      // даты не пересекаются — разные поездки
+        items.push(q); used.add(q.noteId);
+      });
+      const from = items.map(x => String(x.date).slice(0, 10)).sort()[0];
+      const to = items.map(x => visitEnd(x)).sort().slice(-1)[0];
+      out.push({ main: p, items, from, to });
+    });
+    return out;
+  };
+  const pastG = groupTrips(visitRows.filter(p => visitEnd(p) < today));
+  const futureG = groupTrips(visitRows.filter(p => visitEnd(p) >= today));
   const past = visitRows.filter(p => visitEnd(p) < today);
   const future = visitRows.filter(p => visitEnd(p) >= today);
 
@@ -5845,12 +5873,15 @@ async function renderVisits() {
       return t + (city && !dup && !/^москва$/i.test(city) ? ' · ' + city : '');
     };
     const evs = [];
-    visitRows.forEach(p => {
-      const a0 = String(p.date).slice(0, 10), b0 = visitEnd(p);
+    groupTrips(visitRows).forEach(g => {
+      const p = g.main;
+      const a0 = g.from, b0 = g.to;
       const a = a0 < monthStart ? monthStart : a0;
       const b = b0 > monthEnd ? monthEnd : b0;
       if (a > b) return;
-      evs.push({ a, b, noteId: p.noteId, title: labelOf(p), cls: (b0 < today) ? 'past' : 'now' });
+      const extra = (g.items.length > 1) ? (g.items.map(x => byId[x.clinic_id]).filter(Boolean).join(' + ')) : '';
+      const title = extra || labelOf(p);
+      evs.push({ a, b, noteId: p.noteId, title, cls: (b0 < today) ? 'past' : 'now' });
     });
     // 5.11.0: в календаре идеи тоже подчиняются фильтру по менеджеру
     // v6.16.0: дубли «идея + визит» на одни и те же даты не рисуем (идея остаётся в базе)
@@ -5927,10 +5958,15 @@ async function renderVisits() {
   }
 
   // ---- список: прошедшие и предстоящие ----
-  const rowHtml = (p, isPast) => `<div class="card list-row${isPast ? ' visit-past' : ''}"${isPast ? ' style="box-shadow:inset 4px 0 0 #93a1a9"' : ''} data-visit="${p.noteId}">
-      <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(visitRange(p))}</span></div>
-      <div class="row-why"><b>${esc(String(p.city || '').trim() || 'без города')}</b></div>
-      <div class="row-why">${byId[p.clinic_id] ? esc(byId[p.clinic_id]) : '&nbsp;'}</div>
+  const rowHtml = (g, isPast) => {
+    const p = g.main, items = g.items || [p];
+    const clinics = items.map(x => byId[x.clinic_id]).filter(Boolean);
+    const range = (g.from && g.to && g.from !== g.to) ? (fmtDate(g.from) + ' — ' + fmtDate(g.to)) : visitRange(p);
+    const tripIds = items.map(x => x.noteId).join(',');
+    return `<div class="card list-row${isPast ? ' visit-past' : ''}"${isPast ? ' style="box-shadow:inset 4px 0 0 #93a1a9"' : ''} data-visit="${p.noteId}" data-trip="${tripIds}">
+      <div class="list-row-top"><span class="rn-wrap"><span class="visit-title-sm">${esc(visitTitleOf(p))}</span></span><span class="row-next">${esc(range)}</span></div>
+      <div class="row-why"><b>${esc(String(p.city || '').trim() || 'без города')}</b>${items.length > 1 ? ' · ' + items.length + ' клиники' : ''}</div>
+      <div class="row-why">${clinics.length ? esc(clinics.join(' + ')) : '&nbsp;'}</div>
       <div class="row-why">${(() => {
         const parts = (p.participants || []).map(canonManager).filter(Boolean);
         const mgr = String(mgrById[p.clinic_id] || '').trim();
@@ -5939,6 +5975,7 @@ async function renderVisits() {
         return (uniq.length ? 'Участники: ' + esc(uniq.join(', ')) : 'Участники: —') + ((p.people || []).length ? ' · врачей: ' + p.people.length : '');
       })()}</div>
     </div>`;
+  };
   // 4.67.0: самовосстановление — если фильтр по менеджеру спрятал все визиты,
   // показываем это прямо и даём одну кнопку, чтобы вернуть список
   const hiddenByFilter = (MGR_FILTER && !future.length && !past.length && (plans || []).length && !sV);
@@ -5948,10 +5985,10 @@ async function renderVisits() {
   const listHtml = (VISITS_UI.mode === 'cal') ? '' :
     hiddenHtml + `<div class="md-gap">
       <div class="md-sec">Планы · предстоящие поездки · <b>${future.length}</b></div>
-      ${future.length ? `<div class="list visits-list">${future.map(p => rowHtml(p, false)).join('')}</div>` : '<div class="empty">Предстоящих поездок нет.</div>'}
+      ${futureG.length ? `<div class="list visits-list">${futureG.map(g => rowHtml(g, false)).join('')}</div>` : '<div class="empty">Предстоящих поездок нет.</div>'}
       ${past.length ? `<div class="visits-sep"><span>сегодня · ${fmtDate(today)}</span></div>
-        <div class="md-sec" style="margin-top:6px">Прошедшие · <b>${past.length}</b></div>
-        <div class="list visits-list">${past.slice().reverse().map(p => rowHtml(p, true)).join('')}</div>` : ''}
+        <div class="md-sec" style="margin-top:6px">Прошедшие · <b>${pastG.length}</b></div>
+        <div class="list visits-list">${pastG.slice().reverse().map(g => rowHtml(g, true)).join('')}</div>` : ''}
     </div>`;
 
   // идеи визитов — одна сущность: месяц, точные даты не обязательны
@@ -6089,6 +6126,20 @@ async function renderVisits() {
   // 5.7.0: плашка визита открывает окно редактирования — кнопок на плашке больше нет
   view.querySelectorAll('[data-visit]').forEach(el => el.addEventListener('click', async (e) => {
     if (e.target.closest('button')) return;
+    const ids = String(el.dataset.trip || '').split(',').map(Number).filter(Boolean);
+    const group = ids.map(id => plans.find(x => Number(x.noteId) === id)).filter(Boolean);
+    if (group.length > 1) {                       // 6.19.0: одна поездка, несколько клиник — выбираем
+      openModal('Поездка · ' + (group[0].city || ''),
+        '<div class="list">' + group.map(p => `<div class="card list-row" data-open-visit="${p.noteId}" style="cursor:pointer">
+            <div class="list-row-top"><span class="list-row-name">${esc(byId[p.clinic_id] || 'клиника')}</span></div>
+            <div class="list-row-sub">${esc(visitRange(p))}</div></div>`).join('') + '</div>');
+      document.querySelectorAll('[data-open-visit]').forEach(row => row.addEventListener('click', async () => {
+        const p = plans.find(x => Number(x.noteId) === Number(row.dataset.openVisit));
+        closeModal();
+        if (p) await openVisitCard(p);
+      }));
+      return;
+    }
     const plan = plans.find(x => Number(x.noteId) === Number(el.dataset.visit));
     if (plan) await openVisitCard(plan);   // 5.20.0: карточка визита с результатами
   }));
