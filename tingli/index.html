@@ -37075,7 +37075,7 @@ const favKey = (u, part, ti) => u.unit + ':' + part.id + ':' + ti;
 const isFav = (u, part, ti) => loadFavs().includes(favKey(u, part, ti));
 const favKeyPart = (u, part) => u.unit + ':' + part.id;
 const isFavPart = (u, part) => loadFavs().includes(favKeyPart(u, part));
-const APP_VER = '6.52.0';
+const APP_VER = '6.52.1';
 /* 6.10.0: бета-режим для показа курса постороннему — ?beta=1
    всё открыто, свой ключ прогресса, в статистику владельца не пишет */
 const RIK_BETA = (function () {
@@ -40687,7 +40687,8 @@ function openRik(n, review) {
   RIK_REVIEW = !!(review && isDone);
   window.RIK_OPEN = true;
   document.body.classList.add('rik-on');
-  const RIK_PHOTO = { 1: .30, 2: .18, 3: .10 };
+  // тест прозрачности фона: первые три урока списка (они у Саши уже пройдены)
+  const RIK_PHOTO = { 1: .30, 3: .18, 4: .10 };   // 过, 状态补语, 把字句
   if (RIK_PHOTO[n] != null) document.body.style.setProperty('--bg-photo', String(RIK_PHOTO[n]));
   else document.body.style.removeProperty('--bg-photo');
   RIK_ANS = {};
